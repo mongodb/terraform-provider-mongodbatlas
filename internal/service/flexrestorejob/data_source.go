@@ -29,7 +29,7 @@ type ds struct {
 }
 
 func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = conversion.DataSourceSchemaFromResource(DataSourceSchema(ctx), &conversion.DataSourceSchemaRequest{
+	resp.Schema = conversion.DataSourceSchemaFromResource(DataSourceSchema(), &conversion.DataSourceSchemaRequest{
 		RequiredFields: []string{"project_id", "name", "restore_job_id"},
 	})
 }

@@ -1,8 +1,6 @@
 package mongodbemployeeaccessgrant
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -10,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 )
 
-func ResourceSchema(ctx context.Context) schema.Schema {
+func ResourceSchema() schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"project_id": schema.StringAttribute{

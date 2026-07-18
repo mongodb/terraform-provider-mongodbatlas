@@ -26,7 +26,6 @@ import (
 
 const (
 	errorCreate                  = "error creating cloud provider access %s"
-	errorUpdate                  = "error updating cloud provider access %s"
 	errorDelete                  = "error deleting cloud provider access %s"
 	errorImporter                = "error importing cloud provider access %v"
 	ErrorGetRead                 = "error reading cloud provider access %s"

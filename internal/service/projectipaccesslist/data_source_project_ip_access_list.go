@@ -115,14 +115,7 @@ func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadReq
 		return
 	}
 
-	accessListEntry, diagnostic := NewTfProjectIPAccessListDSModel(ctx, accessList)
-	resp.Diagnostics.Append(diagnostic...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	accessListEntry := NewTfProjectIPAccessListDSModel(accessList)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &accessListEntry)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }

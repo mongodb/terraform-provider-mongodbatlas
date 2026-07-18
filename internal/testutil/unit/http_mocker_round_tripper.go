@@ -25,7 +25,6 @@ func NewMockRoundTripper(t *testing.T, config *MockHTTPDataConfig, data *MockHTT
 	tracker := newMockRoundTripper(t, data)
 	if config != nil {
 		tracker.allowMissingRequests = config.AllowMissingRequests
-		tracker.allowOutOfOrder = config.AllowOutOfOrder
 		tracker.manualRequestHandler = config.RequestHandler
 	}
 	for _, method := range []string{"GET", "POST", "PUT", "DELETE", "PATCH"} {
@@ -72,7 +71,6 @@ type MockRoundTripper struct {
 	currentStepIndex     int
 	mu                   sync.Mutex
 	allowMissingRequests bool
-	allowOutOfOrder      bool
 	logRequests          bool
 }
 
@@ -83,14 +81,10 @@ func (r *MockRoundTripper) IncreaseStepNumberAndInit() {
 }
 
 func (r *MockRoundTripper) canReturnResponse(responseIndex int) bool {
-	isAfter := responseIndex > r.diffResponseIndex
-	if r.allowOutOfOrder && isAfter {
-		r.t.Logf("allowwingOutOfOrder: response_index=%d is after nextDiffResponse=%d", responseIndex, r.diffResponseIndex)
-	}
-	return r.allowOutOfOrder || !isAfter
+	return responseIndex <= r.diffResponseIndex
 }
 
-func (r *MockRoundTripper) allowReUse(req *RequestInfo) bool {
+func allowReUse(req *RequestInfo) bool {
 	isGet := req.Method == http.MethodGet
 	customReReadOk := req.Method == http.MethodPost && strings.HasSuffix(req.Path, ":validate")
 	return isGet || customReReadOk
@@ -255,17 +249,17 @@ func (r *MockRoundTripper) matchRequest(method, version, payload string, reqURL 
 		requestID := request.id()
 		nextIndex := r.usedResponses[requestID]
 		if nextIndex >= len(request.Responses) {
-			if r.allowReUse(&request) {
+			if allowReUse(&request) {
 				nextIndex = len(request.Responses) - 1
 			} else {
 				continue
 			}
 		}
 		response := request.Responses[nextIndex]
-		// cannot return a response that is sent after a diff response, unless it is a diff or we ignore order with allowOutOfOrder
+		// A non-diff response cannot be returned before the next diff response.
 		if !isDiff && !r.canReturnResponse(response.ResponseIndex) {
 			prevIndex := nextIndex - 1
-			if prevIndex >= 0 && r.allowReUse(&request) {
+			if prevIndex >= 0 && allowReUse(&request) {
 				r.reReadCounter++
 				if r.reReadCounter > 20 {
 					return "", 0, fmt.Errorf("stuck in a loop trying to re-read the same request: %s %s %s", method, version, reqURL.Path)

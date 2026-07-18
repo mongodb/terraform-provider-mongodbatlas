@@ -362,7 +362,7 @@ func callAPIWithoutBody(ctx context.Context, client *config.MongoDBClient, callP
 // callDelete makes a DELETE request to the API, supporting both requests with and without a body.
 // Returns nil if the resource is not found (already deleted).
 func callDelete(ctx context.Context, req *HandleDeleteReq) error {
-	callResult := callDeleteWithHooks(ctx, req.Client, *req.CallParams, req, req.Hooks)
+	callResult := callDeleteWithHooks(ctx, *req.CallParams, req, req.Hooks)
 	if notFound(callResult.Body, callResult.Resp) { // Resource is already deleted, don't fail.
 		return nil
 	}
@@ -464,7 +464,7 @@ func callReadWithHooksWithOptions(ctx context.Context, client *config.MongoDBCli
 	return callResult
 }
 
-func callDeleteWithHooks(ctx context.Context, client *config.MongoDBClient, callParams config.APICallParams, req *HandleDeleteReq, hooks any) APICallResult {
+func callDeleteWithHooks(ctx context.Context, callParams config.APICallParams, req *HandleDeleteReq, hooks any) APICallResult {
 	var modifiedParams = callParams
 	if preDeleteHook, ok := hooks.(PreDeleteAPICallHook); ok {
 		modifiedParams = preDeleteHook.PreDeleteAPICall(callParams)

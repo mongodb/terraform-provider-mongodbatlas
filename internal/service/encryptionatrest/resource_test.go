@@ -349,7 +349,7 @@ func TestHandleGcpKmsConfig(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			encryptionatrest.HandleGcpKmsConfig(t.Context(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
+			encryptionatrest.HandleGcpKmsConfig(tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
 			assert.Equal(t, tc.expectedEarResult, tc.earRSNew, "result did not match expected output")
 		})
 	}
@@ -401,7 +401,7 @@ func TestHandleAwsKmsConfigDefaults(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			encryptionatrest.HandleAwsKmsConfigDefaults(t.Context(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
+			encryptionatrest.HandleAwsKmsConfigDefaults(tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
 			assert.Equal(t, tc.expectedEarResult, tc.earRSNew, "result did not match expected output")
 		})
 	}
@@ -453,7 +453,7 @@ func TestHandleAzureKeyVaultConfigDefaults(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			encryptionatrest.HandleAzureKeyVaultConfigDefaults(t.Context(), tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
+			encryptionatrest.HandleAzureKeyVaultConfigDefaults(tc.earRSCurrent, tc.earRSNew, tc.earRSConfig)
 			assert.Equal(t, tc.expectedEarResult, tc.earRSNew, "result did not match expected output")
 		})
 	}

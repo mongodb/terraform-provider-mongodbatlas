@@ -27,7 +27,7 @@ type projectIPAddressesDS struct {
 }
 
 func (d *projectIPAddressesDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = DataSourceSchema(ctx)
+	resp.Schema = DataSourceSchema()
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 

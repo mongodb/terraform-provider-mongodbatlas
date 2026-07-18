@@ -18,9 +18,9 @@ const (
 func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, containerIDs map[string]string) *TFModel {
 	biConnector := newBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := newConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
-	labels := newLabelsObjType(ctx, diags, input.Labels)
+	labels := newLabelsObjType(diags, input.Labels)
 	replicationSpecs := newReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
-	tags := newTagsObjType(ctx, diags, input.Tags)
+	tags := newTagsObjType(diags, input.Tags)
 	pinnedFCV := newPinnedFCVObjType(ctx, input, diags)
 	if diags.HasError() {
 		return nil
@@ -98,7 +98,7 @@ func newConnectionStringsObjType(ctx context.Context, input *admin.ClusterConnec
 	return objType
 }
 
-func newLabelsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]admin.ComponentLabel) types.Map {
+func newLabelsObjType(diags *diag.Diagnostics, input *[]admin.ComponentLabel) types.Map {
 	elms := make(map[string]string)
 	if input != nil {
 		for _, item := range *input {
@@ -110,7 +110,7 @@ func newLabelsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]adm
 			elms[key] = value
 		}
 	}
-	return conversion.ToTFMapOfString(ctx, diags, elms)
+	return conversion.ToTFMapOfString(diags, elms)
 }
 
 func newReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) types.List {
@@ -167,7 +167,7 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 		containerIDs := selectContainerIDs(&item, containerIDs)
 		tfModels[i] = TFReplicationSpecsModel{
 			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
-			ContainerId:   conversion.ToTFMapOfString(ctx, diags, containerIDs),
+			ContainerId:   conversion.ToTFMapOfString(diags, containerIDs),
 			RegionConfigs: regionConfigs,
 			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
 			ZoneName:      types.StringValue(conversion.SafeValue(item.ZoneName)),
@@ -197,14 +197,14 @@ func selectContainerIDs(spec *admin.ReplicationSpec20240805, allIDs map[string]s
 	return containerIDs
 }
 
-func newTagsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]admin.ResourceTag) types.Map {
+func newTagsObjType(diags *diag.Diagnostics, input *[]admin.ResourceTag) types.Map {
 	elms := make(map[string]string)
 	if input != nil {
 		for _, item := range *input {
 			elms[item.GetKey()] = item.GetValue()
 		}
 	}
-	return conversion.ToTFMapOfString(ctx, diags, elms)
+	return conversion.ToTFMapOfString(diags, elms)
 }
 
 func newPrivateEndpointObjType(ctx context.Context, input *[]admin.ClusterDescriptionConnectionStringsPrivateEndpoint, diags *diag.Diagnostics) types.List {

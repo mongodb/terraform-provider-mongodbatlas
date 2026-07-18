@@ -1013,7 +1013,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	// Get the snapshot policy and set the data
-	snapshotBackupPolicy, err := flattenCloudProviderSnapshotBackupPolicy(ctx, d, conn, projectID, clusterName)
+	snapshotBackupPolicy, err := flattenCloudProviderSnapshotBackupPolicy(ctx, conn, projectID, clusterName)
 	if err != nil {
 		return diag.FromErr(err)
 	}

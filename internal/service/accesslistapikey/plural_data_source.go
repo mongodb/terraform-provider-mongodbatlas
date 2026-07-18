@@ -84,7 +84,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(fmt.Errorf("error getting access list api keys information: %s", err))
 	}
 
-	if err := d.Set("results", flattenAccessListAPIKeys(ctx, orgID, accessListAPIKeys.GetResults())); err != nil {
+	if err := d.Set("results", flattenAccessListAPIKeys(accessListAPIKeys.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
@@ -93,7 +93,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	return nil
 }
 
-func flattenAccessListAPIKeys(ctx context.Context, orgID string, list []admin.UserAccessListResponse) []map[string]any {
+func flattenAccessListAPIKeys(list []admin.UserAccessListResponse) []map[string]any {
 	results := make([]map[string]any, len(list))
 	for k, elm := range list {
 		results[k] = map[string]any{

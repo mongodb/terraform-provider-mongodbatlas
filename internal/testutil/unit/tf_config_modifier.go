@@ -9,21 +9,15 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 )
 
-type TFConfigReplacementType int
-
-const (
-	TFConfigReplacementString TFConfigReplacementType = iota
-)
-
 // Current assumption, variable name must match API Spec Path Param name
-var variableAttributes = map[string]func(string, string) string{
-	"name": func(resourceName string, attrName string) string {
+var variableAttributes = map[string]func(string) string{
+	"name": func(resourceName string) string {
 		return shortName(resourceName) + "Name"
 	},
-	"org_id": func(resourceName string, attrName string) string {
+	"org_id": func(_ string) string {
 		return "orgId"
 	},
-	"project_id": func(resourceName string, attrName string) string {
+	"project_id": func(_ string) string {
 		return "groupId"
 	},
 }
@@ -44,7 +38,7 @@ func ExtractConfigVariables(t *testing.T, config string) map[string]string {
 			if !ok {
 				continue
 			}
-			varName := varNameFunc(resource.Labels()[0], name)
+			varName := varNameFunc(resource.Labels()[0])
 			varValue := extractStringValue(attr.BuildTokens(nil))
 			if varValue != "" {
 				vars[varName] = varValue

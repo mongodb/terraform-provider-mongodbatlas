@@ -14,7 +14,7 @@ func NewTFModel(ctx context.Context, input *admin.ApiAtlasResourcePolicy) (*TFMo
 	diags := &diag.Diagnostics{}
 	createdByUser := NewUserMetadataObjectType(ctx, input.CreatedByUser, diags)
 	lastUpdatedByUser := NewUserMetadataObjectType(ctx, input.LastUpdatedByUser, diags)
-	policies := NewTFPolicies(ctx, input.Policies, diags)
+	policies := NewTFPolicies(input.Policies)
 	if diags.HasError() {
 		return nil, *diags
 	}
@@ -46,7 +46,7 @@ func NewUserMetadataObjectType(ctx context.Context, input *admin.ApiAtlasUserMet
 	return objType
 }
 
-func NewTFPolicies(ctx context.Context, input *[]admin.ApiAtlasPolicy, diags *diag.Diagnostics) []TFPolicyModel {
+func NewTFPolicies(input *[]admin.ApiAtlasPolicy) []TFPolicyModel {
 	var nilPointer *[]admin.ApiAtlasPolicy
 	if input == nilPointer {
 		return []TFPolicyModel{}
@@ -61,7 +61,7 @@ func NewTFPolicies(ctx context.Context, input *[]admin.ApiAtlasPolicy, diags *di
 	return tfModels
 }
 
-func NewAdminPolicies(ctx context.Context, input []TFPolicyModel) []admin.ApiAtlasPolicyCreate {
+func NewAdminPolicies(input []TFPolicyModel) []admin.ApiAtlasPolicyCreate {
 	apiModels := make([]admin.ApiAtlasPolicyCreate, len(input))
 	for i, item := range input {
 		apiModels[i] = admin.ApiAtlasPolicyCreate{

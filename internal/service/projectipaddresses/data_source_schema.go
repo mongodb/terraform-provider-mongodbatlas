@@ -1,14 +1,12 @@
 package projectipaddresses
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func DataSourceSchema(ctx context.Context) schema.Schema {
+func DataSourceSchema() schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"project_id": schema.StringAttribute{
@@ -73,11 +71,6 @@ type TFClusterValueModel struct {
 	FutureInbound  types.List   `tfsdk:"future_inbound"`
 	FutureOutbound types.List   `tfsdk:"future_outbound"`
 }
-
-var IPAddressesObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"project_id": types.StringType,
-	"services":   ServicesObjectType,
-}}
 
 var ServicesObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"clusters": types.ListType{ElemType: ClusterIPsObjectType},

@@ -28,7 +28,7 @@ type streamInstancesDS struct {
 }
 
 func (d *streamInstancesDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(), &conversion.PluralDataSourceSchemaRequest{
 		RequiredFields:  []string{"project_id"},
 		HasLegacyFields: true,
 	})

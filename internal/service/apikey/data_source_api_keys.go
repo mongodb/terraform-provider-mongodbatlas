@@ -74,7 +74,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(fmt.Errorf("error getting api keys information: %s", err))
 	}
 
-	if err := d.Set("results", flattenOrgAPIKeys(ctx, orgID, apiKeys.GetResults())); err != nil {
+	if err := d.Set("results", flattenOrgAPIKeys(orgID, apiKeys.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
@@ -82,7 +82,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	return nil
 }
 
-func flattenOrgAPIKeys(ctx context.Context, orgID string, apiKeys []admin.ApiKeyUserDetails) []map[string]any {
+func flattenOrgAPIKeys(orgID string, apiKeys []admin.ApiKeyUserDetails) []map[string]any {
 	results := make([]map[string]any, len(apiKeys))
 	for k, apiKey := range apiKeys {
 		results[k] = map[string]any{

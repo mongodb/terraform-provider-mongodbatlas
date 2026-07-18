@@ -31,7 +31,7 @@ func (t *UserAgentTransport) RoundTrip(req *http.Request) (*http.Response, error
 	extra := ReadUserAgentExtra(ctx)
 	if extra != nil {
 		userAgent := req.Header.Get(UserAgentHeader)
-		newVar := extra.ToHeaderValue(ctx, userAgent)
+		newVar := extra.ToHeaderValue(userAgent)
 		req.Header.Set(UserAgentHeader, newVar)
 	}
 	resp, err := t.Transport.RoundTrip(req)
@@ -71,7 +71,7 @@ func (t *NetworkLoggingTransport) RoundTrip(req *http.Request) (*http.Response, 
 		log.Printf("[ERROR] Network Request Failed: %s %s - Duration: %v - Error: %v",
 			req.Method, req.URL.String(), duration, err)
 
-		t.logNetworkErrorContext(err, req, duration)
+		logNetworkErrorContext(err, req, duration)
 		return resp, err
 	}
 	statusCode := resp.StatusCode
@@ -92,7 +92,7 @@ func (t *NetworkLoggingTransport) RoundTrip(req *http.Request) (*http.Response, 
 }
 
 // logNetworkErrorContext provides additional context for common network errors
-func (t *NetworkLoggingTransport) logNetworkErrorContext(err error, req *http.Request, duration time.Duration) {
+func logNetworkErrorContext(err error, req *http.Request, duration time.Duration) {
 	errStr := err.Error()
 	switch {
 	case strings.Contains(errStr, "timeout"):

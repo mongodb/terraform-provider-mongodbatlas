@@ -45,11 +45,7 @@ func (d *pushBasedLogExportDS) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	newTFModel, diags := NewTFPushBasedLogExport(ctx, projectID, logConfig, nil, nil)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
+	newTFModel := NewTFPushBasedLogExport(projectID, logConfig, nil, nil)
 	dsModel := TFPushBasedLogExportDSModel{
 		TFPushBasedLogExportCommonModel: newTFModel.TFPushBasedLogExportCommonModel,
 	}

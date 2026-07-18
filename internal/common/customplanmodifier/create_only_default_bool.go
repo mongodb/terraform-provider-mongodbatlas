@@ -46,7 +46,7 @@ func (d *createOnlyBoolPlanModifier) PlanModifyBool(ctx context.Context, req pla
 		return
 	}
 	if isUpdated(req.StateValue, req.PlanValue) {
-		d.addDiags(&resp.Diagnostics, req.Path, req.StateValue)
+		addDiags(&resp.Diagnostics, req.Path, req.StateValue)
 	}
 	if !IsKnown(req.PlanValue) {
 		resp.PlanValue = req.StateValue
@@ -64,7 +64,7 @@ func isUpdated(state, plan attr.Value) bool {
 	return !state.Equal(plan)
 }
 
-func (d *createOnlyBoolPlanModifier) addDiags(diags *diag.Diagnostics, attrPath path.Path, stateValue attr.Value) {
+func addDiags(diags *diag.Diagnostics, attrPath path.Path, stateValue attr.Value) {
 	message := fmt.Sprintf("%s cannot be updated or set after import, remove it from the configuration or use the state value (see below).", attrPath)
 	detail := fmt.Sprintf("The current state value is %s", stateValue)
 	diags.AddError(message, detail)

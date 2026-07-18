@@ -21,7 +21,6 @@ var (
 	CreatingState = "CREATING"
 	UpdatingState = "UPDATING"
 	DeletingState = "DELETING"
-	DeletedState  = "DELETED"
 	UnknownState  = ""
 	sc500         = conversion.IntPtr(500)
 	sc200         = conversion.IntPtr(200)
