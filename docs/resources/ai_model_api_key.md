@@ -14,6 +14,8 @@ subcategory: "AI Models"
 resource "mongodbatlas_ai_model_api_key" "this" {
   project_id = var.project_id
   name       = "example-ai-model-key"
+  cloud      = "ANY"
+  geography  = "ANY"
 }
 
 data "mongodbatlas_ai_model_api_key" "this" {
@@ -41,6 +43,11 @@ output "ai_model_api_key_name" {
   value       = data.mongodbatlas_ai_model_api_key.this.name
 }
 
+output "ai_model_api_key_endpoint" {
+  description = "The server-computed endpoint hostname derived from cloud and geography."
+  value       = mongodbatlas_ai_model_api_key.this.endpoint
+}
+
 output "ai_model_api_keys_results" {
   description = "All AI Model API keys in the project."
   value       = data.mongodbatlas_ai_model_api_keys.this.results
@@ -52,14 +59,17 @@ output "ai_model_api_keys_results" {
 
 ### Required
 
+- `cloud` (String) Cloud provider scope for this API key. Must be "ANY". Additional cloud values will be supported in future API versions.
+- `geography` (String) Geography scope for this API key. Must be "ANY". Additional geography values will be supported in future API versions.
 - `name` (String) A name for the new API key that will be created.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Read-Only
 
 - `api_key_id` (String) Identifier used to reference this API key in admin API calls.
 - `created_at` (String) UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.
 - `created_by` (String) Name of the user that created this API key. If no user name is available, the user ID is returned.
+- `endpoint` (String) Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
 - `last_used_at` (String) UTC date when the API key was last used. This parameter is formatted as an ISO 8601 timestamp.
 - `masked_secret` (String) A partially obfuscated version of the API key secret returned when the API key was created.
 - `secret` (String, Sensitive) The full API key secret used for interacting with the embedding / reranking service. Note: this will only be fully populated in the response to a create API key request. Responses to get, list, and update requests will not include the secret.
