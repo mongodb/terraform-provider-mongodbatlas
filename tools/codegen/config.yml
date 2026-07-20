@@ -18,7 +18,7 @@ resources:
     delete:
       path: *ai_model_api_key_item_path
       method: DELETE
-    version_header: application/vnd.atlas.preview+json
+    version_header: application/vnd.atlas.2025-03-12+json
     schema: &ai_model_api_key_schema
       aliases:
         groupId: projectId
