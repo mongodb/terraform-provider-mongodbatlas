@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
@@ -51,7 +51,7 @@ func (d *cloudUserOrgAssignmentDS) Read(ctx context.Context, req datasource.Read
 	var err error
 
 	if userID != "" {
-		orgUser, _, err = connV2.MongoDBCloudUsersApi.GetOrgUser(ctx, orgID, userID).Execute()
+		orgUser, _, err = connV2.MongoDBCloudUsersAPI.GetOrgUser(ctx, orgID, userID).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(fmt.Sprintf("error retrieving resource by user_id: %s", userID), err.Error())
 			return
@@ -61,7 +61,7 @@ func (d *cloudUserOrgAssignmentDS) Read(ctx context.Context, req datasource.Read
 			OrgId:    orgID,
 			Username: &username,
 		}
-		usersResp, _, err := connV2.MongoDBCloudUsersApi.ListOrgUsersWithParams(ctx, params).Execute()
+		usersResp, _, err := connV2.MongoDBCloudUsersAPI.ListOrgUsersWithParams(ctx, params).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(fmt.Sprintf("error retrieving resource by username: %s", username), err.Error())
 			return

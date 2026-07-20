@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
@@ -43,7 +43,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	}
 	projectID := tfModel.ProjectID.ValueString()
 	name := tfModel.Name.ValueString()
-	flexRestoreJobs, err := ListFlexRestoreJobs(ctx, projectID, name, d.Client.AtlasV2.FlexRestoreJobsApi)
+	flexRestoreJobs, err := ListFlexRestoreJobs(ctx, projectID, name, d.Client.AtlasV2.FlexRestoreJobsAPI)
 	if err != nil {
 		resp.Diagnostics.AddError(errorRead, err.Error())
 		return
@@ -51,7 +51,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModelPluralDS(projectID, name, flexRestoreJobs))...)
 }
 
-func ListFlexRestoreJobs(ctx context.Context, projectID, name string, client admin.FlexRestoreJobsApi) (*[]admin.FlexBackupRestoreJob20241113, error) {
+func ListFlexRestoreJobs(ctx context.Context, projectID, name string, client admin.FlexRestoreJobsAPI) (*[]admin.FlexBackupRestoreJob20241113, error) {
 	params := admin.ListFlexRestoreJobsApiParams{
 		GroupId: projectID,
 		Name:    name,

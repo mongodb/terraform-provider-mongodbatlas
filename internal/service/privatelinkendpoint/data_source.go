@@ -104,7 +104,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
 
-	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
+	privateEndpoint, _, err := connV2.PrivateEndpointServicesAPI.GetPrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsRead, privateLinkID, err))
 	}

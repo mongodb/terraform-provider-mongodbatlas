@@ -79,7 +79,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(errors.New("role_mapping_id must be configured"))
 	}
 
-	federatedSettingsOrganizationRoleMapping, _, err := conn.FederatedAuthenticationApi.GetRoleMapping(ctx, federationSettingsID.(string), roleMappingID.(string), orgID.(string)).Execute()
+	federatedSettingsOrganizationRoleMapping, _, err := conn.FederatedAuthenticationAPI.GetRoleMapping(ctx, federationSettingsID.(string), roleMappingID.(string), orgID.(string)).Execute()
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings Role Mapping assigned (%s): %s", federationSettingsID, err)
 	}

@@ -91,7 +91,7 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 			{
 				PreConfig: func() {
 					timeoutConfig := searchdeployment.RetryTimeConfig(deleteTimeout, 30*time.Second)
-					err := searchdeployment.WaitSearchNodeDelete(t.Context(), projectID, clusterName, acc.ConnV2().AtlasSearchApi, timeoutConfig)
+					err := searchdeployment.WaitSearchNodeDelete(t.Context(), projectID, clusterName, acc.ConnV2().AtlasSearchAPI, timeoutConfig)
 					require.NoError(t, err)
 				},
 				Config:      configWithTimeout(timeoutsStrShort),
@@ -100,7 +100,7 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 			{
 				PreConfig: func() {
 					timeoutConfig := searchdeployment.RetryTimeConfig(deleteTimeout, 30*time.Second)
-					err := searchdeployment.WaitSearchNodeDelete(t.Context(), projectID, clusterName, acc.ConnV2().AtlasSearchApi, timeoutConfig)
+					err := searchdeployment.WaitSearchNodeDelete(t.Context(), projectID, clusterName, acc.ConnV2().AtlasSearchAPI, timeoutConfig)
 					require.NoError(t, err)
 				},
 				Config: configWithTimeout(timeoutsStrLong),
@@ -237,7 +237,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		deploymentResp, _, err := acc.ConnV2().AtlasSearchApi.GetClusterSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
+		deploymentResp, _, err := acc.ConnV2().AtlasSearchAPI.GetClusterSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
 		if err != nil || searchdeployment.IsNotFoundDeploymentResponse(deploymentResp) {
 			return fmt.Errorf("search deployment (%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 		}
@@ -254,7 +254,7 @@ func checkDestroy(state *terraform.State) error {
 	}
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type == "mongodbatlas_search_deployment" {
-			_, _, err := acc.ConnV2().AtlasSearchApi.GetClusterSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
+			_, _, err := acc.ConnV2().AtlasSearchAPI.GetClusterSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
 			if err == nil {
 				return fmt.Errorf("search deployment (%s:%s) still exists", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 			}

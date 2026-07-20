@@ -210,7 +210,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	orgID := parts[0]
 	teamID := parts[1]
 
-	team, _, err := connV2.TeamsApi.GetOrgTeam(ctx, orgID, teamID).Execute()
+	team, _, err := connV2.TeamsAPI.GetOrgTeam(ctx, orgID, teamID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import team (%s) in organization(%s), error: %s", teamID, orgID, err)
 	}

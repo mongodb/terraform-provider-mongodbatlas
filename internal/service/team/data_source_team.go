@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -123,7 +123,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func listAllTeamUsersDS(ctx context.Context, conn *admin.APIClient, orgID, teamID string) ([]admin.OrgUserResponse, error) {
 	return dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.OrgUserResponse], *http.Response, error) {
-		request := conn.MongoDBCloudUsersApi.ListTeamUsers(ctx, orgID, teamID)
+		request := conn.MongoDBCloudUsersAPI.ListTeamUsers(ctx, orgID, teamID)
 		request = request.PageNum(pageNum)
 		return request.Execute()
 	})

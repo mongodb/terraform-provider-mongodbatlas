@@ -8,7 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 var _ datasource.DataSource = &pluralDS{}
@@ -44,7 +44,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	orgID := conf.OrgID.ValueString()
 	clientID := conf.ClientID.ValueString()
 
-	api := d.Client.AtlasV2.ServiceAccountsApi
+	api := d.Client.AtlasV2.ServiceAccountsAPI
 	entries, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.ServiceAccountIPAccessListEntry], *http.Response, error) {
 		return api.ListOrgAccessList(ctx, orgID, clientID).PageNum(pageNum).ItemsPerPage(ItemsPerPage).Execute()
 	})

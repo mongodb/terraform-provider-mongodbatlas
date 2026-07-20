@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -84,7 +84,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	if !orgIDOk {
 		return diag.FromErr(errors.New("org_id must be configured"))
 	}
-	federatedSettingsOrganizationRoleMappings, _, err := conn.FederatedAuthenticationApi.ListRoleMappings(ctx, federationSettingsID.(string), orgID.(string)).Execute()
+	federatedSettingsOrganizationRoleMappings, _, err := conn.FederatedAuthenticationAPI.ListRoleMappings(ctx, federationSettingsID.(string), orgID.(string)).Execute()
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings Role Mapping: assigned (%s): %s", federationSettingsID, err)
 	}

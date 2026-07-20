@@ -404,7 +404,7 @@ func checkDestroy(s *terraform.State) error {
 		if attrs["type"] == "" {
 			return fmt.Errorf("no type is set")
 		}
-		_, _, err := acc.ConnV2().ThirdPartyIntegrationsApi.GetGroupIntegration(context.Background(), attrs["project_id"], attrs["type"]).Execute()
+		_, _, err := acc.ConnV2().ThirdPartyIntegrationsAPI.GetGroupIntegration(context.Background(), attrs["project_id"], attrs["type"]).Execute()
 		if err == nil {
 			return fmt.Errorf("third party integration service (%s) still exists", attrs["type"])
 		}
@@ -531,7 +531,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if attrs["type"] == "" {
 			return fmt.Errorf("no type is set")
 		}
-		if _, _, err := acc.ConnV2().ThirdPartyIntegrationsApi.GetGroupIntegration(context.Background(), attrs["project_id"], attrs["type"]).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().ThirdPartyIntegrationsAPI.GetGroupIntegration(context.Background(), attrs["project_id"], attrs["type"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("third party integration (%s) does not exist", attrs["project_id"])

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
-	"go.mongodb.org/atlas-sdk/v20250312021/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/mockadmin"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -60,7 +60,7 @@ func TestStateTransition(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			m := mockadmin.NewEncryptionAtRestUsingCustomerKeyManagementApi(t)
+			m := mockadmin.NewEncryptionAtRestUsingCustomerKeyManagementAPI(t)
 			m.EXPECT().GetRestPrivateEndpoint(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.GetRestPrivateEndpointApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {
@@ -104,7 +104,7 @@ func TestDeleteStateTransition(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			m := mockadmin.NewEncryptionAtRestUsingCustomerKeyManagementApi(t)
+			m := mockadmin.NewEncryptionAtRestUsingCustomerKeyManagementAPI(t)
 			m.EXPECT().GetRestPrivateEndpoint(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.GetRestPrivateEndpointApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {
