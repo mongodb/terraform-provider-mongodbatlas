@@ -61,6 +61,8 @@ func configBasic(orgID, projectID, name string) string {
 		resource "mongodbatlas_ai_model_api_key" "this" {
 			project_id = %[2]q
 			name       = %[3]q
+			cloud      = "ANY"
+			geography  = "ANY"
 		}
 
 		data "mongodbatlas_ai_model_api_key" "this" {
@@ -86,10 +88,13 @@ func configBasic(orgID, projectID, name string) string {
 }
 
 func checkBasic() resource.TestCheckFunc {
-	attrsSet := []string{"api_key_id", "created_at", "created_by", "masked_secret", "status", "name", "project_id"}
+	attrsSet := []string{"api_key_id", "created_at", "created_by", "masked_secret", "status", "name", "project_id", "cloud", "geography", "endpoint"}
 	return resource.ComposeAggregateTestCheckFunc(
 		acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName), attrsSet, nil, checkExists(resourceName)),
-		resource.TestCheckResourceAttrSet(resourceName, "secret"), // secret only in resource
+		resource.TestCheckResourceAttr(resourceName, "cloud", "ANY"),
+		resource.TestCheckResourceAttr(resourceName, "geography", "ANY"),
+		resource.TestCheckResourceAttrSet(resourceName, "endpoint"),
+		resource.TestCheckResourceAttrSet(resourceName, "secret"),
 		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 		acc.CheckRSAndDS(orgDataSourceName, nil, new(orgDataSourcePluralName), attrsSet, nil),
 		resource.TestCheckResourceAttrWith(orgDataSourcePluralName, "results.#", acc.IntGreatThan(0)),
@@ -125,12 +130,9 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-// apiKeyExists checks if an API key exists.
-// Uses UntypedAPICall because the API is in preview and not yet available in the SDK.
-// TODO: Use SDK before merging to master in CLOUDP-372674.
 func apiKeyExists(rs *terraform.ResourceState) bool {
 	callParams := config.APICallParams{
-		VersionHeader: "application/vnd.atlas.preview+json",
+		VersionHeader: "application/vnd.atlas.2025-03-12+json",
 		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiKeys/{apiKeyId}",
 		PathParams: map[string]string{
 			"projectId": rs.Primary.Attributes["project_id"],
