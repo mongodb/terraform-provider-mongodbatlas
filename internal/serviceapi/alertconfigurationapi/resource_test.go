@@ -426,7 +426,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if id == "" || projectID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		if _, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfig(context.Background(), projectID, id).Execute(); err != nil {
+		if _, _, err := acc.ConnV2().AlertConfigurationsAPI.GetAlertConfig(context.Background(), projectID, id).Execute(); err != nil {
 			return fmt.Errorf("the Alert Configuration(%s) does not exist", id)
 		}
 		return nil
@@ -444,7 +444,7 @@ func checkDestroy() resource.TestCheckFunc {
 			if id == "" || projectID == "" {
 				return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 			}
-			alert, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfig(context.Background(), projectID, id).Execute()
+			alert, _, err := acc.ConnV2().AlertConfigurationsAPI.GetAlertConfig(context.Background(), projectID, id).Execute()
 			if alert != nil {
 				return fmt.Errorf("the Project Alert Configuration(%s) still exists %s", id, err)
 			}

@@ -61,7 +61,7 @@ func datasourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	bucketID := d.Get("export_bucket_id").(string)
 
-	bucket, _, err := conn.CloudBackupsApi.GetExportBucket(ctx, projectID, bucketID).Execute()
+	bucket, _, err := conn.CloudBackupsAPI.GetExportBucket(ctx, projectID, bucketID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting CloudProviderSnapshotExportBuckets Information: %s", err))
 	}

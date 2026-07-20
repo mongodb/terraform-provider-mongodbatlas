@@ -15,7 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -211,7 +211,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	indexID := parts[2]
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	_, _, err := connV2.AtlasSearchApi.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	_, _, err := connV2.AtlasSearchAPI.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import search index (%s) in projectID (%s) and Cluster (%s), error: %s", indexID, projectID, clusterName, err)
 	}
@@ -244,7 +244,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	indexID := ids["index_id"]
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	_, err := connV2.AtlasSearchApi.DeleteClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	_, err := connV2.AtlasSearchAPI.DeleteClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting search index (%s): %s", d.Get("name").(string), err)
 	}
@@ -275,7 +275,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf("error updating search index (%s): attributes name, type, database and collection_name can't be updated", indexName)
 	}
 
-	searchRead, _, err := connV2.AtlasSearchApi.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	searchRead, _, err := connV2.AtlasSearchAPI.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return diag.Errorf("error getting search index information: %s", err)
 	}
@@ -378,7 +378,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		searchIndex.Definition.StoredSource = obj
 	}
 
-	if _, _, err := connV2.AtlasSearchApi.UpdateClusterSearchIndex(ctx, projectID, clusterName, indexID, searchIndex).Execute(); err != nil {
+	if _, _, err := connV2.AtlasSearchAPI.UpdateClusterSearchIndex(ctx, projectID, clusterName, indexID, searchIndex).Execute(); err != nil {
 		return diag.Errorf("error updating search index (%s): %s", indexName, err)
 	}
 
@@ -414,7 +414,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	indexID := ids["index_id"]
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	searchIndex, resp, err := connV2.AtlasSearchApi.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	searchIndex, resp, err := connV2.AtlasSearchAPI.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		// deleted in the backend case
 		if validate.StatusNotFound(resp) && !d.IsNewResource() {
@@ -584,7 +584,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	searchIndexRequest.Definition.StoredSource = objStoredSource
 
-	dbSearchIndexRes, _, err := connV2.AtlasSearchApi.CreateClusterSearchIndex(ctx, projectID, clusterName, searchIndexRequest).Execute()
+	dbSearchIndexRes, _, err := connV2.AtlasSearchAPI.CreateClusterSearchIndex(ctx, projectID, clusterName, searchIndexRequest).Execute()
 	if err != nil {
 		return diag.Errorf("error creating index: %s", err)
 	}

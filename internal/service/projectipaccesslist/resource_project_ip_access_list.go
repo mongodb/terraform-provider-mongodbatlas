@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/concurrency"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -110,7 +110,7 @@ func (r *projectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 
 	connV2 := r.Client.AtlasV2
 	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		accessList, httpResponse, err := connV2.ProjectIPAccessListApi.GetAccessListEntry(ctx, decodedIDMap["project_id"], decodedIDMap["entry"]).Execute()
+		accessList, httpResponse, err := connV2.ProjectIPAccessListAPI.GetAccessListEntry(ctx, decodedIDMap["project_id"], decodedIDMap["entry"]).Execute()
 		if err != nil {
 			// case 404
 			// deleted in the backend case
@@ -162,7 +162,7 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		httpResponse, err := connV2.ProjectIPAccessListApi.DeleteAccessListEntry(ctx, projectID, entry).Execute()
+		httpResponse, err := connV2.ProjectIPAccessListAPI.DeleteAccessListEntry(ctx, projectID, entry).Execute()
 		if err != nil {
 			if validate.StatusInternalServerError(httpResponse) {
 				return retry.RetryableError(err)
@@ -176,7 +176,7 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 			return retry.NonRetryableError(fmt.Errorf(errorAccessListDelete, err))
 		}
 
-		entry, httpResponse, err := connV2.ProjectIPAccessListApi.GetAccessListEntry(ctx, projectID, entry).Execute()
+		entry, httpResponse, err := connV2.ProjectIPAccessListAPI.GetAccessListEntry(ctx, projectID, entry).Execute()
 		if err != nil {
 			if validate.StatusNotFound(httpResponse) {
 				return nil
@@ -224,7 +224,7 @@ func createEntry(ctx context.Context, connV2 *admin.APIClient, projectIPAccessLi
 			// From API docs: "This endpoint doesn't support concurrent POST requests. You must submit multiple POST requests synchronously."
 			// Locking on a project level to avoid race conditions within a single apply. Still, we verify that the entry was added to the access list and retry otherwise in case of an external update.
 			createAccessListEntryMutex.Lock(projectID)
-			_, httpResponse, err := connV2.ProjectIPAccessListApi.CreateAccessListEntry(ctx, projectID, NewMongoDBProjectIPAccessList(projectIPAccessListModel)).Execute()
+			_, httpResponse, err := connV2.ProjectIPAccessListAPI.CreateAccessListEntry(ctx, projectID, NewMongoDBProjectIPAccessList(projectIPAccessListModel)).Execute()
 			// Unlock immediately after create to allow parallel reads (intentionally not deferring).
 			createAccessListEntryMutex.Unlock(projectID)
 			if err != nil {
@@ -279,7 +279,7 @@ func createEntry(ctx context.Context, connV2 *admin.APIClient, projectIPAccessLi
 func isEntryInProjectAccessList(ctx context.Context, connV2 *admin.APIClient, projectID, entry string) (*admin.NetworkPermissionEntry, bool, error) {
 	var out admin.NetworkPermissionEntry
 	err := retry.RetryContext(ctx, timeoutRetryItem, func() *retry.RetryError {
-		accessList, httpResponse, err := connV2.ProjectIPAccessListApi.GetAccessListEntry(ctx, projectID, entry).Execute()
+		accessList, httpResponse, err := connV2.ProjectIPAccessListAPI.GetAccessListEntry(ctx, projectID, entry).Execute()
 		if err != nil {
 			switch {
 			case validate.StatusInternalServerError(httpResponse):

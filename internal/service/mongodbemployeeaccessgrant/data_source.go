@@ -38,7 +38,7 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 	connV2 := d.Client.AtlasV2
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.ClusterName.ValueString()
-	cluster, _, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	cluster, _, err := connV2.ClustersAPI.GetCluster(ctx, projectID, clusterName).Execute()
 	apiResp, _ := cluster.GetMongoDBEmployeeAccessGrantOk()
 	if err != nil || apiResp == nil {
 		msg := "employee access grant not defined for that cluster"

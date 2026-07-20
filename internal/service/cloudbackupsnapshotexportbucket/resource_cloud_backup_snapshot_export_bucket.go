@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -95,7 +95,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		TenantId:      conversion.StringPtr(d.Get("tenant_id").(string)),
 		CloudProvider: cloudProvider,
 	}
-	bucketResponse, _, err := conn.CloudBackupsApi.CreateExportBucket(ctx, projectID, request).Execute()
+	bucketResponse, _, err := conn.CloudBackupsAPI.CreateExportBucket(ctx, projectID, request).Execute()
 	if err != nil {
 		return diag.Errorf("error creating snapshot export bucket: %s", err)
 	}
@@ -114,7 +114,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	bucketID := ids["id"]
 
-	exportBackup, _, err := conn.CloudBackupsApi.GetExportBucket(ctx, projectID, bucketID).Execute()
+	exportBackup, _, err := conn.CloudBackupsAPI.GetExportBucket(ctx, projectID, bucketID).Execute()
 	if err != nil {
 		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
 
@@ -176,7 +176,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
-	_, err := conn.CloudBackupsApi.DeleteExportBucket(ctx, projectID, bucketID).Execute()
+	_, err := conn.CloudBackupsAPI.DeleteExportBucket(ctx, projectID, bucketID).Execute()
 
 	if err != nil {
 		return diag.Errorf("error deleting snapshot export bucket (%s): %s", bucketID, err)
@@ -198,7 +198,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 		return nil, err
 	}
 
-	_, _, err = conn.CloudBackupsApi.GetExportBucket(ctx, *projectID, *id).Execute()
+	_, _, err = conn.CloudBackupsAPI.GetExportBucket(ctx, *projectID, *id).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import snapshot export bucket %s in project %s, error: %s", *id, *projectID, err)
 	}
@@ -228,7 +228,7 @@ func splitImportID(id string) (projectID, bucketID *string, err error) {
 
 func resourceRefresh(ctx context.Context, client *admin.APIClient, projectID, exportBucketID string) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		clustersPaginated, resp, err := client.ClustersApi.ListClusters(ctx, projectID).Execute()
+		clustersPaginated, resp, err := client.ClustersAPI.ListClusters(ctx, projectID).Execute()
 		if err != nil {
 			// For our purposes, no clusters is equivalent to all changes having been APPLIED
 			if validate.StatusNotFound(resp) {
@@ -239,7 +239,7 @@ func resourceRefresh(ctx context.Context, client *admin.APIClient, projectID, ex
 		clusters := clustersPaginated.GetResults()
 
 		for i := range clusters {
-			backupPolicy, _, err := client.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusters[i].GetName()).Execute()
+			backupPolicy, _, err := client.CloudBackupsAPI.GetBackupSchedule(ctx, projectID, clusters[i].GetName()).Execute()
 			if err != nil {
 				continue
 			}
@@ -253,7 +253,7 @@ func resourceRefresh(ctx context.Context, client *admin.APIClient, projectID, ex
 						return clusters, "PENDING", nil
 					}
 
-					s, resp, err := client.ClustersApi.GetClusterStatus(ctx, projectID, clusters[i].GetName()).Execute()
+					s, resp, err := client.ClustersAPI.GetClusterStatus(ctx, projectID, clusters[i].GetName()).Execute()
 
 					if err != nil && strings.Contains(err.Error(), "reset by peer") {
 						return nil, "REPEATING", nil

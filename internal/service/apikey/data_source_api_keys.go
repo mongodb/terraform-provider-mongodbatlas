@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -68,7 +68,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		OrgId:        orgID,
 	}
 
-	apiKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListOrgApiKeysWithParams(ctx, params).Execute()
+	apiKeys, _, err := connV2.ProgrammaticAPIKeysAPI.ListOrgApiKeysWithParams(ctx, params).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api keys information: %s", err))

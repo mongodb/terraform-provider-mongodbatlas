@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
-	"go.mongodb.org/atlas-sdk/v20250312021/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -112,10 +112,10 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			teamsMock := mockadmin.NewTeamsApi(t)
-			projectsMock := mockadmin.NewProjectsApi(t)
-			perfMock := mockadmin.NewPerformanceAdvisorApi(t)
-			cloudUsersMock := mockadmin.NewMongoDBCloudUsersApi(t)
+			teamsMock := mockadmin.NewTeamsAPI(t)
+			projectsMock := mockadmin.NewProjectsAPI(t)
+			perfMock := mockadmin.NewPerformanceAdvisorAPI(t)
+			cloudUsersMock := mockadmin.NewMongoDBCloudUsersAPI(t)
 
 			teamsMock.EXPECT().ListGroupTeams(mock.Anything, mock.Anything).Return(admin.ListGroupTeamsApiRequest{ApiService: teamsMock})
 			teamsMock.EXPECT().ListGroupTeamsExecute(mock.Anything).Return(tc.teamRoleReponse.TeamRole, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
@@ -238,7 +238,7 @@ func TestUpdateProject(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mockadmin.NewProjectsApi(t)
+			svc := mockadmin.NewProjectsAPI(t)
 			svc.EXPECT().UpdateGroup(mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateGroupApiRequest{ApiService: svc}).Maybe()
 
 			svc.EXPECT().UpdateGroupExecute(mock.Anything).Return(tc.mockResponses.Project, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
@@ -344,7 +344,7 @@ func TestUpdateProjectLimits(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mockadmin.NewProjectsApi(t)
+			svc := mockadmin.NewProjectsAPI(t)
 
 			svc.EXPECT().DeleteGroupLimit(mock.Anything, mock.Anything, mock.Anything).Return(admin.DeleteGroupLimitApiRequest{ApiService: svc}).Maybe()
 			svc.EXPECT().DeleteGroupLimitExecute(mock.Anything).Return(tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
@@ -437,7 +437,7 @@ func TestUpdateProjectTeams(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mockadmin.NewTeamsApi(t)
+			svc := mockadmin.NewTeamsAPI(t)
 
 			svc.EXPECT().AddGroupTeams(mock.Anything, mock.Anything, mock.Anything).Return(admin.AddGroupTeamsApiRequest{ApiService: svc}).Maybe()
 			svc.EXPECT().AddGroupTeamsExecute(mock.Anything).Return(nil, nil, nil).Maybe()
@@ -497,7 +497,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mockadmin.NewClustersApi(t)
+			svc := mockadmin.NewClustersAPI(t)
 
 			svc.EXPECT().ListClusters(mock.Anything, dummyProjectID).Return(admin.ListClustersApiRequest{ApiService: svc})
 			svc.EXPECT().ListClustersExecute(mock.Anything).Return(tc.mockResponses.AdvancedClusterDescription, tc.mockResponses.HTTPResponse, tc.mockResponses.Err)
@@ -542,6 +542,7 @@ func TestAccProject_basic(t *testing.T) {
 		"is_cluster_ai_assistant_enabled",
 		"is_data_explorer_gen_ai_features_enabled",
 		"is_data_explorer_gen_ai_sample_document_passing_enabled",
+		"is_native_reranking_enabled",
 	}
 
 	dataSourceChecks := map[string]string{
@@ -786,6 +787,7 @@ func configProjectWithSettings(projectName, orgID, projectOwnerID string, value 
 			is_cluster_ai_assistant_enabled = %[4]t
 			is_data_explorer_gen_ai_features_enabled = %[4]t
 			is_data_explorer_gen_ai_sample_document_passing_enabled = %[4]t
+			is_native_reranking_enabled = %[4]t
 		}
 
 		data "mongodbatlas_project" "test" {
@@ -806,6 +808,7 @@ func projectSettingsChecks(orgID, projectOwnerID, projectName string, value bool
 		"is_cluster_ai_assistant_enabled",
 		"is_data_explorer_gen_ai_features_enabled",
 		"is_data_explorer_gen_ai_sample_document_passing_enabled",
+		"is_native_reranking_enabled",
 	}
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
@@ -1204,13 +1207,19 @@ func TestAccProject_slowOperationReadOnly(t *testing.T) {
 
 func changeRoles(t *testing.T, orgID, projectName, roleName string) {
 	t.Helper()
-	respProject, _, _ := acc.ConnV2().ProjectsApi.GetGroupByName(t.Context(), projectName).Execute()
+	respProject, _, err := acc.ConnV2().ProjectsAPI.GetGroupByName(t.Context(), projectName).Execute()
+	if err != nil {
+		t.Fatalf("PreConfig: error finding project %s: %s", projectName, err)
+	}
 	projectID := respProject.GetId()
 	if projectID == "" {
-		t.Errorf("PreConfig: error finding project %s", projectName)
+		t.Fatalf("PreConfig: error finding project %s", projectName)
 	}
-	api := acc.ConnV2().ProgrammaticAPIKeysApi
-	respList, _, _ := api.ListOrgApiKeys(t.Context(), orgID).Execute()
+	api := acc.ConnV2().ProgrammaticAPIKeysAPI
+	respList, _, err := api.ListOrgApiKeys(t.Context(), orgID).Execute()
+	if err != nil {
+		t.Fatalf("PreConfig: error listing org API keys for org %s: %s", orgID, err)
+	}
 	publicKey := os.Getenv("MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY")
 	keys := respList.GetResults()
 	for _, result := range keys {
@@ -1218,14 +1227,15 @@ func changeRoles(t *testing.T, orgID, projectName, roleName string) {
 			continue
 		}
 		apiKeyID := result.GetId()
-		assignment := admin.UpdateAtlasProjectApiKey{Roles: &[]string{roleName}}
-		_, _, err := api.UpdateApiKeyRoles(t.Context(), projectID, apiKeyID, &assignment).Execute()
+		// The project must have the key assigned before its roles can be used.
+		assignment := []admin.UserAccessRoleAssignment{{Roles: &[]string{roleName}}}
+		_, err := api.AddGroupApiKey(t.Context(), projectID, apiKeyID, &assignment).Execute()
 		if err != nil {
-			t.Errorf("PreConfig: error updating key %s", err)
+			t.Fatalf("PreConfig: error assigning key %s to project %s: %s", apiKeyID, projectID, err)
 		}
 		return
 	}
-	t.Error("PreConfig: key not found")
+	t.Fatal("PreConfig: key not found")
 }
 
 func createDataFederationLimit(limitName string) admin.DataFederationLimit {
@@ -1264,7 +1274,7 @@ func checkExistsWithConn(resourceName string, conn *admin.APIClient) resource.Te
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		if _, _, err := conn.ProjectsApi.GetGroupByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
+		if _, _, err := conn.ProjectsAPI.GetGroupByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)

@@ -223,7 +223,7 @@ func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	connV2 := r.Client.AtlasV2
-	dbUser, _, err := connV2.DatabaseUsersApi.CreateDatabaseUser(ctx, plan.ProjectID.ValueString(), dbUserReq).Execute()
+	dbUser, _, err := connV2.DatabaseUsersAPI.CreateDatabaseUser(ctx, plan.ProjectID.ValueString(), dbUserReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error during database user creation", err.Error())
 		return
@@ -253,7 +253,7 @@ func (r *databaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 	projectID := state.ProjectID.ValueString()
 	authDatabaseName := state.AuthDatabaseName.ValueString()
 	connV2 := r.Client.AtlasV2
-	dbUser, httpResponse, err := connV2.DatabaseUsersApi.GetDatabaseUser(ctx, projectID, authDatabaseName, username).Execute()
+	dbUser, httpResponse, err := connV2.DatabaseUsersAPI.GetDatabaseUser(ctx, projectID, authDatabaseName, username).Execute()
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -293,7 +293,7 @@ func (r *databaseUserRS) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	connV2 := r.Client.AtlasV2
-	dbUser, _, err := connV2.DatabaseUsersApi.UpdateDatabaseUser(ctx,
+	dbUser, _, err := connV2.DatabaseUsersAPI.UpdateDatabaseUser(ctx,
 		plan.ProjectID.ValueString(),
 		plan.AuthDatabaseName.ValueString(),
 		plan.Username.ValueString(), dbUserReq).Execute()
@@ -323,7 +323,7 @@ func (r *databaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 
 	connV2 := r.Client.AtlasV2
-	_, err := connV2.DatabaseUsersApi.DeleteDatabaseUser(
+	_, err := connV2.DatabaseUsersAPI.DeleteDatabaseUser(
 		ctx,
 		state.ProjectID.ValueString(),
 		state.AuthDatabaseName.ValueString(),

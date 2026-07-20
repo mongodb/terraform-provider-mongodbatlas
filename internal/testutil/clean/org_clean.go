@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
@@ -26,7 +26,7 @@ func SkipUnauthorizedErr(resp *http.Response, err error) error {
 // RemoveStreamInstances deletes all stream instances in the project.
 // It will also remove all stream processors associated with the stream instance.
 func RemoveStreamInstances(ctx context.Context, dryRun bool, client *admin.APIClient, projectID string) (int, error) {
-	streamInstances, resp, err := client.StreamsApi.ListStreamWorkspaces(ctx, projectID).Execute()
+	streamInstances, resp, err := client.StreamsAPI.ListStreamWorkspaces(ctx, projectID).Execute()
 	if err != nil {
 		return 0, SkipUnauthorizedErr(resp, err)
 	}
@@ -35,22 +35,22 @@ func RemoveStreamInstances(ctx context.Context, dryRun bool, client *admin.APICl
 		instanceName := *instance.Name
 
 		if !dryRun {
-			_, err = client.StreamsApi.DeleteStreamWorkspace(ctx, projectID, instanceName).Execute()
+			_, err = client.StreamsAPI.DeleteStreamWorkspace(ctx, projectID, instanceName).Execute()
 			if err != nil && admin.IsErrorCode(err, "STREAM_TENANT_HAS_STREAM_PROCESSORS") {
-				streamProcessors, spResp, spErr := client.StreamsApi.GetStreamProcessors(ctx, projectID, instanceName).Execute()
+				streamProcessors, spResp, spErr := client.StreamsAPI.GetStreamProcessors(ctx, projectID, instanceName).Execute()
 				if spErr != nil {
 					return 0, SkipUnauthorizedErr(spResp, spErr)
 				}
 
 				processors := streamProcessors.GetResults()
 				for i := range processors {
-					_, err = client.StreamsApi.DeleteStreamProcessor(ctx, projectID, instanceName, processors[i].Name).Execute()
+					_, err = client.StreamsAPI.DeleteStreamProcessor(ctx, projectID, instanceName, processors[i].Name).Execute()
 					if err != nil {
 						return 0, err
 					}
 				}
 
-				_, err = client.StreamsApi.DeleteStreamWorkspace(ctx, projectID, instanceName).Execute()
+				_, err = client.StreamsAPI.DeleteStreamWorkspace(ctx, projectID, instanceName).Execute()
 				if err != nil {
 					return 0, err
 				}
@@ -65,14 +65,14 @@ func RemoveStreamInstances(ctx context.Context, dryRun bool, client *admin.APICl
 // RemovePrivateLinkConnections deletes all Stream Processing Private Link connections in the project;
 // left behind, they block project deletion with CANNOT_CLOSE_GROUP_ACTIVE_STREAMS_RESOURCE.
 func RemovePrivateLinkConnections(ctx context.Context, dryRun bool, client *admin.APIClient, projectID string) (int, error) {
-	connections, resp, err := client.StreamsApi.ListPrivateLinkConnections(ctx, projectID).Execute()
+	connections, resp, err := client.StreamsAPI.ListPrivateLinkConnections(ctx, projectID).Execute()
 	if err != nil {
 		return 0, SkipUnauthorizedErr(resp, err)
 	}
 	results := connections.GetResults()
 	for i := range results {
 		if !dryRun {
-			_, err = client.StreamsApi.DeletePrivateLinkConnection(ctx, projectID, results[i].GetId()).Execute()
+			_, err = client.StreamsAPI.DeletePrivateLinkConnection(ctx, projectID, results[i].GetId()).Execute()
 			if admin.IsErrorCode(err, "STREAM_PRIVATE_LINK_IN_USE") {
 				continue // still referenced by a stream connection, leave it for the next run
 			}

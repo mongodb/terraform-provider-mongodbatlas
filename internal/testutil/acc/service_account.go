@@ -21,7 +21,7 @@ func CheckDestroyDeleteProjectSAs(s *terraform.State) error {
 			continue
 		}
 		if clientID := rs.Primary.Attributes["client_id"]; clientID != "" {
-			if _, err := ConnV2().ServiceAccountsApi.DeleteOrgServiceAccount(context.Background(), clientID, orgID).Execute(); err != nil {
+			if _, err := ConnV2().ServiceAccountsAPI.DeleteOrgServiceAccount(context.Background(), clientID, orgID).Execute(); err != nil {
 				errs = append(errs, fmt.Errorf("failed to delete service account %s: %w", clientID, err))
 			}
 		}

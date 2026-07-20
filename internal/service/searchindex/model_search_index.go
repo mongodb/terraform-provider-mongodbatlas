@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]any {
@@ -160,7 +160,7 @@ var searchIndexPendingStates = []string{"PENDING", "BUILDING", "IN_PROGRESS", "M
 
 func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		searchIndex, resp, err := connV2.AtlasSearchApi.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+		searchIndex, resp, err := connV2.AtlasSearchAPI.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 		if err != nil {
 			if validate.StatusNotFound(resp) {
 				return "", retrystrategy.RetryStrategyDeletedState, nil

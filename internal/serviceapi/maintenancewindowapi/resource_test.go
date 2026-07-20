@@ -86,7 +86,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if groupID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		if _, _, err := acc.ConnV2().MaintenanceWindowsApi.GetMaintenanceWindow(context.Background(), groupID).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().MaintenanceWindowsAPI.GetMaintenanceWindow(context.Background(), groupID).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("maintenance window for project(%s) does not exist", groupID)
@@ -102,7 +102,7 @@ func checkDestroy(s *terraform.State) error {
 		if groupID == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		maintenanceWindow, _, err := acc.ConnV2().MaintenanceWindowsApi.GetMaintenanceWindow(context.Background(), groupID).Execute()
+		maintenanceWindow, _, err := acc.ConnV2().MaintenanceWindowsAPI.GetMaintenanceWindow(context.Background(), groupID).Execute()
 		if err != nil {
 			return fmt.Errorf("maintenance window for project (%s) still exists", groupID)
 		}

@@ -45,7 +45,7 @@ func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadReques
 	connV2 := d.Client.AtlasV2
 	projectID := searchDeploymentConfig.ProjectID.ValueString()
 	clusterName := searchDeploymentConfig.ClusterName.ValueString()
-	apiResp, _, err := connV2.AtlasSearchApi.GetClusterSearchDeployment(ctx, projectID, clusterName).Execute()
+	apiResp, _, err := connV2.AtlasSearchAPI.GetClusterSearchDeployment(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error getting search node information", err.Error())
 		return

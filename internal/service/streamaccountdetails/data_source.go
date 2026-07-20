@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const resourceName = "stream_account_details"
@@ -39,7 +39,7 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 		return
 	}
 
-	accountDetailsRequestParams := connV2.StreamsApi.GetAccountDetailsWithParams(ctx, &admin.GetAccountDetailsApiParams{
+	accountDetailsRequestParams := connV2.StreamsAPI.GetAccountDetailsWithParams(ctx, &admin.GetAccountDetailsApiParams{
 		GroupId:       streamAccountDetailsModel.ProjectId.ValueString(),
 		CloudProvider: streamAccountDetailsModel.CloudProvider.ValueStringPointer(),
 		RegionName:    streamAccountDetailsModel.RegionName.ValueStringPointer(),

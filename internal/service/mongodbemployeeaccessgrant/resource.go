@@ -54,7 +54,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	connV2 := r.Client.AtlasV2
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.ClusterName.ValueString()
-	cluster, httpResp, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	cluster, httpResp, err := connV2.ClustersAPI.GetCluster(ctx, projectID, clusterName).Execute()
 	if validate.StatusNotFound(httpResp) {
 		resp.State.RemoveResource(ctx)
 		return
@@ -84,7 +84,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	connV2 := r.Client.AtlasV2
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.ClusterName.ValueString()
-	httpResp, err := connV2.ClustersApi.RevokeMongoEmployeeAccess(ctx, projectID, clusterName).Execute()
+	httpResp, err := connV2.ClustersAPI.RevokeMongoEmployeeAccess(ctx, projectID, clusterName).Execute()
 	if err != nil && validate.StatusNotFound(httpResp) {
 		resp.Diagnostics.AddError(errorDelete, err.Error())
 		return
@@ -109,7 +109,7 @@ func (r *rs) createOrUpdate(ctx context.Context, tfModelFunc func(context.Contex
 	connV2 := r.Client.AtlasV2
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.ClusterName.ValueString()
-	if _, err := connV2.ClustersApi.GrantMongoEmployeeAccess(ctx, projectID, clusterName, atlasReq).Execute(); err != nil {
+	if _, err := connV2.ClustersAPI.GrantMongoEmployeeAccess(ctx, projectID, clusterName, atlasReq).Execute(); err != nil {
 		diagnostics.AddError(errorCreateUpdate, err.Error())
 		return
 	}

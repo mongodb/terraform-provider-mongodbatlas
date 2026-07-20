@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -127,7 +127,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		ItemsPerPage:         conversion.IntPtr(d.Get("items_per_page").(int)),
 	}
 
-	federatedSettingsConnectedOrganizations, _, err := conn.FederatedAuthenticationApi.ListConnectedOrgConfigsWithParams(ctx, params).Execute()
+	federatedSettingsConnectedOrganizations, _, err := conn.FederatedAuthenticationAPI.ListConnectedOrgConfigsWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings connected organizations assigned (%s): %s", federationSettingsID, err)
 	}

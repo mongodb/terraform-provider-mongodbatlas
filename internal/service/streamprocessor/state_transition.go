@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -28,11 +28,11 @@ const (
 	minTimeout                 = 3 * time.Second
 )
 
-func WaitStateTransition(ctx context.Context, requestParams *admin.GetStreamProcessorApiParams, client admin.StreamsApi, pendingStates, desiredStates []string) (*admin.StreamsProcessorWithStats, error) {
+func WaitStateTransition(ctx context.Context, requestParams *admin.GetStreamProcessorApiParams, client admin.StreamsAPI, pendingStates, desiredStates []string) (*admin.StreamsProcessorWithStats, error) {
 	return WaitStateTransitionWithTimeout(ctx, requestParams, client, pendingStates, desiredStates, defaultTimeout)
 }
 
-func WaitStateTransitionWithTimeout(ctx context.Context, requestParams *admin.GetStreamProcessorApiParams, client admin.StreamsApi, pendingStates, desiredStates []string, timeout time.Duration) (*admin.StreamsProcessorWithStats, error) {
+func WaitStateTransitionWithTimeout(ctx context.Context, requestParams *admin.GetStreamProcessorApiParams, client admin.StreamsAPI, pendingStates, desiredStates []string, timeout time.Duration) (*admin.StreamsProcessorWithStats, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    pendingStates,
 		Target:     desiredStates,
@@ -70,7 +70,7 @@ func ValidateUpdateStateTransition(currentState, plannedState string) (errMsg st
 	return "", true
 }
 
-func refreshFunc(ctx context.Context, requestParams *admin.GetStreamProcessorApiParams, client admin.StreamsApi) retry.StateRefreshFunc {
+func refreshFunc(ctx context.Context, requestParams *admin.GetStreamProcessorApiParams, client admin.StreamsAPI) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		streamProcessor, resp, err := client.GetStreamProcessorWithParams(ctx, requestParams).Execute()
 		if err != nil {

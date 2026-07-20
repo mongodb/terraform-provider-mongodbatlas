@@ -59,20 +59,20 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	projectID := plan.ProjectId.ValueString()
 
 	connV2 := r.Client.AtlasV2
-	streamsPrivateLinkConnection, _, err := connV2.StreamsApi.CreatePrivateLinkConnection(ctx, projectID, streamPrivatelinkEndpointReq).Execute()
+	streamsPrivateLinkConnection, _, err := connV2.StreamsAPI.CreatePrivateLinkConnection(ctx, projectID, streamPrivatelinkEndpointReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
 	}
 
-	finalResp, err := waitStateTransition(ctx, projectID, *streamsPrivateLinkConnection.Id, connV2.StreamsApi)
+	finalResp, err := waitStateTransition(ctx, projectID, *streamsPrivateLinkConnection.Id, connV2.StreamsAPI)
 	if err != nil {
 		if finalResp != nil { // delete the resource that has been created but fails to reach desired state
-			if _, err := connV2.StreamsApi.DeletePrivateLinkConnection(ctx, projectID, finalResp.GetId()).Execute(); err != nil {
+			if _, err := connV2.StreamsAPI.DeletePrivateLinkConnection(ctx, projectID, finalResp.GetId()).Execute(); err != nil {
 				resp.Diagnostics.AddError("error deleting resource after failed creation", err.Error())
 				return
 			}
-			_, err := WaitDeleteStateTransition(ctx, projectID, *finalResp.Id, connV2.StreamsApi)
+			_, err := WaitDeleteStateTransition(ctx, projectID, *finalResp.Id, connV2.StreamsAPI)
 			if err != nil {
 				resp.Diagnostics.AddError("error waiting for state transition in deletion after a failed creation", err.Error())
 				return
@@ -106,7 +106,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	connectionID := state.Id.ValueString()
 
 	connV2 := r.Client.AtlasV2
-	streamsPrivateLinkConnection, apiResp, err := connV2.StreamsApi.GetPrivateLinkConnection(ctx, projectID, connectionID).Execute()
+	streamsPrivateLinkConnection, apiResp, err := connV2.StreamsAPI.GetPrivateLinkConnection(ctx, projectID, connectionID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
@@ -144,12 +144,12 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	connectionID := state.Id.ValueString()
 
 	connV2 := r.Client.AtlasV2
-	if _, err := connV2.StreamsApi.DeletePrivateLinkConnection(ctx, projectID, connectionID).Execute(); err != nil {
+	if _, err := connV2.StreamsAPI.DeletePrivateLinkConnection(ctx, projectID, connectionID).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}
 
-	model, err := WaitDeleteStateTransition(ctx, projectID, connectionID, connV2.StreamsApi)
+	model, err := WaitDeleteStateTransition(ctx, projectID, connectionID, connV2.StreamsAPI)
 	if err != nil {
 		resp.Diagnostics.AddError("error waiting for state transition", err.Error())
 		return

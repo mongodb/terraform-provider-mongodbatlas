@@ -3,7 +3,7 @@ package advancedcluster
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -77,7 +77,7 @@ func convertFlexClusterToDS(ctx context.Context, diags *diag.Diagnostics, flexCl
 }
 
 func convertBasicClusterToDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805) *TFModelDS {
-	containerIDs := resolveContainerIDsOrError(ctx, diags, clusterResp, client.AtlasV2.NetworkPeeringApi)
+	containerIDs := resolveContainerIDsOrError(ctx, diags, clusterResp, client.AtlasV2.NetworkPeeringAPI)
 	if diags.HasError() {
 		return nil
 	}

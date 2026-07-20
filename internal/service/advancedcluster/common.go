@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -120,7 +120,7 @@ func getPriorityOfFlexReplicationSpecs(replicationSpecs *[]admin.ReplicationSpec
 	return regionConfig.Priority
 }
 
-func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersApi) retry.StateRefreshFunc {
+func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersAPI) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		clusters, resp, err := clustersAPI.ListClusters(ctx, projectID).Execute()
 

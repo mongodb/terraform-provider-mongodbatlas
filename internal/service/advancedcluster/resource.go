@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -136,7 +136,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 	if isFlex {
 		flexClusterReq := newFlexCreateReq(latestReq.GetName(), latestReq.GetTerminationProtectionEnabled(), latestReq.Tags, latestReq.ReplicationSpecs)
-		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, plan.ProjectID.ValueString(), latestReq.GetName(), flexClusterReq, r.Client.AtlasV2.FlexClustersApi, &waitParams.Timeout)
+		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, plan.ProjectID.ValueString(), latestReq.GetName(), flexClusterReq, r.Client.AtlasV2.FlexClustersAPI, &waitParams.Timeout)
 		if err != nil {
 			diags.AddError(fmt.Sprintf(flexcluster.ErrorCreateFlex, clusterDetailStr), err.Error())
 			return
@@ -345,7 +345,7 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 
 func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	var (
-		api         = r.Client.AtlasV2.ClustersApi
+		api         = r.Client.AtlasV2.ClustersAPI
 		projectID   = waitParams.ProjectID
 		clusterName = waitParams.ClusterName
 	)
@@ -419,7 +419,7 @@ func clearAdaptiveCapacity(ctx context.Context, diags *diag.Diagnostics, client 
 }
 
 func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
-	containerIDs := resolveContainerIDsOrError(ctx, diags, clusterResp, client.AtlasV2.NetworkPeeringApi)
+	containerIDs := resolveContainerIDsOrError(ctx, diags, clusterResp, client.AtlasV2.NetworkPeeringAPI)
 	if diags.HasError() {
 		return nil
 	}
@@ -431,7 +431,7 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 	return modelOut
 }
 
-func resolveContainerIDsOrError(ctx context.Context, diags *diag.Diagnostics, clusterResp *admin.ClusterDescription20240805, api admin.NetworkPeeringApi) map[string]string {
+func resolveContainerIDsOrError(ctx context.Context, diags *diag.Diagnostics, clusterResp *admin.ClusterDescription20240805, api admin.NetworkPeeringAPI) map[string]string {
 	projectID := clusterResp.GetGroupId()
 	clusterName := clusterResp.GetName()
 	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterResp, api)
@@ -469,7 +469,7 @@ func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	if pauseAfter {
 		req.Paused = nil
 	}
-	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
+	_, _, err := client.AtlasV2.ClustersAPI.CreateCluster(ctx, waitParams.ProjectID, req).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationCreate, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
@@ -485,7 +485,7 @@ func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 }
 
 func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, operationName string) *admin.ClusterDescription20240805 {
-	_, _, err := client.AtlasV2.ClustersApi.UpdateCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, req).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
+	_, _, err := client.AtlasV2.ClustersAPI.UpdateCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, req).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationName, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
@@ -580,7 +580,7 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 	clusterName := plan.Name.ValueString()
 	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), clusterName,
 		getFlexClusterUpdateRequest(configReq.Tags, configReq.TerminationProtectionEnabled),
-		client.AtlasV2.FlexClustersApi, waitParams.Timeout)
+		client.AtlasV2.FlexClustersAPI, waitParams.Timeout)
 	if err != nil {
 		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpdateFlex, clusterName), err.Error())
 		return nil

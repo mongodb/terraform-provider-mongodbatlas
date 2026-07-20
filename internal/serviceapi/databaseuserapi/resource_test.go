@@ -105,7 +105,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if groupID == "" || databaseName == "" || username == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		if _, _, err := acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), groupID, databaseName, username).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().DatabaseUsersAPI.GetDatabaseUser(context.Background(), groupID, databaseName, username).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("database user(%s/%s/%s) does not exist", groupID, databaseName, username)
@@ -123,7 +123,7 @@ func checkDestroy(s *terraform.State) error {
 		if groupID == "" || databaseName == "" || username == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), groupID, databaseName, username).Execute()
+		_, _, err := acc.ConnV2().DatabaseUsersAPI.GetDatabaseUser(context.Background(), groupID, databaseName, username).Execute()
 		if err == nil {
 			return fmt.Errorf("database user (%s) still exists", groupID)
 		}

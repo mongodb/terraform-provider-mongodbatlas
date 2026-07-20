@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -76,7 +76,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		auditingReq.Enabled = new(enabled.(bool))
 	}
 
-	_, _, err := connV2.AuditingApi.UpdateAuditLog(ctx, projectID, auditingReq).Execute()
+	_, _, err := connV2.AuditingAPI.UpdateAuditLog(ctx, projectID, auditingReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingCreate, projectID, err))
 	}
@@ -87,7 +87,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	auditing, resp, err := connV2.AuditingApi.GetGroupAuditLog(ctx, d.Id()).Execute()
+	auditing, resp, err := connV2.AuditingAPI.GetGroupAuditLog(ctx, d.Id()).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -132,7 +132,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		auditingReq.Enabled = new(d.Get("enabled").(bool))
 	}
 
-	_, _, err := connV2.AuditingApi.UpdateAuditLog(ctx, d.Id(), auditingReq).Execute()
+	_, _, err := connV2.AuditingAPI.UpdateAuditLog(ctx, d.Id(), auditingReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingUpdate, d.Id(), err))
 	}
@@ -145,7 +145,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	auditingReq := &admin.AuditLog{
 		Enabled: new(false),
 	}
-	_, _, err := connV2.AuditingApi.UpdateAuditLog(ctx, d.Id(), auditingReq).Execute()
+	_, _, err := connV2.AuditingAPI.UpdateAuditLog(ctx, d.Id(), auditingReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingDelete, d.Id(), err))
 	}

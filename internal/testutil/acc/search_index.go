@@ -17,7 +17,7 @@ func CheckDestroySearchIndex(state *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		if _, _, err := ConnV2().AtlasSearchApi.GetClusterSearchIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"]).Execute(); err == nil {
+		if _, _, err := ConnV2().AtlasSearchAPI.GetClusterSearchIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"]).Execute(); err == nil {
 			return fmt.Errorf("index id (%s) still exists", ids["index_id"])
 		}
 	}
