@@ -411,15 +411,17 @@ output "privatelink_endpoint_id" {
 ### Optional
 
 - `arn` (String) Amazon Resource Name (ARN). Required for AWS Provider and MSK vendor.
-- `dns_domain` (String) The domain hostname. Required for the following provider and vendor combinations:
+- `dns_domain` (String) The domain hostname. It is optional for AWS Confluent Enterprise Kafka Cluster. Required for the following provider and vendor combinations:
 
-	* AWS provider with CONFLUENT vendor.
+	* AWS provider with CONFLUENT vendor for Dedicated Kafka Cluster.
 
 	* AZURE provider with EVENTHUB or CONFLUENT vendor.
 
 	* AZURE provider with AZURE_BLOB_STORAGE vendor. This should follow the format `{storageAccount}.blob.core.windows.net`.
 
 	* For GCP provider with PUBSUB vendor, the API computes this process.
+
+	This attribute can be updated in place for AWS Confluent Enterprise Kafka Cluster. Updating it is only allowed when no domain is currently set, or when the connection is in the `IDLE` state.
 - `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones. Required for AWS Provider and CONFLUENT vendor. If your AWS CONFLUENT cluster doesn't use subdomains, you must set this to the empty array [].
 - `region` (String) The region of the Provider’s cluster. See [AZURE](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances) and [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/#stream-processing-instances) supported regions. When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.
 - `service_attachment_uris` (List of String) List of GCP service attachment URIs for Confluent vendor. Required for GCP provider with CONFLUENT vendor.

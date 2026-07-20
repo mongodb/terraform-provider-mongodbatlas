@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -34,6 +35,44 @@ func TestAccStreamPrivatelinkEndpointConfluent_noDNSsubdomains(t *testing.T) {
 	tc := basicConfluentTestCase(t, false)
 	// Tests include testing of plural data source and so cannot be run in parallel
 	resource.Test(t, *tc)
+}
+
+func TestAccStreamPrivatelinkEndpointConfluent_updateDNSDomain(t *testing.T) {
+	acc.SkipTestForCI(t) // needs confluent cloud resources
+
+	var (
+		projectID         = acc.ProjectIDExecution(t)
+		provider          = "AWS"
+		region            = "us-east-1"
+		connectionID      = os.Getenv("CONNECTION_ID")
+		dnsName           = os.Getenv("DNS_NAME")
+		serviceEndpointID = "com.amazonaws.vpce.us-east-1.vpce-svc-034f5dac32226cb29"
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		CheckDestroy:             checkDestroy,
+		ExternalProviders:        acc.ExternalProvidersOnlyConfluent(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.GetConfluentEnterpriseConfigForDNSDomainUpdate(false, projectID, provider, region, vendorConfluent, connectionID, dnsName, serviceEndpointID),
+				Check:  checkExists(),
+			},
+			{
+				Config: acc.GetConfluentEnterpriseConfigForDNSDomainUpdate(true, projectID, provider, region, vendorConfluent, connectionID, dnsName, serviceEndpointID),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+				},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(),
+					resource.TestCheckResourceAttrSet(resourceName, "dns_domain"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccStreamPrivatelinkEndpointConfluent_missingRequiredFields(t *testing.T) {
@@ -268,7 +307,7 @@ func missingRequiredFieldsConfluentTestCase(t *testing.T) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config:      acc.ConfigDataConfluentDedicatedCluster(networkID, privatelinkAccessID) + missingRequiredFieldsConfig(projectID, provider, vendor),
-				ExpectError: regexp.MustCompile(`(?s)^.*?service_endpoint_id is required for vendor CONFLUENT.*?dns_domain is required for vendor CONFLUENT.*?region is required for vendor CONFLUENT.*$`),
+				ExpectError: regexp.MustCompile(`(?s)^.*?service_endpoint_id is required for vendor CONFLUENT.*?region is required for vendor CONFLUENT.*$`),
 			},
 		},
 	}

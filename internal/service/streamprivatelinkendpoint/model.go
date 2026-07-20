@@ -64,9 +64,6 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		if hasServiceEndpointID && hasServiceAttachmentUris {
 			diags.AddError("Only one of service_endpoint_id or service_attachment_uris can be provided", "")
 		}
-		if plan.DnsDomain.IsNull() || plan.DnsDomain.IsUnknown() {
-			diags.AddError(fmt.Sprintf("dns_domain is required for vendor %s", VendorConfluent), "")
-		}
 		if plan.Region.IsNull() {
 			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorConfluent), "")
 		}
@@ -114,13 +111,19 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 	}
 
 	result := &admin.StreamsPrivateLinkConnection{
-		DnsDomain:         plan.DnsDomain.ValueStringPointer(),
 		Provider:          plan.Provider.ValueString(),
 		Region:            plan.Region.ValueStringPointer(),
 		ServiceEndpointId: plan.ServiceEndpointId.ValueStringPointer(),
 		State:             plan.State.ValueStringPointer(),
 		Vendor:            plan.Vendor.ValueStringPointer(),
 		Arn:               plan.Arn.ValueStringPointer(),
+	}
+
+	// dns_domain is option, and is intentionally NOT required for Confluent Enterprise PL now.
+	// dns_domain is Optional+Computed, so when it is not set in the config it is Unknown (not Null) at create time.
+	// Only send it when it is known and non-empty.
+	if !plan.DnsDomain.IsNull() && !plan.DnsDomain.IsUnknown() && plan.DnsDomain.ValueString() != "" {
+		result.DnsDomain = plan.DnsDomain.ValueStringPointer()
 	}
 
 	if !plan.DnsSubDomain.IsNull() {

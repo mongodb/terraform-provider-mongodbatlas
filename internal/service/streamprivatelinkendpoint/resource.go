@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
@@ -18,7 +19,6 @@ import (
 
 const (
 	resourceName                     = "stream_privatelink_endpoint"
-	warnUnsupportedOperation         = "Operation not supported"
 	FailedStatusErrorMessageSummary  = "Private endpoint is in a failed status"
 	NonEmptyErrorMessageFieldSummary = "Something went wrong. Please review the `status` field of this resource"
 )
@@ -130,7 +130,43 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	resp.Diagnostics.AddError(warnUnsupportedOperation, "Updating the private endpoint for streams is not supported. To modify your infrastructure, please delete the existing mongodbatlas_stream_privatelink_endpoint resource and create a new one with the necessary updates")
+	var plan, state TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	projectID := state.ProjectId.ValueString()
+	connectionID := state.Id.ValueString()
+
+	updateReq := &admin.StreamsPrivateLinkConnectionRequest{
+		DnsDomain: plan.DnsDomain.ValueStringPointer(),
+	}
+
+	connV2 := r.Client.AtlasV2
+	if _, _, err := connV2.StreamsAPI.UpdatePrivateLinkConnection(ctx, projectID, connectionID, updateReq).Execute(); err != nil {
+		resp.Diagnostics.AddError("error updating resource", err.Error())
+		return
+	}
+
+	finalResp, err := waitStateTransition(ctx, projectID, connectionID, connV2.StreamsAPI)
+	if err != nil {
+		resp.Diagnostics.AddError("error when waiting for status transition in update", err.Error())
+		return
+	}
+
+	newStreamPrivatelinkEndpointModel, diags := NewTFModel(ctx, projectID, finalResp)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	if plan.DnsSubDomain.IsNull() && len(newStreamPrivatelinkEndpointModel.DnsSubDomain.Elements()) == 0 {
+		newStreamPrivatelinkEndpointModel.DnsSubDomain = types.ListNull(types.StringType)
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, newStreamPrivatelinkEndpointModel)...)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

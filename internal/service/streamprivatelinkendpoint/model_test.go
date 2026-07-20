@@ -460,17 +460,19 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 			expectError: true,
 			errorCount:  1,
 		},
-		"GCP Confluent missing dns_domain": {
+		"AWS Confluent missing dns_domain is allowed": {
+			// dns_domain is optional for Confluent (Enterprise clusters and the AWS
+			// Gateway model supply it later via update), so a null value is valid.
 			tfModel: &streamprivatelinkendpoint.TFModel{
-				Provider:              types.StringValue(constant.GCP),
+				Provider:              types.StringValue(constant.AWS),
 				Vendor:                types.StringValue(streamprivatelinkendpoint.VendorConfluent),
 				ServiceAttachmentUris: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("projects/test-project/regions/us-west1/serviceAttachments/test-attachment")}),
 				ServiceEndpointId:     types.StringNull(),
 				DnsDomain:             types.StringNull(),
 				Region:                types.StringValue("us-west1"),
 			},
-			expectError: true,
-			errorCount:  1,
+			expectError: false,
+			errorCount:  0,
 		},
 		"GCP Confluent missing region": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
