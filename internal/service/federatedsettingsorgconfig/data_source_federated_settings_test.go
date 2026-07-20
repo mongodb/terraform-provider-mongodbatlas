@@ -55,7 +55,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsExists(resourceName string) resour
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		_, _, err := acc.ConnV2().FederatedAuthenticationApi.GetFederationSettings(context.Background(), rs.Primary.Attributes["org_id"]).Execute()
+		_, _, err := acc.ConnV2().FederatedAuthenticationAPI.GetFederationSettings(context.Background(), rs.Primary.Attributes["org_id"]).Execute()
 		if err != nil {
 			return fmt.Errorf("FederatedSettings (%s) does not exist", rs.Primary.ID)
 		}

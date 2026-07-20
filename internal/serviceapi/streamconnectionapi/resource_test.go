@@ -104,7 +104,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
 
-		if _, _, err := acc.ConnV2().StreamsApi.GetStreamConnection(context.Background(), projectID, workspaceName, connectionName).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().StreamsAPI.GetStreamConnection(context.Background(), projectID, workspaceName, connectionName).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("stream connection (%s/%s/%s) does not exist", projectID, workspaceName, connectionName)
@@ -124,7 +124,7 @@ func checkDestroy(s *terraform.State) error {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
 
-		_, _, err := acc.ConnV2().StreamsApi.GetStreamConnection(context.Background(), projectID, workspaceName, connectionName).Execute()
+		_, _, err := acc.ConnV2().StreamsAPI.GetStreamConnection(context.Background(), projectID, workspaceName, connectionName).Execute()
 		if err == nil {
 			return fmt.Errorf("stream connection (%s/%s/%s) still exists", projectID, workspaceName, connectionName)
 		}

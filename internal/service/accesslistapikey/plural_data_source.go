@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -79,7 +79,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		OrgId:        orgID,
 		ApiUserId:    apiKeyID,
 	}
-	accessListAPIKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListOrgAccessEntriesWithParams(ctx, params).Execute()
+	accessListAPIKeys, _, err := connV2.ProgrammaticAPIKeysAPI.ListOrgAccessEntriesWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting access list api keys information: %s", err))
 	}

@@ -128,7 +128,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	createRequest := ExpandIdentityProviderOIDCCreate(d)
 	federatedSettingsID := d.Get("federation_settings_id").(string)
 
-	resp, _, err := connV2.FederatedAuthenticationApi.CreateIdentityProvider(ctx, federatedSettingsID, createRequest).Execute()
+	resp, _, err := connV2.FederatedAuthenticationAPI.CreateIdentityProvider(ctx, federatedSettingsID, createRequest).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error creating federation settings identity provider (%s): %s", federatedSettingsID, err))
 	}
@@ -148,7 +148,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	// as few changes as possible, this name will remain.
 	idpID := ids["okta_idp_id"]
 
-	federatedSettingsIdentityProvider, resp, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(ctx, federationSettingsID, idpID).Execute()
+	federatedSettingsIdentityProvider, resp, err := connV2.FederatedAuthenticationAPI.GetIdentityProvider(ctx, federationSettingsID, idpID).Execute()
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -248,7 +248,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	federationSettingsID, idpID := DecodeIDs(d.Id())
 
-	existingIdentityProvider, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(ctx, federationSettingsID, idpID).Execute()
+	existingIdentityProvider, _, err := connV2.FederatedAuthenticationAPI.GetIdentityProvider(ctx, federationSettingsID, idpID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings identity provider (%s): %s", federationSettingsID, err))
 	}
@@ -346,7 +346,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		userClaim := d.Get("user_claim").(string)
 		updateRequest.UserClaim = &userClaim
 	}
-	_, _, err = connV2.FederatedAuthenticationApi.UpdateIdentityProvider(ctx, federationSettingsID, idpID, updateRequest).Execute()
+	_, _, err = connV2.FederatedAuthenticationAPI.UpdateIdentityProvider(ctx, federationSettingsID, idpID, updateRequest).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating federation settings identity provider (%s): %s", federationSettingsID, err))
 	}
@@ -357,7 +357,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	federationSettingsID, idpID := DecodeIDs(d.Id())
-	resp, err := connV2.FederatedAuthenticationApi.DeleteIdentityProvider(ctx, federationSettingsID, idpID).Execute()
+	resp, err := connV2.FederatedAuthenticationAPI.DeleteIdentityProvider(ctx, federationSettingsID, idpID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")

@@ -35,7 +35,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 		return
 	}
 
-	privateEndpoints, _, err := d.Client.AtlasV2.PrivateEndpointServicesApi.ListPrivateEndpointService(ctx, state.ProjectID.ValueString(), state.ProviderName.ValueString()).Execute()
+	privateEndpoints, _, err := d.Client.AtlasV2.PrivateEndpointServicesAPI.ListPrivateEndpointService(ctx, state.ProjectID.ValueString(), state.ProviderName.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error getting Private Endpoints", err.Error())
 		return

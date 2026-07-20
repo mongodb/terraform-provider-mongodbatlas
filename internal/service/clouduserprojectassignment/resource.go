@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -57,7 +57,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	apiResp, _, err := connV2.MongoDBCloudUsersApi.AddGroupUsers(ctx, projectID, projectUserRequest).Execute()
+	apiResp, _, err := connV2.MongoDBCloudUsersAPI.AddGroupUsers(ctx, projectID, projectUserRequest).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf("error assigning user to ProjectID(%s):", projectID), err.Error())
 		return
@@ -76,7 +76,7 @@ func fetchProjectUser(ctx context.Context, connV2 *admin.APIClient, projectID, u
 	var httpResp *http.Response
 	var err error
 	if userID != "" {
-		userResp, httpResp, err = connV2.MongoDBCloudUsersApi.GetGroupUser(ctx, projectID, userID).Execute()
+		userResp, httpResp, err = connV2.MongoDBCloudUsersAPI.GetGroupUser(ctx, projectID, userID).Execute()
 		if err != nil {
 			if validate.StatusNotFound(httpResp) {
 				return nil, nil
@@ -89,7 +89,7 @@ func fetchProjectUser(ctx context.Context, connV2 *admin.APIClient, projectID, u
 			GroupId:  projectID,
 			Username: &username,
 		}
-		userListResp, httpResp, err = connV2.MongoDBCloudUsersApi.ListGroupUsersWithParams(ctx, params).Execute()
+		userListResp, httpResp, err = connV2.MongoDBCloudUsersAPI.ListGroupUsersWithParams(ctx, params).Execute()
 		if err != nil {
 			if validate.StatusNotFound(httpResp) {
 				return nil, nil
@@ -153,7 +153,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	userID := plan.UserId.ValueString()
 	username := plan.Username.ValueString()
 
-	userInfo, _, err := connV2.MongoDBCloudUsersApi.GetGroupUser(ctx, projectID, userID).Execute() // Fetch current user roles from API (more reliable than state)
+	userInfo, _, err := connV2.MongoDBCloudUsersAPI.GetGroupUser(ctx, projectID, userID).Execute() // Fetch current user roles from API (more reliable than state)
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from ProjectID(%s):", username, projectID), err.Error())
 		return
@@ -166,7 +166,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	for _, addReq := range addRequests {
-		_, _, err := connV2.MongoDBCloudUsersApi.AddGroupUserRole(ctx, projectID, userID, addReq).Execute()
+		_, _, err := connV2.MongoDBCloudUsersAPI.AddGroupUserRole(ctx, projectID, userID, addReq).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(
 				fmt.Sprintf("Error adding role %s to user(%s) in ProjectID(%s):", addReq.GroupRole, username, projectID),
@@ -177,7 +177,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	for _, removeReq := range removeRequests {
-		_, _, err := connV2.MongoDBCloudUsersApi.RemoveGroupUserRole(ctx, projectID, userID, removeReq).Execute()
+		_, _, err := connV2.MongoDBCloudUsersAPI.RemoveGroupUserRole(ctx, projectID, userID, removeReq).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(
 				fmt.Sprintf("Error removing role %s from user(%s) in ProjectID(%s):", removeReq.GroupRole, username, projectID),
@@ -191,7 +191,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 
 	if !state.UserId.IsNull() && state.UserId.ValueString() != "" {
 		userID := state.UserId.ValueString()
-		userResp, _, err = connV2.MongoDBCloudUsersApi.GetGroupUser(ctx, projectID, userID).Execute()
+		userResp, _, err = connV2.MongoDBCloudUsersAPI.GetGroupUser(ctx, projectID, userID).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from ProjectID(%s):", username, projectID), err.Error())
 			return
@@ -218,7 +218,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	userID := state.UserId.ValueString()
 	username := state.Username.ValueString()
 
-	httpResp, err := connV2.MongoDBCloudUsersApi.RemoveGroupUser(ctx, projectID, userID).Execute()
+	httpResp, err := connV2.MongoDBCloudUsersAPI.RemoveGroupUser(ctx, projectID, userID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(httpResp) {
 			resp.State.RemoveResource(ctx)

@@ -40,7 +40,7 @@ func (d *streamsWorkspaceDS) Read(ctx context.Context, req datasource.ReadReques
 	connV2 := d.Client.AtlasV2
 	projectID := streamsWorkspaceConfig.ProjectID.ValueString()
 	workspaceName := streamsWorkspaceConfig.WorkspaceName.ValueString()
-	apiResp, _, err := connV2.StreamsApi.GetStreamWorkspace(ctx, projectID, workspaceName).Execute()
+	apiResp, _, err := connV2.StreamsAPI.GetStreamWorkspace(ctx, projectID, workspaceName).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return

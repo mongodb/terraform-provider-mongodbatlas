@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -506,7 +506,7 @@ func TestAccBackupRSCloudBackupSchedule_skipDestroy(t *testing.T) {
 
 func checkExistsInAtlas(projectID, clusterName string) resource.TestCheckFunc {
 	return func(_ *terraform.State) error {
-		if _, _, err := acc.ConnV2().CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute(); err != nil {
+		if _, _, err := acc.ConnV2().CloudBackupsAPI.GetBackupSchedule(context.Background(), projectID, clusterName).Execute(); err != nil {
 			return fmt.Errorf("cloud backup schedule for cluster %s/%s does not exist: %w", projectID, clusterName, err)
 		}
 		return nil

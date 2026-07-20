@@ -295,7 +295,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d 
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
 
-	dataFederationInstance, _, err := connV2.DataFederationApi.GetDataFederation(ctx, projectID, name).Execute()
+	dataFederationInstance, _, err := connV2.DataFederationAPI.GetDataFederation(ctx, projectID, name).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("couldn't import Atlas Data Federation (%s) for project (%s), error: %s", name, projectID, err))
 	}

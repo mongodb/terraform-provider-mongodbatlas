@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func newAtlasUpdate(ctx context.Context, timeout time.Duration, connV2 *admin.APIClient, projectID, clusterName string, redactClientLogData bool) error {
@@ -27,7 +27,7 @@ func newAtlasUpdate(ctx context.Context, timeout time.Duration, connV2 *admin.AP
 		RedactClientLogData: &redactClientLogData,
 	}
 	// can call latest API (2024-10-23 or newer) as replications specs (with nested autoscaling property) is not specified
-	if _, _, err = connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
+	if _, _, err = connV2.ClustersAPI.UpdateCluster(ctx, projectID, clusterName, req).Execute(); err != nil {
 		return err
 	}
 	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
@@ -38,12 +38,12 @@ func newAtlasUpdate(ctx context.Context, timeout time.Duration, connV2 *admin.AP
 }
 
 func newAtlasGet(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string) (*admin.ClusterDescription20240805, error) {
-	cluster, _, err := connV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	cluster, _, err := connV2.ClustersAPI.GetCluster(ctx, projectID, clusterName).Execute()
 	return cluster, err
 }
 
 func newAtlasList(ctx context.Context, connV2 *admin.APIClient, projectID string) (map[string]*admin.ClusterDescription20240805, error) {
-	clusters, _, err := connV2.ClustersApi.ListClusters(ctx, projectID).Execute()
+	clusters, _, err := connV2.ClustersAPI.ListClusters(ctx, projectID).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, proje
 
 func resourceRefreshFunc(ctx context.Context, name, projectID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, name).Execute()
+		cluster, resp, err := connV2.ClustersAPI.GetCluster(ctx, projectID, name).Execute()
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
 		}
@@ -111,12 +111,12 @@ func handlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, project
 			// pinned_fcv has been defined or updated expiration date
 			nestedObj := pinnedFCVBlock[0].(map[string]any)
 			expDateStr := cast.ToString(nestedObj["expiration_date"])
-			if err := advancedcluster.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
+			if err := advancedcluster.PinFCV(ctx, connV2.ClustersAPI, projectID, clusterName, expDateStr); err != nil {
 				return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 			}
 		} else {
 			// pinned_fcv has been removed from the config so unpin method is called
-			if _, err := connV2.ClustersApi.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
+			if _, err := connV2.ClustersAPI.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 			}
 		}

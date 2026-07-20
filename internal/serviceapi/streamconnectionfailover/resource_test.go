@@ -170,7 +170,7 @@ func checkExists() resource.TestCheckFunc {
 				continue
 			}
 			a := rs.Primary.Attributes
-			_, _, err := acc.ConnV2().StreamsApi.GetStreamFailoverConnection(context.Background(), a["project_id"], a["workspace_name"], a["connection_name"], a["failover_connection_id"]).Execute()
+			_, _, err := acc.ConnV2().StreamsAPI.GetStreamFailoverConnection(context.Background(), a["project_id"], a["workspace_name"], a["connection_name"], a["failover_connection_id"]).Execute()
 			if err != nil {
 				return fmt.Errorf("failover connection (%s:%s:%s) does not exist", a["connection_name"], a["region"], a["failover_connection_id"])
 			}
@@ -185,7 +185,7 @@ func checkDestroy(state *terraform.State) error {
 			continue
 		}
 		a := rs.Primary.Attributes
-		_, _, err := acc.ConnV2().StreamsApi.GetStreamFailoverConnection(context.Background(), a["project_id"], a["workspace_name"], a["connection_name"], a["failover_connection_id"]).Execute()
+		_, _, err := acc.ConnV2().StreamsAPI.GetStreamFailoverConnection(context.Background(), a["project_id"], a["workspace_name"], a["connection_name"], a["failover_connection_id"]).Execute()
 		if err == nil {
 			return fmt.Errorf("failover connection (%s:%s) still exists", a["connection_name"], a["failover_connection_id"])
 		}

@@ -72,7 +72,7 @@ func (d *streamConnectionDS) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 	connectionName := streamConnectionConfig.ConnectionName.ValueString()
-	apiResp, _, err := connV2.StreamsApi.GetStreamConnection(ctx, projectID, workspaceOrInstanceName, connectionName).Execute()
+	apiResp, _, err := connV2.StreamsAPI.GetStreamConnection(ctx, projectID, workspaceOrInstanceName, connectionName).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return

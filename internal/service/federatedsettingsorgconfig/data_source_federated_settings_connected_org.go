@@ -137,7 +137,7 @@ func dataSourceOrgRead(ctx context.Context, d *schema.ResourceData, meta any) di
 		return diag.FromErr(errors.New("org_id must be configured"))
 	}
 
-	federatedSettingsConnectedOrganization, _, err := conn.FederatedAuthenticationApi.GetConnectedOrgConfig(ctx, federationSettingsID.(string), orgID.(string)).Execute()
+	federatedSettingsConnectedOrganization, _, err := conn.FederatedAuthenticationAPI.GetConnectedOrgConfig(ctx, federationSettingsID.(string), orgID.(string)).Execute()
 
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings connected organizations assigned (%s): %s", federationSettingsID, err)

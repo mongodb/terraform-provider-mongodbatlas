@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -73,7 +73,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 // getBasicClusters gets the dedicated and tenant clusters.
 func (d *pluralDS) getBasicClusters(ctx context.Context, diags *diag.Diagnostics, projectID string, useEffectiveFields types.Bool) []*TFModelDS {
 	var results []*TFModelDS
-	api := d.Client.AtlasV2.ClustersApi
+	api := d.Client.AtlasV2.ClustersAPI
 	params := admin.ListClustersApiParams{
 		GroupId:                    projectID,
 		UseEffectiveInstanceFields: new(useEffectiveFields.ValueBool()),
@@ -98,7 +98,7 @@ func (d *pluralDS) getBasicClusters(ctx context.Context, diags *diag.Diagnostics
 
 func (d *pluralDS) getFlexClusters(ctx context.Context, diags *diag.Diagnostics, projectID string, useEffectiveFields types.Bool) []*TFModelDS {
 	var results []*TFModelDS
-	listFlexClusters, err := flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasV2.FlexClustersApi)
+	listFlexClusters, err := flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasV2.FlexClustersAPI)
 	if err != nil {
 		addListError(diags, projectID, err)
 		RemoveClusterNotFoundErrors(diags) // Needed until CLOUDP-366240 is done.

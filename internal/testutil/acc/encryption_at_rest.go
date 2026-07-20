@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -194,7 +194,7 @@ func CheckEARExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		if _, _, err := ConnV2().EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), rs.Primary.ID).Execute(); err == nil {
+		if _, _, err := ConnV2().EncryptionAtRestUsingCustomerKeyManagementAPI.GetEncryptionAtRest(context.Background(), rs.Primary.ID).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("encryptionAtRest (%s) does not exist", rs.Primary.ID)
@@ -236,7 +236,7 @@ func EARDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_encryption_at_rest" {
 			continue
 		}
-		res, _, err := ConnV2().EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), rs.Primary.ID).Execute()
+		res, _, err := ConnV2().EncryptionAtRestUsingCustomerKeyManagementAPI.GetEncryptionAtRest(context.Background(), rs.Primary.ID).Execute()
 		if err != nil ||
 			(res.AwsKms.GetEnabled() ||
 				res.AzureKeyVault.GetEnabled() ||

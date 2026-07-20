@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -280,7 +280,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	// iterating all results to be implemented as part of CLOUDP-227485
-	providers, _, err := connV2.FederatedAuthenticationApi.ListIdentityProvidersWithParams(ctx, params).Execute()
+	providers, _, err := connV2.FederatedAuthenticationAPI.ListIdentityProvidersWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings Identity Providers assigned (%s): %s", federationSettingsID, err)
 	}

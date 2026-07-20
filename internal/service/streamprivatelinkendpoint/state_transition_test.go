@@ -12,8 +12,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
-	"go.mongodb.org/atlas-sdk/v20250312021/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/mockadmin"
 )
 
 type testCase struct {
@@ -56,7 +56,7 @@ func TestDeleteStateTransition(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			m := mockadmin.NewStreamsApi(t)
+			m := mockadmin.NewStreamsAPI(t)
 			m.EXPECT().GetPrivateLinkConnection(mock.Anything, mock.Anything, mock.Anything).Return(admin.GetPrivateLinkConnectionApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {

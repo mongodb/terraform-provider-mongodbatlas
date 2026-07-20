@@ -235,7 +235,7 @@ func checkDestroy(s *terraform.State) error {
 }
 
 func secretExists(orgID, clientID, secretID string) (bool, error) {
-	orgServiceAccount, _, err := acc.ConnV2().ServiceAccountsApi.GetOrgServiceAccount(context.Background(), orgID, clientID).Execute()
+	orgServiceAccount, _, err := acc.ConnV2().ServiceAccountsAPI.GetOrgServiceAccount(context.Background(), orgID, clientID).Execute()
 	if err != nil {
 		return false, err
 	}

@@ -12,7 +12,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const projectsDataSourceName = "projects"
@@ -49,7 +49,7 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 		PageNum:      conversion.IntPtr(int(stateModel.PageNum.ValueInt64())),
 		ItemsPerPage: conversion.IntPtr(int(stateModel.ItemsPerPage.ValueInt64())),
 	}
-	projectsRes, _, err := connV2.ProjectsApi.ListGroupsWithParams(ctx, projectParams).Execute()
+	projectsRes, _, err := connV2.ProjectsAPI.ListGroupsWithParams(ctx, projectParams).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error in monogbatlas_projects data source", fmt.Sprintf("error getting projects information: %s", err.Error()))
 		return
@@ -77,10 +77,10 @@ func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClien
 		projectPropsParams := &PropsParams{
 			ProjectID:             project.GetId(),
 			IsDataSource:          true,
-			ProjectsAPI:           connV2.ProjectsApi,
-			TeamsAPI:              connV2.TeamsApi,
-			PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
-			MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersApi,
+			ProjectsAPI:           connV2.ProjectsAPI,
+			TeamsAPI:              connV2.TeamsAPI,
+			PerformanceAdvisorAPI: connV2.PerformanceAdvisorAPI,
+			MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersAPI,
 		}
 
 		projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &diagnostics)

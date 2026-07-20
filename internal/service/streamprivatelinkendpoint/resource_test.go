@@ -367,7 +367,7 @@ func checkExists() resource.TestCheckFunc {
 			if rs.Type == resourceType {
 				projectID := rs.Primary.Attributes["project_id"]
 				connectionID := rs.Primary.Attributes["id"]
-				_, _, err := acc.ConnV2().StreamsApi.GetPrivateLinkConnection(context.Background(), projectID, connectionID).Execute()
+				_, _, err := acc.ConnV2().StreamsAPI.GetPrivateLinkConnection(context.Background(), projectID, connectionID).Execute()
 				if err != nil {
 					return fmt.Errorf("Privatelink Connection (%s:%s) not found", projectID, connectionID)
 				}
@@ -382,7 +382,7 @@ func checkDestroy(state *terraform.State) error {
 		if rs.Type == resourceType {
 			projectID := rs.Primary.Attributes["project_id"]
 			connectionID := rs.Primary.Attributes["id"]
-			_, _, err := acc.ConnV2().StreamsApi.GetPrivateLinkConnection(context.Background(), projectID, connectionID).Execute()
+			_, _, err := acc.ConnV2().StreamsAPI.GetPrivateLinkConnection(context.Background(), projectID, connectionID).Execute()
 			if err == nil {
 				return fmt.Errorf("Privatelink Connection (%s:%s) still exists", projectID, id)
 			}

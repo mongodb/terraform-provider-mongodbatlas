@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -126,7 +126,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
 	}
 
-	jobs, _, err := connV2.CloudBackupsApi.ListBackupExportsWithParams(ctx, &request).Execute()
+	jobs, _, err := connV2.CloudBackupsAPI.ListBackupExportsWithParams(ctx, &request).Execute()
 	if err != nil {
 		return diag.Errorf("error getting CloudProviderSnapshotExportJobs information: %s", err)
 	}

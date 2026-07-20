@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -112,7 +112,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 
 	if deferValue := d.Get("defer").(bool); deferValue {
-		_, err := connV2.MaintenanceWindowsApi.DeferMaintenanceWindow(ctx, projectID).Execute()
+		_, err := connV2.MaintenanceWindowsAPI.DeferMaintenanceWindow(ctx, projectID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorMaintenanceDefer, projectID, err))
 		}
@@ -128,13 +128,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	params.ProtectedHours = newProtectedHours(d)
-	_, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
+	_, err := connV2.MaintenanceWindowsAPI.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceCreate, projectID, err))
 	}
 
 	if autoDeferValue := d.Get("auto_defer").(bool); autoDeferValue {
-		_, err := connV2.MaintenanceWindowsApi.ToggleMaintenanceAutoDefer(ctx, projectID).Execute()
+		_, err := connV2.MaintenanceWindowsAPI.ToggleMaintenanceAutoDefer(ctx, projectID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorMaintenanceAutoDefer, projectID, err))
 		}
@@ -162,7 +162,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Id()
 
-	maintenanceWindow, resp, err := connV2.MaintenanceWindowsApi.GetMaintenanceWindow(ctx, projectID).Execute()
+	maintenanceWindow, resp, err := connV2.MaintenanceWindowsAPI.GetMaintenanceWindow(ctx, projectID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -222,7 +222,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Id()
 
 	if d.HasChange("defer") {
-		_, err := connV2.MaintenanceWindowsApi.DeferMaintenanceWindow(ctx, projectID).Execute()
+		_, err := connV2.MaintenanceWindowsAPI.DeferMaintenanceWindow(ctx, projectID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorMaintenanceDefer, projectID, err))
 		}
@@ -253,13 +253,13 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	_, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
+	_, err := connV2.MaintenanceWindowsAPI.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceUpdate, projectID, err))
 	}
 
 	if d.HasChange("auto_defer") {
-		_, err := connV2.MaintenanceWindowsApi.ToggleMaintenanceAutoDefer(ctx, projectID).Execute()
+		_, err := connV2.MaintenanceWindowsAPI.ToggleMaintenanceAutoDefer(ctx, projectID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorMaintenanceAutoDefer, projectID, err))
 		}
@@ -272,7 +272,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Id()
 
-	_, err := connV2.MaintenanceWindowsApi.ResetMaintenanceWindow(ctx, projectID).Execute()
+	_, err := connV2.MaintenanceWindowsAPI.ResetMaintenanceWindow(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceDelete, projectID, err))
 	}

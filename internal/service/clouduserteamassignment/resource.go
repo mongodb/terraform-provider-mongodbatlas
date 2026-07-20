@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -55,7 +55,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	apiResp, _, err := connV2.MongoDBCloudUsersApi.AddOrgTeamUser(ctx, orgID, teamID, cloudUserTeamAssignmentReq).Execute()
+	apiResp, _, err := connV2.MongoDBCloudUsersAPI.AddOrgTeamUser(ctx, orgID, teamID, cloudUserTeamAssignmentReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf("error assigning user to TeamID(%s):", teamID), err.Error())
 		return
@@ -87,7 +87,7 @@ func fetchTeamUser(ctx context.Context, connV2 *admin.APIClient, orgID, teamID s
 		}
 	}
 
-	userListResp, httpResp, err := connV2.MongoDBCloudUsersApi.ListTeamUsersWithParams(ctx, &params).Execute()
+	userListResp, httpResp, err := connV2.MongoDBCloudUsersAPI.ListTeamUsersWithParams(ctx, &params).Execute()
 	if err != nil {
 		if validate.StatusNotFound(httpResp) {
 			return nil, nil
@@ -159,7 +159,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		Id: userID,
 	}
 
-	_, httpResp, err := connV2.MongoDBCloudUsersApi.RemoveOrgTeamUser(ctx, orgID, teamID, userInfo).Execute()
+	_, httpResp, err := connV2.MongoDBCloudUsersAPI.RemoveOrgTeamUser(ctx, orgID, teamID, userInfo).Execute()
 	if err != nil {
 		if validate.StatusNotFound(httpResp) {
 			resp.State.RemoveResource(ctx)

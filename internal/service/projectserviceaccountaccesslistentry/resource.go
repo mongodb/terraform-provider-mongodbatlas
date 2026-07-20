@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	serviceaccountaccesslistentry "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountaccesslistentry"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -55,7 +55,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	accessListReq := NewMongoDBProjectServiceAccountAccessListEntry(&plan)
 
 	connV2 := r.Client.AtlasV2
-	firstPage, _, err := connV2.ServiceAccountsApi.CreateAccessList(ctx, projectID, clientID, accessListReq).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
+	firstPage, _, err := connV2.ServiceAccountsAPI.CreateAccessList(ctx, projectID, clientID, accessListReq).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
@@ -63,7 +63,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	cidrOrIP := getCidrOrIP(&plan)
 	listPageFunc := func(ctx context.Context, pageNum int) (*admin.PaginatedServiceAccountIPAccessEntry, *http.Response, error) {
-		return connV2.ServiceAccountsApi.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
+		return connV2.ServiceAccountsAPI.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
 	}
 	entry, _, err := serviceaccountaccesslistentry.ReadAccessListEntry(ctx, firstPage, listPageFunc, cidrOrIP)
 	if err != nil {
@@ -88,7 +88,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 
 	connV2 := r.Client.AtlasV2
 	listPageFunc := func(ctx context.Context, pageNum int) (*admin.PaginatedServiceAccountIPAccessEntry, *http.Response, error) {
-		return connV2.ServiceAccountsApi.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
+		return connV2.ServiceAccountsAPI.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
 	}
 	entry, apiResp, err := serviceaccountaccesslistentry.ReadAccessListEntry(ctx, nil, listPageFunc, cidrOrIP)
 	if err != nil {
@@ -120,7 +120,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	cidrOrIP := getCidrOrIP(&state)
 
 	connV2 := r.Client.AtlasV2
-	if _, err := connV2.ServiceAccountsApi.DeleteGroupAccessEntry(ctx, projectID, clientID, cidrOrIP).Execute(); err != nil {
+	if _, err := connV2.ServiceAccountsAPI.DeleteGroupAccessEntry(ctx, projectID, clientID, cidrOrIP).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

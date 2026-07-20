@@ -1067,7 +1067,7 @@ func checkStreamConnectionExists() resource.TestCheckFunc {
 				workspaceName = rs.Primary.Attributes["instance_name"]
 			}
 			connectionName := rs.Primary.Attributes["connection_name"]
-			_, _, err := acc.ConnV2().StreamsApi.GetStreamConnection(context.Background(), projectID, workspaceName, connectionName).Execute()
+			_, _, err := acc.ConnV2().StreamsAPI.GetStreamConnection(context.Background(), projectID, workspaceName, connectionName).Execute()
 			if err != nil {
 				return fmt.Errorf("stream connection (%s:%s:%s) does not exist", projectID, workspaceName, connectionName)
 			}
@@ -1090,7 +1090,7 @@ func CheckDestroyStreamConnection(state *terraform.State) error {
 			workspaceName = rs.Primary.Attributes["instance_name"]
 		}
 		connectionName := rs.Primary.Attributes["connection_name"]
-		_, _, err := acc.ConnV2().StreamsApi.GetStreamConnection(context.Background(), projectID, workspaceName, connectionName).Execute()
+		_, _, err := acc.ConnV2().StreamsAPI.GetStreamConnection(context.Background(), projectID, workspaceName, connectionName).Execute()
 		if err == nil {
 			return fmt.Errorf("stream connection (%s:%s:%s) still exists", projectID, workspaceName, connectionName)
 		}

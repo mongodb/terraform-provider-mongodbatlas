@@ -188,7 +188,7 @@ func checkDestroy(state *terraform.State) error {
 func exists(rs *terraform.ResourceState) bool {
 	projectID := rs.Primary.Attributes["project_id"]
 	clusterName := rs.Primary.Attributes["cluster_name"]
-	cluster, _, _ := acc.ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
+	cluster, _, _ := acc.ConnV2().ClustersAPI.GetCluster(context.Background(), projectID, clusterName).Execute()
 	resp, _ := cluster.GetMongoDBEmployeeAccessGrantOk()
 	return resp != nil
 }
