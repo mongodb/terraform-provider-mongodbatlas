@@ -18,6 +18,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"api_key_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Identifier used to reference this API key in admin API calls.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"cloud": schema.StringAttribute{
 				Required:            true,
@@ -37,6 +38,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"endpoint": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"geography": schema.StringAttribute{
 				Required:            true,

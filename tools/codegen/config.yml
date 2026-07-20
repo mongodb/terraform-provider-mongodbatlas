@@ -26,10 +26,14 @@ resources:
       overrides:
         project_id:
           description: *project_id_description
+        api_key_id:
+          immutable_computed: true
         created_at:
           immutable_computed: true # Reduces plan verbosity.
         created_by:
           immutable_computed: true # Reduces plan verbosity.
+        endpoint:
+          immutable_computed: true
         masked_secret:
           immutable_computed: true # Reduces plan verbosity.
         secret:
