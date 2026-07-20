@@ -348,7 +348,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if groupID == "" || clusterName == "" || indexID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		if _, _, err := acc.ConnV2().AtlasSearchApi.GetClusterSearchIndex(context.Background(), groupID, clusterName, indexID).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().AtlasSearchAPI.GetClusterSearchIndex(context.Background(), groupID, clusterName, indexID).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("search index(%s/%s/%s) does not exist", groupID, clusterName, indexID)
@@ -366,7 +366,7 @@ func checkDestroy(s *terraform.State) error {
 		if groupID == "" || clusterName == "" || indexID == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnV2().AtlasSearchApi.GetClusterSearchIndex(context.Background(), groupID, clusterName, indexID).Execute()
+		_, _, err := acc.ConnV2().AtlasSearchAPI.GetClusterSearchIndex(context.Background(), groupID, clusterName, indexID).Execute()
 		if err == nil {
 			return fmt.Errorf("search index (%s/%s/%s) still exists", groupID, clusterName, indexID)
 		}

@@ -68,7 +68,7 @@ func (d *StreamProccesorDS) Read(ctx context.Context, req datasource.ReadRequest
 	workspaceOrInstanceName := GetWorkspaceOrInstanceName(streamProccesorConfig.WorkspaceName, streamProccesorConfig.InstanceName)
 
 	processorName := streamProccesorConfig.ProcessorName.ValueString()
-	apiResp, _, err := connV2.StreamsApi.GetStreamProcessor(ctx, projectID, workspaceOrInstanceName, processorName).Execute()
+	apiResp, _, err := connV2.StreamsAPI.GetStreamProcessor(ctx, projectID, workspaceOrInstanceName, processorName).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())

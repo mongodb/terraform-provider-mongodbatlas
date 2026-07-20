@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -127,7 +127,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			}
 
 			err := retry.RetryContext(ctx, 2*time.Minute, func() *retry.RetryError {
-				_, _, err := connV2.GlobalClustersApi.CreateManagedNamespace(ctx, projectID, clusterName, req).Execute()
+				_, _, err := connV2.GlobalClustersAPI.CreateManagedNamespace(ctx, projectID, clusterName, req).Execute()
 				if err != nil {
 					if admin.IsErrorCode(err, "DUPLICATE_MANAGED_NAMESPACE") {
 						if err := removeManagedNamespaces(ctx, connV2, v.(*schema.Set).List(), projectID, clusterName); err != nil {
@@ -146,7 +146,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if v, ok := d.GetOk("custom_zone_mappings"); ok {
-		_, _, err := connV2.GlobalClustersApi.CreateCustomZoneMapping(ctx, projectID, clusterName, &admin.CustomZoneMappings{
+		_, _, err := connV2.GlobalClustersAPI.CreateCustomZoneMapping(ctx, projectID, clusterName, &admin.CustomZoneMappings{
 			CustomZoneMappings: newCustomZoneMappings(v.(*schema.Set).List()),
 		}).Execute()
 
@@ -185,7 +185,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 func readGlobalClusterConfig(ctx context.Context, meta any, projectID, clusterName string, d *schema.ResourceData) (notFound bool, err error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	resp, httpResp, err := connV2.GlobalClustersApi.GetClusterGlobalWrites(ctx, projectID, clusterName).Execute()
+	resp, httpResp, err := connV2.GlobalClustersAPI.GetClusterGlobalWrites(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(httpResp) {
 			return true, nil
@@ -250,7 +250,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if v, ok := d.GetOk("custom_zone_mappings"); ok {
 		if v.(*schema.Set).Len() > 0 {
-			if _, _, err := connV2.GlobalClustersApi.DeleteCustomZoneMapping(ctx, projectID, clusterName).Execute(); err != nil {
+			if _, _, err := connV2.GlobalClustersAPI.DeleteCustomZoneMapping(ctx, projectID, clusterName).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorGlobalClusterDelete, clusterName, err))
 			}
 		}
@@ -313,7 +313,7 @@ func removeManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, remov
 			GroupId:     projectID,
 		}
 
-		_, _, err := connV2.GlobalClustersApi.DeleteManagedNamespacesWithParams(ctx, managedNamespace).Execute()
+		_, _, err := connV2.GlobalClustersAPI.DeleteManagedNamespacesWithParams(ctx, managedNamespace).Execute()
 
 		if err != nil {
 			return err
@@ -371,7 +371,7 @@ func addManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, add []an
 		if isShardKeyUnique, okShard := mn["is_shard_key_unique"]; okShard {
 			addManagedNamespace.IsShardKeyUnique = new(isShardKeyUnique.(bool))
 		}
-		_, _, err := connV2.GlobalClustersApi.CreateManagedNamespace(ctx, projectID, clusterName, addManagedNamespace).Execute()
+		_, _, err := connV2.GlobalClustersAPI.CreateManagedNamespace(ctx, projectID, clusterName, addManagedNamespace).Execute()
 		if err != nil {
 			return err
 		}
@@ -442,12 +442,12 @@ func updateCustomZoneMappings(ctx context.Context, connV2 *admin.APIClient, proj
 		if newSet.Len() != 0 {
 			return fmt.Errorf("partial deletion of custom_zone_mappings is not allowed; remove either all mappings or none")
 		}
-		if _, _, err := connV2.GlobalClustersApi.DeleteCustomZoneMapping(ctx, projectID, clusterName).Execute(); err != nil {
+		if _, _, err := connV2.GlobalClustersAPI.DeleteCustomZoneMapping(ctx, projectID, clusterName).Execute(); err != nil {
 			return err
 		}
 	}
 	if len(added) > 0 {
-		if _, _, err := connV2.GlobalClustersApi.CreateCustomZoneMapping(ctx, projectID, clusterName, &admin.CustomZoneMappings{
+		if _, _, err := connV2.GlobalClustersAPI.CreateCustomZoneMapping(ctx, projectID, clusterName, &admin.CustomZoneMappings{
 			CustomZoneMappings: newCustomZoneMappings(added),
 		}).Execute(); err != nil {
 			return err

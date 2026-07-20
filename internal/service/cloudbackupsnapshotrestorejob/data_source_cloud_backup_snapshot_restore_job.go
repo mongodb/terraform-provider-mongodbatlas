@@ -97,7 +97,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	snapshotRes, _, err := conn.CloudBackupsApi.GetBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
+	snapshotRes, _, err := conn.CloudBackupsAPI.GetBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting cloudProviderSnapshotRestoreJob Information: %s", err))
 	}

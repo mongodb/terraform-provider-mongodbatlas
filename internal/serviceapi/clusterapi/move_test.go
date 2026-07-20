@@ -185,7 +185,7 @@ func checkDestroyClusters(s *terraform.State) error {
 		if groupID == "" || clusterName == "" {
 			return fmt.Errorf("groupID or clusterName is empty: %s, %s", groupID, clusterName)
 		}
-		resp, _, _ := acc.ConnV2().ClustersApi.GetCluster(context.Background(), groupID, clusterName).Execute()
+		resp, _, _ := acc.ConnV2().ClustersAPI.GetCluster(context.Background(), groupID, clusterName).Execute()
 		if resp.GetId() != "" {
 			return fmt.Errorf("cluster (%s:%s) still exists", clusterName, rs.Primary.ID)
 		}
@@ -204,7 +204,7 @@ func checkDestroyDatabaseUser(s *terraform.State) error {
 		if groupID == "" || databaseName == "" || username == "" {
 			return fmt.Errorf("groupID, databaseName or username is empty: %s, %s, %s", groupID, databaseName, username)
 		}
-		_, _, err := acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), groupID, databaseName, username).Execute()
+		_, _, err := acc.ConnV2().DatabaseUsersAPI.GetDatabaseUser(context.Background(), groupID, databaseName, username).Execute()
 		if err == nil {
 			return fmt.Errorf("database user (%s) still exists", username)
 		}

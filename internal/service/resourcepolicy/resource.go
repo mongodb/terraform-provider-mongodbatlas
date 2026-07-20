@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -59,7 +59,7 @@ func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPl
 		Policies: sdkPolicies,
 	}
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.ResourcePoliciesApi.ValidateResourcePolicies(ctx, orgID.ValueString(), sdkCreate).Execute()
+	_, _, err := connV2.ResourcePoliciesAPI.ValidateResourcePolicies(ctx, orgID.ValueString(), sdkCreate).Execute()
 	if err != nil {
 		conversion.AddJSONBodyErrorToDiagnostics(fmt.Sprintf("Policy Validation failed (name=%s): ", name.ValueString()), err, &resp.Diagnostics)
 	}
@@ -80,7 +80,7 @@ func (r *resourcePolicyRS) Create(ctx context.Context, req resource.CreateReques
 	policies := NewAdminPolicies(ctx, plan.Policies)
 
 	connV2 := r.Client.AtlasV2
-	policySDK, _, err := connV2.ResourcePoliciesApi.CreateOrgResourcePolicy(ctx, orgID, &admin.ApiAtlasResourcePolicyCreate{
+	policySDK, _, err := connV2.ResourcePoliciesAPI.CreateOrgResourcePolicy(ctx, orgID, &admin.ApiAtlasResourcePolicyCreate{
 		Name:        plan.Name.ValueString(),
 		Description: plan.Description.ValueStringPointer(),
 		Policies:    policies,
@@ -106,7 +106,7 @@ func (r *resourcePolicyRS) Read(ctx context.Context, req resource.ReadRequest, r
 	orgID := state.OrgID.ValueString()
 	resourcePolicyID := state.ID.ValueString()
 	connV2 := r.Client.AtlasV2
-	policySDK, apiResp, err := connV2.ResourcePoliciesApi.GetOrgResourcePolicy(ctx, orgID, resourcePolicyID).Execute()
+	policySDK, apiResp, err := connV2.ResourcePoliciesAPI.GetOrgResourcePolicy(ctx, orgID, resourcePolicyID).Execute()
 
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
@@ -142,7 +142,7 @@ func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateReques
 		Description: new(plan.Description.ValueString()),
 		Policies:    &policies,
 	}
-	policySDK, _, err := connV2.ResourcePoliciesApi.UpdateOrgResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()
+	policySDK, _, err := connV2.ResourcePoliciesAPI.UpdateOrgResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(errorUpdate, err.Error())
@@ -165,7 +165,7 @@ func (r *resourcePolicyRS) Delete(ctx context.Context, req resource.DeleteReques
 	orgID := resourcePolicyState.OrgID.ValueString()
 	resourcePolicyID := resourcePolicyState.ID.ValueString()
 	connV2 := r.Client.AtlasV2
-	resourcePolicyAPI := connV2.ResourcePoliciesApi
+	resourcePolicyAPI := connV2.ResourcePoliciesAPI
 	if _, err := resourcePolicyAPI.DeleteOrgResourcePolicy(ctx, orgID, resourcePolicyID).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return

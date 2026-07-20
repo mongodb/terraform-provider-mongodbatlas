@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
@@ -79,7 +79,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 
-	organization, _, err := conn.OrganizationsApi.GetOrg(ctx, orgID).Execute()
+	organization, _, err := conn.OrganizationsAPI.GetOrg(ctx, orgID).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organizations information: %s", err))
@@ -109,7 +109,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("error setting `users`: %s", err))
 	}
 
-	settings, _, err := conn.OrganizationsApi.GetOrgSettings(ctx, orgID).Execute()
+	settings, _, err := conn.OrganizationsAPI.GetOrgSettings(ctx, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization settings: %s", err))
 	}
@@ -136,7 +136,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func listAllOrganizationUsers(ctx context.Context, orgID string, conn *admin.APIClient) ([]admin.OrgUserResponse, error) {
 	return dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.OrgUserResponse], *http.Response, error) {
-		request := conn.MongoDBCloudUsersApi.ListOrgUsers(ctx, orgID)
+		request := conn.MongoDBCloudUsersAPI.ListOrgUsers(ctx, orgID)
 		request = request.PageNum(pageNum)
 		return request.Execute()
 	})

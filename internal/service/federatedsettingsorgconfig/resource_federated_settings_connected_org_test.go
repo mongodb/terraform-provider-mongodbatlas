@@ -152,7 +152,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		_, _, err := acc.ConnV2().FederatedAuthenticationApi.GetConnectedOrgConfig(context.Background(),
+		_, _, err := acc.ConnV2().FederatedAuthenticationAPI.GetConnectedOrgConfig(context.Background(),
 			rs.Primary.Attributes["federation_settings_id"],
 			rs.Primary.Attributes["org_id"]).Execute()
 		if err == nil {

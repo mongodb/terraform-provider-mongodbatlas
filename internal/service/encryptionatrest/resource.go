@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -308,7 +308,7 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyPendingState},
 		Target:     []string{retrystrategy.RetryStrategyCompletedState, retrystrategy.RetryStrategyErrorState},
-		Refresh:    ResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx, projectID, connV2.EncryptionAtRestUsingCustomerKeyManagementApi, encryptionAtRestReq),
+		Refresh:    ResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx, projectID, connV2.EncryptionAtRestUsingCustomerKeyManagementAPI, encryptionAtRestReq),
 		Timeout:    3 * time.Minute,
 		MinTimeout: 5 * time.Second,
 		Delay:      0,
@@ -332,7 +332,7 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	}
 }
 
-func ResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, projectID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi, encryptionAtRestReq *admin.EncryptionAtRest) retry.StateRefreshFunc {
+func ResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, projectID string, client admin.EncryptionAtRestUsingCustomerKeyManagementAPI, encryptionAtRestReq *admin.EncryptionAtRest) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		encryptionResp, _, err := client.UpdateEncryptionAtRest(ctx, projectID, encryptionAtRestReq).Execute()
 		if err != nil {
@@ -368,7 +368,7 @@ func (r *encryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 
 	connV2 := r.Client.AtlasV2
 
-	encryptionResp, getResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(ctx, projectID).Execute()
+	encryptionResp, getResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementAPI.GetEncryptionAtRest(ctx, projectID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
@@ -414,14 +414,14 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 	projectID := encryptionAtRestState.ProjectID.ValueString()
-	atlasEncryptionAtRest, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(ctx, projectID).Execute()
+	atlasEncryptionAtRest, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementAPI.GetEncryptionAtRest(ctx, projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting encryption at rest resource during update", fmt.Sprintf(project.ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
 	updateReq := NewAtlasEncryptionAtRest(encryptionAtRestPlan, encryptionAtRestState, atlasEncryptionAtRest)
-	encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(ctx, projectID, updateReq).Execute()
+	encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementAPI.UpdateEncryptionAtRest(ctx, projectID, updateReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating encryption at rest", fmt.Sprintf(errorUpdateEncryptionAtRest, err.Error()))
 		return
@@ -447,7 +447,7 @@ func (r *encryptionAtRestRS) Delete(ctx context.Context, req resource.DeleteRequ
 	connV2 := r.Client.AtlasV2
 	projectID := encryptionAtRestState.ProjectID.ValueString()
 
-	_, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(ctx, projectID).Execute()
+	_, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementAPI.GetEncryptionAtRest(ctx, projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying resource", fmt.Sprintf(errorDeleteEncryptionAtRest, projectID, err.Error()))
 		return
@@ -458,7 +458,7 @@ func (r *encryptionAtRestRS) Delete(ctx context.Context, req resource.DeleteRequ
 		AzureKeyVault:  &admin.AzureKeyVault{Enabled: &enabled},
 		GoogleCloudKms: &admin.GoogleCloudKMS{Enabled: &enabled},
 	}
-	_, _, err = connV2.EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(ctx, projectID, &softDelete).Execute()
+	_, _, err = connV2.EncryptionAtRestUsingCustomerKeyManagementAPI.UpdateEncryptionAtRest(ctx, projectID, &softDelete).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying resource", fmt.Sprintf(errorDeleteEncryptionAtRest, projectID, err.Error()))

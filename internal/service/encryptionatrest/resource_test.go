@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
-	"go.mongodb.org/atlas-sdk/v20250312021/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -512,7 +512,7 @@ func TestResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			m := mockadmin.NewEncryptionAtRestUsingCustomerKeyManagementApi(t)
+			m := mockadmin.NewEncryptionAtRestUsingCustomerKeyManagementAPI(t)
 
 			m.EXPECT().UpdateEncryptionAtRest(mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateEncryptionAtRestApiRequest{ApiService: m})
 			m.EXPECT().UpdateEncryptionAtRestExecute(mock.Anything).Return(tc.mockResponse, nil, tc.mockError).Once()

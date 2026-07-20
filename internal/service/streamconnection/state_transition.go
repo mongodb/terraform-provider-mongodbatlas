@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 // Connection state constants
@@ -20,7 +20,7 @@ const (
 	StateNotFound = "NOT_FOUND" // Virtual state used when resource is not found (404)
 )
 
-func DeleteStreamConnection(ctx context.Context, api admin.StreamsApi, projectID, workspaceName, connectionName string, timeout time.Duration) error {
+func DeleteStreamConnection(ctx context.Context, api admin.StreamsAPI, projectID, workspaceName, connectionName string, timeout time.Duration) error {
 	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
 		resp, err := api.DeleteStreamConnection(ctx, projectID, workspaceName, connectionName).Execute()
 		if err == nil {
@@ -54,7 +54,7 @@ func DeleteStreamConnection(ctx context.Context, api admin.StreamsApi, projectID
 }
 
 // WaitStateTransition waits for a stream connection to reach the specified target states.
-func WaitStateTransition(ctx context.Context, projectID, workspaceName, connectionName string, client admin.StreamsApi, timeout time.Duration, pendingStates, targetStates []string) (*admin.StreamsConnection, error) {
+func WaitStateTransition(ctx context.Context, projectID, workspaceName, connectionName string, client admin.StreamsAPI, timeout time.Duration, pendingStates, targetStates []string) (*admin.StreamsConnection, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending: pendingStates,
 		Target:  targetStates,
@@ -74,7 +74,7 @@ func WaitStateTransition(ctx context.Context, projectID, workspaceName, connecti
 
 // refreshFunc returns a function that polls the stream connection state.
 // Returns StateNotFound when resource is not found (404).
-func refreshFunc(ctx context.Context, projectID, workspaceName, connectionName string, client admin.StreamsApi) retry.StateRefreshFunc {
+func refreshFunc(ctx context.Context, projectID, workspaceName, connectionName string, client admin.StreamsAPI) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		model, resp, err := client.GetStreamConnection(ctx, projectID, workspaceName, connectionName).Execute()
 		if err != nil && model == nil && resp == nil {

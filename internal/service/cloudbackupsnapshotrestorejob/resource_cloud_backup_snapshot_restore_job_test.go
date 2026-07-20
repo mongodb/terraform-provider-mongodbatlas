@@ -119,7 +119,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		projectID := ids["project_id"]
 		clusterName := ids["cluster_name"]
 		restoreJobID := ids["snapshot_restore_job_id"]
-		if _, _, err := acc.ConnV2().CloudBackupsApi.GetBackupRestoreJob(context.Background(), projectID, clusterName, restoreJobID).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().CloudBackupsAPI.GetBackupRestoreJob(context.Background(), projectID, clusterName, restoreJobID).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("cloudBackupSnapshotRestoreJob (%s) does not exist", rs.Primary.Attributes["snapshot_restore_job_id"])
@@ -135,7 +135,7 @@ func checkDestroy(s *terraform.State) error {
 		projectID := ids["project_id"]
 		clusterName := ids["cluster_name"]
 		restoreJobID := ids["snapshot_restore_job_id"]
-		res, _, _ := acc.ConnV2().CloudBackupsApi.GetBackupRestoreJob(context.Background(), projectID, clusterName, restoreJobID).Execute()
+		res, _, _ := acc.ConnV2().CloudBackupsAPI.GetBackupRestoreJob(context.Background(), projectID, clusterName, restoreJobID).Execute()
 		if res != nil {
 			return fmt.Errorf("cloudBackupSnapshotRestoreJob (%s) still exists", rs.Primary.Attributes["snapshot_restore_job_id"])
 		}

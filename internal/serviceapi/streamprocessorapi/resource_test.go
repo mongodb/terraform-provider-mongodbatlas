@@ -129,7 +129,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if groupID == "" || tenantName == "" || processorName == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		if _, _, err := acc.ConnV2().StreamsApi.GetStreamProcessor(context.Background(), groupID, tenantName, processorName).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().StreamsAPI.GetStreamProcessor(context.Background(), groupID, tenantName, processorName).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("stream processor(%s/%s/%s) does not exist", groupID, tenantName, processorName)
@@ -147,7 +147,7 @@ func checkDestroy(s *terraform.State) error {
 		if groupID == "" || tenantName == "" || processorName == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnV2().StreamsApi.GetStreamProcessor(context.Background(), groupID, tenantName, processorName).Execute()
+		_, _, err := acc.ConnV2().StreamsAPI.GetStreamProcessor(context.Background(), groupID, tenantName, processorName).Execute()
 		if err == nil {
 			return fmt.Errorf("stream processor (%s/%s/%s) still exists", groupID, tenantName, processorName)
 		}

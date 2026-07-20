@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -187,7 +187,7 @@ func checkDestroy(s *terraform.State) error {
 		conn := acc.ConnV2()
 
 		if userID != "" {
-			_, resp, err := conn.MongoDBCloudUsersApi.GetOrgUser(context.Background(), orgID, userID).Execute()
+			_, resp, err := conn.MongoDBCloudUsersAPI.GetOrgUser(context.Background(), orgID, userID).Execute()
 			if err == nil && resp != nil && resp.StatusCode != http.StatusNotFound {
 				return fmt.Errorf("cloud user org assignment (%s) still exists", userID)
 			}
@@ -197,7 +197,7 @@ func checkDestroy(s *terraform.State) error {
 				Username: &username,
 			}
 
-			users, _, _ := conn.MongoDBCloudUsersApi.ListOrgUsersWithParams(context.Background(), params).Execute()
+			users, _, _ := conn.MongoDBCloudUsersAPI.ListOrgUsersWithParams(context.Background(), params).Execute()
 			if len(users.GetResults()) > 0 {
 				return fmt.Errorf("cloud user org assignment (%s) still exists", username)
 			}

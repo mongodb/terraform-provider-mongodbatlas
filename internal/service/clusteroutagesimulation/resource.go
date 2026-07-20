@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -96,7 +96,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		OutageFilters: newOutageFilters(d),
 	}
 
-	_, _, err := connV2.ClusterOutageSimulationApi.StartOutageSimulation(ctx, projectID, clusterName, &requestBody).Execute()
+	_, _, err := connV2.ClusterOutageSimulationAPI.StartOutageSimulation(ctx, projectID, clusterName, &requestBody).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationCreate, projectID, clusterName, err))
 	}
@@ -158,7 +158,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	outageSimulation, resp, err := connV2.ClusterOutageSimulationApi.GetOutageSimulation(ctx, projectID, clusterName).Execute()
+	outageSimulation, resp, err := connV2.ClusterOutageSimulationAPI.GetOutageSimulation(ctx, projectID, clusterName).Execute()
 
 	if err != nil {
 		if validate.StatusNotFound(resp) {
@@ -224,7 +224,7 @@ func deleteOutageSimulationWithCleanup(ctx context.Context, connV2 *admin.APICli
 
 // endOutageSimulationAndWait ends the outage simulation and waits for it to complete
 func endOutageSimulationAndWait(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, timeout time.Duration) error {
-	_, _, err := connV2.ClusterOutageSimulationApi.EndOutageSimulation(ctx, projectID, clusterName).Execute()
+	_, _, err := connV2.ClusterOutageSimulationAPI.EndOutageSimulation(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return fmt.Errorf(errorClusterOutageSimulationDelete, projectID, clusterName, err)
 	}
@@ -269,7 +269,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceRefreshFunc(ctx context.Context, clusterName, projectID string, client *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		outageSimulation, resp, err := client.ClusterOutageSimulationApi.GetOutageSimulation(ctx, projectID, clusterName).Execute()
+		outageSimulation, resp, err := client.ClusterOutageSimulationAPI.GetOutageSimulation(ctx, projectID, clusterName).Execute()
 
 		if err != nil {
 			if validate.StatusNotFound(resp) {

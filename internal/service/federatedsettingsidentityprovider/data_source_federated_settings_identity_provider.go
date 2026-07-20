@@ -258,7 +258,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(errors.New("identity_provider_id must be configured"))
 	}
 
-	federatedSettingsIdentityProvider, _, err := connV2.FederatedAuthenticationApi.GetIdentityProvider(ctx, federationSettingsID.(string), idpID.(string)).Execute()
+	federatedSettingsIdentityProvider, _, err := connV2.FederatedAuthenticationAPI.GetIdentityProvider(ctx, federationSettingsID.(string), idpID.(string)).Execute()
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings IdentityProviders assigned (%s): %s", federationSettingsID, err)
 	}

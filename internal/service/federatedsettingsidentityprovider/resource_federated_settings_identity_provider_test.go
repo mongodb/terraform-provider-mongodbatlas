@@ -225,7 +225,7 @@ func checkExists(resourceName, idpID string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		_, _, err := acc.ConnV2().FederatedAuthenticationApi.GetIdentityProvider(context.Background(),
+		_, _, err := acc.ConnV2().FederatedAuthenticationAPI.GetIdentityProvider(context.Background(),
 			rs.Primary.Attributes["federation_settings_id"],
 			idpID).Execute()
 		if err == nil {
@@ -241,7 +241,7 @@ func checkExistsManaged(resourceName string) resource.TestCheckFunc {
 		if err != nil {
 			return err
 		}
-		_, _, err = acc.ConnV2().FederatedAuthenticationApi.GetIdentityProvider(context.Background(),
+		_, _, err = acc.ConnV2().FederatedAuthenticationAPI.GetIdentityProvider(context.Background(),
 			federationSettingsID,
 			idpID).Execute()
 		if err == nil {

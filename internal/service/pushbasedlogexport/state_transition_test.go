@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
-	"go.mongodb.org/atlas-sdk/v20250312021/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/mockadmin"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -74,7 +74,7 @@ func TestPushBasedLogExportStateTransition(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			m := mockadmin.NewPushBasedLogExportApi(t)
+			m := mockadmin.NewPushBasedLogExportAPI(t)
 			m.EXPECT().GetLogExport(mock.Anything, mock.Anything).Return(admin.GetLogExportApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {
@@ -124,7 +124,7 @@ func TestPushBasedLogExportStateTransitionForDelete(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			m := mockadmin.NewPushBasedLogExportApi(t)
+			m := mockadmin.NewPushBasedLogExportAPI(t)
 			m.EXPECT().GetLogExport(mock.Anything, mock.Anything).Return(admin.GetLogExportApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {

@@ -68,7 +68,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf("project_id and cluster_name must be configured")
 	}
 
-	outageSimulation, _, err := connV2.ClusterOutageSimulationApi.GetOutageSimulation(ctx, projectID.(string), clusterName.(string)).Execute()
+	outageSimulation, _, err := connV2.ClusterOutageSimulationAPI.GetOutageSimulation(ctx, projectID.(string), clusterName.(string)).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationRead, projectID, clusterName, err))
 	}

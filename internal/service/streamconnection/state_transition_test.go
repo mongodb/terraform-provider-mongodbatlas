@@ -8,15 +8,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
-	"go.mongodb.org/atlas-sdk/v20250312021/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/mockadmin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 )
 
 func TestStreamConnectionDeletion(t *testing.T) {
 	var (
-		m                   = mockadmin.NewStreamsApi(t)
+		m                   = mockadmin.NewStreamsAPI(t)
 		projectID           = "projectID"
 		workspaceName       = "workspaceName"
 		connectionName      = "connectionName"
@@ -47,7 +47,7 @@ func TestStreamConnectionDeletion(t *testing.T) {
 
 func TestStreamConnectionDeletionWithDeletingState(t *testing.T) {
 	var (
-		m              = mockadmin.NewStreamsApi(t)
+		m              = mockadmin.NewStreamsAPI(t)
 		projectID      = "projectID"
 		workspaceName  = "workspaceName"
 		connectionName = "connectionName"
@@ -76,7 +76,7 @@ func TestStreamConnectionDeletionWithDeletingState(t *testing.T) {
 
 func TestStreamConnectionDeletionNonRetryableError(t *testing.T) {
 	var (
-		m              = mockadmin.NewStreamsApi(t)
+		m              = mockadmin.NewStreamsAPI(t)
 		projectID      = "projectID"
 		workspaceName  = "workspaceName"
 		connectionName = "connectionName"
@@ -94,7 +94,7 @@ func TestStreamConnectionDeletionNonRetryableError(t *testing.T) {
 
 func TestStreamConnectionDeletionFailed(t *testing.T) {
 	var (
-		m              = mockadmin.NewStreamsApi(t)
+		m              = mockadmin.NewStreamsAPI(t)
 		projectID      = "projectID"
 		workspaceName  = "workspaceName"
 		connectionName = "connectionName"
@@ -121,7 +121,7 @@ func TestStreamConnectionDeletionFailed(t *testing.T) {
 
 func TestWaitStateTransitionCreate(t *testing.T) {
 	var (
-		m              = mockadmin.NewStreamsApi(t)
+		m              = mockadmin.NewStreamsAPI(t)
 		projectID      = "projectID"
 		workspaceName  = "workspaceName"
 		connectionName = "connectionName"
@@ -156,7 +156,7 @@ func TestWaitStateTransitionCreate(t *testing.T) {
 
 func TestWaitStateTransitionFailed(t *testing.T) {
 	var (
-		m              = mockadmin.NewStreamsApi(t)
+		m              = mockadmin.NewStreamsAPI(t)
 		projectID      = "projectID"
 		workspaceName  = "workspaceName"
 		connectionName = "connectionName"

@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -49,7 +49,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	params := &admin.AWSCustomDNSEnabled{
 		Enabled: d.Get("enabled").(bool),
 	}
-	_, _, err := connV2.AWSClustersDNSApi.ToggleAwsCustomDns(ctx, projectID, params).Execute()
+	_, _, err := connV2.AWSClustersDNSAPI.ToggleAwsCustomDns(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
@@ -60,7 +60,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Id()
-	dnsResp, resp, err := connV2.AWSClustersDNSApi.GetAwsCustomDns(ctx, projectID).Execute()
+	dnsResp, resp, err := connV2.AWSClustersDNSAPI.GetAwsCustomDns(ctx, projectID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -85,7 +85,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params := &admin.AWSCustomDNSEnabled{
 			Enabled: d.Get("enabled").(bool),
 		}
-		_, _, err := connV2.AWSClustersDNSApi.ToggleAwsCustomDns(ctx, projectID, params).Execute()
+		_, _, err := connV2.AWSClustersDNSAPI.ToggleAwsCustomDns(ctx, projectID, params).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorUpdate, err))
 		}
@@ -100,7 +100,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	params := &admin.AWSCustomDNSEnabled{
 		Enabled: false,
 	}
-	_, _, err := connV2.AWSClustersDNSApi.ToggleAwsCustomDns(ctx, projectID, params).Execute()
+	_, _, err := connV2.AWSClustersDNSAPI.ToggleAwsCustomDns(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDelete, projectID, err))
 	}

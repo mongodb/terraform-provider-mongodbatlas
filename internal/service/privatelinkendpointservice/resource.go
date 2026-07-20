@@ -20,7 +20,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -197,7 +197,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	_, _, err := connV2.PrivateEndpointServicesApi.CreatePrivateEndpoint(ctx, projectID, providerName, privateLinkID, createEndpointRequest).Execute()
+	_, _, err := connV2.PrivateEndpointServicesAPI.CreatePrivateEndpoint(ctx, projectID, providerName, privateLinkID, createEndpointRequest).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorServiceEndpointAdd, providerName, privateLinkID, err))
 	}
@@ -217,7 +217,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		deleteOnCreateTimeout = v.(bool)
 	}
 	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
-		_, errCleanup := connV2.PrivateEndpointServicesApi.DeletePrivateEndpoint(ctxCleanup, projectID, providerName, endpointServiceID, privateLinkID).Execute()
+		_, errCleanup := connV2.PrivateEndpointServicesAPI.DeletePrivateEndpoint(ctxCleanup, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 		return errCleanup
 	})
 	if errWait != nil {
@@ -227,7 +227,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	clusterConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
-		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
+		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersAPI),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: delayAndMinTimeout,
 		Delay:      delayAndMinTimeout,
@@ -256,7 +256,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	endpointServiceID := ids["endpoint_service_id"]
 	providerName := ids["provider_name"]
 
-	privateEndpoint, resp, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
+	privateEndpoint, resp, err := connV2.PrivateEndpointServicesAPI.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -346,7 +346,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	providerName := ids["provider_name"]
 
 	if endpointServiceID != "" {
-		_, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
+		_, err := connV2.PrivateEndpointServicesAPI.DeletePrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointDelete, endpointServiceID, err))
 		}
@@ -369,7 +369,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterConf := &retry.StateChangeConf{
 			Pending:    []string{"REPEATING", "PENDING"},
 			Target:     []string{"IDLE", "DELETED"},
-			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
+			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersAPI),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: delayAndMinTimeout,
 			Delay:      delayAndMinTimeout,
@@ -394,7 +394,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	privateLinkID := parts[1]
 	endpointServiceID := parts[2]
 	providerName := parts[3]
-	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
+	privateEndpoint, _, err := connV2.PrivateEndpointServicesAPI.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
@@ -427,7 +427,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 
 func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID, providerName, privateLinkID, endpointServiceID string) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		i, resp, err := client.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
+		i, resp, err := client.PrivateEndpointServicesAPI.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 		if err != nil {
 			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil

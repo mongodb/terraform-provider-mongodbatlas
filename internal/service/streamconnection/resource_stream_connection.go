@@ -230,7 +230,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	apiResp, _, err := connV2.StreamsApi.CreateStreamConnection(ctx, projectID, workspaceOrInstanceName, streamConnectionReq).Execute()
+	apiResp, _, err := connV2.StreamsAPI.CreateStreamConnection(ctx, projectID, workspaceOrInstanceName, streamConnectionReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
@@ -245,7 +245,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 	}
 	// StateNotFound is a pending state for create - handles eventual consistency where
 	// the resource may briefly return 404 after creation before becoming visible.
-	apiResp, err = WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, createTimeout, []string{StatePending, StateNotFound}, []string{StateReady, StateFailed})
+	apiResp, err = WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsAPI, createTimeout, []string{StatePending, StateNotFound}, []string{StateReady, StateFailed})
 	if err != nil {
 		resp.Diagnostics.AddError("error waiting for stream connection to be ready", err.Error())
 		return
@@ -277,7 +277,7 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 	connectionName := streamConnectionState.ConnectionName.ValueString()
-	apiResp, getResp, err := connV2.StreamsApi.GetStreamConnection(ctx, projectID, workspaceOrInstanceName, connectionName).Execute()
+	apiResp, getResp, err := connV2.StreamsAPI.GetStreamConnection(ctx, projectID, workspaceOrInstanceName, connectionName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
@@ -317,7 +317,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	_, _, err := connV2.StreamsApi.UpdateStreamConnection(ctx, projectID, workspaceOrInstanceName, connectionName, streamConnectionReq).Execute()
+	_, _, err := connV2.StreamsAPI.UpdateStreamConnection(ctx, projectID, workspaceOrInstanceName, connectionName, streamConnectionReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
 		return
@@ -328,7 +328,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	apiResp, err := WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, updateTimeout, []string{StatePending}, []string{StateReady, StateFailed})
+	apiResp, err := WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsAPI, updateTimeout, []string{StatePending}, []string{StateReady, StateFailed})
 	if err != nil {
 		resp.Diagnostics.AddError("error waiting for stream connection to be ready", err.Error())
 		return
@@ -365,7 +365,7 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := DeleteStreamConnection(ctx, connV2.StreamsApi, projectID, instanceName, connectionName, deleteTimeout); err != nil {
+	if err := DeleteStreamConnection(ctx, connV2.StreamsAPI, projectID, instanceName, connectionName, deleteTimeout); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

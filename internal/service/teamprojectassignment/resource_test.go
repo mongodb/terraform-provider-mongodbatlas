@@ -107,7 +107,7 @@ func checkDestroy(s *terraform.State) error {
 		teamID := rs.Primary.Attributes["team_id"]
 		projectID := rs.Primary.Attributes["project_id"]
 		conn := acc.ConnV2()
-		apiListResp, _, _ := conn.TeamsApi.ListGroupTeams(context.Background(), projectID).Execute()
+		apiListResp, _, _ := conn.TeamsAPI.ListGroupTeams(context.Background(), projectID).Execute()
 		for _, item := range apiListResp.GetResults() {
 			if item.GetTeamId() == teamID {
 				return fmt.Errorf("team %s still exists", teamID)

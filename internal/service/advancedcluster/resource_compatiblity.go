@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -53,7 +53,7 @@ func containerIDKey(providerName, regionName string) string {
 }
 
 // based on flattenAdvancedReplicationSpecRegionConfigs in model_advanced_cluster.go
-func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.ClusterDescription20240805, api admin.NetworkPeeringApi) (map[string]string, error) {
+func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.ClusterDescription20240805, api admin.NetworkPeeringAPI) (map[string]string, error) {
 	containerIDs := map[string]string{}
 	responseCache := map[string]*admin.PaginatedCloudProviderContainer{}
 	for _, spec := range cluster.GetReplicationSpecs() {
