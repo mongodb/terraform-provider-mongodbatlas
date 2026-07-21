@@ -28,6 +28,9 @@ type pluralDS struct {
 
 func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = PluralDataSourceSchema(ctx)
+	if schemaHook, ok := any(d).(autogen.DataSourceSchemaHook); ok {
+		resp.Schema = schemaHook.DataSourceSchema(ctx, resp.Schema)
+	}
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -53,7 +56,7 @@ func pluralDataSourceReadAPICallParams(ctx context.Context, model *TFPluralDSMod
 		"orgId": model.OrgId.ValueString(),
 	}
 	return &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.preview+json",
+		VersionHeader: "application/vnd.atlas.2025-03-12+json",
 		RelativePath:  "/api/atlas/v2/orgs/{orgId}/aiModelApiKeys",
 		PathParams:    pathParams,
 		Method:        "GET",
