@@ -28,6 +28,9 @@ type ds struct {
 
 func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = DataSourceSchema(ctx)
+	if schemaHook, ok := any(d).(autogen.DataSourceSchemaHook); ok {
+		resp.Schema = schemaHook.DataSourceSchema(ctx, resp.Schema)
+	}
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -54,7 +57,7 @@ func dataSourceReadAPICallParams(model *TFDSModel) *config.APICallParams {
 		"apiKeyId": model.ApiKeyId.ValueString(),
 	}
 	return &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.preview+json",
+		VersionHeader: "application/vnd.atlas.2025-03-12+json",
 		RelativePath:  "/api/atlas/v2/orgs/{orgId}/aiModelApiKeys/{apiKeyId}",
 		PathParams:    pathParams,
 		Method:        "GET",
