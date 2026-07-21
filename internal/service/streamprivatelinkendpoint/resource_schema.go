@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -35,6 +36,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Sub-Domain name of Confluent cluster. These are typically your availability zones. Required for AWS Provider and CONFLUENT vendor. If your AWS CONFLUENT cluster doesn't use subdomains, you must set this to the empty array [].",
 				ElementType:         types.StringType,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.RequiresReplace(),
+				},
 			},
 			"error_message": schema.StringAttribute{
 				Computed:            true,
@@ -43,6 +47,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"project_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"interface_endpoint_id": schema.StringAttribute{
 				Computed:            true,
@@ -59,11 +66,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"provider_name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Provider where the endpoint is deployed. Valid values are AWS, AZURE, and GCP.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"region": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "The region of the Provider’s cluster. See [AZURE](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances) and [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/#stream-processing-instances) supported regions. When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"service_endpoint_id": schema.StringAttribute{
 				Optional: true,
@@ -71,6 +84,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html). " +
 					"For AZURE_BLOB_STORAGE, this is the Azure Resource Manager path of the storage account in the format " +
 					"`/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}`.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"service_attachment_uris": schema.ListAttribute{
 				Optional:            true,
@@ -93,10 +109,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	* **Azure**: EVENTHUB, CONFLUENT, and AZURE_BLOB_STORAGE
 
 	* **GCP**: CONFLUENT and PUBSUB`,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"arn": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Amazon Resource Name (ARN). Required for AWS Provider and MSK vendor.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 		},
 	}

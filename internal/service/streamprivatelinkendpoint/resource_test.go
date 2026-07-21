@@ -50,7 +50,7 @@ func TestAccStreamPrivatelinkEndpointConfluent_updateDNSDomain(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckStreamPrivatelinkEndpointDNSDomainUpdate(t) },
 		CheckDestroy:             checkDestroy,
 		ExternalProviders:        acc.ExternalProvidersOnlyConfluent(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
