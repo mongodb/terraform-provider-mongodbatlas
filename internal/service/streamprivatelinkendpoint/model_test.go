@@ -473,6 +473,18 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 			expectError: false,
 			errorCount:  0,
 		},
+		"Azure Confluent missing dns_domain": {
+			// dns_domain remains required for Azure Confluent (only AWS Confluent makes it optional).
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:          types.StringValue(constant.AZURE),
+				Vendor:            types.StringValue(streamprivatelinkendpoint.VendorConfluent),
+				ServiceEndpointId: types.StringValue("test-namespace-endpoint-id"),
+				DnsDomain:         types.StringNull(),
+				Region:            types.StringValue("eastus2"),
+			},
+			expectError: true,
+			errorCount:  1,
+		},
 		"GCP Confluent missing dns_domain": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Provider:              types.StringValue(constant.GCP),

@@ -8,6 +8,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
 
 const (
@@ -66,6 +68,12 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		}
 		if plan.Region.IsNull() {
 			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorConfluent), "")
+		}
+		// dns_domain is optional only for AWS Confluent (Enterprise clusters / the AWS Gateway
+		// model supply it later via update). For all other providers (GCP, Azure) with Confluent
+		// it remains required.
+		if plan.Provider.ValueString() != constant.AWS && (plan.DnsDomain.IsNull() || plan.DnsDomain.IsUnknown()) {
+			diags.AddError(fmt.Sprintf("dns_domain is required for %s provider with vendor %s", plan.Provider.ValueString(), VendorConfluent), "")
 		}
 	}
 
