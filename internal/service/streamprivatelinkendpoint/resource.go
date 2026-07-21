@@ -137,6 +137,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
+	if plan.DnsDomain.Equal(state.DnsDomain) {
+		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+		return
+	}
+
 	projectID := state.ProjectId.ValueString()
 	connectionID := state.Id.ValueString()
 

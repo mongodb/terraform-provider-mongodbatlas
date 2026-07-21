@@ -20,6 +20,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"dns_domain": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: `The domain hostname. It is optional for AWS Confluent Enterprise Kafka Cluster. Required for the following provider and vendor combinations:
 
 	* AWS provider with CONFLUENT vendor for Dedicated Kafka Cluster.

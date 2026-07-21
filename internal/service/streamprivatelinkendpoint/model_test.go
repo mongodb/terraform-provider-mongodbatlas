@@ -473,6 +473,18 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 			expectError: false,
 			errorCount:  0,
 		},
+		"GCP Confluent missing dns_domain is allowed": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:              types.StringValue(constant.GCP),
+				Vendor:                types.StringValue(streamprivatelinkendpoint.VendorConfluent),
+				ServiceAttachmentUris: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("projects/test-project/regions/us-west1/serviceAttachments/test-attachment")}),
+				ServiceEndpointId:     types.StringNull(),
+				DnsDomain:             types.StringNull(),
+				Region:                types.StringValue("us-west1"),
+			},
+			expectError: false,
+			errorCount:  0,
+		},
 		"GCP Confluent missing region": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Provider:              types.StringValue(constant.GCP),

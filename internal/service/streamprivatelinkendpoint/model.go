@@ -119,7 +119,7 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		Arn:               plan.Arn.ValueStringPointer(),
 	}
 
-	// dns_domain is option, and is intentionally NOT required for Confluent Enterprise PL now.
+	// dns_domain is intentionally NOT required for Confluent Enterprise PL when it is created.
 	// dns_domain is Optional+Computed, so when it is not set in the config it is Unknown (not Null) at create time.
 	// Only send it when it is known and non-empty.
 	if !plan.DnsDomain.IsNull() && !plan.DnsDomain.IsUnknown() && plan.DnsDomain.ValueString() != "" {
