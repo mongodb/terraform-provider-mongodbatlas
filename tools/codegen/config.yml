@@ -65,10 +65,10 @@ resources:
     version_header: application/vnd.atlas.2025-03-12+json
     datasources:
       read:
-        path: /api/atlas/v2/orgs/{orgId}/aiModelRateLimits/{modelGroupName}
+        path: /api/atlas/v2/orgs/{orgId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits
         method: GET
       list:
-        path: /api/atlas/v2/orgs/{orgId}/aiModelRateLimits
+        path: /api/atlas/v2/orgs/{orgId}/aiModelApiRateLimits
         method: GET
       schema:
         overrides:
@@ -78,7 +78,7 @@ resources:
   # PATCH is used for Create and Update, reset custom method for Delete.
   ai_model_rate_limit:
     create:
-      path: &ai_model_rate_limit_item_path /api/atlas/v2/groups/{groupId}/aiModelRateLimits/{modelGroupName}
+      path: &ai_model_rate_limit_item_path /api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits
       method: PATCH
     read: &ai_model_rate_limit_read_op
       path: *ai_model_rate_limit_item_path
@@ -87,19 +87,20 @@ resources:
       path: *ai_model_rate_limit_item_path
       method: PATCH
     delete:
-      path: /api/atlas/v2/groups/{groupId}/aiModelRateLimits/{modelGroupName}:reset
+      path: /api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits:reset
       method: POST
     version_header: application/vnd.atlas.2025-03-12+json
     schema: &ai_model_rate_limit_schema
       aliases:
         groupId: projectId
+        results.groupId: projectId
       overrides:
         project_id:
           description: *project_id_description
     datasources:
       read: *ai_model_rate_limit_read_op
       list:
-        path: /api/atlas/v2/groups/{groupId}/aiModelRateLimits
+        path: /api/atlas/v2/groups/{groupId}/aiModelApiRateLimits
         method: GET
       schema:
         <<: *ai_model_rate_limit_schema
