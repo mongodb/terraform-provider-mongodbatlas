@@ -70,7 +70,7 @@ output "ai_model_rate_limits_results" {
 - `tokens_per_minute_limit` (Number) The number of tokens per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.
 
 ## Import
-Import the AI Model Rate Limit resource by using the Project ID, cloud, geography, and Model Group Name in the format `PROJECT_ID/CLOUD/GEOGRAPHY/MODEL_GROUP_NAME`, e.g.
+Import the AI Model Rate Limit resource by using the Project ID, Cloud, Geography, and Model Group Name in the format `PROJECT_ID/CLOUD/GEOGRAPHY/MODEL_GROUP_NAME`, e.g.
 ```
 $ terraform import mongodbatlas_ai_model_rate_limit.example 1112222b3bf99403840e8934/ANY/ANY/embed_large
 ```
