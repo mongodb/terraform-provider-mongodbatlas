@@ -31,8 +31,8 @@ output "ai_model_api_key_name" {
 }
 
 output "ai_model_api_key_endpoint" {
-  description = "The server-computed endpoint hostname derived from cloud and geography."
-  value       = mongodbatlas_ai_model_api_key.this.endpoint
+  description = "The server-computed endpoint hostname derived from cloud and geography, from the data source."
+  value       = data.mongodbatlas_ai_model_api_key.this.endpoint
 }
 
 output "ai_model_api_keys_results" {

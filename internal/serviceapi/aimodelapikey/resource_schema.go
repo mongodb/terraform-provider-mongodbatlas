@@ -25,21 +25,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Cloud provider scope for this API key. Must be \"ANY\". Additional cloud values will be supported in future API versions.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
-			"created_at": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.",
-				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-			},
-			"created_by": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Name of the user that created this API key. If no user name is available, the user ID is returned.",
-				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-			},
-			"endpoint": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.",
-				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-			},
 			"geography": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Geography scope for this API key. Must be \"ANY\". Additional geography values will be supported in future API versions.",
@@ -49,15 +34,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
-			},
-			"last_used_at": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "UTC date when the API key was last used. This parameter is formatted as an ISO 8601 timestamp.",
-			},
-			"masked_secret": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "A partially obfuscated version of the API key secret returned when the API key was created.",
-				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"name": schema.StringAttribute{
 				Required:            true,
@@ -69,25 +45,15 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Sensitive:           true,
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
-			"status": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "A string describing the current status of the API key.",
-			},
 		},
 	}
 }
 
 type TFModel struct {
-	ApiKeyId     types.String `tfsdk:"api_key_id" autogen:"omitjson"`
-	Cloud        types.String `tfsdk:"cloud" autogen:"omitjsonupdate"`
-	CreatedAt    types.String `tfsdk:"created_at" autogen:"omitjson"`
-	CreatedBy    types.String `tfsdk:"created_by" autogen:"omitjson"`
-	Endpoint     types.String `tfsdk:"endpoint" autogen:"omitjson"`
-	Geography    types.String `tfsdk:"geography" autogen:"omitjsonupdate"`
-	ProjectId    types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	LastUsedAt   types.String `tfsdk:"last_used_at" autogen:"omitjson"`
-	MaskedSecret types.String `tfsdk:"masked_secret" autogen:"omitjson"`
-	Name         types.String `tfsdk:"name"`
-	Secret       types.String `tfsdk:"secret" autogen:"sensitive,omitjson"`
-	Status       types.String `tfsdk:"status" autogen:"omitjson"`
+	ApiKeyId  types.String `tfsdk:"api_key_id" autogen:"omitjson"`
+	Cloud     types.String `tfsdk:"cloud" autogen:"omitjsonupdate"`
+	Geography types.String `tfsdk:"geography" autogen:"omitjsonupdate"`
+	ProjectId types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	Name      types.String `tfsdk:"name"`
+	Secret    types.String `tfsdk:"secret" autogen:"sensitive,omitjson"`
 }

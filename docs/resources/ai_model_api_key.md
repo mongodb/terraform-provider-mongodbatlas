@@ -44,8 +44,8 @@ output "ai_model_api_key_name" {
 }
 
 output "ai_model_api_key_endpoint" {
-  description = "The server-computed endpoint hostname derived from cloud and geography."
-  value       = mongodbatlas_ai_model_api_key.this.endpoint
+  description = "The server-computed endpoint hostname derived from cloud and geography, from the data source."
+  value       = data.mongodbatlas_ai_model_api_key.this.endpoint
 }
 
 output "ai_model_api_keys_results" {
@@ -67,13 +67,7 @@ output "ai_model_api_keys_results" {
 ### Read-Only
 
 - `api_key_id` (String) Identifier used to reference this API key in admin API calls.
-- `created_at` (String) UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.
-- `created_by` (String) Name of the user that created this API key. If no user name is available, the user ID is returned.
-- `endpoint` (String) Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
-- `last_used_at` (String) UTC date when the API key was last used. This parameter is formatted as an ISO 8601 timestamp.
-- `masked_secret` (String) A partially obfuscated version of the API key secret returned when the API key was created.
 - `secret` (String, Sensitive) The full API key secret used for interacting with the embedding / reranking service. Note: this will only be fully populated in the response to a create API key request. Responses to get, list, and update requests will not include the secret.
-- `status` (String) A string describing the current status of the API key.
 
 ## Import
 Import the AI Model API Key resource by using the Project ID and API Key ID in the format `PROJECT_ID/API_KEY_ID`, e.g.
