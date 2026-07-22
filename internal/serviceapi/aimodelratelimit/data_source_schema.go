@@ -14,6 +14,18 @@ import (
 func DataSourceSchema(ctx context.Context) dsschema.Schema {
 	return dsschema.Schema{
 		Attributes: map[string]dsschema.Attribute{
+			"cloud": dsschema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Cloud provider scope. Must be \"ANY\". Additional values will be supported in future API versions.",
+			},
+			"endpoint": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.",
+			},
+			"geography": dsschema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Geography scope. Must be \"ANY\". Additional values will be supported in future API versions.",
+			},
 			"model_group_name": dsschema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The name of the model group to be retrieved.",
@@ -26,7 +38,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"project_id": dsschema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 			},
 			"requests_per_minute_limit": dsschema.Int64Attribute{
 				Computed:            true,
@@ -41,6 +53,9 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
+	Cloud                  types.String                        `tfsdk:"cloud" autogen:"omitjson"`
+	Endpoint               types.String                        `tfsdk:"endpoint" autogen:"omitjson"`
+	Geography              types.String                        `tfsdk:"geography" autogen:"omitjson"`
 	ModelGroupName         types.String                        `tfsdk:"model_group_name" autogen:"omitjson"`
 	ModelNames             customtypes.ListValue[types.String] `tfsdk:"model_names" autogen:"omitjson"`
 	ProjectId              types.String                        `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`

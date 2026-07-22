@@ -93,7 +93,6 @@ resources:
     schema: &ai_model_rate_limit_schema
       aliases:
         groupId: projectId
-        results.groupId: projectId
       overrides:
         project_id:
           description: *project_id_description

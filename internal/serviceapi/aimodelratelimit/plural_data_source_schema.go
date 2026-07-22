@@ -16,7 +16,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 		Attributes: map[string]dsschema.Attribute{
 			"project_id": dsschema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 			},
 			"results": dsschema.ListNestedAttribute{
 				Computed:            true,
@@ -24,6 +24,18 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 				CustomType:          customtypes.NewNestedListType[TFPluralDSResultsModel](ctx),
 				NestedObject: dsschema.NestedAttributeObject{
 					Attributes: map[string]dsschema.Attribute{
+						"cloud": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Cloud provider scope for this rate limit. Use \"any\" for cloud-agnostic scope.",
+						},
+						"endpoint": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.",
+						},
+						"geography": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Geography scope for this rate limit. Use \"any\" for geography-agnostic scope.",
+						},
 						"model_group_name": dsschema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Identifier used to reference this model group.",
@@ -54,6 +66,9 @@ type TFPluralDSModel struct {
 	Results   customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
 }
 type TFPluralDSResultsModel struct {
+	Cloud                  types.String                        `tfsdk:"cloud" autogen:"omitjson"`
+	Endpoint               types.String                        `tfsdk:"endpoint" autogen:"omitjson"`
+	Geography              types.String                        `tfsdk:"geography" autogen:"omitjson"`
 	ModelGroupName         types.String                        `tfsdk:"model_group_name" autogen:"omitjson"`
 	ModelNames             customtypes.ListValue[types.String] `tfsdk:"model_names" autogen:"omitjson"`
 	RequestsPerMinuteLimit types.Int64                         `tfsdk:"requests_per_minute_limit" autogen:"omitjson"`
