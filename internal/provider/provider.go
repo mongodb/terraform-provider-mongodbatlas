@@ -208,7 +208,8 @@ func (p *MongodbatlasProvider) Configure(ctx context.Context, req provider.Confi
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	c, err := config.GetCredentials(ctx, providerVars, config.NewEnvVars(), getAWSCredentials)
+	envVars := config.NewEnvVars()
+	c, err := config.GetCredentials(ctx, providerVars, envVars, getAWSCredentials)
 	if err != nil {
 		resp.Diagnostics.AddError("Error getting credentials for provider", err.Error())
 		return
@@ -219,6 +220,9 @@ func (p *MongodbatlasProvider) Configure(ctx context.Context, req provider.Confi
 	}
 	if c.Warnings() != "" {
 		resp.Diagnostics.AddWarning("Warning getting credentials for provider", c.Warnings())
+	}
+	if w := config.AWSSecretsManagerIgnoredWarning(providerVars, envVars); w != "" {
+		resp.Diagnostics.AddWarning("Configuration ignored when using AWS Secrets Manager", w)
 	}
 	client, err := config.NewClient(c, req.TerraformVersion)
 	if err != nil {

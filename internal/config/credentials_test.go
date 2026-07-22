@@ -411,6 +411,61 @@ func TestCredentials_Errors(t *testing.T) {
 	}
 }
 
+func TestAWSSecretsManagerIgnoredWarning(t *testing.T) {
+	const (
+		baseURLWarning = "The following attributes are ignored when using AWS Secrets Manager credentials: base_url. Define these values in the secret payload instead."
+		allWarning     = "The following attributes are ignored when using AWS Secrets Manager credentials: base_url, realm_base_url, is_mongodbgov_cloud. Define these values in the secret payload instead."
+	)
+	testCases := map[string]struct {
+		providerVars *config.Vars
+		envVars      *config.Vars
+		want         string
+	}{
+		"AWS path with base_url set as provider attribute": {
+			providerVars: &config.Vars{AWSAssumeRoleARN: "arn", BaseURL: "https://cloud-qa.mongodb.com"},
+			envVars:      &config.Vars{},
+			want:         baseURLWarning,
+		},
+		"AWS path with base_url set as env var": {
+			providerVars: &config.Vars{AWSAssumeRoleARN: "arn"},
+			envVars:      &config.Vars{BaseURL: "https://cloud-qa.mongodb.com"},
+			want:         baseURLWarning,
+		},
+		"AWS path via env var role_arn with realm_base_url set": {
+			providerVars: &config.Vars{},
+			envVars:      &config.Vars{AWSAssumeRoleARN: "arn", RealmBaseURL: "https://realm.example.com"},
+			want:         "The following attributes are ignored when using AWS Secrets Manager credentials: realm_base_url. Define these values in the secret payload instead.",
+		},
+		"AWS path with is_mongodbgov_cloud set": {
+			providerVars: &config.Vars{AWSAssumeRoleARN: "arn", IsMongodbGovCloud: true},
+			envVars:      &config.Vars{},
+			want:         "The following attributes are ignored when using AWS Secrets Manager credentials: is_mongodbgov_cloud. Define these values in the secret payload instead.",
+		},
+		"AWS path with all three attributes set": {
+			providerVars: &config.Vars{AWSAssumeRoleARN: "arn", BaseURL: "https://cloud-qa.mongodb.com", RealmBaseURL: "https://realm.example.com", IsMongodbGovCloud: true},
+			envVars:      &config.Vars{},
+			want:         allWarning,
+		},
+		"AWS path with none of the three attributes set": {
+			providerVars: &config.Vars{AWSAssumeRoleARN: "arn", PublicKey: "public"},
+			envVars:      &config.Vars{},
+			want:         "",
+		},
+		"No AWS path with all three attributes set": {
+			providerVars: &config.Vars{BaseURL: "https://cloud-qa.mongodb.com", RealmBaseURL: "https://realm.example.com", IsMongodbGovCloud: true},
+			envVars:      &config.Vars{},
+			want:         "",
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			got := config.AWSSecretsManagerIgnoredWarning(tc.providerVars, tc.envVars)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
 func TestGetCredentials(t *testing.T) {
 	mockGetAWSCredentials := func(_ context.Context, awsVars *config.AWSVars) (*config.Credentials, error) {
 		if awsVars.AssumeRoleARN == "error" {
