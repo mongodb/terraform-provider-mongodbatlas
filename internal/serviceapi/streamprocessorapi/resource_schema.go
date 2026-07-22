@@ -17,6 +17,14 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"eligible_for_failover": schema.BoolAttribute{
+				Computed:            true,
+				MarkdownDescription: "Flag that indicates whether the stream processor is eligible for failover.",
+			},
+			"failover_enabled": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Flag that enables or disables failover for the stream processor.",
+			},
 			"group_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
@@ -99,6 +107,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
+	EligibleForFailover   types.Bool                                  `tfsdk:"eligible_for_failover" autogen:"omitjson"`
+	FailoverEnabled       types.Bool                                  `tfsdk:"failover_enabled"`
 	GroupId               types.String                                `tfsdk:"group_id" autogen:"omitjson"`
 	Name                  types.String                                `tfsdk:"name"`
 	Options               customtypes.ObjectValue[TFOptionsModel]     `tfsdk:"options"`

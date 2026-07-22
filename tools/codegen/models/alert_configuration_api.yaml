@@ -542,6 +542,28 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
+                      description: Template, using ${field} interpolation, that renders the HTTP body MongoDB Cloud sends with each webhook notification. Must render valid JSON. When unset, MongoDB Cloud sends its default JSON payload.
+                      computed_optional_required: optional
+                      tf_schema_name: webhook_body_template
+                      tf_model_name: WebhookBodyTemplate
+                      api_name: webhookBodyTemplate
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Template, using ${field} interpolation, that renders the HTTP headers MongoDB Cloud sends with each webhook notification. Must render a JSON object mapping header name to header value. The webhook secret and the signature header are NOT exposed to templates.
+                      computed_optional_required: optional
+                      tf_schema_name: webhook_headers_template
+                      tf_model_name: WebhookHeadersTemplate
+                      api_name: webhookHeadersTemplate
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
                       description: |-
                         Authentication secret for a webhook-based alert.
 
@@ -1250,6 +1272,28 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
+                          description: Template, using ${field} interpolation, that renders the HTTP body MongoDB Cloud sends with each webhook notification. Must render valid JSON. When unset, MongoDB Cloud sends its default JSON payload.
+                          computed_optional_required: computed
+                          tf_schema_name: webhook_body_template
+                          tf_model_name: WebhookBodyTemplate
+                          api_name: webhookBodyTemplate
+                          req_body_usage: omit_always
+                          sensitive: true
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Template, using ${field} interpolation, that renders the HTTP headers MongoDB Cloud sends with each webhook notification. Must render a JSON object mapping header name to header value. The webhook secret and the signature header are NOT exposed to templates.
+                          computed_optional_required: computed
+                          tf_schema_name: webhook_headers_template
+                          tf_model_name: WebhookHeadersTemplate
+                          api_name: webhookHeadersTemplate
+                          req_body_usage: omit_always
+                          sensitive: true
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
                           description: |-
                             Authentication secret for a webhook-based alert.
 
@@ -1950,6 +1994,28 @@ data_sources:
                                       api_name: victorOpsRoutingKey
                                       req_body_usage: omit_always
                                       sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Template, using ${field} interpolation, that renders the HTTP body MongoDB Cloud sends with each webhook notification. Must render valid JSON. When unset, MongoDB Cloud sends its default JSON payload.
+                                      computed_optional_required: computed
+                                      tf_schema_name: webhook_body_template
+                                      tf_model_name: WebhookBodyTemplate
+                                      api_name: webhookBodyTemplate
+                                      req_body_usage: omit_always
+                                      sensitive: true
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Template, using ${field} interpolation, that renders the HTTP headers MongoDB Cloud sends with each webhook notification. Must render a JSON object mapping header name to header value. The webhook secret and the signature header are NOT exposed to templates.
+                                      computed_optional_required: computed
+                                      tf_schema_name: webhook_headers_template
+                                      tf_model_name: WebhookHeadersTemplate
+                                      api_name: webhookHeadersTemplate
+                                      req_body_usage: omit_always
+                                      sensitive: true
                                       create_only: false
                                       present_in_any_response: false
                                       request_only_required_on_create: false

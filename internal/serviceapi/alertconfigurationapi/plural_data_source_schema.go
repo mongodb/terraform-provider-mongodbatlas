@@ -204,6 +204,16 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 										Computed:            true,
 										MarkdownDescription: "Routing key that MongoDB Cloud needs to send alert notifications to Splunk On-Call. The resource requires this parameter when `\"notifications.[n].typeName\" : \"VICTOR_OPS\"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.",
 									},
+									"webhook_body_template": dsschema.StringAttribute{
+										Computed:            true,
+										MarkdownDescription: "Template, using ${field} interpolation, that renders the HTTP body MongoDB Cloud sends with each webhook notification. Must render valid JSON. When unset, MongoDB Cloud sends its default JSON payload.",
+										Sensitive:           true,
+									},
+									"webhook_headers_template": dsschema.StringAttribute{
+										Computed:            true,
+										MarkdownDescription: "Template, using ${field} interpolation, that renders the HTTP headers MongoDB Cloud sends with each webhook notification. Must render a JSON object mapping header name to header value. The webhook secret and the signature header are NOT exposed to templates.",
+										Sensitive:           true,
+									},
 									"webhook_secret": dsschema.StringAttribute{
 										Computed:            true,
 										MarkdownDescription: "Authentication secret for a webhook-based alert.\n\nAtlas returns this value if you set `notifications.[n].typeName` :`WEBHOOK` and either:\n* You set `notification.[n].webhookSecret` to a non-empty string\n* You set a default webhook secret either on the Integrations page, or with the Integrations API\n\n**NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.",
@@ -314,6 +324,8 @@ type TFPluralDSResultsNotificationsModel struct {
 	Username                 types.String                        `tfsdk:"username" autogen:"omitjson"`
 	VictorOpsApiKey          types.String                        `tfsdk:"victor_ops_api_key" autogen:"omitjson"`
 	VictorOpsRoutingKey      types.String                        `tfsdk:"victor_ops_routing_key" autogen:"omitjson"`
+	WebhookBodyTemplate      types.String                        `tfsdk:"webhook_body_template" autogen:"sensitive,omitjson"`
+	WebhookHeadersTemplate   types.String                        `tfsdk:"webhook_headers_template" autogen:"sensitive,omitjson"`
 	WebhookSecret            types.String                        `tfsdk:"webhook_secret" autogen:"sensitive,omitjson"`
 	WebhookUrl               types.String                        `tfsdk:"webhook_url" autogen:"omitjson"`
 }
