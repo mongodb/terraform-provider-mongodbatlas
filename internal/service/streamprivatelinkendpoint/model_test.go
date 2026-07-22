@@ -461,8 +461,6 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 			errorCount:  1,
 		},
 		"AWS Confluent missing dns_domain is allowed": {
-			// dns_domain is optional for AWS Confluent (Enterprise clusters and the AWS
-			// Gateway model supply it later via update), so a null value is valid.
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Provider:          types.StringValue(constant.AWS),
 				Vendor:            types.StringValue(streamprivatelinkendpoint.VendorConfluent),
@@ -474,7 +472,6 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 			errorCount:  0,
 		},
 		"Azure Confluent missing dns_domain": {
-			// dns_domain remains required for Azure Confluent (only AWS Confluent makes it optional).
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Provider:          types.StringValue(constant.AZURE),
 				Vendor:            types.StringValue(streamprivatelinkendpoint.VendorConfluent),
