@@ -58,7 +58,7 @@ jobs:
         fetch-depth: 0
         token: ${{ secrets.APIX_BOT_PAT }}
     - name: Install Go
-      uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
       with:
         go-version-file: 'go.mod'
     - name: Install Terraform
@@ -116,7 +116,7 @@ jobs:
 
     - name: Send Slack notification for skipped branch
       if: steps.merge-check.outputs.skipped == 'true'
-      uses: slackapi/slack-github-action@0d95c9a7becc1e6e297d76df9bc735c44f4cbcbc
+      uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d
       with:
         webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
         webhook-type: incoming-webhook
@@ -154,7 +154,7 @@ jobs:
 
     - name: Send Slack notification
       if: steps.merge-check.outputs.has-changes == 'true'
-      uses: slackapi/slack-github-action@0d95c9a7becc1e6e297d76df9bc735c44f4cbcbc
+      uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d
       with:
         webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
         webhook-type: incoming-webhook
@@ -179,7 +179,7 @@ jobs:
     permissions: {}
     steps:
       - name: Send Slack notification on failure
-        uses: slackapi/slack-github-action@0d95c9a7becc1e6e297d76df9bc735c44f4cbcbc
+        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
