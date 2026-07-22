@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
@@ -23,6 +24,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"endpoint": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"geography": schema.StringAttribute{
 				Required:            true,

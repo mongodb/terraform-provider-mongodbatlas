@@ -23,6 +23,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          immutable_computed: true
         - string: {}
           description: Geography scope. Must be "ANY". Additional values will be supported in future API versions.
           computed_optional_required: required
