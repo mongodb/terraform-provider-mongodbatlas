@@ -29,6 +29,7 @@ const (
 	errorEndpointDelete            = "error deleting MongoDB Private Service Endpoint Connection(%s): %s"
 	errorEndpointSetting           = "error setting `%s` for MongoDB Private Service Endpoint Connection(%s): %s"
 	errorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
+	FailedStateErrorPrefix         = "privatelink endpoint service is in a failed state"
 	delayAndMinTimeout             = 10 * time.Second
 )
 
@@ -332,7 +333,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	if privateEndpoint.GetErrorMessage() != "" {
-		return diag.FromErr(fmt.Errorf("privatelink endpoint service is in a failed state: %s", privateEndpoint.GetErrorMessage()))
+		return diag.FromErr(fmt.Errorf(FailedStateErrorPrefix+": %s", privateEndpoint.GetErrorMessage()))
 	}
 	return nil
 }
