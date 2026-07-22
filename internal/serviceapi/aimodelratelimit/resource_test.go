@@ -136,11 +136,14 @@ func configInvalid(projectID, modelGroupName string, requestsPerMinute, tokensPe
 }
 
 func checkBasic() resource.TestCheckFunc {
-	attrsSet := []string{"model_group_name", "requests_per_minute_limit", "tokens_per_minute_limit", "cloud", "geography", "endpoint"}
+	attrsSet := []string{"model_group_name", "requests_per_minute_limit", "tokens_per_minute_limit", "cloud", "geography"}
 	return resource.ComposeAggregateTestCheckFunc(
 		acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName), attrsSet, nil, checkExists(resourceName)),
+		resource.TestCheckResourceAttrSet(dataSourceName, "endpoint"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "model_names.#"),
 		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 		acc.CheckRSAndDS(orgDataSourceName, nil, new(orgDataSourcePluralName), attrsSet, nil),
+		resource.TestCheckResourceAttrSet(orgDataSourceName, "endpoint"),
 		resource.TestCheckResourceAttrWith(orgDataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 	)
 }
