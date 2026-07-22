@@ -221,6 +221,7 @@ func (p *MongodbatlasProvider) Configure(ctx context.Context, req provider.Confi
 	if c.Warnings() != "" {
 		resp.Diagnostics.AddWarning("Warning getting credentials for provider", c.Warnings())
 	}
+	// Not part of c.Warnings() as that only sees the resolved credentials; this needs the pre-resolution provider/env inputs to detect values dropped on the AWS path.
 	if w := config.AWSSecretsManagerIgnoredWarning(providerVars, envVars); w != "" {
 		resp.Diagnostics.AddWarning("Configuration ignored when using AWS Secrets Manager", w)
 	}
