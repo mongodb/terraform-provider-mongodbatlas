@@ -15,7 +15,7 @@ import (
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 
-const apiVersionHeader = "application/vnd.atlas.preview+json"
+const apiVersionHeader = "application/vnd.atlas.2025-03-12+json"
 
 func Resource() resource.Resource {
 	return &rs{
@@ -31,6 +31,9 @@ type rs struct {
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
+	if schemaHook, ok := any(r).(autogen.ResourceSchemaHook); ok {
+		resp.Schema = schemaHook.ResourceSchema(ctx, resp.Schema)
+	}
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -42,11 +45,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 	pathParams := map[string]string{
 		"projectId":      plan.ProjectId.ValueString(),
+		"cloud":          plan.Cloud.ValueString(),
+		"geography":      plan.Geography.ValueString(),
 		"modelGroupName": plan.ModelGroupName.ValueString(),
 	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelRateLimits/{modelGroupName}",
+		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits",
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
@@ -88,11 +93,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	// Path params are grabbed from state as they may be computed-only and not present in the plan
 	pathParams := map[string]string{
 		"projectId":      state.ProjectId.ValueString(),
+		"cloud":          state.Cloud.ValueString(),
+		"geography":      state.Geography.ValueString(),
 		"modelGroupName": state.ModelGroupName.ValueString(),
 	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelRateLimits/{modelGroupName}",
+		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits",
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
@@ -117,7 +124,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	idAttributes := []string{"project_id", "model_group_name"}
+	idAttributes := []string{"project_id", "cloud", "geography", "model_group_name"}
 	autogen.HandleImport(ctx, idAttributes, req, resp, r)
 }
 
@@ -125,11 +132,13 @@ func readAPICallParams(model any) *config.APICallParams {
 	m := model.(*TFModel)
 	pathParams := map[string]string{
 		"projectId":      m.ProjectId.ValueString(),
+		"cloud":          m.Cloud.ValueString(),
+		"geography":      m.Geography.ValueString(),
 		"modelGroupName": m.ModelGroupName.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelRateLimits/{modelGroupName}",
+		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
@@ -138,6 +147,8 @@ func readAPICallParams(model any) *config.APICallParams {
 func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
 		"projectId":      model.ProjectId.ValueString(),
+		"cloud":          model.Cloud.ValueString(),
+		"geography":      model.Geography.ValueString(),
 		"modelGroupName": model.ModelGroupName.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
@@ -147,7 +158,7 @@ func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *d
 		Diags:  diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
-			RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelRateLimits/{modelGroupName}:reset",
+			RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits:reset",
 			PathParams:    pathParams,
 			Method:        "POST",
 		},
