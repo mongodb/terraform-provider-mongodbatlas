@@ -10,6 +10,8 @@ subcategory: "AI Models"
 ```terraform
 resource "mongodbatlas_ai_model_rate_limit" "this" {
   project_id                = var.project_id
+  cloud                     = "ANY"
+  geography                 = "ANY"
   model_group_name          = "embed_large"
   requests_per_minute_limit = 100
   tokens_per_minute_limit   = 10000
@@ -17,6 +19,8 @@ resource "mongodbatlas_ai_model_rate_limit" "this" {
 
 data "mongodbatlas_ai_model_rate_limit" "this" {
   project_id       = var.project_id
+  cloud            = "ANY"
+  geography        = "ANY"
   model_group_name = mongodbatlas_ai_model_rate_limit.this.model_group_name
 }
 
@@ -39,6 +43,11 @@ output "ai_model_rate_limit_model_names" {
   value       = data.mongodbatlas_ai_model_rate_limit.this.model_names
 }
 
+output "ai_model_rate_limit_endpoint" {
+  description = "The server-computed endpoint hostname derived from cloud and geography, from the data source."
+  value       = data.mongodbatlas_ai_model_rate_limit.this.endpoint
+}
+
 output "ai_model_rate_limits_results" {
   description = "All AI Model Rate Limits in the project."
   value       = data.mongodbatlas_ai_model_rate_limits.this.results
@@ -50,11 +59,14 @@ output "ai_model_rate_limits_results" {
 
 ### Required
 
+- `cloud` (String) Cloud provider scope. Must be "ANY". Additional values will be supported in future API versions.
+- `geography` (String) Geography scope. Must be "ANY". Additional values will be supported in future API versions.
 - `model_group_name` (String) The name of the model group to be retrieved.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Read-Only
 
+- `endpoint` (String) Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
 - `model_names` (List of String) List of embedding model names included in this model group.
 - `requests_per_minute_limit` (Number) The number of requests per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.
 - `tokens_per_minute_limit` (Number) The number of tokens per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.

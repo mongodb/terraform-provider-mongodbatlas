@@ -22,11 +22,14 @@ data "mongodbatlas_ai_model_org_rate_limit" "this" {
 
 ### Required
 
+- `cloud` (String) Cloud provider scope. Must be "ANY". Additional values will be supported in future API versions.
+- `geography` (String) Geography scope. Must be "ANY". Additional values will be supported in future API versions.
 - `model_group_name` (String) The name of the model group to be retrieved.
 - `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
 
 ### Read-Only
 
+- `endpoint` (String) Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
 - `model_names` (List of String) List of embedding model names included in this model group.
 - `requests_per_minute_limit` (Number) The number of requests per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.
 - `tokens_per_minute_limit` (Number) The number of tokens per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.
