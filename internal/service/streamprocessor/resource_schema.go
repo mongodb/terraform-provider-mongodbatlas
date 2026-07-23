@@ -95,14 +95,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"autoscaling": schema.SingleNestedAttribute{
 						Optional:            true,
-						MarkdownDescription: "Vertical autoscaling configuration for the stream processor. When enabled, the processor automatically scales its tier between `min_tier` and `max_tier` based on load, and the `tier` attribute is used only as the initial/baseline tier (the tier it is actually running on is reported by `effective_tier`). Removing this block or setting `enabled` to `false` disables autoscaling and clears its configuration.",
+						MarkdownDescription: "Vertical autoscaling configuration for the stream processor. When present, autoscaling is enabled and the processor automatically scales its tier between `min_tier` and `max_tier` based on load; `tier` is then used only as the initial/baseline tier (the tier it is actually running on is reported by `effective_tier`). To disable autoscaling, remove this block — the backend clears the configuration on disable, so autoscaling cannot be turned off by setting `enabled = false`.",
 						Validators: []validator.Object{
-							autoscalingBoundsRequireEnabledValidator{},
+							autoscalingEnabledValidator{},
 						},
 						Attributes: map[string]schema.Attribute{
 							"enabled": schema.BoolAttribute{
 								Required:            true,
-								MarkdownDescription: "Flag that indicates whether autoscaling is enabled. Set to `true` to enable autoscaling. Setting it to `false` (or removing the `options.autoscaling` block) disables autoscaling and clears its persisted configuration.",
+								MarkdownDescription: "Flag that indicates whether autoscaling is enabled. Must be `true` when the `options.autoscaling` block is present. To disable autoscaling, remove the block rather than setting this to `false` (the backend does not persist a disabled config, so `enabled = false` is rejected during planning).",
 							},
 							"min_tier": schema.StringAttribute{
 								Optional:            true,

@@ -120,9 +120,9 @@ func TestAccStreamProcessor_withAutoscaling(t *testing.T) {
 		}})
 }
 
-// TestAccStreamProcessor_autoscalingBoundsRequireEnabled verifies the plan-time validator
-// rejects tier bounds when autoscaling is disabled.
-func TestAccStreamProcessor_autoscalingBoundsRequireEnabled(t *testing.T) {
+// TestAccStreamProcessor_autoscalingDisabledRejected verifies the plan-time validator rejects
+// `enabled = false`; disabling is done by removing the options.autoscaling block instead.
+func TestAccStreamProcessor_autoscalingDisabledRejected(t *testing.T) {
 	var (
 		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		_, clusterName           = acc.ClusterNameExecution(t, false)
@@ -135,8 +135,9 @@ func TestAccStreamProcessor_autoscalingBoundsRequireEnabled(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
+				// bounds present forces the block to be emitted with enabled = false, which the validator rejects.
 				Config:      configWithAutoscaling(t, projectID, workspaceName, clusterName, processorName, "SP10", "SP50", false),
-				ExpectError: regexp.MustCompile("can only be set when `enabled` is `true`"),
+				ExpectError: regexp.MustCompile("remove the `options.autoscaling` block"),
 			},
 		}})
 }
