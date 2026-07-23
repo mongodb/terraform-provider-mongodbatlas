@@ -12,7 +12,6 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-          immutable_computed: true
         - string: {}
           description: Cloud provider scope for this API key. Must be "ANY". Additional cloud values will be supported in future API versions.
           computed_optional_required: required
@@ -22,6 +21,41 @@ schema:
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.
+          computed_optional_required: computed
+          tf_schema_name: created_at
+          tf_model_name: CreatedAt
+          api_name: createdAt
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string: {}
+          description: Name of the user that created this API key. If no user name is available, the user ID is returned.
+          computed_optional_required: computed
+          tf_schema_name: created_by
+          tf_model_name: CreatedBy
+          api_name: createdBy
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string: {}
+          description: Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
+          computed_optional_required: computed
+          tf_schema_name: endpoint
+          tf_model_name: Endpoint
+          api_name: endpoint
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
@@ -47,6 +81,29 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
+          description: UTC date when the API key was last used. This parameter is formatted as an ISO 8601 timestamp.
+          computed_optional_required: computed
+          tf_schema_name: last_used_at
+          tf_model_name: LastUsedAt
+          api_name: lastUsedAt
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: A partially obfuscated version of the API key secret returned when the API key was created.
+          computed_optional_required: computed
+          tf_schema_name: masked_secret
+          tf_model_name: MaskedSecret
+          api_name: maskedSecret
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string: {}
           description: A name for the new API key that will be created.
           computed_optional_required: required
           tf_schema_name: name
@@ -69,6 +126,17 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
           immutable_computed: true
+        - string: {}
+          description: A string describing the current status of the API key.
+          computed_optional_required: computed
+          tf_schema_name: status
+          tf_model_name: Status
+          api_name: status
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
 operations:
     delete:
         http_method: DELETE

@@ -101,10 +101,9 @@ func pluralEndpointChecks(name string) []statecheck.StateCheck {
 }
 
 func checkBasic() resource.TestCheckFunc {
-	attrsSet := []string{"api_key_id", "name", "project_id", "cloud", "geography"}
 	// last_used_at is intentionally excluded: it is null until the key is first used.
-	dsOnlyAttrs := []string{"endpoint", "created_at", "created_by", "masked_secret", "status"}
-	checks := []resource.TestCheckFunc{
+	attrsSet := []string{"api_key_id", "created_at", "created_by", "masked_secret", "status", "name", "project_id", "cloud", "geography", "endpoint"}
+	return resource.ComposeAggregateTestCheckFunc(
 		acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName), attrsSet, nil, checkExists(resourceName)),
 		resource.TestCheckResourceAttr(resourceName, "cloud", "ANY"),
 		resource.TestCheckResourceAttr(resourceName, "geography", "ANY"),
@@ -112,13 +111,7 @@ func checkBasic() resource.TestCheckFunc {
 		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 		acc.CheckRSAndDS(orgDataSourceName, nil, new(orgDataSourcePluralName), attrsSet, nil),
 		resource.TestCheckResourceAttrWith(orgDataSourcePluralName, "results.#", acc.IntGreatThan(0)),
-	}
-	for _, a := range dsOnlyAttrs {
-		checks = append(checks,
-			resource.TestCheckResourceAttrSet(dataSourceName, a),
-			resource.TestCheckResourceAttrSet(orgDataSourceName, a))
-	}
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+	)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {

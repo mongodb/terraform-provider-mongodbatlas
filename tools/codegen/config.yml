@@ -26,11 +26,14 @@ resources:
       overrides:
         project_id:
           description: *project_id_description
-        api_key_id:
-          immutable_computed: true
+        created_at:
+          immutable_computed: true # Reduces plan verbosity.
+        created_by:
+          immutable_computed: true # Reduces plan verbosity.
+        masked_secret:
+          immutable_computed: true # Reduces plan verbosity.
         secret:
           immutable_computed: true # Preserves value in state across updates, reduces plan verbosity.
-      ignores: ["endpoint", "created_at", "created_by", "last_used_at", "masked_secret", "status"]
     datasources:
       read: *ai-model-api-key-read-op
       list:
