@@ -94,11 +94,7 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	newTFModel, diags := NewTFPushBasedLogExport(ctx, projectID, logExportConfigResp, &tfPlan.Timeouts, &tfPlan.DeleteOnCreateTimeout)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
+	newTFModel := NewTFPushBasedLogExport(projectID, logExportConfigResp, &tfPlan.Timeouts, &tfPlan.DeleteOnCreateTimeout)
 	resp.Diagnostics.Append(resp.State.Set(ctx, newTFModel)...)
 }
 
@@ -121,11 +117,7 @@ func (r *pushBasedLogExportRS) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	newTFModel, diags := NewTFPushBasedLogExport(ctx, projectID, logConfig, &tfState.Timeouts, &tfState.DeleteOnCreateTimeout)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
+	newTFModel := NewTFPushBasedLogExport(projectID, logConfig, &tfState.Timeouts, &tfState.DeleteOnCreateTimeout)
 	resp.Diagnostics.Append(resp.State.Set(ctx, newTFModel)...)
 }
 
@@ -158,11 +150,7 @@ func (r *pushBasedLogExportRS) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	newTFModel, diags := NewTFPushBasedLogExport(ctx, projectID, logExportConfigResp, &tfPlan.Timeouts, &tfPlan.DeleteOnCreateTimeout)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
+	newTFModel := NewTFPushBasedLogExport(projectID, logExportConfigResp, &tfPlan.Timeouts, &tfPlan.DeleteOnCreateTimeout)
 	resp.Diagnostics.Append(resp.State.Set(ctx, newTFModel)...)
 }
 

@@ -23,13 +23,6 @@ func configureIsDiff(config *MockHTTPDataConfig) func(*RoundTrip) bool {
 		if config == nil {
 			return true
 		}
-		if config.IsDiffSkipSuffixes != nil {
-			for _, suffix := range config.IsDiffSkipSuffixes {
-				if strings.HasSuffix(rt.Request.Path, suffix) {
-					return false
-				}
-			}
-		}
 		if config.IsDiffMustSubstrings != nil {
 			for _, substring := range config.IsDiffMustSubstrings {
 				if !strings.Contains(rt.Request.Path, substring) {

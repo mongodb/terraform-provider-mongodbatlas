@@ -11,7 +11,6 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -50,7 +49,7 @@ type projectRS struct {
 }
 
 func (r *projectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = ResourceSchema(ctx)
+	resp.Schema = ResourceSchema()
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -179,7 +178,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -240,7 +239,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -320,7 +319,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -409,7 +408,7 @@ type PropsParams struct {
 }
 
 // GetProjectPropsFromAPI fetches properties obtained from complementary endpoints associated with a project.
-func GetProjectPropsFromAPI(ctx context.Context, params *PropsParams, warnings *diag.Diagnostics) (*AdditionalProperties, error) {
+func GetProjectPropsFromAPI(ctx context.Context, params *PropsParams) (*AdditionalProperties, error) {
 	teams, _, err := params.TeamsAPI.ListGroupTeams(ctx, params.ProjectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's teams assigned (%s): %v", params.ProjectID, err.Error())
@@ -429,7 +428,7 @@ func GetProjectPropsFromAPI(ctx context.Context, params *PropsParams, warnings *
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's IP addresses (%s): %v", params.ProjectID, err.Error())
 	}
-	isSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(ctx, params.PerformanceAdvisorAPI, params.ProjectID, warnings)
+	isSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(ctx, params.PerformanceAdvisorAPI, params.ProjectID)
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's slow operation thresholding enabled (%s): %v", params.ProjectID, err.Error())
 	}
@@ -465,7 +464,7 @@ func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI adm
 	return err
 }
 
-func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceAdvisorAPI, projectID string, warnings *diag.Diagnostics) (bool, error) {
+func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceAdvisorAPI, projectID string) (bool, error) {
 	isEnabled, _, err := api.GetManagedSlowMs(ctx, projectID).Execute()
 	if err != nil {
 		return false, err

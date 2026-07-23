@@ -26,17 +26,12 @@ type MockHTTPDataConfig struct {
 	RunBeforeEach        func() error         // Run by TestCase.PreCheck. Useful for reducing retry timeouts.
 	RequestHandler       ManualRequestHandler // Allow inspecting or overriding mocking behavior. Can be used to return 404 when a test has completed.
 	FilePathOverride     string               // Read mock data file from specific filepath, otherwise using the test name in `MockConfigFilePath` to find mocked responses.
-	IsDiffSkipSuffixes   []string             // Can be used when a PATCH/POST request is creating noise for diffs, for example :validate endpoints.
 	IsDiffMustSubstrings []string             // Only include diff request for specific substrings, for example /clusters (avoids project create requests)
 	QueryVars            []string             // Substitute this query vars. Useful when differentiating responses based on query args, for example ?providerName=AWS/AZURE returns different responses
 	AllowMissingRequests bool                 // When false will require all API calls to be made.
-	AllowOutOfOrder      bool                 // When true will allow a GET request returned after a POST to be returned before the POST. Not used but kept for debugging.
 }
 
-func (c MockHTTPDataConfig) WithAllowOutOfOrder() MockHTTPDataConfig { //nolint: gocritic // Want each test run to have its own config (hugeParam: c is heavy (112 bytes); consider passing it by pointer)
-	c.AllowOutOfOrder = true
-	return c
-}
+// TODO: Restore AllowOutOfOrder and IsDiffSkipSuffixes if test compatibility is required; their removal drops optional replay and diff-filtering behavior.
 
 func IsCapture() bool {
 	val, _ := strconv.ParseBool(os.Getenv(EnvNameHTTPMockerCapture))
@@ -77,7 +72,6 @@ func IsTfLogDebug() bool {
 }
 
 type mockClientModifier struct {
-	config           *MockHTTPDataConfig
 	mockRoundTripper http.RoundTripper
 	oldRoundTripper  http.RoundTripper
 	skipReset        bool // When true, skip reset to avoid data races with shared clients
@@ -155,7 +149,7 @@ func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase 
 		data = ReadMockData(t, tfConfigs)
 	}
 	roundTripper, mockRoundTripper := NewMockRoundTripper(t, config, data)
-	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
+	httpClientModifier := mockClientModifier{mockRoundTripper: roundTripper}
 	testCase.IsUnitTest = true
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
 	testCase.PreCheck = func() {

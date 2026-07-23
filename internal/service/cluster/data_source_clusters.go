@@ -373,18 +373,18 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.FromErr(fmt.Errorf("error reading new cluster list for project(%s): %s", projectID, err))
 	}
 
-	if err := d.Set("results", flattenClusters(ctx, d, conn, connV2, connV220240530, clusters, latestClusterModels)); err != nil {
+	if err := d.Set("results", flattenClusters(ctx, conn, connV2, connV220240530, clusters, latestClusterModels)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "results", d.Id(), err))
 	}
 
 	return nil
 }
 
-func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, connV2 *admin.APIClient, connV220240530 *admin20240530.APIClient, clusters []matlas.Cluster, latestClusterModels map[string]*admin.ClusterDescription20240805) []map[string]any {
+func flattenClusters(ctx context.Context, conn *matlas.Client, connV2 *admin.APIClient, connV220240530 *admin20240530.APIClient, clusters []matlas.Cluster, latestClusterModels map[string]*admin.ClusterDescription20240805) []map[string]any {
 	results := make([]map[string]any, 0)
 
 	for i := range clusters {
-		snapshotBackupPolicy, err := flattenCloudProviderSnapshotBackupPolicy(ctx, d, conn, clusters[i].GroupID, clusters[i].Name)
+		snapshotBackupPolicy, err := flattenCloudProviderSnapshotBackupPolicy(ctx, conn, clusters[i].GroupID, clusters[i].Name)
 		if err != nil {
 			log.Printf("[WARN] Error setting `snapshot_backup_policy` for the cluster(%s): %s", clusters[i].ID, err)
 		}

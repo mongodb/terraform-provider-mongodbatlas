@@ -26,7 +26,7 @@ type ProcessArgs struct {
 	argsLegacy            *admin20240530.ClusterDescriptionProcessArgs
 }
 
-func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) ([]map[string]any, error) {
+func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, conn *matlas.Client, projectID, clusterName string) ([]map[string]any, error) {
 	backupPolicy, res, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
 	if err != nil {
 		if (res != nil && res.StatusCode == http.StatusNotFound) ||

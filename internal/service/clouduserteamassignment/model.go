@@ -82,9 +82,9 @@ func NewTFProjectRoleAssignments(ctx context.Context, groupRoleAssignments *[]ad
 	return praSet
 }
 
-func NewUserTeamAssignmentReq(ctx context.Context, plan *TFUserTeamAssignmentModel) (*admin.AddOrRemoveUserFromTeam, diag.Diagnostics) {
+func NewUserTeamAssignmentReq(plan *TFUserTeamAssignmentModel) *admin.AddOrRemoveUserFromTeam {
 	addOrRemoveUserFromTeam := admin.AddOrRemoveUserFromTeam{
 		Id: plan.UserId.ValueString(),
 	}
-	return &addOrRemoveUserFromTeam, nil
+	return &addOrRemoveUserFromTeam
 }

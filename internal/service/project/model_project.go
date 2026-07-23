@@ -192,7 +192,7 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		IsDataExplorerGenAISampleDocumentPassingEnabled: types.BoolPointerValue(projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled),
 		IsNativeRerankingEnabled:                        types.BoolPointerValue(projectSettings.IsNativeRerankingEnabled),
 		Teams:                                           NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
-		Limits:                                          NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
+		Limits:                                          NewTFLimitsDataSourceModel(projectProps.Limits),
 		IPAddresses:                                     ipAddressesModel,
 		Tags:                                            conversion.NewTFTags(project.GetTags()),
 		IsSlowOperationThresholdingEnabled:              types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
@@ -216,7 +216,7 @@ func NewTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedT
 	return teams
 }
 
-func NewTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) []*TFLimitModel {
+func NewTFLimitsDataSourceModel(dataFederationLimits []admin.DataFederationLimit) []*TFLimitModel {
 	limits := make([]*TFLimitModel, len(dataFederationLimits))
 
 	for i, dataFederationLimit := range dataFederationLimits {

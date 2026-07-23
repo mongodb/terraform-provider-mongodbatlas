@@ -1,7 +1,6 @@
 package streaminstance
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -12,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
 
-func ResourceSchema(ctx context.Context) schema.Schema {
+func ResourceSchema() schema.Schema {
 	return schema.Schema{
 		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "resource", "mongodbatlas_stream_workspace", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/stream-instance-to-stream-workspace-migraton-guide"),
 		Attributes: map[string]schema.Attribute{

@@ -84,7 +84,7 @@ func (e UserAgentExtra) Combine(other UserAgentExtra) UserAgentExtra {
 
 // ToHeaderValue returns a string representation suitable for use as a User-Agent header value.
 // If oldHeader is non-empty, it is prepended to the new value.
-func (e UserAgentExtra) ToHeaderValue(ctx context.Context, oldHeader string) string {
+func (e UserAgentExtra) ToHeaderValue(oldHeader string) string {
 	parts := map[string]string{}
 	addPart := func(key, part string) {
 		if part == "" {

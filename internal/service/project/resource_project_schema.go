@@ -1,7 +1,6 @@
 package project
 
 import (
-	"context"
 	"fmt"
 
 	"go.mongodb.org/atlas-sdk/v20250312022/admin"
@@ -20,7 +19,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
-func ResourceSchema(ctx context.Context) schema.Schema {
+func ResourceSchema() schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

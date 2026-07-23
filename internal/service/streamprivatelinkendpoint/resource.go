@@ -17,10 +17,9 @@ import (
 )
 
 const (
-	resourceName                     = "stream_privatelink_endpoint"
-	warnUnsupportedOperation         = "Operation not supported"
-	FailedStatusErrorMessageSummary  = "Private endpoint is in a failed status"
-	NonEmptyErrorMessageFieldSummary = "Something went wrong. Please review the `status` field of this resource"
+	resourceName                    = "stream_privatelink_endpoint"
+	warnUnsupportedOperation        = "Operation not supported"
+	FailedStatusErrorMessageSummary = "Private endpoint is in a failed status"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -39,7 +38,7 @@ type rs struct {
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = ResourceSchema(ctx)
+	resp.Schema = ResourceSchema()
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 

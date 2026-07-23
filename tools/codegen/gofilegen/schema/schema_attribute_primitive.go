@@ -3,8 +3,7 @@ package schema
 import "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 
 type Int64AttrGenerator struct {
-	intModel codespec.Int64Attribute
-	attr     codespec.Attribute
+	attr codespec.Attribute
 }
 
 func (i *Int64AttrGenerator) AttributeCode() (CodeStatement, error) {
@@ -16,8 +15,7 @@ func (i *Int64AttrGenerator) AttributeCode() (CodeStatement, error) {
 }
 
 type Float64AttrGenerator struct {
-	floatModel codespec.Float64Attribute
-	attr       codespec.Attribute
+	attr codespec.Attribute
 }
 
 func (f *Float64AttrGenerator) AttributeCode() (CodeStatement, error) {
@@ -29,7 +27,6 @@ func (f *Float64AttrGenerator) AttributeCode() (CodeStatement, error) {
 }
 
 type StringAttrGenerator struct {
-	stringModel   codespec.StringAttribute
 	discriminator *codespec.Discriminator
 	attr          codespec.Attribute
 }
@@ -48,8 +45,7 @@ func (s *StringAttrGenerator) AttributeCode() (CodeStatement, error) {
 }
 
 type BoolAttrGenerator struct {
-	boolModel codespec.BoolAttribute
-	attr      codespec.Attribute
+	attr codespec.Attribute
 }
 
 func (s *BoolAttrGenerator) AttributeCode() (CodeStatement, error) {
@@ -61,8 +57,7 @@ func (s *BoolAttrGenerator) AttributeCode() (CodeStatement, error) {
 }
 
 type NumberAttrGenerator struct {
-	numberModel codespec.NumberAttribute
-	attr        codespec.Attribute
+	attr codespec.Attribute
 }
 
 func (s *NumberAttrGenerator) AttributeCode() (CodeStatement, error) {

@@ -318,7 +318,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster.",
 			},
-			"advanced_configuration": AdvancedConfigurationSchema(ctx),
+			"advanced_configuration": AdvancedConfigurationSchema(),
 			"pinned_fcv": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Pins the Feature Compatibility Version (FCV) to the current MongoDB version with a provided expiration date. To unpin the FCV the `pinned_fcv` attribute must be removed. This operation can take several minutes as the request processes through the MongoDB data plane. Once FCV is unpinned it will not be possible to downgrade the `mongo_db_major_version`. It is advised that updates to `pinned_fcv` are done isolated from other cluster changes. If a plan contains multiple changes, the FCV change will be applied first. If FCV is unpinned past the expiration date the `pinned_fcv` attribute must be removed. The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021785/) and [FCV documentation](https://www.mongodb.com/docs/atlas/tutorial/major-version-change/#manage-feature-compatibility--fcv--during-upgrades) can be referenced for more details.",
@@ -587,7 +587,7 @@ func specsSchemaDS() dsschema.SingleNestedAttribute {
 	}
 }
 
-func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribute {
+func AdvancedConfigurationSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Computed:            true,
 		Optional:            true,

@@ -49,7 +49,7 @@ func expandAssociatedDomains(d *schema.ResourceData) *[]string {
 	return &associatedDomainsSlice
 }
 
-func ExpandIdentityProviderUpdate(d *schema.ResourceData, existingIdentityProvider *admin.FederationIdentityProvider) *admin.FederationIdentityProviderUpdate {
+func ExpandIdentityProviderUpdate(existingIdentityProvider *admin.FederationIdentityProvider) *admin.FederationIdentityProviderUpdate {
 	return &admin.FederationIdentityProviderUpdate{
 		AssociatedDomains:          existingIdentityProvider.AssociatedDomains,
 		Audience:                   existingIdentityProvider.Audience,

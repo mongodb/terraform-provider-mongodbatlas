@@ -1,14 +1,12 @@
 package streamaccountdetails
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
-func DataSourceSchema(ctx context.Context) schema.Schema {
+func DataSourceSchema() schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"aws_account_id": schema.StringAttribute{

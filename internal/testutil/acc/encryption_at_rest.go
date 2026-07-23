@@ -92,7 +92,7 @@ func ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName string
 	return config
 }
 
-func ConfigProjectWithAwsKmsPrivateNetworking(projectName, orgID, awsIAMRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes bool) string {
+func ConfigProjectWithAwsKmsPrivateNetworking(projectName, orgID, awsIAMRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration) string {
 	config := fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 		   name   = %[1]q

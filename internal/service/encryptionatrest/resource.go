@@ -321,8 +321,8 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	encryptionAtRestPlanNew := NewTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp.(*admin.EncryptionAtRest))
-	resetDefaultsFromConfigOrState(ctx, encryptionAtRestPlan, encryptionAtRestPlanNew, encryptionAtRestConfig)
+	encryptionAtRestPlanNew := NewTFEncryptionAtRestRSModel(projectID, encryptionResp.(*admin.EncryptionAtRest))
+	resetDefaultsFromConfigOrState(encryptionAtRestPlan, encryptionAtRestPlanNew, encryptionAtRestConfig)
 
 	// set state to fully populated data
 	diags := resp.State.Set(ctx, encryptionAtRestPlanNew)
@@ -378,11 +378,11 @@ func (r *encryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	encryptionAtRestStateNew := NewTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
+	encryptionAtRestStateNew := NewTFEncryptionAtRestRSModel(projectID, encryptionResp)
 	if isImport {
 		setEmptyArrayForEmptyBlocksReturnedFromImport(encryptionAtRestStateNew)
 	} else {
-		resetDefaultsFromConfigOrState(ctx, &encryptionAtRestState, encryptionAtRestStateNew, nil)
+		resetDefaultsFromConfigOrState(&encryptionAtRestState, encryptionAtRestStateNew, nil)
 	}
 
 	// save read data into Terraform state
@@ -427,8 +427,8 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	encryptionAtRestStateNew := NewTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
-	resetDefaultsFromConfigOrState(ctx, encryptionAtRestState, encryptionAtRestStateNew, encryptionAtRestConfig)
+	encryptionAtRestStateNew := NewTFEncryptionAtRestRSModel(projectID, encryptionResp)
+	resetDefaultsFromConfigOrState(encryptionAtRestState, encryptionAtRestStateNew, encryptionAtRestConfig)
 
 	// save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &encryptionAtRestStateNew)...)
@@ -489,13 +489,13 @@ func hasAwsKmsConfigChanged(awsKmsConfigPlan, awsKmsConfigState []TFAwsKmsConfig
 // encryptionAtRestRSCurrent - current State/Plan for this resource
 // encryptionAtRestRSNew - final object that will be written in the State once the CRUD operation succeeds
 // encryptionAtRestRSConfig - Config object for this resource
-func resetDefaultsFromConfigOrState(ctx context.Context, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig *TfEncryptionAtRestRSModel) {
-	HandleAwsKmsConfigDefaults(ctx, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
-	HandleAzureKeyVaultConfigDefaults(ctx, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
-	HandleGcpKmsConfig(ctx, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
+func resetDefaultsFromConfigOrState(encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig *TfEncryptionAtRestRSModel) {
+	HandleAwsKmsConfigDefaults(encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
+	HandleAzureKeyVaultConfigDefaults(encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
+	HandleGcpKmsConfig(encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
 }
 
-func HandleGcpKmsConfig(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *TfEncryptionAtRestRSModel) {
+func HandleGcpKmsConfig(earRSCurrent, earRSNew, earRSConfig *TfEncryptionAtRestRSModel) {
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
 	if earRSCurrent.GoogleCloudKmsConfig == nil {
 		earRSNew.GoogleCloudKmsConfig = []TFGcpKmsConfigModel{}
@@ -511,7 +511,7 @@ func HandleGcpKmsConfig(ctx context.Context, earRSCurrent, earRSNew, earRSConfig
 	}
 }
 
-func HandleAwsKmsConfigDefaults(ctx context.Context, currentStateFile, newStateFile, earRSConfig *TfEncryptionAtRestRSModel) {
+func HandleAwsKmsConfigDefaults(currentStateFile, newStateFile, earRSConfig *TfEncryptionAtRestRSModel) {
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
 	if currentStateFile.AwsKmsConfig == nil {
 		newStateFile.AwsKmsConfig = []TFAwsKmsConfigModel{}
@@ -532,7 +532,7 @@ func HandleAwsKmsConfigDefaults(ctx context.Context, currentStateFile, newStateF
 	}
 }
 
-func HandleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *TfEncryptionAtRestRSModel) {
+func HandleAzureKeyVaultConfigDefaults(earRSCurrent, earRSNew, earRSConfig *TfEncryptionAtRestRSModel) {
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
 	if earRSCurrent.AzureKeyVaultConfig == nil {
 		earRSNew.AzureKeyVaultConfig = []TFAzureKeyVaultConfigModel{}
