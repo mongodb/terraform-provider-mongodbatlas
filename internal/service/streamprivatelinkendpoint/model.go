@@ -8,6 +8,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 const (
@@ -64,11 +67,11 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		if hasServiceEndpointID && hasServiceAttachmentUris {
 			diags.AddError("Only one of service_endpoint_id or service_attachment_uris can be provided", "")
 		}
-		if plan.DnsDomain.IsNull() || plan.DnsDomain.IsUnknown() {
-			diags.AddError(fmt.Sprintf("dns_domain is required for vendor %s", VendorConfluent), "")
-		}
 		if plan.Region.IsNull() {
 			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorConfluent), "")
+		}
+		if plan.Provider.ValueString() != constant.AWS && (plan.DnsDomain.IsNull() || plan.DnsDomain.IsUnknown()) {
+			diags.AddError(fmt.Sprintf("dns_domain is required for %s provider with vendor %s", plan.Provider.ValueString(), VendorConfluent), "")
 		}
 	}
 
@@ -114,7 +117,7 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 	}
 
 	result := &admin.StreamsPrivateLinkConnection{
-		DnsDomain:         plan.DnsDomain.ValueStringPointer(),
+		DnsDomain:         conversion.StringPtr(plan.DnsDomain.ValueString()),
 		Provider:          plan.Provider.ValueString(),
 		Region:            plan.Region.ValueStringPointer(),
 		ServiceEndpointId: plan.ServiceEndpointId.ValueStringPointer(),
