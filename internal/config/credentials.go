@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"slices"
 	"strings"
@@ -52,6 +53,31 @@ func GetCredentials(ctx context.Context, providerVars, envVars *Vars, getAWSCred
 	}
 	creds.applyGovBaseURL()
 	return creds, nil
+}
+
+// AWSSecretsManagerIgnoredWarning returns a warning when base_url, realm_base_url or
+// is_mongodbgov_cloud are set (as provider attributes or env vars) while AWS Secrets Manager
+// credentials are in use, since those values are ignored on that path and must be defined in
+// the secret payload instead. It returns an empty string when there is nothing to warn about.
+func AWSSecretsManagerIgnoredWarning(providerVars, envVars *Vars) string {
+	if CoalesceAWSVars(providerVars.GetAWS(), envVars.GetAWS()) == nil {
+		return ""
+	}
+	var ignored []string
+	if providerVars.BaseURL != "" || envVars.BaseURL != "" {
+		ignored = append(ignored, "base_url")
+	}
+	if providerVars.RealmBaseURL != "" || envVars.RealmBaseURL != "" {
+		ignored = append(ignored, "realm_base_url")
+	}
+	if providerVars.IsMongodbGovCloud || envVars.IsMongodbGovCloud {
+		ignored = append(ignored, "is_mongodbgov_cloud")
+	}
+	if len(ignored) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("The following attributes are ignored when using AWS Secrets Manager credentials: %s. "+
+		"Define these values in the secret payload instead.", strings.Join(ignored, ", "))
 }
 
 // AuthMethod follows the order of token, SA and PAK.
