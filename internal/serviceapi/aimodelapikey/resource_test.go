@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -37,12 +39,14 @@ func TestAccAIModelAPIKey_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectID, name),
-				Check:  checkBasic(),
+				Config:            configBasic(orgID, projectID, name),
+				Check:             checkBasic(),
+				ConfigStateChecks: pluralEndpointChecks(name),
 			},
 			{
-				Config: configBasic(orgID, projectID, nameUpdated),
-				Check:  checkBasic(),
+				Config:            configBasic(orgID, projectID, nameUpdated),
+				Check:             checkBasic(),
+				ConfigStateChecks: pluralEndpointChecks(nameUpdated),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -87,9 +91,19 @@ func configBasic(orgID, projectID, name string) string {
 	`, orgID, projectID, name)
 }
 
+// pluralEndpointChecks locates the created key by name in each plural data source and asserts its endpoint is set.
+func pluralEndpointChecks(name string) []statecheck.StateCheck {
+	endpointSet := map[string]knownvalue.Check{"endpoint": knownvalue.NotNull()}
+	return []statecheck.StateCheck{
+		acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(name), endpointSet),
+		acc.PluralResultCheck(orgDataSourcePluralName, "name", knownvalue.StringExact(name), endpointSet),
+	}
+}
+
 func checkBasic() resource.TestCheckFunc {
 	attrsSet := []string{"api_key_id", "name", "project_id", "cloud", "geography"}
-	dsOnlyAttrs := []string{"endpoint", "created_at", "created_by", "last_used_at", "masked_secret", "status"}
+	// last_used_at is intentionally excluded: it is null until the key is first used.
+	dsOnlyAttrs := []string{"endpoint", "created_at", "created_by", "masked_secret", "status"}
 	checks := []resource.TestCheckFunc{
 		acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName), attrsSet, nil, checkExists(resourceName)),
 		resource.TestCheckResourceAttr(resourceName, "cloud", "ANY"),
