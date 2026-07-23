@@ -146,7 +146,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	connectionID := state.Id.ValueString()
 
 	updateReq := &admin.StreamsPrivateLinkConnectionRequest{
-		DnsDomain: plan.DnsDomain.ValueStringPointer(),
+		DnsDomain: conversion.StringPtr(plan.DnsDomain.ValueString()),
 	}
 
 	connV2 := r.Client.AtlasV2

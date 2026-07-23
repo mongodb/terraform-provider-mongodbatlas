@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 const (
@@ -116,19 +117,13 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 	}
 
 	result := &admin.StreamsPrivateLinkConnection{
+		DnsDomain:         conversion.StringPtr(plan.DnsDomain.ValueString()),
 		Provider:          plan.Provider.ValueString(),
 		Region:            plan.Region.ValueStringPointer(),
 		ServiceEndpointId: plan.ServiceEndpointId.ValueStringPointer(),
 		State:             plan.State.ValueStringPointer(),
 		Vendor:            plan.Vendor.ValueStringPointer(),
 		Arn:               plan.Arn.ValueStringPointer(),
-	}
-
-	// dns_domain is intentionally NOT required for Confluent Enterprise PL at create time.
-	// dns_domain is optional and computed, so when it is not set in the config it is Unknown (not Null) at create time.
-	// Only send it when it is known and non-empty.
-	if !plan.DnsDomain.IsNull() && !plan.DnsDomain.IsUnknown() && plan.DnsDomain.ValueString() != "" {
-		result.DnsDomain = plan.DnsDomain.ValueStringPointer()
 	}
 
 	if !plan.DnsSubDomain.IsNull() {
