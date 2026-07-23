@@ -40,19 +40,28 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 		if diags := optionsModel.Dlq.As(ctx, dlqModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
 		}
+		autoscaling, diags := newAutoscalingReq(ctx, optionsModel.Autoscaling)
+		if diags.HasError() {
+			return nil, diags
+		}
 		streamProcessor.Options = &admin.StreamsOptions{
 			Dlq: &admin.StreamsDLQ{
 				Coll:           dlqModel.Coll.ValueStringPointer(),
 				ConnectionName: dlqModel.ConnectionName.ValueStringPointer(),
 				Db:             dlqModel.DB.ValueStringPointer(),
 			},
+			Autoscaling: autoscaling,
 		}
+	}
+
+	if !plan.Tier.IsNull() && !plan.Tier.IsUnknown() {
+		streamProcessor.Tier = plan.Tier.ValueStringPointer()
 	}
 
 	return streamProcessor, nil
 }
 
-func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.UpdateStreamProcessorApiParams, diag.Diagnostics) {
+func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProcessorRSModel) (*admin.UpdateStreamProcessorApiParams, diag.Diagnostics) {
 	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
 	if diags != nil {
 		return nil, diags
@@ -70,6 +79,16 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSM
 		},
 	}
 
+	// Resolve the autoscaling operation with PATCH tri-state semantics:
+	//   - block present in the plan  => apply it as configured (enable / disable).
+	//   - block removed from the plan but present in prior state => explicit disable
+	//     ({enabled:false}); the API otherwise treats an omitted config as "preserve".
+	//   - block absent in both plan and state => nil (no autoscaling operation).
+	autoscaling, diags := resolveAutoscalingForUpdate(ctx, plan, state)
+	if diags.HasError() {
+		return nil, diags
+	}
+
 	if !plan.Options.IsNull() && !plan.Options.IsUnknown() {
 		optionsModel := &TFOptionsModel{}
 		if diags := plan.Options.As(ctx, optionsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
@@ -85,7 +104,20 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSM
 				ConnectionName: dlqModel.ConnectionName.ValueStringPointer(),
 				Db:             dlqModel.DB.ValueStringPointer(),
 			},
+			Autoscaling: autoscaling,
 		}
+	} else if autoscaling != nil {
+		// The whole options block was removed but autoscaling still needs an explicit
+		// disable. Dlq is left nil (omitted => preserved by the API).
+		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = &admin.StreamsModifyStreamProcessorOptions{
+			Autoscaling: autoscaling,
+		}
+	}
+
+	// Baseline tier is settable on the PATCH body; when autoscaling is enabled the API treats
+	// it as the initial tier only and reports the running tier via effectiveTier.
+	if !plan.Tier.IsNull() && !plan.Tier.IsUnknown() {
+		streamProcessorAPIParams.StreamsModifyStreamProcessor.Tier = plan.Tier.ValueStringPointer()
 	}
 
 	return streamProcessorAPIParams, nil
@@ -116,6 +148,7 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, w
 		State:         types.StringPointerValue(&apiResp.State),
 		Stats:         statsTF,
 		Tier:          types.StringPointerValue(apiResp.Tier),
+		EffectiveTier: effectiveTierFromResp(apiResp.EffectiveTier, apiResp.Tier),
 	}
 
 	if workspaceName != "" {
@@ -161,6 +194,7 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName, w
 		State:         types.StringPointerValue(&apiResp.State),
 		Stats:         statsTF,
 		Tier:          types.StringPointerValue(apiResp.Tier),
+		EffectiveTier: effectiveTierFromResp(apiResp.EffectiveTier, apiResp.Tier),
 	}
 
 	if workspaceName != "" {
@@ -175,15 +209,20 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName, w
 }
 
 func ConvertOptionsToTF(ctx context.Context, options *admin.StreamsOptions) (*types.Object, diag.Diagnostics) {
-	if options == nil || !options.HasDlq() {
+	if options == nil || (!options.HasDlq() && options.Autoscaling == nil) {
 		return new(types.ObjectNull(OptionsObjectType.AttributeTypes())), nil
 	}
 	dlqTF, diags := convertDlqToTF(ctx, options.Dlq)
 	if diags.HasError() {
 		return nil, diags
 	}
+	autoscalingTF, diags := convertAutoscalingToTF(ctx, options.Autoscaling)
+	if diags.HasError() {
+		return nil, diags
+	}
 	optionsTF := &TFOptionsModel{
-		Dlq: *dlqTF,
+		Dlq:         *dlqTF,
+		Autoscaling: autoscalingTF,
 	}
 	optionsObject, diags := types.ObjectValueFrom(ctx, OptionsObjectType.AttributeTypes(), optionsTF)
 	if diags.HasError() {

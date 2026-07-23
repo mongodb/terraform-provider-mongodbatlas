@@ -77,11 +77,19 @@ resource "mongodbatlas_stream_processor" "stream-processor-kafka-to-cluster-exam
     { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "kafka", "coll" : "topic_source", "timeseries" : { "timeField" : "ts" } }
   }])
   state = "CREATED"
+  # `tier` acts as the baseline tier; when autoscaling is enabled the processor scales
+  # between `min_tier` and `max_tier`, and the running tier is reported by `effective_tier`.
+  tier = "SP10"
   options = {
     dlq = {
       coll            = "exampleColumn"
       connection_name = resource.mongodbatlas_stream_connection.example-cluster.connection_name
       db              = "exampleDb"
+    }
+    autoscaling = {
+      enabled  = true
+      min_tier = "SP10"
+      max_tier = "SP50"
     }
   }
 }

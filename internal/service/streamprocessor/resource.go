@@ -111,6 +111,13 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		if plan.Tier.ValueString() != "" {
 			startWithOptions.SetTier(plan.Tier.ValueString())
 		}
+		// On the :startWith endpoint, `autoscaling` is TOP-LEVEL (no options wrapper).
+		autoscaling, diags := autoscalingFromPlanOptions(ctx, plan.Options)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		startWithOptions.Autoscaling = autoscaling
 
 		_, err := connV2.StreamsApi.StartStreamProcessorWith(ctx, projectID, workspaceOrInstanceName, processorName, startWithOptions).Execute()
 		if err != nil {
@@ -223,7 +230,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// modify the stream processor
-	modifyAPIRequestParams, diags := NewStreamProcessorUpdateReq(ctx, &plan)
+	modifyAPIRequestParams, diags := NewStreamProcessorUpdateReq(ctx, &plan, &state)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -240,6 +247,13 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		if plan.Tier.ValueString() != "" {
 			startWithOptions.SetTier(plan.Tier.ValueString())
 		}
+		// On the :startWith endpoint, `autoscaling` is TOP-LEVEL (see create path).
+		autoscaling, diags := autoscalingFromPlanOptions(ctx, plan.Options)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+		startWithOptions.Autoscaling = autoscaling
 
 		_, err := r.Client.AtlasV2.StreamsApi.StartStreamProcessorWith(ctx, projectID, workspaceOrInstanceName, processorName, startWithOptions).Execute()
 		if err != nil {

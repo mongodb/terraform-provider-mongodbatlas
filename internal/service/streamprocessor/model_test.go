@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
@@ -37,6 +38,18 @@ var (
 			Coll:           conversion.StringPtr("testColl"),
 			ConnectionName: conversion.StringPtr("testConnection"),
 			Db:             conversion.StringPtr("testDB"),
+		},
+	}
+	streamOptionsWithAutoscaling = admin.StreamsOptions{
+		Dlq: &admin.StreamsDLQ{
+			Coll:           conversion.StringPtr("testColl"),
+			ConnectionName: conversion.StringPtr("testConnection"),
+			Db:             conversion.StringPtr("testDB"),
+		},
+		Autoscaling: &admin.StreamsAutoscaling{
+			Enabled: admin.PtrBool(true),
+			MinTier: conversion.StringPtr("SP10"),
+			MaxTier: conversion.StringPtr("SP50"),
 		},
 	}
 )
@@ -430,7 +443,7 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), tc.model)
+			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), tc.model, &streamprocessor.TFStreamProcessorRSModel{})
 			if tc.expectedResult == "" {
 				assert.False(t, diags.HasError())
 				assert.Empty(t, updateReq.TenantName)
@@ -440,6 +453,140 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConvertOptionsToTFAutoscaling(t *testing.T) {
+	ctx := t.Context()
+
+	t.Run("round-trips autoscaling through options", func(t *testing.T) {
+		optionsTF, diags := streamprocessor.ConvertOptionsToTF(ctx, &streamOptionsWithAutoscaling)
+		require.False(t, diags.HasError())
+		require.NotNil(t, optionsTF)
+
+		optionsModel := &streamprocessor.TFOptionsModel{}
+		diags = optionsTF.As(ctx, optionsModel, basetypes.ObjectAsOptions{})
+		require.False(t, diags.HasError())
+		require.False(t, optionsModel.Autoscaling.IsNull())
+
+		autoscalingModel := &streamprocessor.TFAutoscalingModel{}
+		diags = optionsModel.Autoscaling.As(ctx, autoscalingModel, basetypes.ObjectAsOptions{})
+		require.False(t, diags.HasError())
+		assert.True(t, autoscalingModel.Enabled.ValueBool())
+		assert.Equal(t, "SP10", autoscalingModel.MinTier.ValueString())
+		assert.Equal(t, "SP50", autoscalingModel.MaxTier.ValueString())
+	})
+
+	t.Run("autoscaling is null when absent from response", func(t *testing.T) {
+		optionsTF, diags := streamprocessor.ConvertOptionsToTF(ctx, &streamOptionsExample)
+		require.False(t, diags.HasError())
+		optionsModel := &streamprocessor.TFOptionsModel{}
+		diags = optionsTF.As(ctx, optionsModel, basetypes.ObjectAsOptions{})
+		require.False(t, diags.HasError())
+		assert.True(t, optionsModel.Autoscaling.IsNull())
+	})
+}
+
+func TestEffectiveTierFromResp(t *testing.T) {
+	testCases := map[string]struct {
+		effectiveTier *string
+		tier          *string
+		expected      types.String
+	}{
+		"prefers explicit effectiveTier": {
+			effectiveTier: conversion.StringPtr("SP30"),
+			tier:          conversion.StringPtr("SP10"),
+			expected:      types.StringValue("SP30"),
+		},
+		"falls back to tier when effectiveTier is nil": {
+			effectiveTier: nil,
+			tier:          conversion.StringPtr("SP10"),
+			expected:      types.StringValue("SP10"),
+		},
+		"null when neither is set": {
+			effectiveTier: nil,
+			tier:          nil,
+			expected:      types.StringNull(),
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			resp := streamProcessorWithStats(t, nil)
+			resp.Tier = tc.tier
+			resp.EffectiveTier = tc.effectiveTier
+			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", resp, nil, nil)
+			require.False(t, diags.HasError())
+			assert.Equal(t, tc.expected, resultModel.EffectiveTier)
+		})
+	}
+}
+
+func TestNewStreamProcessorReqAutoscaling(t *testing.T) {
+	ctx := t.Context()
+	validPipeline := jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}}]")
+	optionsWithAutoscaling := optionsToTFModel(t, &streamOptionsWithAutoscaling)
+
+	plan := &streamprocessor.TFStreamProcessorRSModel{
+		WorkspaceName: types.StringValue(workspaceName),
+		Pipeline:      validPipeline,
+		ProcessorName: types.StringValue(processorName),
+		ProjectID:     types.StringValue(projectID),
+		Tier:          types.StringValue("SP10"),
+		Options:       optionsWithAutoscaling,
+	}
+	req, diags := streamprocessor.NewStreamProcessorReq(ctx, plan)
+	require.False(t, diags.HasError())
+	require.NotNil(t, req.Options)
+	require.NotNil(t, req.Options.Autoscaling)
+	assert.True(t, req.Options.Autoscaling.GetEnabled())
+	assert.Equal(t, "SP10", req.Options.Autoscaling.GetMinTier())
+	assert.Equal(t, "SP50", req.Options.Autoscaling.GetMaxTier())
+	assert.Equal(t, "SP10", req.GetTier())
+}
+
+func TestNewStreamProcessorUpdateReqAutoscaling(t *testing.T) {
+	ctx := t.Context()
+	validPipeline := jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}}]")
+	optionsWithAutoscaling := optionsToTFModel(t, &streamOptionsWithAutoscaling)
+	optionsDlqOnly := optionsToTFModel(t, &streamOptionsExample)
+	optionsNull := types.ObjectNull(streamprocessor.OptionsObjectType.AttributeTypes())
+
+	base := func(options types.Object) *streamprocessor.TFStreamProcessorRSModel {
+		return &streamprocessor.TFStreamProcessorRSModel{
+			WorkspaceName: types.StringValue(workspaceName),
+			Pipeline:      validPipeline,
+			ProcessorName: types.StringValue(processorName),
+			ProjectID:     types.StringValue(projectID),
+			Options:       options,
+		}
+	}
+
+	t.Run("plan configures autoscaling => sent as configured", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsWithAutoscaling), base(optionsDlqOnly))
+		require.False(t, diags.HasError())
+		require.NotNil(t, req.StreamsModifyStreamProcessor.Options.Autoscaling)
+		assert.True(t, req.StreamsModifyStreamProcessor.Options.Autoscaling.GetEnabled())
+	})
+
+	t.Run("autoscaling removed but present in state => explicit disable", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsDlqOnly), base(optionsWithAutoscaling))
+		require.False(t, diags.HasError())
+		require.NotNil(t, req.StreamsModifyStreamProcessor.Options.Autoscaling)
+		assert.False(t, req.StreamsModifyStreamProcessor.Options.Autoscaling.GetEnabled())
+	})
+
+	t.Run("whole options block removed but autoscaling in state => explicit disable", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsNull), base(optionsWithAutoscaling))
+		require.False(t, diags.HasError())
+		require.NotNil(t, req.StreamsModifyStreamProcessor.Options)
+		require.NotNil(t, req.StreamsModifyStreamProcessor.Options.Autoscaling)
+		assert.False(t, req.StreamsModifyStreamProcessor.Options.Autoscaling.GetEnabled())
+	})
+
+	t.Run("autoscaling absent in plan and state => no autoscaling operation", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsDlqOnly), base(optionsDlqOnly))
+		require.False(t, diags.HasError())
+		assert.Nil(t, req.StreamsModifyStreamProcessor.Options.Autoscaling)
+	})
 }
 
 func TestGetWorkspaceOrInstanceName(t *testing.T) {

@@ -85,6 +85,62 @@ func TestAccStreamProcessor_withTier(t *testing.T) {
 		}})
 }
 
+func TestAccStreamProcessor_withAutoscaling(t *testing.T) {
+	var (
+		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		_, clusterName           = acc.ClusterNameExecution(t, false)
+		randomSuffix             = acctest.RandString(5)
+		processorName            = "new-processor-autoscaling" + randomSuffix
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithAutoscaling(t, projectID, workspaceName, clusterName, processorName, "SP10", "SP50", true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.min_tier", "SP10"),
+					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.max_tier", "SP50"),
+					resource.TestCheckResourceAttrSet(resourceName, "effective_tier"),
+				),
+			},
+			{
+				// Removing the autoscaling block disables autoscaling.
+				Config: configWithAutoscaling(t, projectID, workspaceName, clusterName, processorName, "", "", false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckNoResourceAttr(resourceName, "options.autoscaling"),
+				),
+			},
+			importStep(),
+		}})
+}
+
+// TestAccStreamProcessor_autoscalingBoundsRequireEnabled verifies the plan-time validator
+// rejects tier bounds when autoscaling is disabled.
+func TestAccStreamProcessor_autoscalingBoundsRequireEnabled(t *testing.T) {
+	var (
+		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		_, clusterName           = acc.ClusterNameExecution(t, false)
+		processorName            = "new-processor-autoscaling-invalid" + acctest.RandString(5)
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config:      configWithAutoscaling(t, projectID, workspaceName, clusterName, processorName, "SP10", "SP50", false),
+				ExpectError: regexp.MustCompile("can only be set when `enabled` is `true`"),
+			},
+		}})
+}
+
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
@@ -739,6 +795,68 @@ func configWithTier(t *testing.T, projectID, workspaceName, processorName, tier 
 		depends_on     = [mongodbatlas_stream_processor.processor]
 	}
 	`, projectID, workspaceName, processorName, tier)
+}
+
+// configWithAutoscaling builds a processor whose DLQ points at a cluster connection.
+// When enabled is true the options.autoscaling block is included with the given bounds;
+// when false and both tiers are empty the block is omitted (autoscaling disabled). When
+// enabled is false but bounds are provided, the (invalid) block is emitted to exercise the
+// plan-time validator.
+func configWithAutoscaling(t *testing.T, projectID, workspaceName, clusterName, processorName, minTier, maxTier string, enabled bool) string {
+	t.Helper()
+
+	autoscalingBlock := ""
+	if enabled || minTier != "" || maxTier != "" {
+		bounds := ""
+		if minTier != "" {
+			bounds += fmt.Sprintf("\n\t\t\t\tmin_tier = %[1]q", minTier)
+		}
+		if maxTier != "" {
+			bounds += fmt.Sprintf("\n\t\t\t\tmax_tier = %[1]q", maxTier)
+		}
+		autoscalingBlock = fmt.Sprintf(`
+			autoscaling = {
+				enabled = %[1]t%[2]s
+			}`, enabled, bounds)
+	}
+
+	return fmt.Sprintf(`
+	resource "mongodbatlas_stream_connection" "cluster" {
+		project_id      = %[1]q
+		workspace_name  = %[2]q
+		connection_name = "ClusterConnection"
+		type            = "Cluster"
+		cluster_name    = %[3]q
+		db_role_to_execute = {
+			role = "atlasAdmin"
+			type = "BUILT_IN"
+		}
+	}
+
+	resource "mongodbatlas_stream_processor" "processor" {
+		project_id     = %[1]q
+		workspace_name = %[2]q
+		processor_name = %[4]q
+		pipeline = jsonencode([
+			{ "$source" = { "connectionName" = mongodbatlas_stream_connection.cluster.connection_name, "db" = "sample", "coll" = "solar" } },
+			{ "$emit" = { "connectionName" = "__testLog" } }
+		])
+		tier = "SP10"
+		options = {
+			dlq = {
+				coll            = "dlq_coll"
+				connection_name = mongodbatlas_stream_connection.cluster.connection_name
+				db              = "dlq_db"
+			}%[5]s
+		}
+	}
+
+	data "mongodbatlas_stream_processor" "test" {
+		project_id     = mongodbatlas_stream_processor.processor.project_id
+		workspace_name = mongodbatlas_stream_processor.processor.workspace_name
+		processor_name = mongodbatlas_stream_processor.processor.processor_name
+	}
+	`, projectID, workspaceName, clusterName, processorName, autoscalingBlock)
 }
 
 func configMigration(t *testing.T, projectID, instanceName, processorName, state, nameSuffix string, src, dest connectionConfig, timeoutConfig string, deleteOnCreateTimeout *bool) string {
