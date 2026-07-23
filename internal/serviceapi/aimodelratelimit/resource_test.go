@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -37,12 +39,14 @@ func TestAccAIModelRateLimit_basic(t *testing.T) {
 		// TODO: CLOUDP-374704, CLOUDP-372674 - Implement CheckDestroy checking default limits when SDK can be used.
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectID, 100, 1000),
-				Check:  checkBasic(),
+				Config:            configBasic(orgID, projectID, 100, 1000),
+				Check:             checkBasic(),
+				ConfigStateChecks: pluralEndpointChecks(),
 			},
 			{
-				Config: configBasic(orgID, projectID, 200, 2000),
-				Check:  checkBasic(),
+				Config:            configBasic(orgID, projectID, 200, 2000),
+				Check:             checkBasic(),
+				ConfigStateChecks: pluralEndpointChecks(),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -135,6 +139,16 @@ func configInvalid(projectID, modelGroupName string, requestsPerMinute, tokensPe
 	`, projectID, modelGroupName, requestsPerMinute, tokensPerMinute)
 }
 
+// pluralEndpointChecks locates the created rate limit by model group in each plural data source and asserts its endpoint is set.
+// endpoint and model_names are computed-only, exposed via the data sources, not the resource.
+func pluralEndpointChecks() []statecheck.StateCheck {
+	endpointSet := map[string]knownvalue.Check{"endpoint": knownvalue.NotNull()}
+	return []statecheck.StateCheck{
+		acc.PluralResultCheck(dataSourcePluralName, "model_group_name", knownvalue.StringExact(modelGroupName), endpointSet),
+		acc.PluralResultCheck(orgDataSourcePluralName, "model_group_name", knownvalue.StringExact(modelGroupName), endpointSet),
+	}
+}
+
 func checkBasic() resource.TestCheckFunc {
 	attrsSet := []string{"model_group_name", "requests_per_minute_limit", "tokens_per_minute_limit", "cloud", "geography"}
 	return resource.ComposeAggregateTestCheckFunc(
@@ -144,6 +158,7 @@ func checkBasic() resource.TestCheckFunc {
 		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 		acc.CheckRSAndDS(orgDataSourceName, nil, new(orgDataSourcePluralName), attrsSet, nil),
 		resource.TestCheckResourceAttrSet(orgDataSourceName, "endpoint"),
+		resource.TestCheckResourceAttrSet(orgDataSourceName, "model_names.#"),
 		resource.TestCheckResourceAttrWith(orgDataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 	)
 }
