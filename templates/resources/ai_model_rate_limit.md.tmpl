@@ -15,9 +15,9 @@ subcategory: "AI Models"
 {{ .SchemaMarkdown | trimspace }}
 
 ## Import
-Import the AI Model Rate Limit resource by using the Project ID and Model Group Name in the format `PROJECT_ID/MODEL_GROUP_NAME`, e.g.
+Import the AI Model Rate Limit resource by using the Project ID, Cloud, Geography, and Model Group Name in the format `PROJECT_ID/CLOUD/GEOGRAPHY/MODEL_GROUP_NAME`, e.g.
 ```
-$ terraform import mongodbatlas_ai_model_rate_limit.example 1112222b3bf99403840e8934/embed_large
+$ terraform import mongodbatlas_ai_model_rate_limit.example 1112222b3bf99403840e8934/ANY/ANY/embed_large
 ```
 
 For more information, see [Manage AI Model Rate Limits](https://www.mongodb.com/docs/voyageai/management/rate-limits/).

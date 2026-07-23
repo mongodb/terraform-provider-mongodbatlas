@@ -13,6 +13,8 @@ subcategory: "AI Models"
 ```terraform
 data "mongodbatlas_ai_model_org_rate_limit" "this" {
   org_id           = var.org_id
+  cloud            = "ANY"
+  geography        = "ANY"
   model_group_name = "embed_large"
 }
 ```

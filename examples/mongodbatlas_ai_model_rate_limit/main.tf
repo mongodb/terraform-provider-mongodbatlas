@@ -1,5 +1,7 @@
 resource "mongodbatlas_ai_model_rate_limit" "this" {
   project_id                = var.project_id
+  cloud                     = "ANY"
+  geography                 = "ANY"
   model_group_name          = "embed_large"
   requests_per_minute_limit = 100
   tokens_per_minute_limit   = 10000
@@ -7,6 +9,8 @@ resource "mongodbatlas_ai_model_rate_limit" "this" {
 
 data "mongodbatlas_ai_model_rate_limit" "this" {
   project_id       = var.project_id
+  cloud            = "ANY"
+  geography        = "ANY"
   model_group_name = mongodbatlas_ai_model_rate_limit.this.model_group_name
 }
 
@@ -25,8 +29,13 @@ output "ai_model_rate_limit_tokens_per_minute" {
 }
 
 output "ai_model_rate_limit_model_names" {
-  description = "The model names included in this model group from the data source."
+  description = "The model names included in this model group, from the data source."
   value       = data.mongodbatlas_ai_model_rate_limit.this.model_names
+}
+
+output "ai_model_rate_limit_endpoint" {
+  description = "The server-computed endpoint hostname derived from cloud and geography, from the data source."
+  value       = data.mongodbatlas_ai_model_rate_limit.this.endpoint
 }
 
 output "ai_model_rate_limits_results" {

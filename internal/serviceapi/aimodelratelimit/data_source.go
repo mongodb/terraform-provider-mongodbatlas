@@ -28,6 +28,9 @@ type ds struct {
 
 func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = DataSourceSchema(ctx)
+	if schemaHook, ok := any(d).(autogen.DataSourceSchemaHook); ok {
+		resp.Schema = schemaHook.DataSourceSchema(ctx, resp.Schema)
+	}
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -51,11 +54,13 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 func dataSourceReadAPICallParams(model *TFDSModel) *config.APICallParams {
 	pathParams := map[string]string{
 		"projectId":      model.ProjectId.ValueString(),
+		"cloud":          model.Cloud.ValueString(),
+		"geography":      model.Geography.ValueString(),
 		"modelGroupName": model.ModelGroupName.ValueString(),
 	}
 	return &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.preview+json",
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelRateLimits/{modelGroupName}",
+		VersionHeader: "application/vnd.atlas.2025-03-12+json",
+		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
