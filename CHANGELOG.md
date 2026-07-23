@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_project: Adds `is_native_reranking_enabled` attribute ([#4568](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4568))
 * data-source/mongodbatlas_projects: Adds `is_native_reranking_enabled` attribute ([#4568](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4568))
+* provider: Warns when `base_url`, `realm_base_url`, or `is_mongodbgov_cloud` are set while using AWS Secrets Manager credentials, as these values are ignored on that path and must be defined in the secret payload ([#4581](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4581))
 * resource/mongodbatlas_project: Adds `is_native_reranking_enabled` attribute ([#4568](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4568))
 
 ## 2.14.0 (July 15, 2026)
