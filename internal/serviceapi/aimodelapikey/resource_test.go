@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -37,12 +39,14 @@ func TestAccAIModelAPIKey_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectID, name),
-				Check:  checkBasic(),
+				Config:            configBasic(orgID, projectID, name),
+				Check:             checkBasic(),
+				ConfigStateChecks: pluralEndpointChecks(name),
 			},
 			{
-				Config: configBasic(orgID, projectID, nameUpdated),
-				Check:  checkBasic(),
+				Config:            configBasic(orgID, projectID, nameUpdated),
+				Check:             checkBasic(),
+				ConfigStateChecks: pluralEndpointChecks(nameUpdated),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -61,6 +65,8 @@ func configBasic(orgID, projectID, name string) string {
 		resource "mongodbatlas_ai_model_api_key" "this" {
 			project_id = %[2]q
 			name       = %[3]q
+			cloud      = "ANY"
+			geography  = "ANY"
 		}
 
 		data "mongodbatlas_ai_model_api_key" "this" {
@@ -85,11 +91,23 @@ func configBasic(orgID, projectID, name string) string {
 	`, orgID, projectID, name)
 }
 
+// pluralEndpointChecks locates the created key by name in each plural data source and asserts its endpoint is set.
+func pluralEndpointChecks(name string) []statecheck.StateCheck {
+	endpointSet := map[string]knownvalue.Check{"endpoint": knownvalue.NotNull()}
+	return []statecheck.StateCheck{
+		acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(name), endpointSet),
+		acc.PluralResultCheck(orgDataSourcePluralName, "name", knownvalue.StringExact(name), endpointSet),
+	}
+}
+
 func checkBasic() resource.TestCheckFunc {
-	attrsSet := []string{"api_key_id", "created_at", "created_by", "masked_secret", "status", "name", "project_id"}
+	// last_used_at is intentionally excluded: it is null until the key is first used.
+	attrsSet := []string{"api_key_id", "created_at", "created_by", "masked_secret", "status", "name", "project_id", "cloud", "geography", "endpoint"}
 	return resource.ComposeAggregateTestCheckFunc(
 		acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName), attrsSet, nil, checkExists(resourceName)),
-		resource.TestCheckResourceAttrSet(resourceName, "secret"), // secret only in resource
+		resource.TestCheckResourceAttr(resourceName, "cloud", "ANY"),
+		resource.TestCheckResourceAttr(resourceName, "geography", "ANY"),
+		resource.TestCheckResourceAttrSet(resourceName, "secret"),
 		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 		acc.CheckRSAndDS(orgDataSourceName, nil, new(orgDataSourcePluralName), attrsSet, nil),
 		resource.TestCheckResourceAttrWith(orgDataSourcePluralName, "results.#", acc.IntGreatThan(0)),
@@ -125,12 +143,9 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-// apiKeyExists checks if an API key exists.
-// Uses UntypedAPICall because the API is in preview and not yet available in the SDK.
-// TODO: Use SDK before merging to master in CLOUDP-372674.
 func apiKeyExists(rs *terraform.ResourceState) bool {
 	callParams := config.APICallParams{
-		VersionHeader: "application/vnd.atlas.preview+json",
+		VersionHeader: "application/vnd.atlas.2025-03-12+json",
 		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiKeys/{apiKeyId}",
 		PathParams: map[string]string{
 			"projectId": rs.Primary.Attributes["project_id"],

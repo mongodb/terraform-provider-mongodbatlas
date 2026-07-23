@@ -19,6 +19,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Identifier used to reference this API key in admin API calls.",
 			},
+			"cloud": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Cloud provider scope for this API key. Must be \"ANY\". Additional cloud values will be supported in future API versions.",
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+			},
 			"created_at": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.",
@@ -29,9 +34,18 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Name of the user that created this API key. If no user name is available, the user ID is returned.",
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
+			"endpoint": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.",
+			},
+			"geography": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Geography scope for this API key. Must be \"ANY\". Additional geography values will be supported in future API versions.",
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"last_used_at": schema.StringAttribute{
@@ -63,8 +77,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	ApiKeyId     types.String `tfsdk:"api_key_id" autogen:"omitjson"`
+	Cloud        types.String `tfsdk:"cloud" autogen:"omitjsonupdate"`
 	CreatedAt    types.String `tfsdk:"created_at" autogen:"omitjson"`
 	CreatedBy    types.String `tfsdk:"created_by" autogen:"omitjson"`
+	Endpoint     types.String `tfsdk:"endpoint" autogen:"omitjson"`
+	Geography    types.String `tfsdk:"geography" autogen:"omitjsonupdate"`
 	ProjectId    types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	LastUsedAt   types.String `tfsdk:"last_used_at" autogen:"omitjson"`
 	MaskedSecret types.String `tfsdk:"masked_secret" autogen:"omitjson"`

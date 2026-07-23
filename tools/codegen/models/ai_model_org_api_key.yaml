@@ -1,15 +1,26 @@
 operations:
-    version_header: application/vnd.atlas.preview+json
+    version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
-    schema:
-        singular_ds_description: Retrieve a single AI model API key for the given organization.
-        singular_ds_attributes:
+    singular:
+        description: Retrieve a single AI model API key for the given organization.
+        attributes:
             - string: {}
               description: The id of the API key to be retrieved.
               computed_optional_required: required
               tf_schema_name: api_key_id
               tf_model_name: ApiKeyId
               api_name: apiKeyId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Cloud provider scope for this API key. Use "ANY" for cloud-agnostic scope.
+              computed_optional_required: computed
+              tf_schema_name: cloud
+              tf_model_name: Cloud
+              api_name: cloud
               req_body_usage: omit_always
               sensitive: false
               create_only: false
@@ -32,6 +43,28 @@ data_sources:
               tf_schema_name: created_by
               tf_model_name: CreatedBy
               api_name: createdBy
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
+              computed_optional_required: computed
+              tf_schema_name: endpoint
+              tf_model_name: Endpoint
+              api_name: endpoint
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Geography scope for this API key. Use "ANY" for geography-agnostic scope.
+              computed_optional_required: computed
+              tf_schema_name: geography
+              tf_model_name: Geography
+              api_name: geography
               req_body_usage: omit_always
               sensitive: false
               create_only: false
@@ -82,10 +115,10 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Unique 24-hexadecimal digit string that identifies your project.
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
               computed_optional_required: computed
               tf_schema_name: project_id
-              tf_model_name: Project_id
+              tf_model_name: ProjectId
               api_name: groupId
               req_body_usage: omit_always
               sensitive: false
@@ -103,8 +136,9 @@ data_sources:
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
-        plural_ds_description: Retrieve AI model API keys for the given organization.
-        plural_ds_attributes:
+    plural:
+        description: Retrieve AI model API keys for the given organization.
+        attributes:
             - string: {}
               description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
               computed_optional_required: required
@@ -125,6 +159,17 @@ data_sources:
                           tf_schema_name: api_key_id
                           tf_model_name: ApiKeyId
                           api_name: apiKeyId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Cloud provider scope for this API key. Use "ANY" for cloud-agnostic scope.
+                          computed_optional_required: computed
+                          tf_schema_name: cloud
+                          tf_model_name: Cloud
+                          api_name: cloud
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
@@ -153,10 +198,32 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Unique 24-hexadecimal digit string that identifies your project.
+                          description: Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
+                          computed_optional_required: computed
+                          tf_schema_name: endpoint
+                          tf_model_name: Endpoint
+                          api_name: endpoint
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Geography scope for this API key. Use "ANY" for geography-agnostic scope.
+                          computed_optional_required: computed
+                          tf_schema_name: geography
+                          tf_model_name: Geography
+                          api_name: geography
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
                           computed_optional_required: computed
                           tf_schema_name: project_id
-                          tf_model_name: Project_id
+                          tf_model_name: ProjectId
                           api_name: groupId
                           req_body_usage: omit_always
                           sensitive: false
@@ -229,6 +296,6 @@ data_sources:
         list:
             http_method: GET
             path: /api/atlas/v2/orgs/{orgId}/aiModelApiKeys
-        version_header: application/vnd.atlas.preview+json
+        version_header: application/vnd.atlas.2025-03-12+json
 name: ai_model_org_api_key
 packageName: aimodelorgapikey

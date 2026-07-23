@@ -13,6 +13,8 @@ subcategory: "AI Models"
 resource "mongodbatlas_ai_model_api_key" "this" {
   project_id = var.project_id
   name       = "example-ai-model-key"
+  cloud      = "ANY"
+  geography  = "ANY"
 }
 
 data "mongodbatlas_ai_model_api_key" "this" {
@@ -40,6 +42,11 @@ output "ai_model_api_key_name" {
   value       = data.mongodbatlas_ai_model_api_key.this.name
 }
 
+output "ai_model_api_key_endpoint" {
+  description = "The server-computed endpoint hostname derived from cloud and geography, from the data source."
+  value       = data.mongodbatlas_ai_model_api_key.this.endpoint
+}
+
 output "ai_model_api_keys_results" {
   description = "All AI Model API keys in the project."
   value       = data.mongodbatlas_ai_model_api_keys.this.results
@@ -51,7 +58,7 @@ output "ai_model_api_keys_results" {
 
 ### Required
 
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Read-Only
 
@@ -63,12 +70,15 @@ output "ai_model_api_keys_results" {
 Read-Only:
 
 - `api_key_id` (String) Identifier used to reference this API key in admin API calls.
+- `cloud` (String) Cloud provider scope for this API key. Use "ANY" for cloud-agnostic scope.
 - `created_at` (String) UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.
 - `created_by` (String) Name of the user that created this API key. If no user name is available, the user ID is returned.
+- `endpoint` (String) Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
+- `geography` (String) Geography scope for this API key. Use "ANY" for geography-agnostic scope.
 - `last_used_at` (String) UTC date when the API key was last used. This parameter is formatted as an ISO 8601 timestamp.
 - `masked_secret` (String) A partially obfuscated version of the API key secret returned when the API key was created.
 - `name` (String) Arbitrary string identifier assigned to this API key for convenient identification.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `status` (String) A string describing the current status of the API key.
 
 For more information, see [Manage AI Model API Keys](https://www.mongodb.com/docs/voyageai/management/api-keys/).
