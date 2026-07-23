@@ -85,11 +85,18 @@ resource "mongodbatlas_stream_processor" "stream-processor-kafka-to-cluster-exam
     ]
   JSON
   state          = "CREATED"
+  # `tier` is the baseline tier; the current autoscaled tier is `effective_tier`.
+  tier           = "SP10"
   options = {
     dlq = {
       coll            = "exampleColumn"
       connection_name = mongodbatlas_stream_connection.example-cluster.connection_name
       db              = "exampleDb"
+    }
+    autoscaling = {
+      enabled  = true
+      min_tier = "SP10"
+      max_tier = "SP50"
     }
   }
 }
