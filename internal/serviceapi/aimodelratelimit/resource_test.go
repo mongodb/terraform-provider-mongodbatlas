@@ -167,8 +167,6 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 }
 
 // rateLimitExists checks if a rate limit exists.
-// Uses UntypedAPICall because the resource is not yet available in the SDK.
-// TODO: CLOUDP-374704 - Use SDK before merging to master in CLOUDP-372674.
 func rateLimitExists(rs *terraform.ResourceState) bool {
 	callParams := config.APICallParams{
 		VersionHeader: "application/vnd.atlas.2025-03-12+json",
