@@ -58,20 +58,26 @@ func newAutoscalingReq(ctx context.Context, autoscaling types.Object) (*admin.St
 	return req, nil
 }
 
-// autoscalingBoundsRequireEnabledValidator rejects configs that set min_tier/max_tier
-// while enabled is false, mirroring the backend which returns a 400 for bounds on a
-// disabled autoscaling config. Validating at plan time surfaces the error earlier.
-type autoscalingBoundsRequireEnabledValidator struct{}
+// disableAutoscalingErrorDetail is the guidance shown when a user sets enabled = false.
+// It is shared by the plan-time validator so the docs, validator, and runtime message agree.
+const disableAutoscalingErrorDetail = "To disable autoscaling, remove the `options.autoscaling` block rather than setting `enabled = false`. The backend does not persist a disabled configuration, so `enabled = false` cannot round-trip."
 
-func (v autoscalingBoundsRequireEnabledValidator) Description(_ context.Context) string {
-	return "min_tier and max_tier can only be set when enabled is true"
+// autoscalingEnabledValidator rejects `enabled = false`. When the autoscaling block is
+// present, autoscaling must be enabled; disabling is expressed by removing the block (the
+// provider then sends the explicit disable to the API). This avoids the "inconsistent result
+// after apply" that would otherwise occur, since a disabled config is not persisted and reads
+// back as null.
+type autoscalingEnabledValidator struct{}
+
+func (v autoscalingEnabledValidator) Description(_ context.Context) string {
+	return "enabled must be true when the autoscaling block is present; disable by removing the block"
 }
 
-func (v autoscalingBoundsRequireEnabledValidator) MarkdownDescription(ctx context.Context) string {
+func (v autoscalingEnabledValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-func (v autoscalingBoundsRequireEnabledValidator) ValidateObject(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+func (v autoscalingEnabledValidator) ValidateObject(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
@@ -84,15 +90,11 @@ func (v autoscalingBoundsRequireEnabledValidator) ValidateObject(ctx context.Con
 	if tfModel.Enabled.IsNull() || tfModel.Enabled.IsUnknown() || tfModel.Enabled.ValueBool() {
 		return
 	}
-	hasBound := (!tfModel.MinTier.IsNull() && !tfModel.MinTier.IsUnknown()) ||
-		(!tfModel.MaxTier.IsNull() && !tfModel.MaxTier.IsUnknown())
-	if hasBound {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid autoscaling configuration",
-			"`min_tier` and `max_tier` can only be set when `enabled` is `true`. Set `enabled = true` or remove the tier bounds.",
-		)
-	}
+	resp.Diagnostics.AddAttributeError(
+		req.Path,
+		"Invalid autoscaling configuration",
+		disableAutoscalingErrorDetail,
+	)
 }
 
 // autoscalingFromPlanOptions extracts the autoscaling SDK request from the plan's
