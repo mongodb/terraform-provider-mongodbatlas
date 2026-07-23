@@ -39,7 +39,7 @@ output "ai_model_rate_limit_tokens_per_minute" {
 }
 
 output "ai_model_rate_limit_model_names" {
-  description = "The model names included in this model group from the data source."
+  description = "The model names included in this model group, from the data source."
   value       = data.mongodbatlas_ai_model_rate_limit.this.model_names
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -18,6 +19,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:            true,
 				MarkdownDescription: "Cloud provider scope. Must be \"ANY\". Additional values will be supported in future API versions.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+			},
+			"endpoint": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.",
 			},
 			"geography": schema.StringAttribute{
 				Required:            true,
@@ -34,6 +39,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "The name of the model group to be updated.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
+			"model_names": schema.ListAttribute{
+				Computed:            true,
+				MarkdownDescription: "List of embedding model names included in this model group.",
+				CustomType:          customtypes.NewListType[types.String](ctx),
+				ElementType:         types.StringType,
+			},
 			"requests_per_minute_limit": schema.Int64Attribute{
 				Required:            true,
 				MarkdownDescription: "The number of requests per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.",
@@ -47,10 +58,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Cloud                  types.String `tfsdk:"cloud" autogen:"omitjson"`
-	Geography              types.String `tfsdk:"geography" autogen:"omitjson"`
-	ProjectId              types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	ModelGroupName         types.String `tfsdk:"model_group_name" autogen:"omitjson"`
-	RequestsPerMinuteLimit types.Int64  `tfsdk:"requests_per_minute_limit"`
-	TokensPerMinuteLimit   types.Int64  `tfsdk:"tokens_per_minute_limit"`
+	Cloud                  types.String                        `tfsdk:"cloud" autogen:"omitjson"`
+	Endpoint               types.String                        `tfsdk:"endpoint" autogen:"omitjson"`
+	Geography              types.String                        `tfsdk:"geography" autogen:"omitjson"`
+	ProjectId              types.String                        `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	ModelGroupName         types.String                        `tfsdk:"model_group_name" autogen:"omitjson"`
+	ModelNames             customtypes.ListValue[types.String] `tfsdk:"model_names" autogen:"omitjson"`
+	RequestsPerMinuteLimit types.Int64                         `tfsdk:"requests_per_minute_limit"`
+	TokensPerMinuteLimit   types.Int64                         `tfsdk:"tokens_per_minute_limit"`
 }

@@ -8,7 +8,7 @@ Rate limits are configured per model group (e.g., `embed_large`, `embed_small`).
 
 Project-level rate limits cannot exceed the organization-level limits, which are determined by your organization's tier. You can retrieve organization-level limits using the `mongodbatlas_ai_model_org_rate_limits` data source.
 
-`cloud` and `geography` define the rate limit's scope. They are required and create-only (changing either forces a new resource). The `endpoint` and `model_names` attributes are computed and exposed via the data sources.
+`cloud` and `geography` define the rate limit's scope. They are required and create-only (changing either forces a new resource). The `endpoint` and `model_names` attributes are computed (read-only).
 
 ## Variables Required to be set:
 - `atlas_client_id`: MongoDB Atlas Service Account Client ID

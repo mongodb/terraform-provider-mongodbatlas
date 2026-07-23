@@ -96,7 +96,6 @@ resources:
       overrides:
         project_id:
           description: *project_id_description
-      ignores: ["endpoint", "model_names"] # Computed-only, not needed to manage the resource; exposed via the data sources.
     datasources:
       read: *ai_model_rate_limit_read_op
       list:
@@ -104,7 +103,6 @@ resources:
         method: GET
       schema:
         <<: *ai_model_rate_limit_schema
-        ignores: [] # Keep endpoint + model_names in the data sources (override the resource's ignores).
 
   # Singleton resource in project.
   # Create, Delete and Update uses PATCH.

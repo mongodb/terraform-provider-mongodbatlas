@@ -42,7 +42,7 @@ output "ai_model_rate_limit_tokens_per_minute" {
 }
 
 output "ai_model_rate_limit_model_names" {
-  description = "The model names included in this model group from the data source."
+  description = "The model names included in this model group, from the data source."
   value       = data.mongodbatlas_ai_model_rate_limit.this.model_names
 }
 
@@ -68,6 +68,11 @@ output "ai_model_rate_limits_results" {
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `requests_per_minute_limit` (Number) The number of requests per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.
 - `tokens_per_minute_limit` (Number) The number of tokens per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.
+
+### Read-Only
+
+- `endpoint` (String) Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
+- `model_names` (List of String) List of embedding model names included in this model group.
 
 ## Import
 Import the AI Model Rate Limit resource by using the Project ID, Cloud, Geography, and Model Group Name in the format `PROJECT_ID/CLOUD/GEOGRAPHY/MODEL_GROUP_NAME`, e.g.
