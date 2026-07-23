@@ -17,6 +17,10 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				Required:            true,
 				MarkdownDescription: "The id of the API key to be retrieved.",
 			},
+			"cloud": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Cloud provider scope for this API key. Use \"ANY\" for cloud-agnostic scope.",
+			},
 			"created_at": dsschema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.",
@@ -24,6 +28,14 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			"created_by": dsschema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Name of the user that created this API key. If no user name is available, the user ID is returned.",
+			},
+			"endpoint": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.",
+			},
+			"geography": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Geography scope for this API key. Use \"ANY\" for geography-agnostic scope.",
 			},
 			"last_used_at": dsschema.StringAttribute{
 				Computed:            true,
@@ -43,7 +55,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"project_id": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 			},
 			"status": dsschema.StringAttribute{
 				Computed:            true,
@@ -55,12 +67,15 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 
 type TFDSModel struct {
 	ApiKeyId     types.String `tfsdk:"api_key_id" autogen:"omitjson"`
+	Cloud        types.String `tfsdk:"cloud" autogen:"omitjson"`
 	CreatedAt    types.String `tfsdk:"created_at" autogen:"omitjson"`
 	CreatedBy    types.String `tfsdk:"created_by" autogen:"omitjson"`
+	Endpoint     types.String `tfsdk:"endpoint" autogen:"omitjson"`
+	Geography    types.String `tfsdk:"geography" autogen:"omitjson"`
 	LastUsedAt   types.String `tfsdk:"last_used_at" autogen:"omitjson"`
 	MaskedSecret types.String `tfsdk:"masked_secret" autogen:"omitjson"`
 	Name         types.String `tfsdk:"name" autogen:"omitjson"`
 	OrgId        types.String `tfsdk:"org_id" autogen:"omitjson"`
-	Project_id   types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	ProjectId    types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	Status       types.String `tfsdk:"status" autogen:"omitjson"`
 }

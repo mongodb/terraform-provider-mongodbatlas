@@ -15,7 +15,7 @@ import (
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 
-const apiVersionHeader = "application/vnd.atlas.preview+json"
+const apiVersionHeader = "application/vnd.atlas.2025-03-12+json"
 
 func Resource() resource.Resource {
 	return &rs{
@@ -31,6 +31,9 @@ type rs struct {
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
+	if schemaHook, ok := any(r).(autogen.ResourceSchemaHook); ok {
+		resp.Schema = schemaHook.ResourceSchema(ctx, resp.Schema)
+	}
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 

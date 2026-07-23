@@ -33,12 +33,15 @@ data "mongodbatlas_ai_model_org_api_keys" "this" {
 Read-Only:
 
 - `api_key_id` (String) Identifier used to reference this API key in admin API calls.
+- `cloud` (String) Cloud provider scope for this API key. Use "ANY" for cloud-agnostic scope.
 - `created_at` (String) UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.
 - `created_by` (String) Name of the user that created this API key. If no user name is available, the user ID is returned.
+- `endpoint` (String) Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
+- `geography` (String) Geography scope for this API key. Use "ANY" for geography-agnostic scope.
 - `last_used_at` (String) UTC date when the API key was last used. This parameter is formatted as an ISO 8601 timestamp.
 - `masked_secret` (String) A partially obfuscated version of the API key secret returned when the API key was created.
 - `name` (String) Arbitrary string identifier assigned to this API key for convenient identification.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `status` (String) A string describing the current status of the API key.
 
 For more information, see [Manage AI Model API Keys](https://www.mongodb.com/docs/voyageai/management/api-keys/).

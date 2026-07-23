@@ -16,7 +16,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 		Attributes: map[string]dsschema.Attribute{
 			"project_id": dsschema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 			},
 			"results": dsschema.ListNestedAttribute{
 				Computed:            true,
@@ -28,6 +28,10 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Identifier used to reference this API key in admin API calls.",
 						},
+						"cloud": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Cloud provider scope for this API key. Use \"ANY\" for cloud-agnostic scope.",
+						},
 						"created_at": dsschema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.",
@@ -36,9 +40,17 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Name of the user that created this API key. If no user name is available, the user ID is returned.",
 						},
+						"endpoint": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.",
+						},
+						"geography": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Geography scope for this API key. Use \"ANY\" for geography-agnostic scope.",
+						},
 						"project_id": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 						},
 						"last_used_at": dsschema.StringAttribute{
 							Computed:            true,
@@ -69,8 +81,11 @@ type TFPluralDSModel struct {
 }
 type TFPluralDSResultsModel struct {
 	ApiKeyId     types.String `tfsdk:"api_key_id" autogen:"omitjson"`
+	Cloud        types.String `tfsdk:"cloud" autogen:"omitjson"`
 	CreatedAt    types.String `tfsdk:"created_at" autogen:"omitjson"`
 	CreatedBy    types.String `tfsdk:"created_by" autogen:"omitjson"`
+	Endpoint     types.String `tfsdk:"endpoint" autogen:"omitjson"`
+	Geography    types.String `tfsdk:"geography" autogen:"omitjson"`
 	ProjectId    types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	LastUsedAt   types.String `tfsdk:"last_used_at" autogen:"omitjson"`
 	MaskedSecret types.String `tfsdk:"masked_secret" autogen:"omitjson"`
