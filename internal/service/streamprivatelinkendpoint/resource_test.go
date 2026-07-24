@@ -119,15 +119,16 @@ func TestAccStreamPrivatelinkEndpointMsk_fields(t *testing.T) {
 			expectedError: regexp.MustCompile(`(?s)^.*?region cannot be set for vendor MSK.*?$`),
 		},
 		{
-			name: "missing authentication_scheme",
+			name: "invalid authentication_scheme",
 			config: fmt.Sprintf(`
 			resource "mongodbatlas_stream_privatelink_endpoint" "test" {
-				project_id          = %[1]q
-				provider_name       = %[2]q
-				vendor              = %[3]q
-				arn                 = "an:arn:that:does:not:matter"
+				project_id            = %[1]q
+				provider_name         = %[2]q
+				vendor                = %[3]q
+				arn                   = "an:arn:that:does:not:matter"
+				authentication_scheme = "INVALID"
 			}`, projectID, provider, vendor),
-			expectedError: regexp.MustCompile(`(?s)^.*?authentication_scheme is required for vendor MSK.*?$`),
+			expectedError: regexp.MustCompile(`(?s)^.*?Attribute authentication_scheme value must be one of.*?$`),
 		},
 	}
 
