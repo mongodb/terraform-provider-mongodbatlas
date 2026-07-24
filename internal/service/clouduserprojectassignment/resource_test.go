@@ -105,26 +105,25 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 
 func errorTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectID := acc.ProjectIDExecution(t)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configError(orgID, projectID),
+				Config:      configError(projectID),
 				ExpectError: regexp.MustCompile("either username or user_id must be provided"),
 			},
 		},
 	}
 }
 
-func configError(orgID, projectID string) string {
+func configError(projectID string) string {
 	return fmt.Sprintf(`
 		data "mongodbatlas_cloud_user_project_assignment" "test" {
 			project_id = %[1]q
 		}
-	`, projectID, orgID)
+	`, projectID)
 }
 
 func configBasic(pendingUsername, activeUsername, projectID string, roles []string) string {
