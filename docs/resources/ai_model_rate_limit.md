@@ -71,7 +71,7 @@ output "ai_model_rate_limits_results" {
 
 ### Read-Only
 
-- `endpoint` (String) Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
+- `endpoint` (String) Server-computed endpoint hostname derived from `cloud` and `geography`. This field is read-only and must not be supplied in request bodies.
 - `model_names` (List of String) List of embedding model names included in this model group.
 
 ## Import
