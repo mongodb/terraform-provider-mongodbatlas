@@ -44,7 +44,7 @@ output "ai_model_rate_limit_model_names" {
 }
 
 output "ai_model_rate_limit_endpoint" {
-  description = "The server-computed endpoint hostname derived from cloud and geography, from the data source."
+  description = "The server-computed endpoint hostname derived from `cloud` and `geography`, from the data source."
   value       = data.mongodbatlas_ai_model_rate_limit.this.endpoint
 }
 
@@ -70,9 +70,9 @@ output "ai_model_rate_limits_results" {
 
 Read-Only:
 
-- `cloud` (String) Cloud provider scope for this rate limit. Use "any" for cloud-agnostic scope.
-- `endpoint` (String) Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
-- `geography` (String) Geography scope for this rate limit. Use "any" for geography-agnostic scope.
+- `cloud` (String) Cloud provider scope for this rate limit. Use "ANY" for cloud-agnostic scope.
+- `endpoint` (String) Server-computed endpoint hostname derived from `cloud` and `geography`. This field is read-only and must not be supplied in request bodies.
+- `geography` (String) Geography scope for this rate limit. Use "ANY" for geography-agnostic scope.
 - `model_group_name` (String) Identifier used to reference this model group.
 - `model_names` (List of String) List of embedding model names included in this model group.
 - `requests_per_minute_limit` (Number) The number of requests per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.

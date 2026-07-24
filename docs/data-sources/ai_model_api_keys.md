@@ -43,7 +43,7 @@ output "ai_model_api_key_name" {
 }
 
 output "ai_model_api_key_endpoint" {
-  description = "The server-computed endpoint hostname derived from cloud and geography, from the data source."
+  description = "The server-computed endpoint hostname derived from `cloud` and `geography`, from the data source."
   value       = data.mongodbatlas_ai_model_api_key.this.endpoint
 }
 
@@ -73,7 +73,7 @@ Read-Only:
 - `cloud` (String) Cloud provider scope for this API key. Use "ANY" for cloud-agnostic scope.
 - `created_at` (String) UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.
 - `created_by` (String) Name of the user that created this API key. If no user name is available, the user ID is returned.
-- `endpoint` (String) Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
+- `endpoint` (String) Server-computed endpoint hostname derived from `cloud` and `geography`. This field is read-only and must not be supplied in request bodies.
 - `geography` (String) Geography scope for this API key. Use "ANY" for geography-agnostic scope.
 - `last_used_at` (String) UTC date when the API key was last used. This parameter is formatted as an ISO 8601 timestamp.
 - `masked_secret` (String) A partially obfuscated version of the API key secret returned when the API key was created.

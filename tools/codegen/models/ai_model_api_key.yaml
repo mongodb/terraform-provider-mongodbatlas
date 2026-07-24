@@ -48,7 +48,7 @@ schema:
           request_only_required_on_create: false
           immutable_computed: true
         - string: {}
-          description: Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
+          description: Server-computed endpoint hostname derived from `cloud` and `geography`. This field is read-only and must not be supplied in request bodies.
           computed_optional_required: computed
           tf_schema_name: endpoint
           tf_model_name: Endpoint
@@ -200,7 +200,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
+              description: Server-computed endpoint hostname derived from `cloud` and `geography`. This field is read-only and must not be supplied in request bodies.
               computed_optional_required: computed
               tf_schema_name: endpoint
               tf_model_name: Endpoint
@@ -338,7 +338,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.
+                          description: Server-computed endpoint hostname derived from `cloud` and `geography`. This field is read-only and must not be supplied in request bodies.
                           computed_optional_required: computed
                           tf_schema_name: endpoint
                           tf_model_name: Endpoint
