@@ -199,6 +199,9 @@ or submit a PR of your work to add it to the `examples` directory in our [GitHub
 
 ## Terraform MongoDB Atlas Modules
 
-The official [Terraform MongoDB Atlas modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) provide reusable building blocks for deploying Atlas resources and their cloud provider dependencies.
+The official [Terraform MongoDB Atlas modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) provide reusable building blocks with production recommendations for:
+
+- Atlas resources: [organization](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-organization), [project](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-project), and [cluster](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-cluster).
+- Cloud provider dependencies: [AWS](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-atlas-aws), [Azure](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-atlas-azure), and [Google Cloud](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-atlas-gcp).
 
 Use the [Atlas Examples repository](https://github.com/terraform-mongodbatlas-modules/atlas-examples) for end-to-end AWS, Azure, and Google Cloud configurations, or follow [Deploy MongoDB Atlas with Terraform Modules](https://www.mongodb.com/docs/atlas/terraform-modules-landing-zone/) for a guided setup.
