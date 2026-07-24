@@ -1314,21 +1314,6 @@ func tfKafkaIAMAuthObject(t *testing.T, mechanism, roleArn string) types.Object 
 	return auth
 }
 
-// tfKafkaMTLSAuthObject builds a Kafka authentication object using mTLS (client cert) auth.
-func tfKafkaMTLSAuthObject(t *testing.T, sslCertificate, sslKey, sslKeyPassword string) types.Object {
-	t.Helper()
-	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
-		SSLCertificate: types.StringValue(sslCertificate),
-		SSLKey:         types.StringValue(sslKey),
-		SSLKeyPassword: types.StringValue(sslKeyPassword),
-		AWS:            types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
-	})
-	if diags.HasError() {
-		t.Fatalf("failed to create auth object: %s", diags.Errors()[0].Summary())
-	}
-	return auth
-}
-
 // TestStreamConnectionKafkaIAMAuth verifies AWS_MSK_IAM authentication round-trips (Task 8).
 func TestStreamConnectionKafkaIAMAuth(t *testing.T) {
 	const (
@@ -1371,53 +1356,6 @@ func TestStreamConnectionKafkaIAMAuth(t *testing.T) {
 	require.False(t, authModel.AWS.IsNull(), "authentication.aws should be populated")
 	require.False(t, authModel.AWS.As(t.Context(), awsModel, basetypes.ObjectAsOptions{}).HasError())
 	assert.Equal(t, roleArn, awsModel.RoleArn.ValueString())
-}
-
-// TestStreamConnectionKafkaMTLSAuth verifies mTLS auth mapping and that write-only
-// ssl_key/ssl_key_password are preserved from prior config on read (Task 8).
-func TestStreamConnectionKafkaMTLSAuth(t *testing.T) {
-	const (
-		sslCertificate = "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----"
-		sslKey         = "-----BEGIN PRIVATE KEY-----\nMII...\n-----END PRIVATE KEY-----"
-		sslKeyPassword = "keyPass123"
-	)
-	authConfig := tfKafkaMTLSAuthObject(t, sslCertificate, sslKey, sslKeyPassword)
-	tfModel := &streamconnection.TFStreamConnectionModel{
-		TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
-			ProjectID:      types.StringValue(dummyProjectID),
-			WorkspaceName:  types.StringValue(instanceName),
-			ConnectionName: types.StringValue(connectionName),
-			Type:           types.StringValue("Kafka"),
-			Authentication: authConfig,
-		},
-	}
-
-	// TF -> SDK
-	sdkReq, diags := streamconnection.NewStreamConnectionReq(t.Context(), tfModel)
-	require.False(t, diags.HasError(), "unexpected diags: %v", diags)
-	require.NotNil(t, sdkReq.Authentication)
-	assert.Equal(t, sslCertificate, sdkReq.Authentication.GetSslCertificate())
-	assert.Equal(t, sslKey, sdkReq.Authentication.GetSslKey())
-	assert.Equal(t, sslKeyPassword, sdkReq.Authentication.GetSslKeyPassword())
-
-	// SDK -> TF: API returns ssl_certificate but NOT ssl_key/ssl_key_password.
-	sdkResp := &admin.StreamsConnection{
-		Name: new(connectionName),
-		Type: new("Kafka"),
-		Authentication: &admin.StreamsKafkaAuthentication{
-			SslCertificate: new(sslCertificate),
-		},
-	}
-	result, diags := streamconnection.NewTFStreamConnection(t.Context(), dummyProjectID, "", instanceName, &authConfig, nil, sdkResp, nil)
-	require.False(t, diags.HasError(), "unexpected diags: %v", diags)
-	authModel := &streamconnection.TFConnectionAuthenticationModel{}
-	require.False(t, result.Authentication.As(t.Context(), authModel, basetypes.ObjectAsOptions{}).HasError())
-	assert.Equal(t, sslCertificate, authModel.SSLCertificate.ValueString())
-	// write-only values preserved from prior config
-	assert.Equal(t, sslKey, authModel.SSLKey.ValueString())
-	assert.Equal(t, sslKeyPassword, authModel.SSLKeyPassword.ValueString())
-	// aws must remain a typed null (not IAM)
-	assert.True(t, authModel.AWS.IsNull())
 }
 
 // TestStreamConnectionKafkaAuthAWSTypedNull is the regression guard (Task 8b): when

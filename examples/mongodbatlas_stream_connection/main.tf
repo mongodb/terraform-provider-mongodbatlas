@@ -125,27 +125,6 @@ resource "mongodbatlas_stream_connection" "example-kafka-iam" {
   }
 }
 
-# Kafka connection using mutual TLS (client certificate) authentication
-resource "mongodbatlas_stream_connection" "example-kafka-mtls" {
-  project_id      = var.project_id
-  workspace_name  = mongodbatlas_stream_instance.example.instance_name
-  connection_name = "KafkaMTLSConnection"
-  type            = "Kafka"
-  authentication = {
-    ssl_certificate  = var.kafka_ssl_certificate
-    ssl_key          = var.kafka_ssl_key
-    ssl_key_password = var.kafka_ssl_key_password
-  }
-  bootstrap_servers = "localhost:9092"
-  config = {
-    "auto.offset.reset" : "earliest"
-  }
-  security = {
-    broker_public_certificate = var.kafka_ssl_cert
-    protocol                  = "SSL"
-  }
-}
-
 resource "mongodbatlas_stream_connection" "example-azure-blob-storage" {
   project_id      = var.project_id
   workspace_name  = mongodbatlas_stream_instance.example.instance_name

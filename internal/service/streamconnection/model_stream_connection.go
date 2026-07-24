@@ -38,9 +38,6 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 			ClientSecret:              authenticationModel.ClientSecret.ValueStringPointer(),
 			Scope:                     authenticationModel.Scope.ValueStringPointer(),
 			SaslOauthbearerExtensions: authenticationModel.SaslOauthbearerExtensions.ValueStringPointer(),
-			SslCertificate:            authenticationModel.SSLCertificate.ValueStringPointer(),
-			SslKey:                    authenticationModel.SSLKey.ValueStringPointer(),
-			SslKeyPassword:            authenticationModel.SSLKeyPassword.ValueStringPointer(),
 		}
 		// authentication.aws is a nested block used for AWS_MSK_IAM authentication,
 		// distinct from the top-level aws block used by other connection types.
@@ -385,11 +382,6 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 			ClientID:                  types.StringPointerValue(authResp.ClientId),
 			Scope:                     types.StringPointerValue(authResp.Scope),
 			SaslOauthbearerExtensions: types.StringPointerValue(authResp.SaslOauthbearerExtensions),
-			SSLCertificate:            types.StringPointerValue(authResp.SslCertificate),
-			// ssl_key and ssl_key_password are write-only and not returned by the API;
-			// they are preserved from prior config below when available.
-			SSLKey:         types.StringNull(),
-			SSLKeyPassword: types.StringNull(),
 			// aws is always set to a typed value (real object or typed null) so the
 			// parent authentication object type is always satisfied.
 			AWS: types.ObjectNull(AWSObjectType.AttrTypes),
@@ -412,8 +404,6 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 			}
 			resultAuthModel.Password = configAuthModel.Password
 			resultAuthModel.ClientSecret = configAuthModel.ClientSecret
-			resultAuthModel.SSLKey = configAuthModel.SSLKey
-			resultAuthModel.SSLKeyPassword = configAuthModel.SSLKeyPassword
 		}
 
 		resultObject, diags := types.ObjectValueFrom(ctx, ConnectionAuthenticationObjectType.AttrTypes, resultAuthModel)

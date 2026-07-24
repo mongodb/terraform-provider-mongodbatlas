@@ -1,13 +1,13 @@
 ```release-note:enhancement
-resource/mongodbatlas_stream_connection: Adds support for IAM (`AWS_MSK_IAM`) and mutual TLS authentication for Kafka connections via the new `authentication.ssl_certificate`, `authentication.ssl_key`, `authentication.ssl_key_password`, and `authentication.aws` attributes
+resource/mongodbatlas_stream_connection: Adds support for IAM (`AWS_MSK_IAM`) authentication for Kafka connections via the new `authentication.aws` attribute
 ```
 
 ```release-note:enhancement
-data-source/mongodbatlas_stream_connection: Adds `authentication.ssl_certificate`, `authentication.ssl_key`, `authentication.ssl_key_password`, and `authentication.aws` attributes
+data-source/mongodbatlas_stream_connection: Adds `authentication.aws` attribute
 ```
 
 ```release-note:enhancement
-data-source/mongodbatlas_stream_connections: Adds `authentication.ssl_certificate`, `authentication.ssl_key`, `authentication.ssl_key_password`, and `authentication.aws` attributes
+data-source/mongodbatlas_stream_connections: Adds `authentication.aws` attribute
 ```
 
 ```release-note:enhancement

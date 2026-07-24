@@ -83,23 +83,3 @@ variable "kafka_iam_role_arn" {
   type        = string
   default     = ""
 }
-
-variable "kafka_ssl_certificate" {
-  description = "SSL certificate for client authentication to Kafka (mutual TLS)"
-  type        = string
-  default     = ""
-}
-
-variable "kafka_ssl_key" {
-  description = "SSL key for client authentication to Kafka (mutual TLS)"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "kafka_ssl_key_password" {
-  description = "Password for the SSL key, if it is password protected"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
