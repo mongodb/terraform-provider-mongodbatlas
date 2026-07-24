@@ -90,9 +90,6 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
 * `client_secret` - Secret known only to the Kafka client and the authorization server.
 * `scope` - Scope of the access request to the broker specified by the Kafka clients.
 * `sasl_oauthbearer_extensions` - Additional information to provide to the Kafka broker.
-* `ssl_certificate` - SSL certificate for client authentication to Kafka (mutual TLS).
-* `ssl_key` - SSL key for client authentication to Kafka (mutual TLS). This is a write-only value that is not returned by the API.
-* `ssl_key_password` - Password for the SSL key, if it is password protected. This is a write-only value that is not returned by the API.
 * `aws` - AWS configuration used for `AWS_MSK_IAM` authentication. See [authentication AWS](#authentication-aws).
 
 ### Authentication AWS
