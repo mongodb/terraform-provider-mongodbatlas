@@ -35,7 +35,6 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	activeUsername := os.Getenv("MONGODB_ATLAS_USERNAME_2")
 	pendingUsername := acc.RandomEmail()
 	projectID := acc.ProjectIDExecution(t)
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	roles := []string{"GROUP_OWNER", "GROUP_CLUSTER_MANAGER"}
 	updatedRoles := []string{"GROUP_OWNER", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_READ_ONLY"}
 
@@ -45,11 +44,11 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, pendingUsername, activeUsername, projectID, roles),
+				Config: configBasic(pendingUsername, activeUsername, projectID, roles),
 				Check:  checks(pendingUsername, activeUsername, projectID, roles),
 			},
 			{
-				Config: configBasic(orgID, pendingUsername, activeUsername, projectID, updatedRoles),
+				Config: configBasic(pendingUsername, activeUsername, projectID, updatedRoles),
 				Check:  checks(pendingUsername, activeUsername, projectID, updatedRoles),
 			},
 			{
@@ -128,24 +127,19 @@ func configError(orgID, projectID string) string {
 	`, projectID, orgID)
 }
 
-func configBasic(orgID, pendingUsername, activeUsername, projectID string, roles []string) string {
+func configBasic(pendingUsername, activeUsername, projectID string, roles []string) string {
 	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[1]q
-			org_id = %[2]q
-		}
-
 		resource "mongodbatlas_cloud_user_project_assignment" "test_pending" {
-			username = %[3]q
+			username = %[2]q
 			project_id = %[1]q
-			roles = [%[5]s]
+			roles = [%[4]s]
 		}
 
 		resource "mongodbatlas_cloud_user_project_assignment" "test_active" {
-			username = %[4]q
+			username = %[3]q
 			project_id = %[1]q
-			roles = [%[5]s]
+			roles = [%[4]s]
 		}
 
 		data "mongodbatlas_cloud_user_project_assignment" "test_username" {
@@ -157,7 +151,7 @@ func configBasic(orgID, pendingUsername, activeUsername, projectID string, roles
 			project_id = %[1]q
 			user_id = mongodbatlas_cloud_user_project_assignment.test_pending.user_id
 		}`,
-		projectID, orgID, pendingUsername, activeUsername, rolesStr)
+		projectID, pendingUsername, activeUsername, rolesStr)
 }
 
 func checks(pendingUsername, activeUsername, projectID string, roles []string) resource.TestCheckFunc {
