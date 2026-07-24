@@ -26,15 +26,15 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 					Attributes: map[string]dsschema.Attribute{
 						"cloud": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Cloud provider scope for this rate limit. Use \"any\" for cloud-agnostic scope.",
+							MarkdownDescription: "Cloud provider scope for this rate limit. Use \"ANY\" for cloud-agnostic scope.",
 						},
 						"endpoint": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.",
+							MarkdownDescription: "Server-computed endpoint hostname derived from `cloud` and `geography`. This field is read-only and must not be supplied in request bodies.",
 						},
 						"geography": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Geography scope for this rate limit. Use \"any\" for geography-agnostic scope.",
+							MarkdownDescription: "Geography scope for this rate limit. Use \"ANY\" for geography-agnostic scope.",
 						},
 						"model_group_name": dsschema.StringAttribute{
 							Computed:            true,
