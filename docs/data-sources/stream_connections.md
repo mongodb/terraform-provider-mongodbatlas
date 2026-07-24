@@ -83,7 +83,7 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
 
 ### Authentication
 
-* `mechanism` - Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, or `OAUTHBEARER`.
+* `mechanism` - Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, `OAUTHBEARER`, or `AWS_MSK_IAM`.
 * `method` - SASL OAUTHBEARER authentication method. Value must be OIDC.
 * `username` - Username of the account to connect to the Kafka cluster.
 * `password` - Password of the account to connect to the Kafka cluster.
@@ -92,6 +92,10 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
 * `client_secret` - Secret known only to the Kafka client and the authorization server.
 * `scope` - Scope of the access request to the broker specified by the Kafka clients.
 * `sasl_oauthbearer_extensions` - Additional information to provide to the Kafka broker.
+* `aws` - AWS configuration used for `AWS_MSK_IAM` authentication. See [authentication AWS](#authentication-aws).
+
+### Authentication AWS
+* `role_arn` - Amazon Resource Name (ARN) that identifies the AWS IAM role that MongoDB Cloud assumes to authenticate to the Amazon MSK cluster.
 
 ### Security
 

@@ -35,6 +35,10 @@ var (
 	vendorPubSub               = "PUBSUB"
 	vendorS3                   = "S3"
 	vendorAzureBlobStorage     = "AZURE_BLOB_STORAGE"
+	vendorMSK                  = "MSK"
+	mskArn                     = "arn:aws:kafka:us-east-1:123456789012:cluster/demo/abc"
+	authSchemeIAM              = "IAM"
+	authSchemeTLS              = "TLS"
 	azureRegion                = "eastus2"
 	azureBlobDNSDomain         = "mystorageaccount.blob.core.windows.net"
 	azureBlobServiceEndpointID = "/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/mystorageaccount"
@@ -134,6 +138,30 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				ServiceAttachmentUris: types.ListNull(types.StringType),
 				State:                 types.StringValue(state),
 				Vendor:                types.StringValue(vendorConfluent),
+			},
+		},
+		"SDK response with vendor MSK and IAM authentication scheme": {
+			SDKResp: &admin.StreamsPrivateLinkConnection{
+				Id:                   &id,
+				Arn:                  &mskArn,
+				Provider:             constant.AWS,
+				Vendor:               &vendorMSK,
+				Region:               &region,
+				State:                &state,
+				AuthenticationScheme: &authSchemeIAM,
+			},
+			projectID: projectID,
+			expectedTFModel: &streamprivatelinkendpoint.TFModel{
+				Id:                    types.StringValue(id),
+				Arn:                   types.StringValue(mskArn),
+				Provider:              types.StringValue(constant.AWS),
+				Vendor:                types.StringValue(vendorMSK),
+				Region:                types.StringValue(region),
+				State:                 types.StringValue(state),
+				AuthenticationScheme:  types.StringValue(authSchemeIAM),
+				ProjectId:             types.StringValue(projectID),
+				DnsSubDomain:          types.ListNull(types.StringType),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
 			},
 		},
 		"SDK response with vendor S3": {
@@ -343,6 +371,37 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 				Vendor:            &vendorConfluent,
 			},
 		},
+		"TF state with MSK vendor and TLS authentication scheme": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Id:                    types.StringValue(id),
+				Arn:                   types.StringValue(mskArn),
+				Provider:              types.StringValue(constant.AWS),
+				Vendor:                types.StringValue(vendorMSK),
+				AuthenticationScheme:  types.StringValue(authSchemeTLS),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+			},
+			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
+				Arn:                  &mskArn,
+				Provider:             constant.AWS,
+				Vendor:               &vendorMSK,
+				AuthenticationScheme: &authSchemeTLS,
+			},
+		},
+		"TF state with MSK vendor and no authentication scheme defaults to SASL/SCRAM": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Id:                    types.StringValue(id),
+				Arn:                   types.StringValue(mskArn),
+				Provider:              types.StringValue(constant.AWS),
+				Vendor:                types.StringValue(vendorMSK),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+			},
+			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
+				Arn:                  &mskArn,
+				Provider:             constant.AWS,
+				Vendor:               &vendorMSK,
+				AuthenticationScheme: admin.PtrString(streamprivatelinkendpoint.AuthenticationSchemeSaslScram),
+			},
+		},
 		"TF state with s3 vendor": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Id:                    types.StringValue(id),
@@ -536,6 +595,43 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 				ServiceEndpointId: types.StringNull(),
 				DnsDomain:         types.StringValue("example.com"),
 				Region:            types.StringValue("us-west1"),
+			},
+			expectError: true,
+			errorCount:  1,
+		},
+		"AWS MSK with authentication_scheme": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:             types.StringValue(constant.AWS),
+				Vendor:               types.StringValue(streamprivatelinkendpoint.VendorMSK),
+				Arn:                  types.StringValue(mskArn),
+				AuthenticationScheme: types.StringValue(authSchemeIAM),
+			},
+			expectError: false,
+			errorCount:  0,
+		},
+		"AWS MSK missing authentication_scheme defaults to SASL/SCRAM": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider: types.StringValue(constant.AWS),
+				Vendor:   types.StringValue(streamprivatelinkendpoint.VendorMSK),
+				Arn:      types.StringValue(mskArn),
+			},
+			expectError: false,
+			errorCount:  0,
+		},
+		"AWS MSK with SASL/SCRAM authentication_scheme": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:             types.StringValue(constant.AWS),
+				Vendor:               types.StringValue(streamprivatelinkendpoint.VendorMSK),
+				Arn:                  types.StringValue(mskArn),
+				AuthenticationScheme: types.StringValue(streamprivatelinkendpoint.AuthenticationSchemeSaslScram),
+			},
+			expectError: false,
+			errorCount:  0,
+		},
+		"AWS MSK missing arn still errors": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider: types.StringValue(constant.AWS),
+				Vendor:   types.StringValue(streamprivatelinkendpoint.VendorMSK),
 			},
 			expectError: true,
 			errorCount:  1,

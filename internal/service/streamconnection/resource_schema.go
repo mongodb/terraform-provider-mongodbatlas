@@ -124,6 +124,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"sasl_oauthbearer_extensions": schema.StringAttribute{
 						Optional: true,
 					},
+					"aws": schema.SingleNestedAttribute{
+						Optional: true,
+						Attributes: map[string]schema.Attribute{
+							"role_arn": schema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
 				},
 			},
 			"bootstrap_servers": schema.StringAttribute{

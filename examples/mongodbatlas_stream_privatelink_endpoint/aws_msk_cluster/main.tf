@@ -106,10 +106,11 @@ PROPERTIES
 }
 
 resource "mongodbatlas_stream_privatelink_endpoint" "test" {
-  project_id    = var.project_id
-  provider_name = "AWS"
-  vendor        = "MSK"
-  arn           = aws_msk_cluster.example.arn
+  project_id            = var.project_id
+  provider_name         = "AWS"
+  vendor                = "MSK"
+  arn                   = aws_msk_cluster.example.arn
+  authentication_scheme = "IAM" # authentication mechanism for MSK. Valid values are TLS and IAM.
 }
 
 data "mongodbatlas_stream_privatelink_endpoint" "singular_datasource" {

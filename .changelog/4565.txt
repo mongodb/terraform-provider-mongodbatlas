@@ -1,0 +1,23 @@
+```release-note:enhancement
+resource/mongodbatlas_stream_connection: Adds support for IAM (`AWS_MSK_IAM`) authentication for Kafka connections via the new `authentication.aws` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_connection: Adds `authentication.aws` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_connections: Adds `authentication.aws` attribute
+```
+
+```release-note:enhancement
+resource/mongodbatlas_stream_privatelink_endpoint: Adds `authentication_scheme` attribute to support `SASL/SCRAM`, `TLS`, and `IAM` authentication for MSK Private Link connections (defaults to `SASL/SCRAM`)
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_privatelink_endpoint: Adds `authentication_scheme` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_privatelink_endpoints: Adds `authentication_scheme` attribute
+```

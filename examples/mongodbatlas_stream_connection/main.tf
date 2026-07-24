@@ -104,6 +104,27 @@ resource "mongodbatlas_stream_connection" "example-kafka-ssl" {
   }
 }
 
+# Kafka connection using AWS MSK IAM authentication
+resource "mongodbatlas_stream_connection" "example-kafka-iam" {
+  project_id      = var.project_id
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "KafkaIAMConnection"
+  type            = "Kafka"
+  authentication = {
+    mechanism = "AWS_MSK_IAM"
+    aws = {
+      role_arn = var.kafka_iam_role_arn
+    }
+  }
+  bootstrap_servers = "b-1.example.kafka.us-east-1.amazonaws.com:9098"
+  config = {
+    "auto.offset.reset" : "earliest"
+  }
+  security = {
+    protocol = "SASL_SSL"
+  }
+}
+
 resource "mongodbatlas_stream_connection" "example-azure-blob-storage" {
   project_id      = var.project_id
   workspace_name  = mongodbatlas_stream_instance.example.instance_name
