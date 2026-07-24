@@ -182,13 +182,14 @@ func GetConfluentEnterpriseConfigForDNSDomainUpdate(withDNSDomain bool, projectI
 	}`, projectID, provider, region, vendor, dnsDomainConfig, connectionID, serviceEndpointID)
 }
 
-func GetCompleteMskConfig(projectID, clusterArn string) string {
+func GetCompleteMskConfig(projectID, clusterArn, authenticationScheme string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_stream_privatelink_endpoint" "test" {
-		project_id          = %[1]q
-		provider_name       = "AWS"
-		vendor              = "MSK"
-		arn                 = %[2]q
+		project_id            = %[1]q
+		provider_name         = "AWS"
+		vendor                = "MSK"
+		arn                   = %[2]q
+		authentication_scheme = %[3]q
 	}
 
 	data "mongodbatlas_stream_privatelink_endpoint" "test" {
@@ -204,7 +205,7 @@ func GetCompleteMskConfig(projectID, clusterArn string) string {
 		depends_on = [
 			mongodbatlas_stream_privatelink_endpoint.test
 		]
-	}`, projectID, clusterArn)
+	}`, projectID, clusterArn, authenticationScheme)
 }
 
 func GetCompleteAzureBlobStorageConfig(projectID, clusterName, subscriptionID, clientID, clientSecret, tenantID, resourceGroupName, storageAccountName string) string {

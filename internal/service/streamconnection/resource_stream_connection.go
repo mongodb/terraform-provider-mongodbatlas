@@ -102,6 +102,10 @@ type TFConnectionAuthenticationModel struct {
 	ClientSecret              types.String `tfsdk:"client_secret"`
 	Scope                     types.String `tfsdk:"scope"`
 	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions"`
+	SSLCertificate            types.String `tfsdk:"ssl_certificate"`
+	SSLKey                    types.String `tfsdk:"ssl_key"`
+	SSLKeyPassword            types.String `tfsdk:"ssl_key_password"`
+	AWS                       types.Object `tfsdk:"aws"`
 }
 
 var ConnectionAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -114,6 +118,10 @@ var ConnectionAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]
 	"client_secret":               types.StringType,
 	"scope":                       types.StringType,
 	"sasl_oauthbearer_extensions": types.StringType,
+	"ssl_certificate":             types.StringType,
+	"ssl_key":                     types.StringType,
+	"ssl_key_password":            types.StringType,
+	"aws":                         AWSObjectType,
 }}
 
 type TFSchemaRegistryAuthenticationModel struct {

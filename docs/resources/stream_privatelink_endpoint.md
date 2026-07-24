@@ -411,6 +411,7 @@ output "privatelink_endpoint_id" {
 ### Optional
 
 - `arn` (String) Amazon Resource Name (ARN). Required for AWS Provider and MSK vendor.
+- `authentication_scheme` (String) Authentication mechanism to use with this private link connection. Required when the vendor is `MSK`. Valid values are `TLS` and `IAM`.
 - `dns_domain` (String) The domain hostname. Optional for AWS Confluent Enterprise Kafka Cluster. Required for the following provider and vendor combinations:
 
 	* AWS provider with CONFLUENT vendor for Dedicated Kafka Cluster.

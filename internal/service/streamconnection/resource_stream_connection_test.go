@@ -737,6 +737,120 @@ func checkSchemaRegistrySASLInheritAttributes(resourceName, workspaceName, conne
 	return acc.CheckRSAndDS(resourceName, conversion.StringPtr(dataSourceName), nil, setChecks, mapChecks, extra...)
 }
 
+func TestAccStreamRSStreamConnection_kafkaIAM(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = "kafka-conn-iam"
+		roleArn                 = os.Getenv("AWS_ROLE_ARN")
+		bootstrapServersEnv     = os.Getenv("MONGODB_ATLAS_STREAM_KAFKA_MSK_BOOTSTRAP_SERVERS")
+	)
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			acc.PreCheckBasic(t)
+			if roleArn == "" || bootstrapServersEnv == "" {
+				t.Skip("AWS_ROLE_ARN and MONGODB_ATLAS_STREAM_KAFKA_MSK_BOOTSTRAP_SERVERS must be set for Kafka IAM acceptance test")
+			}
+		},
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaIAMAuthenticationConfig(roleArn), bootstrapServersEnv, "earliest", "", true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "AWS_MSK_IAM"),
+					resource.TestCheckResourceAttr(resourceName, "authentication.aws.role_arn", roleArn),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccStreamRSStreamConnection_kafkaMTLS(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = "kafka-conn-mtls"
+		sslCertificate          = os.Getenv("MONGODB_ATLAS_STREAM_KAFKA_SSL_CERTIFICATE")
+		sslKey                  = os.Getenv("MONGODB_ATLAS_STREAM_KAFKA_SSL_KEY")
+		bootstrapServersEnv     = os.Getenv("MONGODB_ATLAS_STREAM_KAFKA_MTLS_BOOTSTRAP_SERVERS")
+	)
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			acc.PreCheckBasic(t)
+			if sslCertificate == "" || sslKey == "" || bootstrapServersEnv == "" {
+				t.Skip("MONGODB_ATLAS_STREAM_KAFKA_SSL_CERTIFICATE, MONGODB_ATLAS_STREAM_KAFKA_SSL_KEY and MONGODB_ATLAS_STREAM_KAFKA_MTLS_BOOTSTRAP_SERVERS must be set for Kafka mTLS acceptance test")
+			}
+		},
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaMTLSAuthenticationConfig(sslCertificate, sslKey, ""), bootstrapServersEnv, "earliest", "", true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "authentication.ssl_certificate"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"authentication.ssl_key", "authentication.ssl_key_password"},
+			},
+		},
+	})
+}
+
+// TestAccStreamRSStreamConnection_kafkaNoAWSNoDrift is the real-provider regression
+// guard for the typed-null authentication.aws handling (Task 11b): a PLAIN auth
+// config with no aws block must produce an empty follow-up plan and null aws.
+func TestAccStreamRSStreamConnection_kafkaNoAWSNoDrift(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = "kafka-conn-no-aws"
+		cfg                     = configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", "", false)
+	)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: cfg,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr(resourceName, "authentication.aws"),
+				),
+			},
+			{
+				Config:   cfg,
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func getKafkaIAMAuthenticationConfig(roleArn string) string {
+	return fmt.Sprintf(`authentication = {
+			mechanism = "AWS_MSK_IAM"
+			aws = {
+				role_arn = %[1]q
+			}
+		}`, roleArn)
+}
+
+func getKafkaMTLSAuthenticationConfig(sslCertificate, sslKey, sslKeyPassword string) string {
+	return fmt.Sprintf(`authentication = {
+			ssl_certificate = %[1]q
+			ssl_key = %[2]q
+			ssl_key_password = %[3]q
+		}`, sslCertificate, sslKey, sslKeyPassword)
+}
+
 func getKafkaAuthenticationConfig(mechanism, username, password, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions, method string) string {
 	if mechanism == "PLAIN" {
 		return fmt.Sprintf(`authentication = {

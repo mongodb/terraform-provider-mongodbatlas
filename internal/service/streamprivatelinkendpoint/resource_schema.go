@@ -123,6 +123,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"authentication_scheme": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Authentication mechanism to use with this private link connection. Required when the vendor is `MSK`. Valid values are `TLS` and `IAM`.",
+			},
 		},
 	}
 }
@@ -143,6 +148,7 @@ type TFModel struct {
 	State                 types.String `tfsdk:"state"`
 	Vendor                types.String `tfsdk:"vendor"`
 	Arn                   types.String `tfsdk:"arn"`
+	AuthenticationScheme  types.String `tfsdk:"authentication_scheme"`
 }
 
 type TFModelDSP struct {
