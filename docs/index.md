@@ -198,4 +198,10 @@ Let us know the details via an [issue](https://github.com/mongodb/terraform-prov
 or submit a PR of your work to add it to the `examples` directory in our [GitHub repo](https://github.com/mongodb/terraform-provider-mongodbatlas/).
 
 ## Terraform MongoDB Atlas Modules
-You can now leverage our [Terraform Modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) to easily get started with MongoDB Atlas and critical features like [Push-based log export](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/push-based-log-export/mongodbatlas/latest), [Private Endpoints](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/latest), etc.
+
+The official [Terraform MongoDB Atlas modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) provide reusable building blocks with production recommendations for:
+
+- Atlas resources: [organization](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-organization), [project](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-project), and [cluster](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-cluster).
+- Cloud provider dependencies: [AWS](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-atlas-aws), [Azure](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-atlas-azure), and [Google Cloud](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-atlas-gcp).
+
+Use the [Atlas Examples repository](https://github.com/terraform-mongodbatlas-modules/atlas-examples) for end-to-end AWS, Azure, and Google Cloud configurations, or follow [Deploy MongoDB Atlas with Terraform Modules](https://www.mongodb.com/docs/atlas/terraform-modules-landing-zone/) for a guided setup.
