@@ -44,7 +44,7 @@ output "ai_model_rate_limit_model_names" {
 }
 
 output "ai_model_rate_limit_endpoint" {
-  description = "The server-computed endpoint hostname derived from cloud and geography, from the data source."
+  description = "The server-computed endpoint hostname derived from `cloud` and `geography`, from the data source."
   value       = data.mongodbatlas_ai_model_rate_limit.this.endpoint
 }
 
