@@ -11,7 +11,7 @@ data-source/mongodbatlas_stream_connections: Adds `authentication.aws` attribute
 ```
 
 ```release-note:enhancement
-resource/mongodbatlas_stream_privatelink_endpoint: Adds `authentication_scheme` attribute to support TLS and IAM authentication for MSK Private Link connections
+resource/mongodbatlas_stream_privatelink_endpoint: Adds `authentication_scheme` attribute to support `SASL/SCRAM`, `TLS`, and `IAM` authentication for MSK Private Link connections (defaults to `SASL/SCRAM`)
 ```
 
 ```release-note:enhancement

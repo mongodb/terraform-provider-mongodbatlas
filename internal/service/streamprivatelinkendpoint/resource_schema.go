@@ -3,10 +3,12 @@ package streamprivatelinkendpoint
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -126,7 +128,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"authentication_scheme": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Authentication mechanism to use with this private link connection. Required when the vendor is `MSK`. Valid values are `TLS` and `IAM`.",
+				MarkdownDescription: "Authentication mechanism to use with this private link connection. Only applies when the vendor is `MSK`. Valid values are `SASL/SCRAM`, `TLS`, and `IAM`. Defaults to `SASL/SCRAM` when not specified.",
+				Validators: []validator.String{
+					stringvalidator.OneOf(AuthenticationSchemeSaslScram, AuthenticationSchemeTLS, AuthenticationSchemeIAM),
+				},
 			},
 		},
 	}

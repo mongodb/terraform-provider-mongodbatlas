@@ -21,6 +21,16 @@ const (
 	VendorAzureBlobStorage = "AZURE_BLOB_STORAGE"
 )
 
+// Authentication schemes supported for MSK Private Link connections.
+const (
+	AuthenticationSchemeSaslScram = "SASL/SCRAM"
+	AuthenticationSchemeTLS       = "TLS"
+	AuthenticationSchemeIAM       = "IAM"
+
+	// DefaultAuthenticationScheme is used for MSK when no authentication_scheme is provided.
+	DefaultAuthenticationScheme = AuthenticationSchemeSaslScram
+)
+
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {
 	result := &TFModel{
 		Id:                    types.StringPointerValue(apiResp.Id),
@@ -83,9 +93,6 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		if plan.Region.ValueString() != "" {
 			diags.AddError(fmt.Sprintf("region cannot be set for vendor %s", VendorMSK), "")
 		}
-		if plan.AuthenticationScheme.IsNull() || plan.AuthenticationScheme.ValueString() == "" {
-			diags.AddError(fmt.Sprintf("authentication_scheme is required for vendor %s", VendorMSK), "Valid values are TLS and IAM")
-		}
 	}
 
 	if plan.Vendor.ValueString() == VendorS3 {
@@ -129,6 +136,11 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		Vendor:               plan.Vendor.ValueStringPointer(),
 		Arn:                  plan.Arn.ValueStringPointer(),
 		AuthenticationScheme: plan.AuthenticationScheme.ValueStringPointer(),
+	}
+
+	// authentication_scheme only applies to MSK. When it is not provided, default to SASL/SCRAM.
+	if plan.Vendor.ValueString() == VendorMSK && (plan.AuthenticationScheme.IsNull() || plan.AuthenticationScheme.ValueString() == "") {
+		result.AuthenticationScheme = admin.PtrString(DefaultAuthenticationScheme)
 	}
 
 	if !plan.DnsSubDomain.IsNull() {

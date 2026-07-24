@@ -387,6 +387,21 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 				AuthenticationScheme: &authSchemeTLS,
 			},
 		},
+		"TF state with MSK vendor and no authentication scheme defaults to SASL/SCRAM": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Id:                    types.StringValue(id),
+				Arn:                   types.StringValue(mskArn),
+				Provider:              types.StringValue(constant.AWS),
+				Vendor:                types.StringValue(vendorMSK),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+			},
+			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
+				Arn:                  &mskArn,
+				Provider:             constant.AWS,
+				Vendor:               &vendorMSK,
+				AuthenticationScheme: admin.PtrString(streamprivatelinkendpoint.AuthenticationSchemeSaslScram),
+			},
+		},
 		"TF state with s3 vendor": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Id:                    types.StringValue(id),
@@ -594,22 +609,32 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 			expectError: false,
 			errorCount:  0,
 		},
-		"AWS MSK missing authentication_scheme": {
+		"AWS MSK missing authentication_scheme defaults to SASL/SCRAM": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Provider: types.StringValue(constant.AWS),
 				Vendor:   types.StringValue(streamprivatelinkendpoint.VendorMSK),
 				Arn:      types.StringValue(mskArn),
 			},
-			expectError: true,
-			errorCount:  1,
+			expectError: false,
+			errorCount:  0,
 		},
-		"AWS MSK missing arn and authentication_scheme": {
+		"AWS MSK with SASL/SCRAM authentication_scheme": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:             types.StringValue(constant.AWS),
+				Vendor:               types.StringValue(streamprivatelinkendpoint.VendorMSK),
+				Arn:                  types.StringValue(mskArn),
+				AuthenticationScheme: types.StringValue(streamprivatelinkendpoint.AuthenticationSchemeSaslScram),
+			},
+			expectError: false,
+			errorCount:  0,
+		},
+		"AWS MSK missing arn still errors": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Provider: types.StringValue(constant.AWS),
 				Vendor:   types.StringValue(streamprivatelinkendpoint.VendorMSK),
 			},
 			expectError: true,
-			errorCount:  2,
+			errorCount:  1,
 		},
 		"GCP PubSub with all required fields": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
