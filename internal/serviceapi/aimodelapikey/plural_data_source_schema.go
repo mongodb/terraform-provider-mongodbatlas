@@ -42,7 +42,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 						},
 						"endpoint": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.",
+							MarkdownDescription: "Server-computed endpoint hostname derived from `cloud` and `geography`. This field is read-only and must not be supplied in request bodies.",
 						},
 						"geography": dsschema.StringAttribute{
 							Computed:            true,
