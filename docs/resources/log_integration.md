@@ -8,6 +8,8 @@ subcategory: "Log Integration"
 
 To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
 
+The [Official MongoDB Atlas cloud provider modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) for [AWS](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-aws/mongodbatlas/latest), [Azure](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-azure/mongodbatlas/latest), and [Google Cloud](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-gcp/mongodbatlas/latest) make use of this resource and simplify log integration configuration. The [Official MongoDB Atlas Project Module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/project/mongodbatlas/latest) also supports Datadog, Splunk, and OpenTelemetry log integrations.
+
 ## Example Usages
 
 ### AWS S3
@@ -148,52 +150,22 @@ resource "mongodbatlas_log_integration" "example" {
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `type` (String) Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.
 
-<!-- polymorphic attributes restructured by docpostprocess -->
-The following attributes depend on the value of `type`:
+### Optional
 
-#### `AZURE_LOG_EXPORT`
-
-Required:
-- `prefix_path` (String) Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
-- `role_id` (String) Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
-- `storage_account_name` (String) Storage account name where logs will be stored.
-- `storage_container_name` (String) Storage container name for log files.
-
-#### `DATADOG_LOG_EXPORT`
-
-Required:
-- `api_key` (String, Sensitive) API key for authentication.
-- `region` (String) Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.
-
-#### `GCS_LOG_EXPORT`
-
-Required:
-- `bucket_name` (String) Name of the bucket to store log files.
-- `prefix_path` (String) Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
-- `role_id` (String) Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
-
-#### `OTEL_LOG_EXPORT`
-
-Required:
-- `otel_endpoint` (String) OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.
-- `otel_supplied_headers` (Attributes List, Sensitive) HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB. (see [below for nested schema](#nestedatt--otel_supplied_headers))
-
-#### `S3_LOG_EXPORT`
-
-Required:
-- `bucket_name` (String) Name of the bucket to store log files.
-- `iam_role_id` (String) Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.
-- `prefix_path` (String) Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
-
-Optional:
-- `kms_key` (String) AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
-- `use_legacy_path_structure` (Boolean) When true, uses the legacy daily-folder path structure compatible with Push-Based Log Export: `{prefix}/{cluster}/{hostname}/{logType}/{YYYY-MM-DD}/{timestamp}-{logType}.log`. When false (default), uses the flat timestamped structure: `{prefix}/{cluster}/{hostname}/{logType}/{timestamp}-{logType}.log`.
-
-#### `SPLUNK_LOG_EXPORT`
-
-Required:
-- `hec_token` (String, Sensitive) HTTP Event Collector (HEC) token for authentication.
-- `hec_url` (String) HTTP Event Collector (HEC) endpoint URL.
+- `api_key` (String, Sensitive) Required for type: DATADOG_LOG_EXPORT. API key for authentication.
+- `bucket_name` (String) Required for type: GCS_LOG_EXPORT, S3_LOG_EXPORT. Name of the bucket to store log files.
+- `hec_token` (String, Sensitive) Required for type: SPLUNK_LOG_EXPORT. HTTP Event Collector (HEC) token for authentication.
+- `hec_url` (String) Required for type: SPLUNK_LOG_EXPORT. HTTP Event Collector (HEC) endpoint URL.
+- `iam_role_id` (String) Required for type: S3_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.
+- `kms_key` (String) Optional for type: S3_LOG_EXPORT. AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
+- `otel_endpoint` (String) Required for type: OTEL_LOG_EXPORT. OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.
+- `otel_supplied_headers` (Attributes List, Sensitive) Required for type: OTEL_LOG_EXPORT. HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB. (see [below for nested schema](#nestedatt--otel_supplied_headers))
+- `prefix_path` (String) Required for type: AZURE_LOG_EXPORT, GCS_LOG_EXPORT, S3_LOG_EXPORT. Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
+- `region` (String) Required for type: DATADOG_LOG_EXPORT. Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.
+- `role_id` (String) Required for type: AZURE_LOG_EXPORT, GCS_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
+- `storage_account_name` (String) Required for type: AZURE_LOG_EXPORT. Storage account name where logs will be stored.
+- `storage_container_name` (String) Required for type: AZURE_LOG_EXPORT. Storage container name for log files.
+- `use_legacy_path_structure` (Boolean) Optional for type: S3_LOG_EXPORT. When true, uses the legacy daily-folder path structure compatible with Push-Based Log Export: `{prefix}/{cluster}/{hostname}/{logType}/{YYYY-MM-DD}/{timestamp}-{logType}.log`. When false (default), uses the flat timestamped structure: `{prefix}/{cluster}/{hostname}/{logType}/{timestamp}-{logType}.log`.
 
 ### Read-Only
 

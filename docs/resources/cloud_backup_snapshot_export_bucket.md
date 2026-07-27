@@ -6,6 +6,7 @@ subcategory: "Cloud Backups"
 
 `mongodbatlas_cloud_backup_snapshot_export_bucket` allows you to create an export snapshot bucket for the specified project.
 
+The [Official MongoDB Atlas cloud provider modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) for [AWS](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-aws/mongodbatlas/latest), [Azure](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-azure/mongodbatlas/latest), and [Google Cloud](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-gcp/mongodbatlas/latest) make use of this resource and simplify backup export configuration.
 
 -> **NOTE:** To prevent errors during resource destruction, ensure that no `mongodbatlas_cloud_backup_schedule` resource that defines an automatic export policy references this resource. If you must update related `mongodbatlas_cloud_backup_schedule` resources, make these updates in isolated `terraform apply` operations first, then run the operation that destroys the `mongodbatlas_cloud_backup_snapshot_export_bucket` resource.
 

@@ -6,7 +6,7 @@ subcategory: "Clusters"
 
 `mongodbatlas_cluster` provides a Cluster resource. The resource lets you create, edit and delete clusters. The resource requires your Project ID.
 
-~> **DEPRECATION:** This resource is deprecated and will be removed in the next major release. Please use `mongodbatlas_advanced_cluster`. For more details, see [our migration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
+~> **DEPRECATION:** This resource is deprecated and will be removed in the next major release. Please use `mongodbatlas_advanced_cluster`. For more details, see [our migration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide). We recommend all MongoDB Atlas Terraform users start with the [`Official MongoDB Atlas Cluster Module`](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/cluster/mongodbatlas/latest). This module simplifies cluster deployment and implements MongoDB Atlas best practices by default.
 
 -> **NOTE:** A network container is created for a cluster to reside in. To use this container with another resource, such as peering, reference the computed`container_id` attribute on the cluster.
 
