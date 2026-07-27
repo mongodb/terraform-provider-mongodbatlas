@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_organization: Fixes create with `service_account` when the provider is authenticated with a Service Account by caching OAuth tokens per `client_id`
+```

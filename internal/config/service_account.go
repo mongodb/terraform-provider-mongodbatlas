@@ -34,10 +34,6 @@ var saInfo = struct {
 // createTokenSourceFn is the OAuth token-source factory; overridden in unit tests.
 var createTokenSourceFn = defaultCreateTokenSource
 
-func saCacheKey(clientID, baseURL string) string {
-	return clientID + "\x00" + NormalizeBaseURL(baseURL)
-}
-
 func defaultCreateTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
 	// Use a new context to avoid "context canceled" errors as the token source is reused and can outlast the callee context.
 	ctx := context.WithValue(context.Background(), auth.HTTPClient, NewOAuthHTTPClient(terraformVersion))
@@ -58,12 +54,11 @@ func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (a
 	}
 
 	baseURL = NormalizeBaseURL(baseURL)
-	key := saCacheKey(clientID, baseURL)
 	if saInfo.sources == nil {
 		saInfo.sources = make(map[string]*saCacheEntry)
 	}
-	if entry, ok := saInfo.sources[key]; ok {
-		if entry.clientSecret != clientSecret {
+	if entry, ok := saInfo.sources[clientID]; ok {
+		if entry.clientSecret != clientSecret || entry.baseURL != baseURL {
 			return nil, fmt.Errorf("service account credentials changed")
 		}
 		return entry.tokenSource, nil
@@ -73,7 +68,7 @@ func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (a
 	if err != nil {
 		return nil, err
 	}
-	saInfo.sources[key] = &saCacheEntry{
+	saInfo.sources[clientID] = &saCacheEntry{
 		tokenSource:      tokenSource,
 		clientID:         clientID,
 		clientSecret:     clientSecret,
