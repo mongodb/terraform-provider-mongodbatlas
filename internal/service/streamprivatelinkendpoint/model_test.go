@@ -460,6 +460,28 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 			expectError: true,
 			errorCount:  1,
 		},
+		"AWS Confluent missing dns_domain is allowed": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:          types.StringValue(constant.AWS),
+				Vendor:            types.StringValue(streamprivatelinkendpoint.VendorConfluent),
+				ServiceEndpointId: types.StringValue("com.amazonaws.vpce.us-east-1.vpce-svc-034f5dac32226cb29"),
+				DnsDomain:         types.StringNull(),
+				Region:            types.StringValue("us-east-1"),
+			},
+			expectError: false,
+			errorCount:  0,
+		},
+		"Azure Confluent missing dns_domain": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:          types.StringValue(constant.AZURE),
+				Vendor:            types.StringValue(streamprivatelinkendpoint.VendorConfluent),
+				ServiceEndpointId: types.StringValue("test-namespace-endpoint-id"),
+				DnsDomain:         types.StringNull(),
+				Region:            types.StringValue("eastus2"),
+			},
+			expectError: true,
+			errorCount:  1,
+		},
 		"GCP Confluent missing dns_domain": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Provider:              types.StringValue(constant.GCP),

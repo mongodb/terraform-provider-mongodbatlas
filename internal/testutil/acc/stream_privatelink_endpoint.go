@@ -29,9 +29,18 @@ func ConfigDataConfluentDedicatedCluster(networkID, privatelinkAccessID string) 
 }
 
 func configBasic(projectID, provider, region, vendor string, withDNSSubdomains bool) string {
+	return configBasicWithDNSDomain(projectID, provider, region, vendor, withDNSSubdomains, true)
+}
+
+func configBasicWithDNSDomain(projectID, provider, region, vendor string, withDNSSubdomains, withDNSDomain bool) string {
 	dnsSubDomainConfig := ""
 	if withDNSSubdomains {
 		dnsSubDomainConfig = `dns_sub_domain = local.dns_sub_domain_entries`
+	}
+
+	dnsDomainConfig := ""
+	if withDNSDomain {
+		dnsDomainConfig = `dns_domain = confluent_network.private-link.dns_domain`
 	}
 
 	return fmt.Sprintf(`
@@ -40,11 +49,11 @@ func configBasic(projectID, provider, region, vendor string, withDNSSubdomains b
     		for zone in confluent_network.private-link.zones :
     		"${zone}.${confluent_network.private-link.dns_domain}"
   		]
-	}	
+	}
 
 	resource "mongodbatlas_stream_privatelink_endpoint" "test" {
 		project_id          = %[1]q
-		dns_domain          = confluent_network.private-link.dns_domain
+		%[6]s
 		provider_name       = %[2]q
 		region              = %[3]q
 		vendor              = %[4]q
@@ -68,7 +77,7 @@ func configBasic(projectID, provider, region, vendor string, withDNSSubdomains b
 		depends_on = [
     		mongodbatlas_stream_privatelink_endpoint.test
   		]
-	}`, projectID, provider, region, vendor, dnsSubDomainConfig)
+	}`, projectID, provider, region, vendor, dnsSubDomainConfig, dnsDomainConfig)
 }
 
 func configNewConfluentDedicatedCluster(provider, region, awsAccountID string) string {
@@ -130,6 +139,47 @@ func GetCompleteConfluentConfig(usesExistingConfluentCluster, withDNSSubdomains 
 		return ConfigDataConfluentDedicatedCluster(networkID, privatelinkAccessID) + configBasicUsingDatasourcesWithoutDependsOnCluster
 	}
 	return configNewConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, true)
+}
+
+// GetConfluentEnterpriseConfigForDNSDomainUpdate builds a config that imports an existing
+// Confluent Enterprise stream privatelink connection (by connectionID) and toggles dns_domain
+// on/off to exercise the in-place update (PATCH) of dns_domain. dns_domain is only optional and
+// mutable for AWS Enterprise clusters; for AWS Dedicated clusters it is required at create time.
+func GetConfluentEnterpriseConfigForDNSDomainUpdate(withDNSDomain bool, projectID, provider, region, vendor, connectionID, dnsName, serviceEndpointID string) string {
+	dnsDomainConfig := ""
+	if withDNSDomain {
+		dnsDomainConfig = fmt.Sprintf(`dns_domain = %q`, dnsName)
+	}
+
+	return fmt.Sprintf(`
+	import {
+		to = mongodbatlas_stream_privatelink_endpoint.test
+        id = "%[1]s-%[6]s"
+	}
+
+    resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+    	project_id          = %[1]q
+        provider_name       = %[2]q
+        region              = %[3]q
+        vendor              = %[4]q
+        service_endpoint_id = %[7]q
+        %[5]s
+    }
+
+    data "mongodbatlas_stream_privatelink_endpoint" "test" {
+		project_id = %[1]q
+        id         = mongodbatlas_stream_privatelink_endpoint.test.id
+        depends_on = [
+			mongodbatlas_stream_privatelink_endpoint.test
+        ]
+	}
+
+    data "mongodbatlas_stream_privatelink_endpoints" "test" {
+    	project_id = %[1]q
+		depends_on = [
+        	mongodbatlas_stream_privatelink_endpoint.test
+		]
+	}`, projectID, provider, region, vendor, dnsDomainConfig, connectionID, serviceEndpointID)
 }
 
 func GetCompleteMskConfig(projectID, clusterArn string) string {
