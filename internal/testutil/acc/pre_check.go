@@ -384,6 +384,13 @@ func PreCheckAzureExportBucket(tb testing.TB) {
 	}
 }
 
+func PreCheckStreamPrivatelinkEndpointDNSDomainUpdate(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("CONNECTION_ID") == "" || os.Getenv("DNS_NAME") == "" {
+		tb.Fatal("`CONNECTION_ID` and `DNS_NAME` must be set for the stream privatelink endpoint dns_domain update acceptance test")
+	}
+}
+
 func PreCheckConfluentAWSPrivatelink(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("CONFLUENT_CLOUD_API_KEY") == "" ||
