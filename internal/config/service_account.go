@@ -15,15 +15,39 @@ import (
 // Renew token if it expires within 10 minutes to avoid authentication errors during Atlas API calls.
 const saTokenExpiryBuffer = 10 * time.Minute
 
-var saInfo = struct {
+type saCacheEntry struct {
 	tokenSource      auth.TokenSource
 	clientID         string
 	clientSecret     string
 	baseURL          string
 	terraformVersion string
-	mu               sync.Mutex
-	closed           bool
+}
+
+// saInfo caches token sources per service account so a single provider process can
+// authenticate as more than one SA (e.g. org-creator SA, then the SA created with a new org).
+var saInfo = struct {
+	sources map[string]*saCacheEntry
+	mu      sync.Mutex
+	closed  bool
 }{}
+
+// createTokenSourceFn is the OAuth token-source factory; overridden in unit tests.
+var createTokenSourceFn = defaultCreateTokenSource
+
+func saCacheKey(clientID, baseURL string) string {
+	return clientID + "\x00" + NormalizeBaseURL(baseURL)
+}
+
+func defaultCreateTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
+	// Use a new context to avoid "context canceled" errors as the token source is reused and can outlast the callee context.
+	ctx := context.WithValue(context.Background(), auth.HTTPClient, NewOAuthHTTPClient(terraformVersion))
+	conf := GetServiceAccountConfig(clientID, clientSecret, baseURL)
+	tokenSource := oauth2.ReuseTokenSourceWithExpiry(nil, conf.TokenSource(ctx), saTokenExpiryBuffer)
+	if _, err := tokenSource.Token(); err != nil { // Retrieve token to fail-fast if credentials are invalid.
+		return nil, err
+	}
+	return tokenSource, nil
+}
 
 func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
 	saInfo.mu.Lock()
@@ -34,26 +58,29 @@ func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (a
 	}
 
 	baseURL = NormalizeBaseURL(baseURL)
-	if saInfo.tokenSource != nil { // Token source in cache.
-		if saInfo.clientID != clientID || saInfo.clientSecret != clientSecret || saInfo.baseURL != baseURL {
+	key := saCacheKey(clientID, baseURL)
+	if saInfo.sources == nil {
+		saInfo.sources = make(map[string]*saCacheEntry)
+	}
+	if entry, ok := saInfo.sources[key]; ok {
+		if entry.clientSecret != clientSecret {
 			return nil, fmt.Errorf("service account credentials changed")
 		}
-		return saInfo.tokenSource, nil
+		return entry.tokenSource, nil
 	}
 
-	// Use a new context to avoid "context canceled" errors as the token source is reused and can outlast the callee context.
-	ctx := context.WithValue(context.Background(), auth.HTTPClient, NewOAuthHTTPClient(terraformVersion))
-	conf := GetServiceAccountConfig(clientID, clientSecret, baseURL)
-	tokenSource := oauth2.ReuseTokenSourceWithExpiry(nil, conf.TokenSource(ctx), saTokenExpiryBuffer)
-	if _, err := tokenSource.Token(); err != nil { // Retrieve token to fail-fast if credentials are invalid.
+	tokenSource, err := createTokenSourceFn(clientID, clientSecret, baseURL, terraformVersion)
+	if err != nil {
 		return nil, err
 	}
-	saInfo.clientID = clientID
-	saInfo.clientSecret = clientSecret
-	saInfo.baseURL = baseURL
-	saInfo.terraformVersion = terraformVersion
-	saInfo.tokenSource = tokenSource
-	return saInfo.tokenSource, nil
+	saInfo.sources[key] = &saCacheEntry{
+		tokenSource:      tokenSource,
+		clientID:         clientID,
+		clientSecret:     clientSecret,
+		baseURL:          baseURL,
+		terraformVersion: terraformVersion,
+	}
+	return tokenSource, nil
 }
 
 func NormalizeBaseURL(baseURL string) string {
@@ -69,7 +96,7 @@ func GetServiceAccountConfig(clientID, clientSecret, baseURL string) *clientcred
 	return config
 }
 
-// CloseTokenSource is called just before the provider finishes, it does a best-effort try to revoke the Service Access token.
+// CloseTokenSource is called just before the provider finishes, it does a best-effort try to revoke all cached Service Account tokens.
 // It sets saInfo.closed = true to avoid future calls to getTokenSource, that should't happen as the provider is exiting.
 func CloseTokenSource() {
 	saInfo.mu.Lock()
@@ -78,12 +105,11 @@ func CloseTokenSource() {
 		return
 	}
 	saInfo.closed = true
-	if saInfo.tokenSource == nil { // No need to do anything if SA was not initialized.
-		return
-	}
-	if token, err := saInfo.tokenSource.Token(); err == nil {
-		conf := GetServiceAccountConfig(saInfo.clientID, saInfo.clientSecret, saInfo.baseURL)
-		ctx := context.WithValue(context.Background(), auth.HTTPClient, NewOAuthHTTPClient(saInfo.terraformVersion))
-		_ = conf.RevokeToken(ctx, token) // Best-effort, no need to do anything if it fails.
+	for _, entry := range saInfo.sources {
+		if token, err := entry.tokenSource.Token(); err == nil {
+			conf := GetServiceAccountConfig(entry.clientID, entry.clientSecret, entry.baseURL)
+			ctx := context.WithValue(context.Background(), auth.HTTPClient, NewOAuthHTTPClient(entry.terraformVersion))
+			_ = conf.RevokeToken(ctx, token) // Best-effort, no need to do anything if it fails.
+		}
 	}
 }
