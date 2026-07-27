@@ -92,7 +92,7 @@ func GetServiceAccountConfig(clientID, clientSecret, baseURL string) *clientcred
 }
 
 // CloseTokenSource is called just before the provider finishes, it does a best-effort try to revoke all cached Service Account tokens.
-// It sets saInfo.closed = true to avoid future calls to getTokenSource, that should't happen as the provider is exiting.
+// It sets saInfo.closed = true to avoid future calls to getTokenSource, that shouldn't happen as the provider is exiting.
 func CloseTokenSource() {
 	saInfo.mu.Lock()
 	defer saInfo.mu.Unlock()
