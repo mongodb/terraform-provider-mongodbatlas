@@ -15,9 +15,23 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"cloud": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Cloud provider scope. Must be \"ANY\". Additional values will be supported in future API versions.",
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+			},
+			"endpoint": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Server-computed endpoint hostname derived from cloud and geography. This field is read-only and must not be supplied in request bodies.",
+			},
+			"geography": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Geography scope. Must be \"ANY\". Additional values will be supported in future API versions.",
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"model_group_name": schema.StringAttribute{
@@ -44,6 +58,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
+	Cloud                  types.String                        `tfsdk:"cloud" autogen:"omitjson"`
+	Endpoint               types.String                        `tfsdk:"endpoint" autogen:"omitjson"`
+	Geography              types.String                        `tfsdk:"geography" autogen:"omitjson"`
 	ProjectId              types.String                        `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	ModelGroupName         types.String                        `tfsdk:"model_group_name" autogen:"omitjson"`
 	ModelNames             customtypes.ListValue[types.String] `tfsdk:"model_names" autogen:"omitjson"`

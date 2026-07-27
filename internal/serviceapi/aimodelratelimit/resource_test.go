@@ -89,6 +89,8 @@ func configBasic(orgID, projectID string, requestsPerMinute, tokensPerMinute int
 	return fmt.Sprintf(`
 		resource "mongodbatlas_ai_model_rate_limit" "this" {
 			project_id                 = %[2]q
+			cloud                      = "ANY"
+			geography                  = "ANY"
 			model_group_name           = %[3]q
 			requests_per_minute_limit  = %[4]d
 			tokens_per_minute_limit    = %[5]d
@@ -96,6 +98,8 @@ func configBasic(orgID, projectID string, requestsPerMinute, tokensPerMinute int
 
 		data "mongodbatlas_ai_model_rate_limit" "this" {
 			project_id       = %[2]q
+			cloud            = "ANY"
+			geography        = "ANY"
 			model_group_name = mongodbatlas_ai_model_rate_limit.this.model_group_name
 		}
 
@@ -106,6 +110,8 @@ func configBasic(orgID, projectID string, requestsPerMinute, tokensPerMinute int
 
 		data "mongodbatlas_ai_model_org_rate_limit" "this" {
 			org_id           = %[1]q
+			cloud            = "ANY"
+			geography        = "ANY"
 			model_group_name = mongodbatlas_ai_model_rate_limit.this.model_group_name
 		}
 
@@ -120,6 +126,8 @@ func configInvalid(projectID, modelGroupName string, requestsPerMinute, tokensPe
 	return fmt.Sprintf(`
 		resource "mongodbatlas_ai_model_rate_limit" "this" {
 			project_id                 = %[1]q
+			cloud                      = "ANY"
+			geography                  = "ANY"
 			model_group_name           = %[2]q
 			requests_per_minute_limit  = %[3]d
 			tokens_per_minute_limit    = %[4]d
@@ -128,7 +136,7 @@ func configInvalid(projectID, modelGroupName string, requestsPerMinute, tokensPe
 }
 
 func checkBasic() resource.TestCheckFunc {
-	attrsSet := []string{"model_group_name", "requests_per_minute_limit", "tokens_per_minute_limit"}
+	attrsSet := []string{"model_group_name", "requests_per_minute_limit", "tokens_per_minute_limit", "cloud", "geography", "endpoint"}
 	return resource.ComposeAggregateTestCheckFunc(
 		acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName), attrsSet, nil, checkExists(resourceName)),
 		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
@@ -150,19 +158,23 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs := s.RootModule().Resources[resourceName]
-		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["model_group_name"]), nil
+		return fmt.Sprintf("%s/%s/%s/%s",
+			rs.Primary.Attributes["project_id"],
+			rs.Primary.Attributes["cloud"],
+			rs.Primary.Attributes["geography"],
+			rs.Primary.Attributes["model_group_name"]), nil
 	}
 }
 
 // rateLimitExists checks if a rate limit exists.
-// Uses UntypedAPICall because the API is in preview and not yet available in the SDK.
-// TODO: CLOUDP-374704 - Use SDK before merging to master in CLOUDP-372674.
 func rateLimitExists(rs *terraform.ResourceState) bool {
 	callParams := config.APICallParams{
-		VersionHeader: "application/vnd.atlas.preview+json",
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/aiModelRateLimits/{modelGroupName}",
+		VersionHeader: "application/vnd.atlas.2025-03-12+json",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits",
 		PathParams: map[string]string{
 			"groupId":        rs.Primary.Attributes["project_id"],
+			"cloud":          rs.Primary.Attributes["cloud"],
+			"geography":      rs.Primary.Attributes["geography"],
 			"modelGroupName": rs.Primary.Attributes["model_group_name"],
 		},
 		Method: "GET",
