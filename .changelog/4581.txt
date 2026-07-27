@@ -1,0 +1,3 @@
+```release-note:enhancement
+provider: Warns when `base_url`, `realm_base_url`, or `is_mongodbgov_cloud` are set while using AWS Secrets Manager credentials, as these values are ignored on that path and must be defined in the secret payload
+```

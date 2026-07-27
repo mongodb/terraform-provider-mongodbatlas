@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservice"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -59,7 +60,7 @@ func TestAccPrivateLinkEndpointService_failedAWS(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configFailedAWS(projectID, "EU_WEST_1", dummyVPCEndpointID), // Different region to avoid project conflicts.
-				ExpectError: regexp.MustCompile("privatelink endpoint service is in a failed state: Interface endpoint " + dummyVPCEndpointID + " was not found."),
+				ExpectError: regexp.MustCompile(privatelinkendpointservice.FailedStateErrorPrefix),
 			},
 		},
 	})
