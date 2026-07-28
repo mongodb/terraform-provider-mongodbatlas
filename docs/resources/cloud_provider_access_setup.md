@@ -18,6 +18,8 @@ See example of this two-resource path option with AWS Cloud [here](https://githu
 
 This is the first resource in the two-resource path as described above.
 
+The [Official MongoDB Atlas cloud provider modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) for [AWS](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-aws/mongodbatlas/latest), [Azure](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-azure/mongodbatlas/latest), and [Google Cloud](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-gcp/mongodbatlas/latest) make use of this resource and simplify cloud provider access configuration.
+
 `mongodbatlas_cloud_provider_access_setup` allows you to register an AWS, AZURE or GCP IAM roles in Atlas.
 
 ## Example Usage with AWS

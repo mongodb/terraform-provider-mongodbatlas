@@ -8,7 +8,7 @@ subcategory: "Private Endpoint Services"
 
 ~> **IMPORTANT:** This resource creates a Private Endpoint *Service* in MongoDB Atlas. The endpoint itself is created in your cloud provider using the information returned by this resource. The complementary resource `mongodbatlas_privatelink_endpoint_service` is used to link your cloud provider's endpoint to the Atlas service.
 
-The [private link Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/latest) makes use of this resource and simplifies its use.
+The [Official MongoDB Atlas cloud provider modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) for [AWS](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-aws/mongodbatlas/latest), [Azure](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-azure/mongodbatlas/latest), and [Google Cloud](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-gcp/mongodbatlas/latest) make use of this resource and simplify private endpoint configuration.
 
 -> **NOTE:** You must have Organization Owner or Project Owner role. A network container is created for a private endpoint if one does not yet exist in the project. Before configuring a private endpoint for a new region, review the [Multi-Region Private Endpoints](https://www.mongodb.com/docs/atlas/troubleshoot-private-endpoints/#multi-region-private-endpoints) troubleshooting documentation.
 

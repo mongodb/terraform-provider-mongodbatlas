@@ -8,6 +8,8 @@ subcategory: "Log Integration"
 
 To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
 
+The [Official MongoDB Atlas cloud provider modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) for [AWS](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-aws/mongodbatlas/latest), [Azure](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-azure/mongodbatlas/latest), and [Google Cloud](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-gcp/mongodbatlas/latest) make use of this resource and simplify log integration configuration. The [Official MongoDB Atlas Project Module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/project/mongodbatlas/latest) also supports Datadog, Splunk, and OpenTelemetry log integrations.
+
 ## Example Usages
 
 ### AWS S3

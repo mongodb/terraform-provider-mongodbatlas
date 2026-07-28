@@ -199,9 +199,24 @@ or submit a PR of your work to add it to the `examples` directory in our [GitHub
 
 ## Terraform MongoDB Atlas Modules
 
-The official [Terraform MongoDB Atlas modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) provide reusable building blocks with production recommendations for:
+The [Official Terraform MongoDB Atlas modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) provide reusable building blocks with production recommendations that bundle multiple provider resources into a single module. The individual resource documentation pages above link to the relevant module where applicable.
 
-- Atlas resources: [organization](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-organization), [project](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-project), and [cluster](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-cluster).
-- Cloud provider dependencies: [AWS](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-atlas-aws), [Azure](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-atlas-azure), and [Google Cloud](https://github.com/terraform-mongodbatlas-modules/terraform-mongodbatlas-atlas-gcp).
+### Atlas Resources
+
+| Module | Description |
+|---|---|
+| [Organization](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/organization/mongodbatlas/latest) | Create and manage Atlas organizations with resource policies |
+| [Project](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/project/mongodbatlas/latest) | Create and manage projects with IP access lists, maintenance windows, backup compliance policies, and log integrations |
+| [Cluster](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/cluster/mongodbatlas/latest) | Provision advanced clusters with backup schedules and production best-practice defaults |
+
+### Cloud Provider Modules
+
+These modules manage both Atlas resources and cloud provider (CSP) resources such as IAM roles, KMS keys, VPC endpoints, and storage buckets.
+
+| Module | Description |
+|---|---|
+| [AWS](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-aws/mongodbatlas/latest) | AWS integrations: Cloud Provider Access, KMS encryption, Private Link, backup export, and log export |
+| [Azure](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-azure/mongodbatlas/latest) | Azure integrations: Service Principal access, Key Vault encryption, Private Link, backup export, and log export |
+| [GCP](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-gcp/mongodbatlas/latest) | GCP integrations: Service Account access, Cloud KMS encryption, Private Service Connect, backup export, and log export |
 
 Use the [Atlas Examples repository](https://github.com/terraform-mongodbatlas-modules/atlas-examples) for end-to-end AWS, Azure, and Google Cloud configurations, or follow [Deploy MongoDB Atlas with Terraform Modules](https://www.mongodb.com/docs/atlas/terraform-modules-landing-zone/) for a guided setup.

@@ -6,6 +6,8 @@ subcategory: "Cloud Backups"
 
 `mongodbatlas_cloud_backup_schedule` provides a cloud backup schedule resource. The resource lets you create, read, update and delete a cloud backup schedule.
 
+The [Official MongoDB Atlas Cluster Module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/cluster/mongodbatlas/latest) makes use of this resource and simplifies backup schedule configuration.
+
 -> **NOTE:** If a Backup Compliance Policy is enabled on the project, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the policy (see [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy)). To allow `terraform destroy` to remove the associated `mongodbatlas_advanced_cluster` without being blocked by the policy, set `skip_destroy = true`. See the [delete cluster guide](../guides/delete-cluster-with-backup-compliance-policy.md) for background and legacy workarounds.
 
 -> **NOTE:** When creating a backup schedule you **must either** use the `depends_on` clause to indicate the cluster to which it refers **or** specify the values of `project_id` and `cluster_name` as reference of the cluster resource (e.g. `cluster_name = mongodbatlas_advanced_cluster.my_cluster.name` - see the example below). Failure in doing so will result in an error when executing the plan.

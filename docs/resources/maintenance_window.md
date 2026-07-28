@@ -6,6 +6,8 @@ subcategory: "Projects"
 
 `mongodbatlas_maintenance_window` provides a resource to schedule the maintenance window for your MongoDB Atlas Project and/or set to defer a scheduled maintenance up to two times. Please refer to [Maintenance Windows](https://www.mongodb.com/docs/atlas/tutorial/cluster-maintenance-window/#configure-maintenance-window) documentation for more details.
 
+The [Official MongoDB Atlas Project Module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/project/mongodbatlas/latest) makes use of this resource and simplifies maintenance window configuration as part of project management.
+
 -> **NOTE:** Only a single maintenance window resource can be defined per project.
 
 -> **NOTE:** Maintenance window times use the project's configured timezone. To change the timezone, update the Project Time Zone setting in the Atlas Project Settings.

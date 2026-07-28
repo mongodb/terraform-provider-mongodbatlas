@@ -6,9 +6,11 @@ subcategory: "Private Endpoint Services"
 
 `mongodbatlas_private_endpoint_regional_mode` provides a Private Endpoint Regional Mode resource. This represents a regionalized private endpoint setting for a Project. Enable it to allow region specific private endpoints.
 
-~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource: <br> - Organization Owner <br> - Project Owner
+The [Official MongoDB Atlas cloud provider modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) for [AWS](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-aws/mongodbatlas/latest), [Azure](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-azure/mongodbatlas/latest), and [Google Cloud](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-gcp/mongodbatlas/latest) make use of this resource and simplify private endpoint configuration.
 
-~> **WARNING:**Your [connection strings](https://www.mongodb.com/docs/atlas/reference/faq/connection-changes/#std-label-connstring-privatelink) to existing multi-region and global sharded clusters change when you enable this setting.  You must update your applications to use the new connection strings. This might cause downtime.
+~> **IMPORTANT:** You must have one of the following roles to successfully handle the resource: <br> - Organization Owner <br> - Project Owner
+
+~> **WARNING:** Your [connection strings](https://www.mongodb.com/docs/atlas/reference/faq/connection-changes/#std-label-connstring-privatelink) to existing multi-region and global sharded clusters change when you enable this setting. You must update your applications to use the new connection strings. This might cause downtime.
 
 ## Example AWS Global Cluster with multiple Private Endpoint
 
