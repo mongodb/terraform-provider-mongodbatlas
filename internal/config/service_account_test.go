@@ -103,6 +103,22 @@ func TestGetTokenSource_RejectsBaseURLChangeForSameClientID(t *testing.T) {
 	assert.Contains(t, err.Error(), "service account credentials changed")
 }
 
+func TestGetTokenSource_ReusesCacheWhenBaseURLDiffersOnlyByTrailingSlash(t *testing.T) {
+	resetSAInfo(t)
+
+	calls := 0
+	config.SetCreateTokenSourceForTest(func(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
+		calls++
+		return staticTokenSource{token: &oauth2.Token{AccessToken: "tok", TokenType: "Bearer"}}, nil
+	})
+
+	_, err := config.GetTokenSourceForTest("client-a", "secret-a", "https://cloud-qa.mongodb.com", "1.0.0")
+	require.NoError(t, err)
+	_, err = config.GetTokenSourceForTest("client-a", "secret-a", "https://cloud-qa.mongodb.com/", "1.0.0")
+	require.NoError(t, err)
+	assert.Equal(t, 1, calls)
+}
+
 func TestGetTokenSource_ErrorsWhenClosed(t *testing.T) {
 	resetSAInfo(t)
 	config.SetCreateTokenSourceForTest(func(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
