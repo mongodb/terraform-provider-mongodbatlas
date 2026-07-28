@@ -30,6 +30,7 @@ func resetSAInfo(t *testing.T) {
 	t.Cleanup(func() {
 		config.ResetSAInfoForTest()
 		config.ResetCreateTokenSourceForTest()
+		config.ResetRevokeTokenForTest()
 	})
 }
 
@@ -117,6 +118,30 @@ func TestGetTokenSource_ReusesCacheWhenBaseURLDiffersOnlyByTrailingSlash(t *test
 	_, err = config.GetTokenSourceForTest("client-a", "secret-a", "https://cloud-qa.mongodb.com/", "1.0.0")
 	require.NoError(t, err)
 	assert.Equal(t, 1, calls)
+}
+
+func TestCloseTokenSource_RevokesAllCachedSources(t *testing.T) {
+	resetSAInfo(t)
+
+	config.SetCreateTokenSourceForTest(func(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
+		return staticTokenSource{token: &oauth2.Token{AccessToken: "tok-" + clientID, TokenType: "Bearer"}}, nil
+	})
+
+	var mu sync.Mutex
+	revoked := make([]string, 0, 2)
+	config.SetRevokeTokenForTest(func(clientID string) {
+		mu.Lock()
+		revoked = append(revoked, clientID)
+		mu.Unlock()
+	})
+
+	_, err := config.GetTokenSourceForTest("client-a", "secret-a", "https://cloud-qa.mongodb.com", "1.0.0")
+	require.NoError(t, err)
+	_, err = config.GetTokenSourceForTest("client-b", "secret-b", "https://cloud-qa.mongodb.com", "1.0.0")
+	require.NoError(t, err)
+
+	config.CloseTokenSource()
+	assert.ElementsMatch(t, []string{"client-a", "client-b"}, revoked)
 }
 
 func TestGetTokenSource_ErrorsWhenClosed(t *testing.T) {

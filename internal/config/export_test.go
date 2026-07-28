@@ -16,15 +16,26 @@ func ResetCreateTokenSourceForTest() {
 	createTokenSourceFn = defaultCreateTokenSource
 }
 
+// SetRevokeTokenForTest records which clientIDs get revoked without hitting the network.
+func SetRevokeTokenForTest(fn func(clientID string)) {
+	revokeTokenFn = func(clientID string, _ *saTokenSourceEntry) {
+		fn(clientID)
+	}
+}
+
+func ResetRevokeTokenForTest() {
+	revokeTokenFn = defaultRevokeToken
+}
+
 func ResetSAInfoForTest() {
-	saInfo.mu.Lock()
-	defer saInfo.mu.Unlock()
-	saInfo.sources = nil
-	saInfo.closed = false
+	saTokenSourceCache.mu.Lock()
+	defer saTokenSourceCache.mu.Unlock()
+	saTokenSourceCache.sources = nil
+	saTokenSourceCache.closed = false
 }
 
 func SetSAInfoClosedForTest(closed bool) {
-	saInfo.mu.Lock()
-	defer saInfo.mu.Unlock()
-	saInfo.closed = closed
+	saTokenSourceCache.mu.Lock()
+	defer saTokenSourceCache.mu.Unlock()
+	saTokenSourceCache.closed = closed
 }
