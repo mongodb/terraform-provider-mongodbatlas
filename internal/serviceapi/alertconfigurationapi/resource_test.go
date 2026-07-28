@@ -385,7 +385,7 @@ func TestAccAlertConfigurationAPI_withVictorOps(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_withSeverityOverride(t *testing.T) {
+func TestAccAlertConfigurationAPI_withSeverityOverride(t *testing.T) {
 	var (
 		projectID  = acc.ProjectIDExecution(t)
 		errorStr   = "ERROR"
