@@ -211,9 +211,11 @@ The [Official Terraform MongoDB Atlas modules](https://registry.terraform.io/nam
 
 ### Cloud Provider Modules
 
+These modules manage both Atlas resources and cloud provider (CSP) resources such as IAM roles, KMS keys, VPC endpoints, and storage buckets.
+
 | Module | Description |
 |---|---|
-| [AWS](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-aws/mongodbatlas/latest) | AWS integrations: Cloud Provider Access, KMS encryption, PrivateLink, backup export, and log export |
+| [AWS](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-aws/mongodbatlas/latest) | AWS integrations: Cloud Provider Access, KMS encryption, Private Link, backup export, and log export |
 | [Azure](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-azure/mongodbatlas/latest) | Azure integrations: Service Principal access, Key Vault encryption, Private Link, backup export, and log export |
 | [GCP](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-gcp/mongodbatlas/latest) | GCP integrations: Service Account access, Cloud KMS encryption, Private Service Connect, backup export, and log export |
 
