@@ -214,5 +214,7 @@ Log integration resource can be imported using the project ID and log integratio
 $ terraform import mongodbatlas_log_integration.test 650972848269185c55f40ca1/6789abcd1234ef5678901234
 ```
 
+~> **NOTE:** After importing a `mongodbatlas_log_integration` resource that uses OpenTelemetry, with a configuration that sets non-empty header values, the first `terraform plan` shows a diff on `otel_supplied_headers` because the Atlas API redacts these values in GET responses. The diff is expected and resolves after running `terraform apply` once.
+
 For more information see: [MongoDB Atlas API - Log Integration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-push-based-log-export) Documentation.
 
