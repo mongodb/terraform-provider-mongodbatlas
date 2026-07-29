@@ -30,7 +30,7 @@ func ResetRevokeTokenForTest() {
 func ResetSATokenSourceCacheForTest() {
 	saTokenSourceCache.mu.Lock()
 	defer saTokenSourceCache.mu.Unlock()
-	saTokenSourceCache.sources = nil
+	saTokenSourceCache.sources = make(map[string]*saTokenSourceEntry)
 	saTokenSourceCache.baseURL = ""
 	saTokenSourceCache.terraformVersion = ""
 	saTokenSourceCache.closed = false

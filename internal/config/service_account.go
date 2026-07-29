@@ -30,7 +30,7 @@ var saTokenSourceCache = struct {
 	terraformVersion string
 	mu               sync.Mutex
 	closed           bool
-}{}
+}{sources: make(map[string]*saTokenSourceEntry)}
 
 // createTokenSourceFn is the OAuth token-source factory; overridden in unit tests.
 var createTokenSourceFn = defaultCreateTokenSource
@@ -60,10 +60,10 @@ func defaultRevokeToken(clientID string, entry *saTokenSourceEntry) {
 }
 
 func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
-	// Hold the cache lock through token creation so concurrent callers with the same
-	// client_id cannot create duplicate, untracked tokens. This serializes SA init
-	// across client_ids (e.g. concurrent org creates with nested SAs); that path is
-	// rare enough that we prefer this over a finer-grained lock.
+	// Hold the cache lock through token creation so map updates stay synchronous when
+	// concurrent callers use different client_ids (multi-org create with nested SAs).
+	// That is the only path impacted by locking across the network call; we accept that
+	// serialization over a finer-grained lock.
 	saTokenSourceCache.mu.Lock()
 	defer saTokenSourceCache.mu.Unlock()
 
@@ -72,9 +72,6 @@ func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (a
 	}
 
 	baseURL = NormalizeBaseURL(baseURL)
-	if saTokenSourceCache.sources == nil {
-		saTokenSourceCache.sources = make(map[string]*saTokenSourceEntry)
-	}
 	if len(saTokenSourceCache.sources) > 0 && saTokenSourceCache.baseURL != baseURL {
 		return nil, fmt.Errorf("service account credentials changed")
 	}
