@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.15.0 (July 29, 2026)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_project: Adds `is_native_reranking_enabled` attribute ([#4568](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4568))
