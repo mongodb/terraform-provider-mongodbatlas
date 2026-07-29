@@ -59,6 +59,10 @@ func defaultRevokeToken(clientID string, entry *saTokenSourceEntry) {
 }
 
 func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
+	// Hold the cache lock through token creation so concurrent callers with the same
+	// client_id cannot create duplicate, untracked tokens. This serializes SA init
+	// across client_ids (e.g. concurrent org creates with nested SAs); that path is
+	// rare enough that we prefer this over a finer-grained lock.
 	saTokenSourceCache.mu.Lock()
 	defer saTokenSourceCache.mu.Unlock()
 
