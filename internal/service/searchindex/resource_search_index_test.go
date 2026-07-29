@@ -193,6 +193,31 @@ func TestAccSearchIndex_withVector(t *testing.T) {
 	resource.ParallelTest(t, *basicVectorTestCase(t))
 }
 
+func TestAccSearchIndex_withVectorAutoEmbed(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t, true)
+		indexName              = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: configVectorAutoEmbed(projectID, indexName, clusterName),
+				Check:  checkVectorAutoEmbed(projectID, indexName, clusterName),
+			},
+			{
+				Config:            configVectorAutoEmbed(projectID, indexName, clusterName),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccSearchIndex_withNumPartitions(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
@@ -590,6 +615,30 @@ func configVector(projectID, indexName, clusterName string) string {
 	`, clusterName, projectID, indexName, database, collection, fieldsJSON)
 }
 
+func configVectorAutoEmbed(projectID, indexName, clusterName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_search_index" "test" {
+			cluster_name     = %[1]q
+			project_id       = %[2]q
+			name             = %[3]q
+			database         = %[4]q
+			collection_name  = %[5]q
+
+			type = "vectorSearch"
+
+			fields = <<-EOF
+	    %[6]s
+			EOF
+		}
+
+		data "mongodbatlas_search_index" "data_index" {
+			cluster_name     = mongodbatlas_search_index.test.cluster_name
+			project_id       = mongodbatlas_search_index.test.project_id
+			index_id         = mongodbatlas_search_index.test.index_id
+		}
+	`, clusterName, projectID, indexName, database, collection, autoEmbedFieldsJSON)
+}
+
 func configVectorSearchWithNumPartitions(projectID, indexName, clusterName string, numPartitions *int) string {
 	var numPartitionsLine string
 	hasNumPartitions := numPartitions != nil
@@ -702,6 +751,12 @@ func checkVector(projectID, indexName, clusterName string) resource.TestCheckFun
 	return checkAggr(projectID, clusterName, indexName, indexType, mappingsDynamic,
 		resource.TestCheckResourceAttrWith(resourceName, "fields", acc.JSONEquals(fieldsJSON)),
 		resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(fieldsJSON)))
+}
+
+func checkVectorAutoEmbed(projectID, indexName, clusterName string) resource.TestCheckFunc {
+	return checkAggr(projectID, clusterName, indexName, "vectorSearch", "",
+		resource.TestCheckResourceAttrWith(resourceName, "fields", acc.JSONEquals(autoEmbedFieldsJSON)),
+		resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(autoEmbedFieldsJSON)))
 }
 
 func checkSearchWithNumPartitions(projectID, indexName, clusterName string, numPartitions *int) resource.TestCheckFunc {
@@ -835,7 +890,20 @@ const (
 			"path": "plot_embedding",
 			"numDimensions": 1536,
 			"similarity": "euclidean"
-		}]	
+		}]
+	`
+
+	autoEmbedFieldsJSON = `
+		[{
+			"type": "autoEmbed",
+			"path": "description",
+			"model": "voyage-4-lite",
+			"modality": "text"
+		},
+		{
+			"type": "filter",
+			"path": "property_type"
+		}]
 	`
 
 	storedSourceIncludeJSON = `
