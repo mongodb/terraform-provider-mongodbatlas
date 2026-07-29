@@ -1,0 +1,707 @@
+{
+  "groups": [
+    {
+      "category": "api_error",
+      "cause": "The test helper returned HTTP 401 after apply succeeded.",
+      "evidence_contains": "HTTP ERROR 401",
+      "label": "test_utils_401",
+      "selectors": [
+        {
+          "job_id": "88023351431",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster",
+          "test": "TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema"
+        },
+        {
+          "job_id": "88023351625",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster",
+          "test": "TestAccCluster_basic_RedactClientLogData"
+        }
+      ]
+    },
+    {
+      "category": "api_error",
+      "cause": "Project creation failed because POST /groups returned HTTP 500.",
+      "evidence_contains": "HTTP 500",
+      "label": "groups_api_error",
+      "selectors": [
+        {
+          "job_id": "88023351821",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport",
+          "test": "TestAccPushBasedLogExport_basic"
+        },
+        {
+          "job_id": "88023351826",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster",
+          "test": "TestAccFlexClusterRS_failedUpdate"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser",
+          "test": "TestAccConfigDSAtlasUsers_ByProjectID"
+        },
+        {
+          "job_id": "88023351792",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotrestorejob",
+          "test": "TestAccCloudBackupSnapshotRestoreJob_basic"
+        },
+        {
+          "job_id": "88023351792",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotrestorejob",
+          "test": "TestAccCloudBackupSnapshotRestoreJob_basicDownload"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration",
+          "test": "TestAccLogIntegration_basicOTel"
+        },
+        {
+          "job_id": "88023351431",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster",
+          "test": "TestAccClusterAdvancedCluster_singleShardedMultiCloud"
+        },
+        {
+          "job_id": "88023351828",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusterapi",
+          "test": "TestAccClusterAPI_basic"
+        },
+        {
+          "job_id": "88023351828",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/searchindexapi",
+          "test": "TestAccSearchIndexAPI_basic"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdnsconfigurationclusteraws",
+          "test": "TestAccConfigDSCustomDNSConfigurationAWS_basic"
+        },
+        {
+          "job_id": "88023351780",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccountprojectassignment",
+          "test": "TestAccServiceAccountProjectAssignment_singleAssignment"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection",
+          "test": "TestAccStreamRSStreamConnection_kafkaSSL"
+        },
+        {
+          "job_id": "88023351625",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster",
+          "test": "TestAccCluster_Global"
+        },
+        {
+          "job_id": "88023351828",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/searchindexapi",
+          "test": "TestAccSearchIndexAPI_withVector"
+        },
+        {
+          "job_id": "88023351642",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectinvitation",
+          "test": "TestAccProjectDSProjectInvitation_basic"
+        },
+        {
+          "job_id": "88023351724",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering",
+          "test": "TestAccNetworkNetworkPeering_basicAWS"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration",
+          "test": "TestAccLogIntegration_basicS3"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey",
+          "test": "TestAccProjectAPIKey_updateDescription"
+        },
+        {
+          "job_id": "88023351792",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/onlinearchive",
+          "test": "TestAccBackupRSOnlineArchiveBasic"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection",
+          "test": "TestAccStreamRSStreamConnection_kafkaNetworkingVPC"
+        },
+        {
+          "job_id": "88023351625",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster",
+          "test": "TestAccCluster_pinnedFCVWithVersionUpgradeAndDowngrade"
+        },
+        {
+          "job_id": "88023351951",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest",
+          "test": "TestAccEncryptionAtRest_basicAzure"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/maintenancewindow",
+          "test": "TestAccConfigDSMaintenanceWindow_basic"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection",
+          "test": "TestAccStreamRSStreamConnection_kafkaOAuthBearer"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor",
+          "test": "TestAccStreamProcessor_StateTransitionsUpdates"
+        },
+        {
+          "job_id": "88023351821",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport",
+          "test": "TestAccPushBasedLogExport_createTimeoutWithDeleteOnCreateTimeout"
+        },
+        {
+          "job_id": "88023351951",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint",
+          "test": "TestAccEncryptionAtRestPrivateEndpoint_Azure_basic"
+        },
+        {
+          "job_id": "88023351642",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaddresses",
+          "test": "TestAccProjectIPAddressesDS_basic"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey",
+          "test": "TestAccProjectAPIKey_changingSingleProject"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive",
+          "test": "TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic"
+        },
+        {
+          "job_id": "88023351625",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster",
+          "test": "TestAccCluster_basicAWS_simple"
+        },
+        {
+          "job_id": "88023351642",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist",
+          "test": "TestAccProjectIPAccessList_settingIPAddress"
+        },
+        {
+          "job_id": "88023351824",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration",
+          "test": "TestMigThirdPartyIntegration_basic"
+        },
+        {
+          "job_id": "88023351828",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/searchindexapi",
+          "test": "TestAccSearchIndexAPI_MappingWithAnalyzersUpdatedToEmptyAnalyzers"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration",
+          "test": "TestAccLogIntegration_basicGCS"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor",
+          "test": "TestAccStreamProcessor_withOptions"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor",
+          "test": "TestAccStreamProcessor_withFailoverEnabled"
+        },
+        {
+          "job_id": "88023351724",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering",
+          "test": "TestAccNetworkNetworkPeering_timeouts"
+        },
+        {
+          "job_id": "88023351780",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccountprojectassignment",
+          "test": "TestAccServiceAccountProjectAssignment_multipleAssignments"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace",
+          "test": "TestAccStreamsWorkspacesDS_withPageConfig"
+        },
+        {
+          "job_id": "88023351828",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/searchdeploymentapi",
+          "test": "TestAccSearchDeploymentAPI_basic"
+        },
+        {
+          "job_id": "88023351792",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/onlinearchive",
+          "test": "TestAccBackupRSOnlineArchiveWithProcessRegion"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdbrole",
+          "test": "TestAccCustomDBRoles_BasicWithTwoActions"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration",
+          "test": "TestAccThirdPartyIntegration_basicPagerDuty"
+        },
+        {
+          "job_id": "88023351828",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/searchindexapi",
+          "test": "TestAccSearchIndexAPI_withSynonymsUpdatedToEmpty"
+        },
+        {
+          "job_id": "88023351824",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment",
+          "test": "TestMigCloudUserTeamAssignmentRS_basic"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor",
+          "test": "TestAccStreamProcessor_basic"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration",
+          "test": "TestAccConfigRSAlertConfiguration_basic"
+        },
+        {
+          "job_id": "88023351821",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport",
+          "test": "TestAccPushBasedLogExport_createFailure"
+        },
+        {
+          "job_id": "88023351792",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/onlinearchive",
+          "test": "TestAccBackupRSOnlineArchive"
+        },
+        {
+          "job_id": "88023351724",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint",
+          "test": "TestAccPrivateLinkEndpoint_basicAWS"
+        },
+        {
+          "job_id": "88023351431",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster",
+          "test": "TestAccAdvancedCluster_effectiveAnalyticsAutoScaling"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration",
+          "test": "TestAccLogIntegration_basicDatadog"
+        },
+        {
+          "job_id": "88023351431",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster",
+          "test": "TestAccMockableAdvancedCluster_symmetricSharded"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance",
+          "test": "TestAccStreamRSStreamInstance_basic"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdbrole",
+          "test": "TestAccCustomDBRoles_Basic"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration",
+          "test": "TestAccConfigRSAlertConfiguration_withEmptyMetricThresholdConfig"
+        },
+        {
+          "job_id": "88023351821",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport",
+          "test": "TestAccPushBasedLogExport_noPrefixPath"
+        },
+        {
+          "job_id": "88023351431",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster",
+          "test": "TestAccClusterAdvancedCluster_pausedToUnpaused"
+        },
+        {
+          "job_id": "88023351642",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project",
+          "test": "TestAccProject_withInvalidLimitName"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace",
+          "test": "TestAccStreamWorkspaceRS_withFailoverRegions"
+        },
+        {
+          "job_id": "88023351828",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/searchindexapi",
+          "test": "TestAccSearchIndexAPI_withTypeSets_ConfigurableDynamic"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance",
+          "test": "TestAccStreamDSStreamInstances_withPageConfig"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor",
+          "test": "TestAccStreamProcessor_JSONWhiteSpaceFormat"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive",
+          "test": "TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_optionalAttrsOmittedAWS"
+        },
+        {
+          "job_id": "88023351951",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint",
+          "test": "TestAccEncryptionAtRestPrivateEndpoint_AWS_basic"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection",
+          "test": "TestAccStreamRSStreamConnection_kafkaPlaintext"
+        },
+        {
+          "job_id": "88023351724",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering",
+          "test": "TestAccNetworkRSNetworkPeering_AzureFailedStatus"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/maintenancewindow",
+          "test": "TestAccConfigRSMaintenanceWindow_autoDeferActivated"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace",
+          "test": "TestAccStreamWorkspace_moveInstance"
+        },
+        {
+          "job_id": "88023351431",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster",
+          "test": "TestAccClusterAdvancedCluster_unpausedToPaused"
+        },
+        {
+          "job_id": "88023351824",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey",
+          "test": "TestMigProjectAPIKey_basic"
+        },
+        {
+          "job_id": "88023351642",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist",
+          "test": "TestAccProjectIPAccessList_settingAWSSecurityGroup"
+        },
+        {
+          "job_id": "88023351625",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster",
+          "test": "TestAccCluster_partial_advancedConf"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration",
+          "test": "TestAccConfigRSAlertConfiguration_withEmptyMatcherMetricThresholdConfig"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive",
+          "test": "TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_providerNameLowercase"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser",
+          "test": "TestAccConfigDSDatabaseUsers_basic"
+        },
+        {
+          "job_id": "88023351951",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest",
+          "test": "TestAccEncryptionAtRest_basicAWS"
+        },
+        {
+          "job_id": "88023351817",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federateddatabaseinstance",
+          "test": "TestAccFederatedDatabaseInstance_basic"
+        },
+        {
+          "job_id": "88023351826",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster",
+          "test": "TestAccFlexClusterRS_createTimeoutWithDeleteOnCreateFlex"
+        },
+        {
+          "job_id": "88023351828",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusterapi",
+          "test": "TestAccClusterAPI_moveFromUnsupportedSource"
+        },
+        {
+          "job_id": "88023351642",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist",
+          "test": "TestAccProjectIPAccessList_settingMultiple"
+        },
+        {
+          "job_id": "88023351642",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project",
+          "test": "TestAccProject_withFalseDefaultSettings"
+        },
+        {
+          "job_id": "88023351828",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/searchindexapi",
+          "test": "TestAccSearchIndexAPI_MappingsUpdatedToEmptyMapping"
+        },
+        {
+          "job_id": "88023351828",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusterapi",
+          "test": "TestAccClusterAPI_deleteOnCreateTimeout"
+        },
+        {
+          "job_id": "88023351826",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster",
+          "test": "TestAccFlexClusterRS_basic"
+        },
+        {
+          "job_id": "88023351642",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist",
+          "test": "TestAccProjectIPAccessList_settingCIDRBlock"
+        },
+        {
+          "job_id": "88023351828",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/searchindexapi",
+          "test": "TestAccSearchIndexAPI_withStoredSourceInclude"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration",
+          "test": "TestAccConfigRSAlertConfiguration_withMatchers"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration",
+          "test": "TestAccConfigRSAlertConfiguration_withNotifications"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectapi",
+          "test": "TestAccProjectAPI_basic"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor",
+          "test": "TestAccStreamProcessor_withTier"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdbrole",
+          "test": "TestAccConfigRSCustomDBRoles_UpdatedInheritRoles"
+        },
+        {
+          "job_id": "88023351824",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/maintenancewindow",
+          "test": "TestMigConfigMaintenanceWindow_basic"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey",
+          "test": "TestAccProjectAPIKey_updateRole"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration",
+          "test": "TestAccConfigRSAlertConfiguration_outsideStreamProcessorMetricThreshold"
+        },
+        {
+          "job_id": "88023351625",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster",
+          "test": "TestAccCluster_emptyAdvancedConf"
+        },
+        {
+          "job_id": "88023351642",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectinvitation",
+          "test": "TestAccProjectRSProjectInvitation_basic"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/streamconnectionapi",
+          "test": "TestAccStreamConnectionAPI_basic"
+        },
+        {
+          "job_id": "88023351690",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/ldapconfiguration",
+          "test": "TestAccLDAPConfiguration_withVerify_CACertificateComplete"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration",
+          "test": "TestAccConfigRSAlertConfiguration_withMetricUpdated"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey",
+          "test": "TestAccProjectAPIKey_basic"
+        },
+        {
+          "job_id": "88023351792",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule",
+          "test": "TestAccBackupRSCloudBackupSchedule_basic"
+        },
+        {
+          "job_id": "88023351642",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project",
+          "test": "TestAccProject_slowOperationReadOnly"
+        },
+        {
+          "job_id": "88023351642",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project",
+          "test": "TestAccProject_withUpdatedSettings"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment",
+          "test": "TestAccTeamProjectAssignment_basic"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdnsconfigurationclusteraws",
+          "test": "TestAccConfigRSCustomDNSConfigurationAWS_basic"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration",
+          "test": "TestAccConfigRSAlertConfiguration_withThreshold"
+        },
+        {
+          "job_id": "88023351828",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/searchindexapi",
+          "test": "TestAccSearchIndexAPI_withStoredSourceBool"
+        },
+        {
+          "job_id": "88023351625",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster",
+          "test": "TestAccCluster_basic_DefaultWriteRead_AdvancedConf"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdbrole",
+          "test": "TestAccConfigRSCustomDBRoles_WithInheritedRoles"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration",
+          "test": "TestAccLogIntegration_basicAzure"
+        },
+        {
+          "job_id": "88023351828",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/streamprocessorapi",
+          "test": "TestAccStreamProcessorAPI_basic"
+        },
+        {
+          "job_id": "88023351625",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster",
+          "test": "TestAccCluster_withAutoScalingAWS"
+        },
+        {
+          "job_id": "88023351690",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/ldapconfiguration",
+          "test": "TestAccLDAPConfiguration_basic"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdbrole",
+          "test": "TestAccConfigRSCustomDBRoles_MultipleCustomRoles"
+        },
+        {
+          "job_id": "88023351836",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace",
+          "test": "TestAccStreamWorkspaceRS_basic"
+        },
+        {
+          "job_id": "88023351642",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project",
+          "test": "TestAccProject_withInvalidLimitNameOnUpdate"
+        },
+        {
+          "job_id": "88023351824",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment",
+          "test": "TestMigTeamProjectAssignment_migrationJourney"
+        },
+        {
+          "job_id": "88023351724",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privateendpointregionalmode",
+          "test": "TestAccPrivateEndpointRegionalMode_basic"
+        },
+        {
+          "job_id": "88023351642",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project",
+          "test": "TestAccProject_updatedToEmptyRoles"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/maintenancewindowapi",
+          "test": "TestAccMaintenanceWindowAPI_basic"
+        },
+        {
+          "job_id": "88023351724",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering",
+          "test": "TestAccNetworkRSNetworkPeering_AWSDifferentRegionName"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/auditingapi",
+          "test": "TestAccAuditingAPI_basic"
+        },
+        {
+          "job_id": "88023351642",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project",
+          "test": "TestAccProject_withUpdatedLimits"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive",
+          "test": "TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateComment"
+        },
+        {
+          "job_id": "88023351625",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster",
+          "test": "TestAccCluster_WithTags"
+        },
+        {
+          "job_id": "88023351828",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusterapi",
+          "test": "TestAccClusterAPI_moveBasic"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration",
+          "test": "TestAccLogIntegration_basicSplunk"
+        },
+        {
+          "job_id": "88023351713",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/maintenancewindow",
+          "test": "TestAccConfigRSMaintenanceWindow_basic"
+        },
+        {
+          "job_id": "88023351933",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectsettingsapi",
+          "test": "TestAccProjectSettingsAPI_basic"
+        }
+      ]
+    }
+  ],
+  "result": {
+    "category_counts": {
+      "api_contract": 0,
+      "api_error": 133,
+      "cleanup": 0,
+      "cloud_capacity": 0,
+      "code_regression": 0,
+      "timeout": 0
+    },
+    "confidence": "high",
+    "headline": "Infrastructure noise only",
+    "identity_digest": "18435ff4307ab5cf917907e17070e9b3b6ba59e365a985b774d48fae27d53fad",
+    "package_teardowns": 0,
+    "shape_b_tests": [],
+    "teardown_packages": [],
+    "test_total": 133,
+    "verdict": "yellow"
+  },
+  "schema": {
+    "name": "test-suite-historical-expected-decisions",
+    "version": 1
+  }
+}

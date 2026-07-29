@@ -41,6 +41,8 @@ jobs:
           go-version-file: 'go.mod'
       - name: Unit Test
         run: make test
+      - name: Test test-suite summary tool
+        run: make test-summary-tool
   github-linters:
     runs-on: ubuntu-latest
     permissions: {}

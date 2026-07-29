@@ -73,6 +73,10 @@ test: ## Run unit tests
 	@$(eval export MONGODB_ATLAS_ACCESS_TOKEN=)
 	go test ./... -timeout=120s -parallel=$(PARALLEL_GO_TEST) -race
 
+.PHONY: test-summary-tool
+test-summary-tool: ## Run test-suite summary tool tests
+	python3 -B -m unittest discover -s .agents/skills/summarize-test-suite/scripts -p 'test_*.py'
+
 .PHONY: testmact
 testmact: ## Run MacT tests (mocked acc tests)
 	@$(eval export ACCTEST_REGEX_RUN?=^TestAccMockable)

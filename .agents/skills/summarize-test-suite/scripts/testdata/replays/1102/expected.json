@@ -1,0 +1,94 @@
+{
+  "groups": [
+    {
+      "category": "timeout",
+      "cause": "Test-helper cluster creation exceeded its wait deadline.",
+      "evidence_contains": "timeout while waiting",
+      "label": "helper_timeout",
+      "selectors": [
+        {
+          "job_id": "89862083978",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection",
+          "test": "TestMigStreamRSStreamConnection_cluster"
+        },
+        {
+          "job_id": "89862083978",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor",
+          "test": "TestAccStreamProcessor_withFailoverEnabled"
+        },
+        {
+          "job_id": "89862083996",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant",
+          "test": "TestMigMongoDBEmployeeAccessGrant_basic"
+        }
+      ]
+    },
+    {
+      "category": "timeout",
+      "cause": "Resource creation exceeded its wait deadline.",
+      "evidence_contains": "timeout while waiting",
+      "label": "resource_timeout",
+      "selectors": [
+        {
+          "job_id": "89862084056",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/searchdeploymentapi",
+          "test": "TestAccSearchDeploymentAPI_basic"
+        },
+        {
+          "job_id": "89862083978",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection",
+          "test": "TestAccStreamRSStreamConnection_kafkaNetworkingVPC"
+        },
+        {
+          "job_id": "89862083978",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection",
+          "test": "TestAccStreamRSStreamConnection_AzureBlobStoragePrivateLink"
+        }
+      ]
+    },
+    {
+      "ambiguity": "The evidence cannot distinguish provider cleanup from slow Atlas deletion.",
+      "category": "timeout",
+      "cause": "Delete-on-create-timeout ended without leftover evidence.",
+      "evidence_contains": "Should be false",
+      "label": "shape_b_timeout",
+      "note": "delete_on_timeout_unverified",
+      "selectors": [
+        {
+          "job_id": "89862083886",
+          "package": "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster",
+          "test": "TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset"
+        }
+      ]
+    }
+  ],
+  "result": {
+    "category_counts": {
+      "api_contract": 0,
+      "api_error": 0,
+      "cleanup": 0,
+      "cloud_capacity": 0,
+      "code_regression": 0,
+      "timeout": 7
+    },
+    "confidence": "medium",
+    "headline": "Infrastructure noise only",
+    "identity_digest": "562247db1b1335f55f0f381d4d213d46de559ab7f4721f29694511277d701f0e",
+    "package_teardowns": 4,
+    "shape_b_tests": [
+      "TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset"
+    ],
+    "teardown_packages": [
+      "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster",
+      "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant",
+      "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection",
+      "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
+    ],
+    "test_total": 7,
+    "verdict": "yellow"
+  },
+  "schema": {
+    "name": "test-suite-historical-expected-decisions",
+    "version": 1
+  }
+}
