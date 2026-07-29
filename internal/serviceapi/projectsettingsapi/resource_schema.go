@@ -44,6 +44,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to enable the passing of sample field values with the use of generative AI features in the Data Explorer for the specified project.",
 			},
+			"is_data_validation_enabled": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether data validation is enabled for all clusters in the specified project.",
+			},
 			"is_extended_storage_sizes_enabled": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
@@ -80,6 +84,7 @@ type TFModel struct {
 	IsDataExplorerEnabled                           types.Bool   `tfsdk:"is_data_explorer_enabled"`
 	IsDataExplorerGenAIFeaturesEnabled              types.Bool   `tfsdk:"is_data_explorer_gen_ai_features_enabled"`
 	IsDataExplorerGenAISampleDocumentPassingEnabled types.Bool   `tfsdk:"is_data_explorer_gen_ai_sample_document_passing_enabled"`
+	IsDataValidationEnabled                         types.Bool   `tfsdk:"is_data_validation_enabled"`
 	IsExtendedStorageSizesEnabled                   types.Bool   `tfsdk:"is_extended_storage_sizes_enabled"`
 	IsNativeRerankingEnabled                        types.Bool   `tfsdk:"is_native_reranking_enabled"`
 	IsPerformanceAdvisorEnabled                     types.Bool   `tfsdk:"is_performance_advisor_enabled"`

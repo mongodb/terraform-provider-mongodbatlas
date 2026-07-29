@@ -69,6 +69,17 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - bool: {}
+          description: Flag that indicates whether data validation is enabled for all clusters in the specified project.
+          computed_optional_required: optional
+          tf_schema_name: is_data_validation_enabled
+          tf_model_name: IsDataValidationEnabled
+          api_name: isDataValidationEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - bool: {}
           description: Flag that indicates whether to enable extended storage sizes for the specified project.
           computed_optional_required: computed_optional
           tf_schema_name: is_extended_storage_sizes_enabled
