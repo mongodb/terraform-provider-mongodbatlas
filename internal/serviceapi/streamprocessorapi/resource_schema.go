@@ -22,6 +22,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Flag that indicates whether the stream processor is eligible for failover.",
 			},
 			"failover_enabled": schema.BoolAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that enables or disables failover for the stream processor.",
 			},

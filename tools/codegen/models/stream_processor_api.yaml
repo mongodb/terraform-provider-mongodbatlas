@@ -14,7 +14,7 @@ schema:
           request_only_required_on_create: false
         - bool: {}
           description: Flag that enables or disables failover for the stream processor.
-          computed_optional_required: optional
+          computed_optional_required: computed_optional
           tf_schema_name: failover_enabled
           tf_model_name: FailoverEnabled
           api_name: failoverEnabled

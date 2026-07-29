@@ -45,6 +45,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Flag that indicates whether to enable the passing of sample field values with the use of generative AI features in the Data Explorer for the specified project.",
 			},
 			"is_data_validation_enabled": schema.BoolAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether data validation is enabled for all clusters in the specified project.",
 			},

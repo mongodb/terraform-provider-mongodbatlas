@@ -70,7 +70,7 @@ schema:
           request_only_required_on_create: false
         - bool: {}
           description: Flag that indicates whether data validation is enabled for all clusters in the specified project.
-          computed_optional_required: optional
+          computed_optional_required: computed_optional
           tf_schema_name: is_data_validation_enabled
           tf_model_name: IsDataValidationEnabled
           api_name: isDataValidationEnabled
