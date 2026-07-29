@@ -15,32 +15,30 @@ import (
 // Renew token if it expires within 10 minutes to avoid authentication errors during Atlas API calls.
 const saTokenExpiryBuffer = 10 * time.Minute
 
-var saInfo = struct {
-	tokenSource      auth.TokenSource
-	clientID         string
-	clientSecret     string
+type saTokenSourceEntry struct {
+	tokenSource  auth.TokenSource
+	clientSecret string
+}
+
+// saTokenSourceCache caches token sources per service account (keyed by clientID) so a single
+// provider process can authenticate as more than one SA (e.g. org-creator SA, then the SA
+// created with a new org). baseURL and terraformVersion are process-wide: provider config and
+// nested SA clients share them.
+var saTokenSourceCache = struct {
+	sources          map[string]*saTokenSourceEntry
 	baseURL          string
 	terraformVersion string
 	mu               sync.Mutex
 	closed           bool
-}{}
+}{sources: make(map[string]*saTokenSourceEntry)}
 
-func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
-	saInfo.mu.Lock()
-	defer saInfo.mu.Unlock()
+// createTokenSourceFn is the OAuth token-source factory; overridden in unit tests.
+var createTokenSourceFn = defaultCreateTokenSource
 
-	if saInfo.closed {
-		return nil, fmt.Errorf("service account token source already closed")
-	}
+// revokeTokenFn revokes a single Service Account token; overridden in unit tests.
+var revokeTokenFn = defaultRevokeToken
 
-	baseURL = NormalizeBaseURL(baseURL)
-	if saInfo.tokenSource != nil { // Token source in cache.
-		if saInfo.clientID != clientID || saInfo.clientSecret != clientSecret || saInfo.baseURL != baseURL {
-			return nil, fmt.Errorf("service account credentials changed")
-		}
-		return saInfo.tokenSource, nil
-	}
-
+func defaultCreateTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
 	// Use a new context to avoid "context canceled" errors as the token source is reused and can outlast the callee context.
 	ctx := context.WithValue(context.Background(), auth.HTTPClient, NewOAuthHTTPClient(terraformVersion))
 	conf := GetServiceAccountConfig(clientID, clientSecret, baseURL)
@@ -48,12 +46,53 @@ func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (a
 	if _, err := tokenSource.Token(); err != nil { // Retrieve token to fail-fast if credentials are invalid.
 		return nil, err
 	}
-	saInfo.clientID = clientID
-	saInfo.clientSecret = clientSecret
-	saInfo.baseURL = baseURL
-	saInfo.terraformVersion = terraformVersion
-	saInfo.tokenSource = tokenSource
-	return saInfo.tokenSource, nil
+	return tokenSource, nil
+}
+
+func defaultRevokeToken(clientID string, entry *saTokenSourceEntry) {
+	token, err := entry.tokenSource.Token()
+	if err != nil {
+		return // Best-effort, no need to do anything if the token can't be retrieved.
+	}
+	conf := GetServiceAccountConfig(clientID, entry.clientSecret, saTokenSourceCache.baseURL)
+	ctx := context.WithValue(context.Background(), auth.HTTPClient, NewOAuthHTTPClient(saTokenSourceCache.terraformVersion))
+	_ = conf.RevokeToken(ctx, token) // Best-effort, no need to do anything if it fails.
+}
+
+func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
+	// Hold the cache lock through token creation so map updates stay synchronous when
+	// concurrent callers use different client_ids (multi-org create with nested SAs).
+	// That is the only path impacted by locking across the network call; we accept that
+	// serialization over a finer-grained lock.
+	saTokenSourceCache.mu.Lock()
+	defer saTokenSourceCache.mu.Unlock()
+
+	if saTokenSourceCache.closed {
+		return nil, fmt.Errorf("service account token source already closed")
+	}
+
+	baseURL = NormalizeBaseURL(baseURL)
+	if len(saTokenSourceCache.sources) > 0 && saTokenSourceCache.baseURL != baseURL {
+		return nil, fmt.Errorf("service account credentials changed")
+	}
+	if entry, ok := saTokenSourceCache.sources[clientID]; ok {
+		if entry.clientSecret != clientSecret {
+			return nil, fmt.Errorf("service account credentials changed")
+		}
+		return entry.tokenSource, nil
+	}
+
+	tokenSource, err := createTokenSourceFn(clientID, clientSecret, baseURL, terraformVersion)
+	if err != nil {
+		return nil, err
+	}
+	saTokenSourceCache.sources[clientID] = &saTokenSourceEntry{
+		tokenSource:  tokenSource,
+		clientSecret: clientSecret,
+	}
+	saTokenSourceCache.baseURL = baseURL
+	saTokenSourceCache.terraformVersion = terraformVersion
+	return tokenSource, nil
 }
 
 func NormalizeBaseURL(baseURL string) string {
@@ -69,21 +108,16 @@ func GetServiceAccountConfig(clientID, clientSecret, baseURL string) *clientcred
 	return config
 }
 
-// CloseTokenSource is called just before the provider finishes, it does a best-effort try to revoke the Service Access token.
-// It sets saInfo.closed = true to avoid future calls to getTokenSource, that should't happen as the provider is exiting.
+// CloseTokenSource is called just before the provider finishes, it does a best-effort try to revoke all cached Service Account tokens.
+// It sets saTokenSourceCache.closed = true to avoid future calls to getTokenSource, that shouldn't happen as the provider is exiting.
 func CloseTokenSource() {
-	saInfo.mu.Lock()
-	defer saInfo.mu.Unlock()
-	if saInfo.closed {
+	saTokenSourceCache.mu.Lock()
+	defer saTokenSourceCache.mu.Unlock()
+	if saTokenSourceCache.closed {
 		return
 	}
-	saInfo.closed = true
-	if saInfo.tokenSource == nil { // No need to do anything if SA was not initialized.
-		return
-	}
-	if token, err := saInfo.tokenSource.Token(); err == nil {
-		conf := GetServiceAccountConfig(saInfo.clientID, saInfo.clientSecret, saInfo.baseURL)
-		ctx := context.WithValue(context.Background(), auth.HTTPClient, NewOAuthHTTPClient(saInfo.terraformVersion))
-		_ = conf.RevokeToken(ctx, token) // Best-effort, no need to do anything if it fails.
+	saTokenSourceCache.closed = true
+	for clientID, entry := range saTokenSourceCache.sources {
+		revokeTokenFn(clientID, entry)
 	}
 }
