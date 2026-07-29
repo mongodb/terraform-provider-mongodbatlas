@@ -16,19 +16,20 @@ import (
 const saTokenExpiryBuffer = 10 * time.Minute
 
 type saTokenSourceEntry struct {
-	tokenSource      auth.TokenSource
-	clientSecret     string
-	baseURL          string
-	terraformVersion string
+	tokenSource  auth.TokenSource
+	clientSecret string
 }
 
 // saTokenSourceCache caches token sources per service account (keyed by clientID) so a single
 // provider process can authenticate as more than one SA (e.g. org-creator SA, then the SA
-// created with a new org).
+// created with a new org). baseURL and terraformVersion are process-wide: provider config and
+// nested SA clients share them.
 var saTokenSourceCache = struct {
-	sources map[string]*saTokenSourceEntry
-	mu      sync.Mutex
-	closed  bool
+	sources          map[string]*saTokenSourceEntry
+	baseURL          string
+	terraformVersion string
+	mu               sync.Mutex
+	closed           bool
 }{}
 
 // createTokenSourceFn is the OAuth token-source factory; overridden in unit tests.
@@ -53,8 +54,8 @@ func defaultRevokeToken(clientID string, entry *saTokenSourceEntry) {
 	if err != nil {
 		return // Best-effort, no need to do anything if the token can't be retrieved.
 	}
-	conf := GetServiceAccountConfig(clientID, entry.clientSecret, entry.baseURL)
-	ctx := context.WithValue(context.Background(), auth.HTTPClient, NewOAuthHTTPClient(entry.terraformVersion))
+	conf := GetServiceAccountConfig(clientID, entry.clientSecret, saTokenSourceCache.baseURL)
+	ctx := context.WithValue(context.Background(), auth.HTTPClient, NewOAuthHTTPClient(saTokenSourceCache.terraformVersion))
 	_ = conf.RevokeToken(ctx, token) // Best-effort, no need to do anything if it fails.
 }
 
@@ -74,8 +75,11 @@ func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (a
 	if saTokenSourceCache.sources == nil {
 		saTokenSourceCache.sources = make(map[string]*saTokenSourceEntry)
 	}
+	if len(saTokenSourceCache.sources) > 0 && saTokenSourceCache.baseURL != baseURL {
+		return nil, fmt.Errorf("service account credentials changed")
+	}
 	if entry, ok := saTokenSourceCache.sources[clientID]; ok {
-		if entry.clientSecret != clientSecret || entry.baseURL != baseURL {
+		if entry.clientSecret != clientSecret {
 			return nil, fmt.Errorf("service account credentials changed")
 		}
 		return entry.tokenSource, nil
@@ -86,11 +90,11 @@ func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (a
 		return nil, err
 	}
 	saTokenSourceCache.sources[clientID] = &saTokenSourceEntry{
-		tokenSource:      tokenSource,
-		clientSecret:     clientSecret,
-		baseURL:          baseURL,
-		terraformVersion: terraformVersion,
+		tokenSource:  tokenSource,
+		clientSecret: clientSecret,
 	}
+	saTokenSourceCache.baseURL = baseURL
+	saTokenSourceCache.terraformVersion = terraformVersion
 	return tokenSource, nil
 }
 

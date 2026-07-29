@@ -27,14 +27,16 @@ func ResetRevokeTokenForTest() {
 	revokeTokenFn = defaultRevokeToken
 }
 
-func ResetSAInfoForTest() {
+func ResetSATokenSourceCacheForTest() {
 	saTokenSourceCache.mu.Lock()
 	defer saTokenSourceCache.mu.Unlock()
 	saTokenSourceCache.sources = nil
+	saTokenSourceCache.baseURL = ""
+	saTokenSourceCache.terraformVersion = ""
 	saTokenSourceCache.closed = false
 }
 
-func SetSAInfoClosedForTest(closed bool) {
+func SetSATokenSourceCacheClosedForTest(closed bool) {
 	saTokenSourceCache.mu.Lock()
 	defer saTokenSourceCache.mu.Unlock()
 	saTokenSourceCache.closed = closed

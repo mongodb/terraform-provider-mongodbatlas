@@ -24,18 +24,18 @@ func (s staticTokenSource) Token() (*oauth2.Token, error) {
 	return s.token, nil
 }
 
-func resetSAInfo(t *testing.T) {
+func resetSATokenSourceCache(t *testing.T) {
 	t.Helper()
-	config.ResetSAInfoForTest()
+	config.ResetSATokenSourceCacheForTest()
 	t.Cleanup(func() {
-		config.ResetSAInfoForTest()
+		config.ResetSATokenSourceCacheForTest()
 		config.ResetCreateTokenSourceForTest()
 		config.ResetRevokeTokenForTest()
 	})
 }
 
 func TestGetTokenSource_AllowsDifferentClientIDs(t *testing.T) {
-	resetSAInfo(t)
+	resetSATokenSourceCache(t)
 
 	var mu sync.Mutex
 	created := make([]string, 0, 2)
@@ -61,7 +61,7 @@ func TestGetTokenSource_AllowsDifferentClientIDs(t *testing.T) {
 }
 
 func TestGetTokenSource_ReusesCacheForSameClientID(t *testing.T) {
-	resetSAInfo(t)
+	resetSATokenSourceCache(t)
 
 	calls := 0
 	config.SetCreateTokenSourceForTest(func(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
@@ -77,7 +77,7 @@ func TestGetTokenSource_ReusesCacheForSameClientID(t *testing.T) {
 }
 
 func TestGetTokenSource_RejectsSecretChangeForSameClientID(t *testing.T) {
-	resetSAInfo(t)
+	resetSATokenSourceCache(t)
 
 	config.SetCreateTokenSourceForTest(func(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
 		return staticTokenSource{token: &oauth2.Token{AccessToken: "tok", TokenType: "Bearer"}}, nil
@@ -90,8 +90,8 @@ func TestGetTokenSource_RejectsSecretChangeForSameClientID(t *testing.T) {
 	assert.Contains(t, err.Error(), "service account credentials changed")
 }
 
-func TestGetTokenSource_RejectsBaseURLChangeForSameClientID(t *testing.T) {
-	resetSAInfo(t)
+func TestGetTokenSource_RejectsBaseURLChange(t *testing.T) {
+	resetSATokenSourceCache(t)
 
 	config.SetCreateTokenSourceForTest(func(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
 		return staticTokenSource{token: &oauth2.Token{AccessToken: "tok", TokenType: "Bearer"}}, nil
@@ -102,10 +102,14 @@ func TestGetTokenSource_RejectsBaseURLChangeForSameClientID(t *testing.T) {
 	_, err = config.GetTokenSourceForTest("client-a", "secret-a", "https://cloud.mongodb.com", "1.0.0")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "service account credentials changed")
+
+	_, err = config.GetTokenSourceForTest("client-b", "secret-b", "https://cloud.mongodb.com", "1.0.0")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "service account credentials changed")
 }
 
 func TestGetTokenSource_ReusesCacheWhenBaseURLDiffersOnlyByTrailingSlash(t *testing.T) {
-	resetSAInfo(t)
+	resetSATokenSourceCache(t)
 
 	calls := 0
 	config.SetCreateTokenSourceForTest(func(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
@@ -121,7 +125,7 @@ func TestGetTokenSource_ReusesCacheWhenBaseURLDiffersOnlyByTrailingSlash(t *test
 }
 
 func TestCloseTokenSource_RevokesAllCachedSources(t *testing.T) {
-	resetSAInfo(t)
+	resetSATokenSourceCache(t)
 
 	config.SetCreateTokenSourceForTest(func(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
 		return staticTokenSource{token: &oauth2.Token{AccessToken: "tok-" + clientID, TokenType: "Bearer"}}, nil
@@ -145,11 +149,11 @@ func TestCloseTokenSource_RevokesAllCachedSources(t *testing.T) {
 }
 
 func TestGetTokenSource_ErrorsWhenClosed(t *testing.T) {
-	resetSAInfo(t)
+	resetSATokenSourceCache(t)
 	config.SetCreateTokenSourceForTest(func(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
 		return nil, errors.New("should not be called")
 	})
-	config.SetSAInfoClosedForTest(true)
+	config.SetSATokenSourceCacheClosedForTest(true)
 
 	_, err := config.GetTokenSourceForTest("client-a", "secret-a", "", "1.0.0")
 	require.Error(t, err)
