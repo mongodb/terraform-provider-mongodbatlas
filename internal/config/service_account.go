@@ -29,7 +29,7 @@ var saTokenSourceCache = struct {
 	sources map[string]*saTokenSourceEntry
 	mu      sync.Mutex
 	closed  bool
-}{sources: make(map[string]*saTokenSourceEntry)}
+}{}
 
 // createTokenSourceFn is the OAuth token-source factory; overridden in unit tests.
 var createTokenSourceFn = defaultCreateTokenSource
@@ -59,32 +59,28 @@ func defaultRevokeToken(clientID string, entry *saTokenSourceEntry) {
 }
 
 func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
-	baseURL = NormalizeBaseURL(baseURL)
-
-	// Read from cache.
 	saTokenSourceCache.mu.Lock()
-	ts, err := getCachedTokenSource(clientID, clientSecret, baseURL)
-	saTokenSourceCache.mu.Unlock()
-	if ts != nil || err != nil {
-		return ts, err
+	defer saTokenSourceCache.mu.Unlock()
+
+	if saTokenSourceCache.closed {
+		return nil, fmt.Errorf("service account token source already closed")
 	}
 
-	// Cache miss, fetch token.
+	baseURL = NormalizeBaseURL(baseURL)
+	if saTokenSourceCache.sources == nil {
+		saTokenSourceCache.sources = make(map[string]*saTokenSourceEntry)
+	}
+	if entry, ok := saTokenSourceCache.sources[clientID]; ok {
+		if entry.clientSecret != clientSecret || entry.baseURL != baseURL {
+			return nil, fmt.Errorf("service account credentials changed")
+		}
+		return entry.tokenSource, nil
+	}
+
 	tokenSource, err := createTokenSourceFn(clientID, clientSecret, baseURL, terraformVersion)
 	if err != nil {
 		return nil, err
 	}
-
-	// Re-acquire lock.
-	saTokenSourceCache.mu.Lock()
-	defer saTokenSourceCache.mu.Unlock()
-
-	// Re-check cache.
-	if ts, err = getCachedTokenSource(clientID, clientSecret, baseURL); ts != nil || err != nil {
-		return ts, err
-	}
-
-	// Write to cache.
 	saTokenSourceCache.sources[clientID] = &saTokenSourceEntry{
 		tokenSource:      tokenSource,
 		clientSecret:     clientSecret,
@@ -92,21 +88,6 @@ func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (a
 		terraformVersion: terraformVersion,
 	}
 	return tokenSource, nil
-}
-
-// getCachedTokenSource checks the closed flag and reads from the sources map. Callers must hold a lock on saTokenSourceCache.mu.
-func getCachedTokenSource(clientID, clientSecret, baseURL string) (auth.TokenSource, error) {
-	if saTokenSourceCache.closed {
-		return nil, fmt.Errorf("service account token source already closed")
-	}
-	entry, ok := saTokenSourceCache.sources[clientID]
-	if !ok {
-		return nil, nil
-	}
-	if entry.clientSecret != clientSecret || entry.baseURL != baseURL {
-		return nil, fmt.Errorf("service account credentials changed")
-	}
-	return entry.tokenSource, nil
 }
 
 func NormalizeBaseURL(baseURL string) string {

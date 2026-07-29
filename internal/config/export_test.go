@@ -30,7 +30,7 @@ func ResetRevokeTokenForTest() {
 func ResetSAInfoForTest() {
 	saTokenSourceCache.mu.Lock()
 	defer saTokenSourceCache.mu.Unlock()
-	saTokenSourceCache.sources = make(map[string]*saTokenSourceEntry)
+	saTokenSourceCache.sources = nil
 	saTokenSourceCache.closed = false
 }
 
