@@ -9,6 +9,10 @@ ENHANCEMENTS:
 * resource/mongodbatlas_project: Adds `is_native_reranking_enabled` attribute ([#4568](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4568))
 * resource/mongodbatlas_stream_privatelink_endpoint: Supports updating `dns_domain` in place ([#4578](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4578))
 
+BUG FIXES:
+
+* resource/mongodbatlas_organization: Fixes create with `service_account` when the provider is authenticated with a Service Account by caching OAuth tokens per `client_id` ([#4597](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4597))
+
 ## 2.14.0 (July 15, 2026)
 
 FEATURES:
