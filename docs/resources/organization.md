@@ -6,6 +6,8 @@ subcategory: "Organizations"
 
 `mongodbatlas_organization` provides programmatic management (including creation) of a MongoDB Atlas Organization resource.
 
+The [Official MongoDB Atlas Organization Module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/organization/mongodbatlas/latest) simplifies organization creation and management with support for resource policies.
+
 ~> **IMPORTANT NOTE:**  When you establish an Atlas organization using this resource, it automatically generates a set of initial credentials. Defining `description` and `role_names` creates a Programmatic API Key (public and private key) — in this case, `role_names` must have the ORG_OWNER role specified. Defining a `service_account` block creates a [Service Account](../guides/provider-configuration#service-account-recommended) (client ID and client secret) instead. The API does not allow creating both in the same request. These credential values are stored in the Terraform state and used by the resource for subsequent operations on the organization.
 
 ~> **IMPORTANT NOTE:** To use this resource, the requesting API Key must have the Organization Owner role. The requesting API Key's organization must be a paying organization. To learn more, see Configure a Paying Organization in the MongoDB Atlas documentation.
@@ -47,9 +49,9 @@ output "service_account_secret" {
 ~> **NOTE:** When a `service_account` block is defined, a Service Account is created instead of a Programmatic API Key. The `public_key` and `private_key` attributes will not be populated in this case.
 
 ### Further Examples
-- [Organization setup - step 1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_organization/organization-step-1)
-- [Organization setup - step 2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_organization/organization-step-2)
-- [Organization import](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_organization/organization-import)
+- [Organization setup - step 1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_organization/organization-step-1)
+- [Organization setup - step 2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_organization/organization-step-2)
+- [Organization import](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_organization/organization-import)
 
 ## Argument Reference
 

@@ -11,12 +11,14 @@ The Terraform MongoDB Atlas Provider offers a two-resource path to perform an au
 - The second resource, [`mongodbatlas_cloud_provider_access_authorization`](cloud_provider_access_authorization), helps to perform the authorization using the `role_id` of the first resource.
 
 This path is helpful in a multi-provider Terraform file, and allows for a single and decoupled apply.
-See example of this two-resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_cloud_provider_access/aws), AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_cloud_provider_access/azure) and GCP Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_cloud_provider_access/gcp).
+See example of this two-resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_cloud_provider_access/aws), AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_cloud_provider_access/azure) and GCP Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_cloud_provider_access/gcp).
 
 
 ## mongodbatlas_cloud_provider_access_setup
 
 This is the first resource in the two-resource path as described above.
+
+The [Official MongoDB Atlas cloud provider modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) for [AWS](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-aws/mongodbatlas/latest), [Azure](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-azure/mongodbatlas/latest), and [Google Cloud](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-gcp/mongodbatlas/latest) make use of this resource and simplify cloud provider access configuration.
 
 `mongodbatlas_cloud_provider_access_setup` allows you to register an AWS, AZURE or GCP IAM roles in Atlas.
 
@@ -59,9 +61,9 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 ```
 
 ### Further Examples
-- [AWS Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_cloud_provider_access/aws)
-- [Azure Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_cloud_provider_access/azure)
-- [GCP Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_cloud_provider_access/gcp)
+- [AWS Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_cloud_provider_access/aws)
+- [Azure Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_cloud_provider_access/azure)
+- [GCP Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_cloud_provider_access/gcp)
 
 
 ## Argument Reference
@@ -88,7 +90,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 * `last_updated_date`                - Date and time when this Azure Service Principal was last updated. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 * `role_id`                        - Unique ID of this role.
 
--> **NOTE:** For more details on how attributes are used to enable access to cloud provider accounts see [AWS example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_cloud_provider_access/aws) and [Azure example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_cloud_provider_access/azure). 
+-> **NOTE:** For more details on how attributes are used to enable access to cloud provider accounts see [AWS example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_cloud_provider_access/aws) and [Azure example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_cloud_provider_access/azure). 
 
 ## Import
 It can be imported using project ID, provider name and role_id in the format `project_id`-`provider_name`-`role_id`, e.g.

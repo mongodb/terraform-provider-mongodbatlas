@@ -6,6 +6,8 @@ subcategory: "Projects"
 
 `mongodbatlas_project` provides a Project resource. This allows project to be created.
 
+The [Official MongoDB Atlas Project Module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/project/mongodbatlas/latest) simplifies project management by bundling IP access lists, maintenance windows, backup compliance policies, and log integrations.
+
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot delete the Atlas project if any snapshots exist.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
 ## Example Usage
@@ -40,7 +42,7 @@ resource "mongodbatlas_project" "test" {
 ```
 
 ### Further Examples
-- [Atlas Project with custom limits](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_project)
+- [Atlas Project with custom limits](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_project)
 
 ## Argument Reference
 
