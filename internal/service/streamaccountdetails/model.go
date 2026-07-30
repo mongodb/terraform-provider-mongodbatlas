@@ -1,21 +1,17 @@
 package streamaccountdetails
 
 import (
-	"context"
-
 	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func NewTFStreamAccountDetails(
-	ctx context.Context,
 	projectID string,
 	cloudProvider string,
 	region string,
 	accountDetails *admin.AccountDetails,
-) (*TFStreamAccountDetailsModel, diag.Diagnostics) {
+) *TFStreamAccountDetailsModel {
 	return &TFStreamAccountDetailsModel{
 		ProjectId:           types.StringValue(projectID),
 		AwsAccountId:        types.StringPointerValue(accountDetails.AwsAccountId),
@@ -25,5 +21,5 @@ func NewTFStreamAccountDetails(
 		RegionName:          types.StringValue(region),
 		VirtualNetworkName:  types.StringPointerValue(accountDetails.VirtualNetworkName),
 		VpcId:               types.StringPointerValue(accountDetails.VpcId),
-	}, nil
+	}
 }

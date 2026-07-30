@@ -33,7 +33,7 @@ type ProjectsDS struct {
 }
 
 func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(), &conversion.PluralDataSourceSchemaRequest{
 		OverridenFields: dataSourceOverridenFields(),
 		HasLegacyFields: true,
 	})
@@ -83,7 +83,7 @@ func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClien
 			MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersAPI,
 		}
 
-		projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &diagnostics)
+		projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams)
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
 			projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, projectProps)
 			diagnostics = append(diagnostics, diags...)

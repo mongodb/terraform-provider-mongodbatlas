@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
-func PluralDataSourceSchema(ctx context.Context) schema.Schema {
+func PluralDataSourceSchema() schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"project_id": schema.StringAttribute{

@@ -1,8 +1,6 @@
 package encryptionatrest
 
 import (
-	"context"
-
 	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -10,7 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func NewTFEncryptionAtRestRSModel(ctx context.Context, projectID string, encryptionResp *admin.EncryptionAtRest) *TfEncryptionAtRestRSModel {
+func NewTFEncryptionAtRestRSModel(projectID string, encryptionResp *admin.EncryptionAtRest) *TfEncryptionAtRestRSModel {
 	enabledForSearchNodes := false
 	if encryptionResp.EnabledForSearchNodes != nil {
 		enabledForSearchNodes = encryptionResp.GetEnabledForSearchNodes()
@@ -18,14 +16,14 @@ func NewTFEncryptionAtRestRSModel(ctx context.Context, projectID string, encrypt
 	return &TfEncryptionAtRestRSModel{
 		ID:                    types.StringValue(projectID),
 		ProjectID:             types.StringValue(projectID),
-		AwsKmsConfig:          NewTFAwsKmsConfig(ctx, encryptionResp.AwsKms),
-		AzureKeyVaultConfig:   NewTFAzureKeyVaultConfig(ctx, encryptionResp.AzureKeyVault),
-		GoogleCloudKmsConfig:  NewTFGcpKmsConfig(ctx, encryptionResp.GoogleCloudKms),
+		AwsKmsConfig:          NewTFAwsKmsConfig(encryptionResp.AwsKms),
+		AzureKeyVaultConfig:   NewTFAzureKeyVaultConfig(encryptionResp.AzureKeyVault),
+		GoogleCloudKmsConfig:  NewTFGcpKmsConfig(encryptionResp.GoogleCloudKms),
 		EnabledForSearchNodes: types.BoolValue(enabledForSearchNodes),
 	}
 }
 
-func NewTFAwsKmsConfig(ctx context.Context, awsKms *admin.AWSKMSConfiguration) []TFAwsKmsConfigModel {
+func NewTFAwsKmsConfig(awsKms *admin.AWSKMSConfiguration) []TFAwsKmsConfigModel {
 	if awsKms == nil {
 		return []TFAwsKmsConfigModel{}
 	}
@@ -35,7 +33,7 @@ func NewTFAwsKmsConfig(ctx context.Context, awsKms *admin.AWSKMSConfiguration) [
 	}
 }
 
-func NewTFAzureKeyVaultConfig(ctx context.Context, az *admin.AzureKeyVault) []TFAzureKeyVaultConfigModel {
+func NewTFAzureKeyVaultConfig(az *admin.AzureKeyVault) []TFAzureKeyVaultConfigModel {
 	if az == nil {
 		return []TFAzureKeyVaultConfigModel{}
 	}
@@ -45,7 +43,7 @@ func NewTFAzureKeyVaultConfig(ctx context.Context, az *admin.AzureKeyVault) []TF
 	}
 }
 
-func NewTFGcpKmsConfig(ctx context.Context, gcpKms *admin.GoogleCloudKMS) []TFGcpKmsConfigModel {
+func NewTFGcpKmsConfig(gcpKms *admin.GoogleCloudKMS) []TFGcpKmsConfigModel {
 	if gcpKms == nil {
 		return []TFGcpKmsConfigModel{}
 	}

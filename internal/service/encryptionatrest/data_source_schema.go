@@ -1,15 +1,13 @@
 package encryptionatrest
 
 import (
-	"context"
-
 	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func DataSourceSchema(ctx context.Context) schema.Schema {
+func DataSourceSchema() schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"aws_kms_config": schema.SingleNestedAttribute{

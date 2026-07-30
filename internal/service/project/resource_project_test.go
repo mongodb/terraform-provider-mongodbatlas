@@ -141,7 +141,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 				MongoDBCloudUsersAPI:  cloudUsersMock,
 			}
 
-			_, err := project.GetProjectPropsFromAPI(t.Context(), projectPropsParams, nil)
+			_, err := project.GetProjectPropsFromAPI(t.Context(), projectPropsParams)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
