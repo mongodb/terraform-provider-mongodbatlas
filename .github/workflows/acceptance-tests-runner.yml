@@ -670,8 +670,8 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.gcp_workload_identity_provider }}
           service_account: ${{ secrets.gcp_service_account_email }}
-      - name: Enable autogen
-        run: make tools enable-autogen
+      - name: Enable internal autogen resources
+        run: make tools enable-internal-autogen
       - name: Acceptance Tests
         env:
           AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
@@ -729,8 +729,8 @@ jobs:
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
-      - name: Enable autogen
-        run: make tools enable-autogen
+      - name: Enable internal autogen resources
+        run: make tools enable-internal-autogen
       - name: Acceptance Tests
         env:
           AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
