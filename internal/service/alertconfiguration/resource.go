@@ -155,9 +155,6 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"severity_override": schema.StringAttribute{
 				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 		},
 		Blocks: map[string]schema.Block{
