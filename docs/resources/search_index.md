@@ -43,6 +43,30 @@ EOF
 }
 ```
 
+### Vector index with automatically generated embeddings
+```terraform
+resource "mongodbatlas_search_index" "test-auto-embed-vector-index" {
+  project_id = "<PROJECT_ID>"
+  cluster_name = "<CLUSTER_NAME>"
+  collection_name = "collection_test"
+  database = "database_test"
+  name = "test-auto-embed-vector-index"
+  type = "vectorSearch"
+  fields = <<-EOF
+[{
+      "type": "autoEmbed",
+      "path": "description",
+      "model": "voyage-4-lite",
+      "modality": "text"
+},
+{
+      "type": "filter",
+      "path": "property_type"
+}]
+EOF
+}
+```
+
 ### Advanced search index (with custom analyzers)
 ```terraform
 resource "mongodbatlas_search_index" "test-advanced-search-index" {
@@ -226,7 +250,10 @@ EOF
 * `search_analyzer` - [Analyzer](https://www.mongodb.com/docs/atlas/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when searching the index. Defaults to [lucene.standard](https://www.mongodb.com/docs/atlas/reference/atlas-search/analyzers/standard/#std-label-ref-standard-analyzer)
 * `synonyms` - Synonyms mapping definition to use in this index.
 
-* `fields` - Array of [Fields](https://www.mongodb.com/docs/atlas/atlas-search/field-types/knn-vector/#std-label-fts-data-types-knn-vector) to configure this `vectorSearch` index. It is mandatory for vector searches and it must contain at least one `vector` type field. This field needs to be a JSON string in order to be decoded correctly.
+* `fields` - Array of [Fields](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/) to configure this `vectorSearch` index. It is mandatory for vector searches and it must contain at least one `vector` or `autoEmbed` type field. This field needs to be a JSON string in order to be decoded correctly. Supported field types include:
+  * `vector` - Field that contains vector embeddings that you generate outside of Atlas and store in your collection. Requires `path`, `numDimensions`, and `similarity`. To learn more, see [How to Index Vector Fields](https://www.mongodb.com/docs/atlas/atlas-search/field-types/vector-type/).
+  * `autoEmbed` - Field that contains source data, such as text, that MongoDB automatically converts to vector embeddings at index time and query time. Use this type instead of `vector` when you want MongoDB to generate the embeddings for you. Requires `path` and `model`, and also accepts `modality` and `quantization`. To learn more, including the list of supported embedding models, see [Automated Embedding](https://www.mongodb.com/docs/vector-search/crud-embeddings/automated-embedding/).
+  * `filter` - Additional field to pre-filter your data by.
 
 * `stored_source` - String that can be "true" (store all fields), "false" (default, don't store any field), or a JSON string that contains the list of fields to store (include) or not store (exclude) on Atlas Search. To learn more, see [Stored Source Fields](https://www.mongodb.com/docs/atlas/atlas-search/stored-source-definition/).
   ```terraform
