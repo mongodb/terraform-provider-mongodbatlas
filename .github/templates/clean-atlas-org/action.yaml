@@ -15,7 +15,7 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a
+    - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
       with:
         go-version-file: ${{ format('{0}go.mod', inputs.repo-path) }}
     - name: Build

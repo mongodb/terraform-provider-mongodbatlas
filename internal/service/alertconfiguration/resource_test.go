@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -683,7 +684,9 @@ func TestAccConfigRSAlertConfiguration_updateNotificationTypeFromTeamsToPagerDut
 
 func TestAccConfigRSAlertConfiguration_withSeverityOverride(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID  = acc.ProjectIDExecution(t)
+		errorStr   = "ERROR"
+		warningStr = "WARNING"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -692,26 +695,22 @@ func TestAccConfigRSAlertConfiguration_withSeverityOverride(t *testing.T) {
 		CheckDestroy:             checkDestroy(),
 		Steps: []resource.TestStep{
 			{
-				Config: configWithSeverityOverride(projectID, conversion.StringPtr("ERROR")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "severity_override", "ERROR"),
-					// Data source checks
-					checkExists(dataSourceName),
-					resource.TestCheckResourceAttr(dataSourceName, "severity_override", "ERROR"),
-				),
+				Config: configWithSeverityOverride(projectID, &errorStr),
+				Check:  checkSeverityOverride(&errorStr),
 			},
-			// TODO: Should check for no attr once CLOUDP-353933 is fixed.
-			// {
-			// 	Config: configWithSeverityOverride(projectID, nil),
-			// 	Check: resource.ComposeAggregateTestCheckFunc(
-			// 		checkExists(resourceName),
-			// 		resource.TestCheckNoResourceAttr(resourceName, "severity_override"),
-			// 		// Data source checks
-			// 		checkExists(dataSourceName),
-			// 		resource.TestCheckNoResourceAttr(resourceName, "severity_override"),
-			// 	),
-			// },
+			{
+				Config: configWithSeverityOverride(projectID, &warningStr),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+				},
+				Check: checkSeverityOverride(&warningStr),
+			},
+			{
+				Config: configWithSeverityOverride(projectID, nil),
+				Check:  checkSeverityOverride(nil),
+			},
 		},
 	})
 }
@@ -732,6 +731,22 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		return nil
 	}
+}
+
+func checkSeverityOverride(severity *string) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{checkExists(resourceName), checkExists(dataSourceName)}
+	if severity == nil {
+		checks = append(checks,
+			resource.TestCheckNoResourceAttr(resourceName, "severity_override"),
+			resource.TestCheckNoResourceAttr(dataSourceName, "severity_override"),
+		)
+	} else {
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, "severity_override", *severity),
+			resource.TestCheckResourceAttr(dataSourceName, "severity_override", *severity),
+		)
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func checkDestroy() resource.TestCheckFunc {

@@ -382,7 +382,7 @@ func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, na
 	if err != nil {
 		errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s.update' operation: %w", name, err))
 	}
-	_, err = extractOp(spec.Paths, resourceConfig.Delete)
+	deleteOp, err := extractOp(spec.Paths, resourceConfig.Delete)
 	if err != nil {
 		errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s.delete' operation: %w", name, err))
 	}
@@ -399,6 +399,7 @@ func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, na
 		CreateOp:           createOp,
 		ReadOp:             readOp,
 		UpdateOp:           updateOp,
+		DeleteOp:           deleteOp,
 	}, errResult
 }
 

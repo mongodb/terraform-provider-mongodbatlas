@@ -1,10 +1,19 @@
 ## (Unreleased)
 
+## 2.15.0 (July 29, 2026)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_project: Adds `is_native_reranking_enabled` attribute ([#4568](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4568))
 * data-source/mongodbatlas_projects: Adds `is_native_reranking_enabled` attribute ([#4568](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4568))
+* provider: Warns when `base_url`, `realm_base_url`, or `is_mongodbgov_cloud` are set while using AWS Secrets Manager credentials, as these values are ignored on that path and must be defined in the secret payload ([#4581](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4581))
+* resource/mongodbatlas_alert_configuration: Supports in-place updates for `severity_override` ([#4598](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4598))
 * resource/mongodbatlas_project: Adds `is_native_reranking_enabled` attribute ([#4568](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4568))
+* resource/mongodbatlas_stream_privatelink_endpoint: Supports updating `dns_domain` in place ([#4578](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4578))
+
+BUG FIXES:
+
+* resource/mongodbatlas_organization: Fixes create with `service_account` when the provider is authenticated with a Service Account by caching OAuth tokens per `client_id` ([#4597](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4597))
 
 ## 2.14.0 (July 15, 2026)
 

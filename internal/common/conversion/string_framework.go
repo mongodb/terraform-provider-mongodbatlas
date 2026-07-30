@@ -18,11 +18,11 @@ func ToTFMapOfSlices(ctx context.Context, values map[string][]string) (basetypes
 	return types.MapValueFrom(ctx, types.ListType{ElemType: types.StringType}, values)
 }
 
-func ToTFMapOfString(diags *diag.Diagnostics, values map[string]string) basetypes.MapValue {
+func ToTFMapOfString(ctx context.Context, diags *diag.Diagnostics, values map[string]string) basetypes.MapValue {
 	if values == nil {
 		return basetypes.NewMapNull(types.StringType)
 	}
-	mapValue, localDiags := types.MapValueFrom(context.Background(), types.StringType, values)
+	mapValue, localDiags := types.MapValueFrom(ctx, types.StringType, values)
 	diags.Append(localDiags...)
 	return mapValue
 }

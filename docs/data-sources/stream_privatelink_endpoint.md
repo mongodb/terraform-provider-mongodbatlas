@@ -391,15 +391,17 @@ output "privatelink_endpoint_id" {
 ### Read-Only
 
 - `arn` (String) Amazon Resource Name (ARN). Required for AWS Provider and MSK vendor.
-- `dns_domain` (String) The domain hostname. Required for the following provider and vendor combinations:
+- `dns_domain` (String) The domain hostname. Optional for AWS Confluent Enterprise Kafka Cluster. Required for the following provider and vendor combinations:
 
-	* AWS provider with CONFLUENT vendor.
+	* AWS provider with CONFLUENT vendor for Dedicated Kafka Cluster.
 
 	* AZURE provider with EVENTHUB or CONFLUENT vendor.
 
 	* AZURE provider with AZURE_BLOB_STORAGE vendor. This should follow the format `{storageAccount}.blob.core.windows.net`.
 
 	* For GCP provider with PUBSUB vendor, the API computes this process.
+
+	This attribute can be updated in place for AWS Confluent Enterprise Kafka Cluster. Updating it is only allowed when no domain is currently set, or when the connection is in the `IDLE` state.
 - `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones. Required for AWS Provider and CONFLUENT vendor. If your AWS CONFLUENT cluster doesn't use subdomains, you must set this to the empty array [].
 - `error_message` (String) Error message if the connection is in a failed state.
 - `interface_endpoint_id` (String) Interface endpoint ID that is created from the specified service endpoint ID.

@@ -47,9 +47,8 @@ type APISpecResource struct {
 	CreateOp           *high.Operation
 	ReadOp             *high.Operation
 	UpdateOp           *high.Operation
+	DeleteOp           *high.Operation
 }
-
-// TODO: Restore DeleteOp if external Go source compatibility is required; removing the exported field can break consumers.
 
 func (s *APISpecSchema) GetComputability(name string) ComputedOptionalRequired {
 	if slices.Contains(s.Schema.Required, name) {

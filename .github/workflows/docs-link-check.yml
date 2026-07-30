@@ -20,7 +20,7 @@ jobs:
     if: github.event_name == 'pull_request' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && (inputs.mode == 'offline' || inputs.mode == 'both'))
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Offline check (relative links, self-repo links, anchors)
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8
         with:
@@ -41,7 +41,7 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 2 # need HEAD^1 (the base parent) for the changed-files diff
       - name: Collect changed markdown files
@@ -62,7 +62,7 @@ jobs:
     if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && (inputs.mode == 'online' || inputs.mode == 'both'))
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Online check (all docs)
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8
         with:
@@ -76,11 +76,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Notify Slack
-        uses: slackapi/slack-github-action@0d95c9a7becc1e6e297d76df9bc735c44f4cbcbc
+        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "${{ github.event.repository.name }}: nightly docs link check failed. ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "text": "❌ ${{ github.event.repository.name }}: nightly docs link check failed. ${{ secrets.SLACK_ONCALL_TAG }} <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Failed Action>"
             }
