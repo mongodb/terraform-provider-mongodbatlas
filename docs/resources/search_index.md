@@ -141,7 +141,7 @@ resource "mongodbatlas_search_index" "conf-dynamic" {
 ```
 
 ### Further Examples
-- [Search Index Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_search_index)
+- [Search Index Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_search_index)
 
 ## Argument Reference
 
