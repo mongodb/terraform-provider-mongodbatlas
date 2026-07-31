@@ -548,30 +548,30 @@ func TestNewStreamProcessorUpdateReqOptions(t *testing.T) {
 	nullDlq := types.ObjectNull(streamprocessor.DlqObjectType.AttrTypes)
 
 	testCases := map[string]struct {
-		options             func(t *testing.T) types.Object
+		options             types.Object
 		expectOptionsSet    bool
 		expectDlqSet        bool
 		expectResumeSet     bool
 		expectedResumeValue bool
 	}{
 		"options not set": {
-			options:          func(*testing.T) types.Object { return types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes) },
+			options:          types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
 			expectOptionsSet: false,
 		},
 		"dlq only": {
-			options:          func(t *testing.T) types.Object { return tfOptions(t, tfDlq(t), types.BoolNull()) },
+			options:          tfOptions(t, tfDlq(t), types.BoolNull()),
 			expectOptionsSet: true,
 			expectDlqSet:     true,
 		},
 		"resume_from_checkpoint only": {
-			options:             func(t *testing.T) types.Object { return tfOptions(t, nullDlq, types.BoolValue(false)) },
+			options:             tfOptions(t, nullDlq, types.BoolValue(false)),
 			expectOptionsSet:    true,
 			expectDlqSet:        false,
 			expectResumeSet:     true,
 			expectedResumeValue: false,
 		},
 		"both dlq and resume_from_checkpoint": {
-			options:             func(t *testing.T) types.Object { return tfOptions(t, tfDlq(t), types.BoolValue(true)) },
+			options:             tfOptions(t, tfDlq(t), types.BoolValue(true)),
 			expectOptionsSet:    true,
 			expectDlqSet:        true,
 			expectResumeSet:     true,
@@ -587,7 +587,7 @@ func TestNewStreamProcessorUpdateReqOptions(t *testing.T) {
 				Pipeline:      validPipeline,
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
-				Options:       tc.options(t),
+				Options:       tc.options,
 			}
 			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), model)
 			require.False(t, diags.HasError())

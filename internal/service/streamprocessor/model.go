@@ -81,12 +81,12 @@ func parseOptions(ctx context.Context, options *types.Object) (*TFOptionsModel, 
 // ResumeFromCheckpointFromOptions returns the resume_from_checkpoint value nested under options,
 // or a null Bool when options or the attribute is not set. The Atlas Admin API never returns this
 // value, so it must be carried over from configuration or prior state.
-func ResumeFromCheckpointFromOptions(ctx context.Context, options *types.Object) types.Bool {
+func ResumeFromCheckpointFromOptions(ctx context.Context, options *types.Object) (types.Bool, diag.Diagnostics) {
 	optionsModel, diags := parseOptions(ctx, options)
 	if diags.HasError() || optionsModel == nil {
-		return types.BoolNull()
+		return types.BoolNull(), diags
 	}
-	return optionsModel.ResumeFromCheckpoint
+	return optionsModel.ResumeFromCheckpoint, diags
 }
 
 func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.UpdateStreamProcessorApiParams, diag.Diagnostics) {
@@ -149,7 +149,11 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, w
 	if diags.HasError() {
 		return nil, diags
 	}
-	optionsTF, diags := ConvertOptionsToTF(ctx, apiResp.Options, ResumeFromCheckpointFromOptions(ctx, configOptions))
+	resumeFromCheckpoint, diags := ResumeFromCheckpointFromOptions(ctx, configOptions)
+	if diags.HasError() {
+		return nil, diags
+	}
+	optionsTF, diags := ConvertOptionsToTF(ctx, apiResp.Options, resumeFromCheckpoint)
 	if diags.HasError() {
 		return nil, diags
 	}

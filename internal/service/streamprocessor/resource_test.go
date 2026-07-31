@@ -16,7 +16,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 type connectionConfig struct {
@@ -93,10 +92,9 @@ func TestAccStreamProcessor_withFailoverEnabled(t *testing.T) {
 		}})
 }
 
-// TestAccStreamProcessor_resumeFromCheckpoint is the HELP-97694 reproduction: modifying the $source
-// stage of a running processor fails with HTTP 400 unless resume_from_checkpoint is false, because
-// the Atlas Admin API defaults it to true. Requires a real Atlas cluster so the processor can run
-// and produce a checkpoint.
+// TestAccStreamProcessor_resumeFromCheckpoint verifies that modifying the $source stage of a running
+// processor fails with HTTP 400 unless resume_from_checkpoint is false, because the Atlas Admin API
+// defaults it to true. Requires a real Atlas cluster so the processor can run and produce a checkpoint.
 func TestAccStreamProcessor_resumeFromCheckpoint(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ClusterNameExecution(t, false)
@@ -120,8 +118,9 @@ func TestAccStreamProcessor_resumeFromCheckpoint(t *testing.T) {
 				),
 			},
 			{
-				// Change the $source filter with resume_from_checkpoint = false. Fails with HTTP 400 without the fix.
-				Config: configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", admin.PtrBool(false)),
+				// Change the $source filter with resume_from_checkpoint = false, which the API requires
+				// to accept a $source modification.
+				Config: configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", new(false)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "options.resume_from_checkpoint", "false"),
 					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
@@ -131,7 +130,7 @@ func TestAccStreamProcessor_resumeFromCheckpoint(t *testing.T) {
 			},
 			{
 				// The value is write-only, so it must be preserved from state rather than nulled on refresh.
-				Config:   configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", admin.PtrBool(false)),
+				Config:   configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", new(false)),
 				PlanOnly: true,
 			},
 			{
