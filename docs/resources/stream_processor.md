@@ -156,9 +156,12 @@ output "stream_processors_results" {
 <a id="nestedatt--options"></a>
 ### Nested Schema for `options`
 
-Required:
+Optional:
 
 - `dlq` (Attributes) Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information. (see [below for nested schema](#nestedatt--options--dlq))
+- `resume_from_checkpoint` (Boolean) When `true`, the stream processor resumes from its last checkpoint after being modified. Set to `false` to discard the existing checkpoint, which is required when modifying the `$source` stage of the `pipeline`. Defaults to `true` when not set.
+
+**NOTE** This attribute only affects update operations, it is ignored on create. The Atlas Admin API does not return this value, so it is stored from configuration and is always `null` in the `mongodbatlas_stream_processor` and `mongodbatlas_stream_processors` data sources.
 
 <a id="nestedatt--options--dlq"></a>
 ### Nested Schema for `options.dlq`

@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/mongodbatlas_stream_processor: Adds `options.resume_from_checkpoint` to allow modifying the `$source` stage of a `pipeline`, which the Atlas Admin API rejects while resuming from an existing checkpoint. The attribute only applies to updates and is not returned by the API, so it is always `null` in data sources
+```
+
+```release-note:enhancement
+resource/mongodbatlas_stream_processor: Makes `options.dlq` optional so `options` can be set with only `resume_from_checkpoint`
+```
