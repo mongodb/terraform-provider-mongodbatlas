@@ -11,8 +11,13 @@ variable "atlas_client_secret" {
   default     = ""
 }
 
-variable "org_id" {
-  description = "Atlas Organization ID where the project is created"
+variable "project_id" {
+  description = "MongoDB Atlas project (groupId) that holds the cluster"
+  type        = string
+}
+
+variable "cluster_name" {
+  description = "MongoDB Atlas cluster with the collection to index"
   type        = string
 }
 

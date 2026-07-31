@@ -1,6 +1,6 @@
 # MongoDB Atlas Provider - Search Indexes on a Cluster
 
-This example shows how to create the different `mongodbatlas_search_index` types on an Atlas cluster. A project and cluster are created as a prerequisite, and then three indexes on the same collection:
+This example shows how to create the different `mongodbatlas_search_index` types on a MongoDB Atlas cluster, three indexes on the same collection:
 
 - A text `search` index with dynamic mappings.
 - A `vector` index, for embeddings you generate and store yourself.
@@ -10,7 +10,8 @@ Variables required to be set:
 
 - `atlas_client_id`: MongoDB Atlas Service Account Client ID.
 - `atlas_client_secret`: MongoDB Atlas Service Account Client Secret.
-- `org_id`: Organization ID where the project and cluster are created.
+- `project_id`: MongoDB Atlas project (groupId) that holds the cluster.
+- `cluster_name`: MongoDB Atlas cluster with the collection to index.
 - `database`: Database that holds the collection to index.
 - `collection_name`: Collection to index.
 

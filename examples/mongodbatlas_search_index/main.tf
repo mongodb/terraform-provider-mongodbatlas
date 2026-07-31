@@ -1,30 +1,7 @@
-resource "mongodbatlas_project" "example" {
-  name   = "search-index-example"
-  org_id = var.org_id
-}
-
-resource "mongodbatlas_advanced_cluster" "example" {
-  project_id   = mongodbatlas_project.example.id
-  name         = "ClusterExample"
-  cluster_type = "REPLICASET"
-
-  replication_specs = [{
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-    }]
-  }]
-}
-
 # Text search index with dynamic mappings.
 resource "mongodbatlas_search_index" "search" {
-  project_id       = mongodbatlas_project.example.id
-  cluster_name     = mongodbatlas_advanced_cluster.example.name
+  project_id       = var.project_id
+  cluster_name     = var.cluster_name
   database         = var.database
   collection_name  = var.collection_name
   name             = "search-index"
@@ -34,8 +11,8 @@ resource "mongodbatlas_search_index" "search" {
 
 # Vector search index with embeddings you generate and store yourself.
 resource "mongodbatlas_search_index" "vector" {
-  project_id      = mongodbatlas_project.example.id
-  cluster_name    = mongodbatlas_advanced_cluster.example.name
+  project_id      = var.project_id
+  cluster_name    = var.cluster_name
   database        = var.database
   collection_name = var.collection_name
   name            = "vector-index"
@@ -53,8 +30,8 @@ EOF
 # Vector search index with Automated Embedding: Atlas generates the embeddings
 # from a text field using the specified Voyage model.
 resource "mongodbatlas_search_index" "auto_embed" {
-  project_id      = mongodbatlas_project.example.id
-  cluster_name    = mongodbatlas_advanced_cluster.example.name
+  project_id      = var.project_id
+  cluster_name    = var.cluster_name
   database        = var.database
   collection_name = var.collection_name
   name            = "auto-embed-index"
