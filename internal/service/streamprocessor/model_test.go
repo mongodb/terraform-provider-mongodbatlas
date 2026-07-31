@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
@@ -134,7 +135,12 @@ func streamProcessorDSTFModelWithInstanceName(t *testing.T, state, stats string,
 
 func optionsToTFModel(t *testing.T, options *admin.StreamsOptions) types.Object {
 	t.Helper()
-	result, diags := streamprocessor.ConvertOptionsToTF(t.Context(), options)
+	return optionsToTFModelWithResume(t, options, types.BoolNull())
+}
+
+func optionsToTFModelWithResume(t *testing.T, options *admin.StreamsOptions, resumeFromCheckpoint types.Bool) types.Object {
+	t.Helper()
+	result, diags := streamprocessor.ConvertOptionsToTF(t.Context(), options, resumeFromCheckpoint)
 	assert.False(t, diags.HasError())
 	assert.NotNil(t, result)
 	return *result
@@ -303,7 +309,7 @@ func TestSDKToTFModel(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			sdkModel := tc.sdkModel
-			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", sdkModel, nil, nil, tc.failoverEnabled)
+			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", sdkModel, nil, nil, tc.failoverEnabled, nil)
 			assert.False(t, diags.HasError())
 			assert.Equal(t, tc.expectedTFModel.Options, resultModel.Options)
 			if sdkModel.Stats != nil {
@@ -510,6 +516,154 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 			} else {
 				assert.Nil(t, updateReq.StreamsModifyStreamProcessor.FailoverEnabled)
 			}
+		})
+	}
+}
+
+// tfOptions builds an options object with the given dlq and resume_from_checkpoint values.
+func tfOptions(t *testing.T, dlq types.Object, resumeFromCheckpoint types.Bool) types.Object {
+	t.Helper()
+	obj, diags := types.ObjectValueFrom(t.Context(), streamprocessor.OptionsObjectType.AttrTypes, streamprocessor.TFOptionsModel{
+		Dlq:                  dlq,
+		ResumeFromCheckpoint: resumeFromCheckpoint,
+	})
+	require.False(t, diags.HasError())
+	return obj
+}
+
+// tfDlq builds a dlq object matching streamOptionsExample.
+func tfDlq(t *testing.T) types.Object {
+	t.Helper()
+	obj, diags := types.ObjectValueFrom(t.Context(), streamprocessor.DlqObjectType.AttrTypes, streamprocessor.TFDlqModel{
+		Coll:           types.StringValue("testColl"),
+		ConnectionName: types.StringValue("testConnection"),
+		DB:             types.StringValue("testDB"),
+	})
+	require.False(t, diags.HasError())
+	return obj
+}
+
+func TestNewStreamProcessorUpdateReqOptions(t *testing.T) {
+	validPipeline := jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]")
+	nullDlq := types.ObjectNull(streamprocessor.DlqObjectType.AttrTypes)
+
+	testCases := map[string]struct {
+		options             func(t *testing.T) types.Object
+		expectOptionsSet    bool
+		expectDlqSet        bool
+		expectResumeSet     bool
+		expectedResumeValue bool
+	}{
+		"options not set": {
+			options:          func(*testing.T) types.Object { return types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes) },
+			expectOptionsSet: false,
+		},
+		"dlq only": {
+			options:          func(t *testing.T) types.Object { return tfOptions(t, tfDlq(t), types.BoolNull()) },
+			expectOptionsSet: true,
+			expectDlqSet:     true,
+		},
+		"resume_from_checkpoint only": {
+			options:             func(t *testing.T) types.Object { return tfOptions(t, nullDlq, types.BoolValue(false)) },
+			expectOptionsSet:    true,
+			expectDlqSet:        false,
+			expectResumeSet:     true,
+			expectedResumeValue: false,
+		},
+		"both dlq and resume_from_checkpoint": {
+			options:             func(t *testing.T) types.Object { return tfOptions(t, tfDlq(t), types.BoolValue(true)) },
+			expectOptionsSet:    true,
+			expectDlqSet:        true,
+			expectResumeSet:     true,
+			expectedResumeValue: true,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			model := &streamprocessor.TFStreamProcessorRSModel{
+				WorkspaceName: types.StringValue(workspaceName),
+				InstanceName:  types.StringNull(),
+				Pipeline:      validPipeline,
+				ProcessorName: types.StringValue(processorName),
+				ProjectID:     types.StringValue(projectID),
+				Options:       tc.options(t),
+			}
+			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), model)
+			require.False(t, diags.HasError())
+
+			apiOptions := updateReq.StreamsModifyStreamProcessor.Options
+			if !tc.expectOptionsSet {
+				assert.Nil(t, apiOptions)
+				return
+			}
+			require.NotNil(t, apiOptions)
+
+			// A dlq of all-null fields must never be sent when only resume_from_checkpoint is set.
+			if tc.expectDlqSet {
+				require.NotNil(t, apiOptions.Dlq)
+				assert.Equal(t, "testColl", apiOptions.Dlq.GetColl())
+			} else {
+				assert.Nil(t, apiOptions.Dlq)
+			}
+
+			if tc.expectResumeSet {
+				require.NotNil(t, apiOptions.ResumeFromCheckpoint)
+				assert.Equal(t, tc.expectedResumeValue, *apiOptions.ResumeFromCheckpoint)
+			} else {
+				assert.Nil(t, apiOptions.ResumeFromCheckpoint)
+			}
+		})
+	}
+}
+
+// TestConvertOptionsToTFPreservesResumeFromCheckpoint verifies resume_from_checkpoint survives a
+// round trip even though the API response never contains it.
+func TestConvertOptionsToTFPreservesResumeFromCheckpoint(t *testing.T) {
+	testCases := map[string]struct {
+		apiOptions       *admin.StreamsOptions
+		resume           types.Bool
+		expectNullObject bool
+		expectDlqSet     bool
+	}{
+		"no api options and no resume yields null options": {
+			apiOptions:       nil,
+			resume:           types.BoolNull(),
+			expectNullObject: true,
+		},
+		"resume only is preserved when api returns no options": {
+			apiOptions:   nil,
+			resume:       types.BoolValue(false),
+			expectDlqSet: false,
+		},
+		"dlq from api and resume from config are combined": {
+			apiOptions:   &streamOptionsExample,
+			resume:       types.BoolValue(false),
+			expectDlqSet: true,
+		},
+		"dlq from api with no resume": {
+			apiOptions:   &streamOptionsExample,
+			resume:       types.BoolNull(),
+			expectDlqSet: true,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			result, diags := streamprocessor.ConvertOptionsToTF(t.Context(), tc.apiOptions, tc.resume)
+			require.False(t, diags.HasError())
+			require.NotNil(t, result)
+
+			if tc.expectNullObject {
+				assert.True(t, result.IsNull())
+				return
+			}
+			require.False(t, result.IsNull())
+
+			optionsModel := &streamprocessor.TFOptionsModel{}
+			require.False(t, result.As(t.Context(), optionsModel, basetypes.ObjectAsOptions{}).HasError())
+			assert.Equal(t, tc.resume, optionsModel.ResumeFromCheckpoint)
+			assert.Equal(t, tc.expectDlqSet, !optionsModel.Dlq.IsNull())
 		})
 	}
 }
