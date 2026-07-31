@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+// Deprecated AutoScalingConfiguration is the only Atlas API that returns autoScalingMode; used here
+// (test-only) to verify independent shard scaling—no supported replacement exists.
 func GetIndependentShardScalingMode(ctx context.Context, projectID, clusterName string) (*string, *http.Response, error) {
 	cfg, resp, err := ConnV2().ClustersAPI.AutoScalingConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
