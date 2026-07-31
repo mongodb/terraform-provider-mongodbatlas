@@ -43,6 +43,30 @@ EOF
 }
 ```
 
+### Vector index with automatically generated embeddings
+```terraform
+resource "mongodbatlas_search_index" "test-auto-embed-vector-index" {
+  project_id = "<PROJECT_ID>"
+  cluster_name = "<CLUSTER_NAME>"
+  collection_name = "collection_test"
+  database = "database_test"
+  name = "test-auto-embed-vector-index"
+  type = "vectorSearch"
+  fields = <<-EOF
+[{
+      "type": "autoEmbed",
+      "path": "description",
+      "model": "voyage-4-lite",
+      "modality": "text"
+},
+{
+      "type": "filter",
+      "path": "property_type"
+}]
+EOF
+}
+```
+
 ### Advanced search index (with custom analyzers)
 ```terraform
 resource "mongodbatlas_search_index" "test-advanced-search-index" {
@@ -226,7 +250,7 @@ EOF
 * `search_analyzer` - [Analyzer](https://www.mongodb.com/docs/atlas/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when searching the index. Defaults to [lucene.standard](https://www.mongodb.com/docs/atlas/reference/atlas-search/analyzers/standard/#std-label-ref-standard-analyzer)
 * `synonyms` - Synonyms mapping definition to use in this index.
 
-* `fields` - Array of [Fields](https://www.mongodb.com/docs/atlas/atlas-search/field-types/knn-vector/#std-label-fts-data-types-knn-vector) to configure this `vectorSearch` index. It is mandatory for vector searches and it must contain at least one `vector` type field. This field needs to be a JSON string in order to be decoded correctly.
+* `fields` - Array of [fields](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/) that define this `vectorSearch` index. This property is required for vector search indexes and must include at least one field with the type `vector` or `autoEmbed`. For more information, see [Automated Embedding](https://www.mongodb.com/docs/vector-search/crud-embeddings/automated-embedding/). Provide this value as a JSON string so it can be decoded correctly.
 
 * `stored_source` - String that can be "true" (store all fields), "false" (default, don't store any field), or a JSON string that contains the list of fields to store (include) or not store (exclude) on Atlas Search. To learn more, see [Stored Source Fields](https://www.mongodb.com/docs/atlas/atlas-search/stored-source-definition/).
   ```terraform
