@@ -250,7 +250,7 @@ EOF
 * `search_analyzer` - [Analyzer](https://www.mongodb.com/docs/atlas/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when searching the index. Defaults to [lucene.standard](https://www.mongodb.com/docs/atlas/reference/atlas-search/analyzers/standard/#std-label-ref-standard-analyzer)
 * `synonyms` - Synonyms mapping definition to use in this index.
 
-* `fields` - Array of [Fields](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/) to configure this `vectorSearch` index. It is mandatory for vector searches and it must contain at least one `vector` or `autoEmbed` type field. This field needs to be a JSON string in order to be decoded correctly. 
+* `fields` - Array of [Fields](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/) to configure this `vectorSearch` index. It is mandatory for vector searches and it must contain at least one `vector` or `autoEmbed` type field. See the MongoDB documentation for information on [Automated Embedding](https://www.mongodb.com/docs/vector-search/crud-embeddings/automated-embedding/). This field needs to be a JSON string in order to be decoded correctly.
 
 * `stored_source` - String that can be "true" (store all fields), "false" (default, don't store any field), or a JSON string that contains the list of fields to store (include) or not store (exclude) on Atlas Search. To learn more, see [Stored Source Fields](https://www.mongodb.com/docs/atlas/atlas-search/stored-source-definition/).
   ```terraform
