@@ -138,8 +138,10 @@ func TestAccStreamProcessor_resumeFromCheckpoint(t *testing.T) {
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
-				// resume_from_checkpoint is not returned by the API so it cannot be imported.
-				ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "options.resume_from_checkpoint", "stats"},
+				// resume_from_checkpoint is not returned by the API so it cannot be imported. This config
+				// sets no dlq either, so the whole options object is absent after import, which also
+				// drops the object's element count (options.%).
+				ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "options.", "stats"},
 			},
 		}})
 }
@@ -508,13 +510,15 @@ func TestAccStreamProcessor_createErrors(t *testing.T) {
 				ExpectError: regexp.MustCompile("Invalid JSON String Value"),
 			},
 			{
-				Config:      config(t, projectID, workspaceName, processorName, streamprocessor.StoppedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
-				ExpectError: regexp.MustCompile("When creating a stream processor, the only valid states are CREATED and STARTED"),
-			},
-			{
 				// dlq and resume_from_checkpoint are both optional, but an empty options block is not valid.
+				// Kept before the final step: the post-test destroy reuses the last step's config, and a
+				// config rejected at validation time makes that destroy fail.
 				Config:      configWithEmptyOptions(t, projectID, workspaceName, processorName),
 				ExpectError: regexp.MustCompile("At least one attribute out of"),
+			},
+			{
+				Config:      config(t, projectID, workspaceName, processorName, streamprocessor.StoppedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
+				ExpectError: regexp.MustCompile("When creating a stream processor, the only valid states are CREATED and STARTED"),
 			},
 		}})
 }
