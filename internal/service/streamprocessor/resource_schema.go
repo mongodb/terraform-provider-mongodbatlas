@@ -96,9 +96,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						MarkdownDescription: "Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information.",
 						// Attached here rather than to options so that options itself is not part of the
 						// set, which would make the validator always pass when the block is present.
+						// Uses an absolute path so the error message reads `options.resume_from_checkpoint`
+						// rather than a relative `options.dlq.<.resume_from_checkpoint`.
 						Validators: []validator.Object{
 							objectvalidator.AtLeastOneOf(path.Expressions{
-								path.MatchRelative().AtParent().AtName("resume_from_checkpoint"),
+								path.MatchRoot("options").AtName("resume_from_checkpoint"),
 							}...),
 						},
 					},
