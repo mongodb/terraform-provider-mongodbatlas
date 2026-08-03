@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_advanced_cluster: Adds database edition support to advanced clusters and their data sources
+```
