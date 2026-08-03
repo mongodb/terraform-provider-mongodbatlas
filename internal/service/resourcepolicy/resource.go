@@ -44,7 +44,7 @@ type resourcePolicyRS struct {
 func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	var policies []TFPolicyModel
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("policies"), &policies)...)
-	sdkPolicies := NewAdminPolicies(ctx, policies)
+	sdkPolicies := NewAdminPolicies(policies)
 	var orgID, name types.String
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("org_id"), &orgID)...)
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("name"), &name)...)
@@ -66,7 +66,7 @@ func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPl
 }
 
 func (r *resourcePolicyRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = ResourceSchema(ctx)
+	resp.Schema = ResourceSchema()
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -77,7 +77,7 @@ func (r *resourcePolicyRS) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 	orgID := plan.OrgID.ValueString()
-	policies := NewAdminPolicies(ctx, plan.Policies)
+	policies := NewAdminPolicies(plan.Policies)
 
 	connV2 := r.Client.AtlasV2
 	policySDK, _, err := connV2.ResourcePoliciesAPI.CreateOrgResourcePolicy(ctx, orgID, &admin.ApiAtlasResourcePolicyCreate{
@@ -134,7 +134,7 @@ func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateReques
 	orgID := plan.OrgID.ValueString()
 	resourcePolicyID := plan.ID.ValueString()
 	connV2 := r.Client.AtlasV2
-	policies := NewAdminPolicies(ctx, plan.Policies)
+	policies := NewAdminPolicies(plan.Policies)
 	editAdmin := admin.ApiAtlasResourcePolicyEdit{
 		Name: plan.Name.ValueStringPointer(),
 		// description is an optional attribute (i.e. null by default), if it is removed from the config during an update

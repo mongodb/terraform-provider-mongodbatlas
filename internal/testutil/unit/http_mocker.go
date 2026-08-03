@@ -77,7 +77,6 @@ func IsTfLogDebug() bool {
 }
 
 type mockClientModifier struct {
-	config           *MockHTTPDataConfig
 	mockRoundTripper http.RoundTripper
 	oldRoundTripper  http.RoundTripper
 	skipReset        bool // When true, skip reset to avoid data races with shared clients
@@ -155,7 +154,7 @@ func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase 
 		data = ReadMockData(t, tfConfigs)
 	}
 	roundTripper, mockRoundTripper := NewMockRoundTripper(t, config, data)
-	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
+	httpClientModifier := mockClientModifier{mockRoundTripper: roundTripper}
 	testCase.IsUnitTest = true
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
 	testCase.PreCheck = func() {

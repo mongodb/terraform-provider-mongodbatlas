@@ -1,13 +1,11 @@
 package flexsnapshot
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func DataSourceSchema(ctx context.Context) schema.Schema {
+func DataSourceSchema() schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"project_id": schema.StringAttribute{

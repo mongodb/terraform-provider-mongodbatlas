@@ -66,12 +66,6 @@ func PreCheckCert(tb testing.TB) {
 	acc.PreCheckCert(tb)
 }
 
-func PreCheckLDAP(tb testing.TB) {
-	tb.Helper()
-	checkLastVersion(tb)
-	acc.PreCheckLDAP(tb)
-}
-
 func PreCheckAtlasUsername(tb testing.TB) {
 	tb.Helper()
 	checkLastVersion(tb)
@@ -88,10 +82,4 @@ func PreCheckPeeringEnvAWS(tb testing.TB) {
 	tb.Helper()
 	checkLastVersion(tb)
 	acc.PreCheckPeeringEnvAWS(tb)
-}
-
-func PreCheckAwsEnvBasic(tb testing.TB) {
-	tb.Helper()
-	checkLastVersion(tb)
-	acc.PreCheckAwsEnvBasic(tb)
 }

@@ -19,17 +19,6 @@ func FlattenLinks(links []admin.Link) []map[string]string {
 	return ret
 }
 
-func FlattenTags(tags []admin.ResourceTag) []map[string]string {
-	ret := make([]map[string]string, len(tags))
-	for i, tag := range tags {
-		ret[i] = map[string]string{
-			"key":   tag.GetKey(),
-			"value": tag.GetValue(),
-		}
-	}
-	return ret
-}
-
 func FlattenUsers(users []admin.OrgUserResponse) []map[string]any {
 	ret := make([]map[string]any, len(users))
 	for i := range users {
@@ -79,19 +68,6 @@ func flattenProjectRolesAssignments(assignments []admin.GroupRoleAssignment) []m
 		})
 	}
 	return ret
-}
-
-func ExpandTagsFromSetSchema(d *schema.ResourceData) *[]admin.ResourceTag {
-	list := d.Get("tags").(*schema.Set)
-	ret := make([]admin.ResourceTag, list.Len())
-	for i, item := range list.List() {
-		tag := item.(map[string]any)
-		ret[i] = admin.ResourceTag{
-			Key:   tag["key"].(string),
-			Value: tag["value"].(string),
-		}
-	}
-	return &ret
 }
 
 func ExpandStringList(list []any) (res []string) {

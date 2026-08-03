@@ -26,7 +26,7 @@ type controlPlaneIPAddressesDS struct {
 }
 
 func (d *controlPlaneIPAddressesDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = DataSourceSchema(ctx)
+	resp.Schema = DataSourceSchema()
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 

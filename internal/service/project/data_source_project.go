@@ -29,7 +29,7 @@ type projectDS struct {
 }
 
 func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(), &conversion.DataSourceSchemaRequest{
 		OverridenFields: dataSourceOverridenFields(),
 	})
 }
@@ -74,7 +74,7 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersAPI,
 	}
 
-	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, project.GetId(), err.Error()))
 		return

@@ -22,7 +22,7 @@ func ToTFMapOfString(ctx context.Context, diags *diag.Diagnostics, values map[st
 	if values == nil {
 		return basetypes.NewMapNull(types.StringType)
 	}
-	mapValue, localDiags := types.MapValueFrom(context.Background(), types.StringType, values)
+	mapValue, localDiags := types.MapValueFrom(ctx, types.StringType, values)
 	diags.Append(localDiags...)
 	return mapValue
 }

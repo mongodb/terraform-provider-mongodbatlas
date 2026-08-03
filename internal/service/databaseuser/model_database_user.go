@@ -105,7 +105,7 @@ func NewTfDatabaseUserModel(ctx context.Context, inModel *TfDatabaseUserModel, d
 	return outModel, nil
 }
 
-func NewTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUser) (*TfDatabaseUserDSModel, diag.Diagnostics) {
+func NewTFDatabaseDSUserModel(dbUser *admin.CloudDatabaseUser) *TfDatabaseUserDSModel {
 	databaseID := fmt.Sprintf("%s-%s-%s", dbUser.GroupId, dbUser.Username, dbUser.DatabaseName)
 	databaseUserModel := &TfDatabaseUserDSModel{
 		ID:               types.StringValue(databaseID),
@@ -122,24 +122,20 @@ func NewTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUs
 		Scopes:           NewTFScopesModel(dbUser.GetScopes()),
 	}
 
-	return databaseUserModel, nil
+	return databaseUserModel
 }
 
-func NewTFDatabaseUsersModel(ctx context.Context, projectID string, dbUsers []admin.CloudDatabaseUser) (*TfDatabaseUsersDSModel, diag.Diagnostics) {
+func NewTFDatabaseUsersModel(projectID string, dbUsers []admin.CloudDatabaseUser) *TfDatabaseUsersDSModel {
 	results := make([]*TfDatabaseUserDSModel, len(dbUsers))
 	for i := range dbUsers {
-		dbUserModel, d := NewTFDatabaseDSUserModel(ctx, &dbUsers[i])
-		if d.HasError() {
-			return nil, d
-		}
-		results[i] = dbUserModel
+		results[i] = NewTFDatabaseDSUserModel(&dbUsers[i])
 	}
 
 	return &TfDatabaseUsersDSModel{
 		ProjectID: types.StringValue(projectID),
 		Results:   results,
 		ID:        types.StringValue(id.UniqueId()),
-	}, nil
+	}
 }
 
 func NewTFScopesModel(scopes []admin.UserScope) []TfScopeModel {

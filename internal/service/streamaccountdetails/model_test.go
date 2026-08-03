@@ -64,10 +64,7 @@ func TestStreamAccountDetailsSDKToTFModel(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			resultModel, diags := streamaccountdetails.NewTFStreamAccountDetails(t.Context(), dummyProjectID, tc.cloudProvider, tc.region, tc.SDKResp)
-			if diags.HasError() {
-				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
-			}
+			resultModel := streamaccountdetails.NewTFStreamAccountDetails(dummyProjectID, tc.cloudProvider, tc.region, tc.SDKResp)
 			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
 	}

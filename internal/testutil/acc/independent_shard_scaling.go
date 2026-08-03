@@ -2,39 +2,20 @@ package acc
 
 import (
 	"context"
-	"io"
+	"fmt"
 	"net/http"
-	"os"
-
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
+// Deprecated AutoScalingConfiguration is the only Atlas API that returns autoScalingMode; used here
+// (test-only) to verify independent shard scaling—no supported replacement exists.
 func GetIndependentShardScalingMode(ctx context.Context, projectID, clusterName string) (*string, *http.Response, error) {
-	baseURL := config.NormalizeBaseURL(os.Getenv("MONGODB_ATLAS_BASE_URL"))
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL+"/test/utils/auth/groups/"+projectID+"/clusters/"+clusterName+"/independentShardScalingMode", http.NoBody)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Add("Accept", "*/*")
-	resp, err := ConnV2().GetConfig().HTTPClient.Do(req)
-	if err != nil || resp == nil {
-		return nil, resp, err
-	}
-
-	var result *string
-	result, err = decode(resp.Body)
+	cfg, resp, err := ConnV2().ClustersAPI.AutoScalingConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return nil, resp, err
 	}
-
-	return result, resp, nil
-}
-
-func decode(body io.ReadCloser) (*string, error) {
-	buf, err := io.ReadAll(body)
-	_ = body.Close()
-	if err != nil {
-		return nil, err
+	if cfg == nil {
+		return nil, resp, fmt.Errorf("auto scaling configuration is nil for cluster %s in project %s", clusterName, projectID)
 	}
-	return new(string(buf)), nil
+	mode := cfg.GetAutoScalingMode()
+	return &mode, resp, nil
 }

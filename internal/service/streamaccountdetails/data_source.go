@@ -27,7 +27,7 @@ type ds struct {
 }
 
 func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = DataSourceSchema(ctx)
+	resp.Schema = DataSourceSchema()
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -51,16 +51,11 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 		return
 	}
 
-	newStreamAccountDetailsModel, diags := NewTFStreamAccountDetails(
-		ctx,
+	newStreamAccountDetailsModel := NewTFStreamAccountDetails(
 		streamAccountDetailsModel.ProjectId.ValueString(),
 		streamAccountDetailsModel.CloudProvider.ValueString(),
 		streamAccountDetailsModel.RegionName.ValueString(),
 		accountDetails,
 	)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, newStreamAccountDetailsModel)...)
 }

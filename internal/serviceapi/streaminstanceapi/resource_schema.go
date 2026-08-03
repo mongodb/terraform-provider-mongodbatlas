@@ -41,7 +41,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								},
 								"method": schema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "SASL OAUTHBEARER authentication method. Can only be OIDC currently.",
+									MarkdownDescription: "SASL OAUTHBEARER authentication method. Currently, only OIDC is supported.",
 								},
 								"password": schema.StringAttribute{
 									Computed:            true,
@@ -63,10 +63,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"ssl_key": schema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "SSL key for client authentication to Kafka.",
+									Sensitive:           true,
 								},
 								"ssl_key_password": schema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "Password for the SSL key, if it is password protected.",
+									Sensitive:           true,
 								},
 								"token_endpoint_url": schema.StringAttribute{
 									Computed:            true,
@@ -149,7 +151,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"db_role_to_execute": schema.SingleNestedAttribute{
 							Computed:            true,
-							MarkdownDescription: "Optional for type: Cluster. The name of a Built in or Custom DB Role to connect to an Atlas Cluster.",
+							MarkdownDescription: "Optional for type: Cluster. The name of a built-in or custom DB Role to connect to an Atlas Cluster.",
 							CustomType:          customtypes.NewObjectType[TFConnectionsDbRoleToExecuteModel](ctx),
 							Attributes: map[string]schema.Attribute{
 								"role": schema.StringAttribute{
@@ -202,7 +204,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"name": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.",
+							MarkdownDescription: "Human-readable label that identifies the stream connection. For the Sample type, this is the name of the sample source.",
 						},
 						"networking": schema.SingleNestedAttribute{
 							Computed:            true,
@@ -296,7 +298,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"region": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The connection's region.",
+							MarkdownDescription: "The connection region.",
 						},
 						"schema_registry_authentication": schema.SingleNestedAttribute{
 							Computed:            true,
@@ -340,11 +342,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"state": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The state of the connection.",
+							MarkdownDescription: "The connection state.",
 						},
 						"type": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Type of the connection.",
+							MarkdownDescription: "The connection type.",
 						},
 						"url": schema.StringAttribute{
 							Computed:            true,
@@ -369,6 +371,40 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+			"failover_regions": schema.ListNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "List of failover regions configured for the stream workspace.",
+				CustomType:          customtypes.NewNestedListType[TFFailoverRegionsModel](ctx),
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"cloud_provider": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Human-readable label that identifies the cloud provider.",
+						},
+						"links": schema.ListNestedAttribute{
+							Computed:            true,
+							MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
+							CustomType:          customtypes.NewNestedListType[TFFailoverRegionsLinksModel](ctx),
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"href": schema.StringAttribute{
+										Computed:            true,
+										MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
+									},
+									"rel": schema.StringAttribute{
+										Computed:            true,
+										MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
+									},
+								},
+							},
+						},
+						"region": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Name of the cloud provider region hosting Atlas Stream Processing.",
+						},
+					},
+				},
+			},
 			"group_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
@@ -384,6 +420,25 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Label that identifies the stream workspace.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+			},
+			"processor_status": schema.SingleNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "Desired status change to apply to a tenant's stream processors.",
+				CustomType:          customtypes.NewObjectType[TFProcessorStatusModel](ctx),
+				Attributes: map[string]schema.Attribute{
+					"mode": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "Strategy for the processor: GRACEFUL - attempt to stop the processor, error if processor cannot be stopped. if stop was successful, start the processor in the new region with the latest checkpoint.  FORCED - attempt to stop the processor, proceed to starting the processor in the new region with checkpoints disabled regardless of whether or not the stop succeeds.",
+					},
+					"region": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "Name of the region against which to apply the status change. Required when `status` is `FAILED_OVER`; optional otherwise.",
+					},
+					"status": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "Represents the desired action to apply to stream processors within a workspace, such as starting all processors, stopping all processors, or performing a bulk regional failover.",
+					},
+				},
 			},
 			"sample_connections": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -418,13 +473,15 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Connections       customtypes.NestedListValue[TFConnectionsModel]   `tfsdk:"connections" autogen:"omitjson"`
-	DataProcessRegion customtypes.ObjectValue[TFDataProcessRegionModel] `tfsdk:"data_process_region" autogen:"omitjsonupdate"`
-	GroupId           types.String                                      `tfsdk:"group_id" autogen:"omitjson"`
-	Hostnames         customtypes.ListValue[types.String]               `tfsdk:"hostnames" autogen:"omitjson"`
-	Name              types.String                                      `tfsdk:"name" autogen:"omitjsonupdate"`
-	SampleConnections customtypes.ObjectValue[TFSampleConnectionsModel] `tfsdk:"sample_connections" autogen:"omitjsonupdate"`
-	StreamConfig      customtypes.ObjectValue[TFStreamConfigModel]      `tfsdk:"stream_config"`
+	Connections       customtypes.NestedListValue[TFConnectionsModel]     `tfsdk:"connections" autogen:"omitjson"`
+	DataProcessRegion customtypes.ObjectValue[TFDataProcessRegionModel]   `tfsdk:"data_process_region" autogen:"omitjsonupdate"`
+	FailoverRegions   customtypes.NestedListValue[TFFailoverRegionsModel] `tfsdk:"failover_regions"`
+	GroupId           types.String                                        `tfsdk:"group_id" autogen:"omitjson"`
+	Hostnames         customtypes.ListValue[types.String]                 `tfsdk:"hostnames" autogen:"omitjson"`
+	Name              types.String                                        `tfsdk:"name" autogen:"omitjsonupdate"`
+	ProcessorStatus   customtypes.ObjectValue[TFProcessorStatusModel]     `tfsdk:"processor_status"`
+	SampleConnections customtypes.ObjectValue[TFSampleConnectionsModel]   `tfsdk:"sample_connections" autogen:"omitjsonupdate"`
+	StreamConfig      customtypes.ObjectValue[TFStreamConfigModel]        `tfsdk:"stream_config"`
 }
 type TFConnectionsModel struct {
 	Authentication               customtypes.ObjectValue[TFConnectionsAuthenticationModel]               `tfsdk:"authentication" autogen:"omitjson"`
@@ -459,8 +516,8 @@ type TFConnectionsAuthenticationModel struct {
 	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions" autogen:"omitjson"`
 	Scope                     types.String `tfsdk:"scope" autogen:"omitjson"`
 	SslCertificate            types.String `tfsdk:"ssl_certificate" autogen:"omitjson"`
-	SslKey                    types.String `tfsdk:"ssl_key" autogen:"omitjson"`
-	SslKeyPassword            types.String `tfsdk:"ssl_key_password" autogen:"omitjson"`
+	SslKey                    types.String `tfsdk:"ssl_key" autogen:"sensitive,omitjson"`
+	SslKeyPassword            types.String `tfsdk:"ssl_key_password" autogen:"sensitive,omitjson"`
 	TokenEndpointUrl          types.String `tfsdk:"token_endpoint_url" autogen:"omitjson"`
 	Username                  types.String `tfsdk:"username" autogen:"omitjson"`
 }
@@ -528,6 +585,20 @@ type TFConnectionsSecurityModel struct {
 type TFDataProcessRegionModel struct {
 	CloudProvider types.String `tfsdk:"cloud_provider"`
 	Region        types.String `tfsdk:"region"`
+}
+type TFFailoverRegionsModel struct {
+	CloudProvider types.String                                             `tfsdk:"cloud_provider"`
+	Links         customtypes.NestedListValue[TFFailoverRegionsLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	Region        types.String                                             `tfsdk:"region"`
+}
+type TFFailoverRegionsLinksModel struct {
+	Href types.String `tfsdk:"href" autogen:"omitjson"`
+	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
+}
+type TFProcessorStatusModel struct {
+	Mode   types.String `tfsdk:"mode"`
+	Region types.String `tfsdk:"region"`
+	Status types.String `tfsdk:"status"`
 }
 type TFSampleConnectionsModel struct {
 	Solar types.Bool `tfsdk:"solar"`
