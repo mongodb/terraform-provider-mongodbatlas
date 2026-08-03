@@ -12,7 +12,7 @@ variable "atlas_client_secret" {
 }
 
 variable "project_id" {
-  description = "MongoDB Atlas project (groupId) that holds the cluster"
+  description = "MongoDB Atlas project ID that holds the cluster"
   type        = string
 }
 
@@ -27,6 +27,6 @@ variable "database" {
 }
 
 variable "collection_name" {
-  description = "Collection to index. Must contain the fields referenced by each index below"
+  description = "Collection to index."
   type        = string
 }
