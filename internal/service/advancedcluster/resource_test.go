@@ -73,8 +73,119 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 	})
 }
 
+func TestAccClusterAdvancedCluster_infinite(t *testing.T) {
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE")),
+				Check:             checkDatabaseEdition(new("INFINITE"), "INFINITE"),
+				ConfigStateChecks: pluralDatabaseEditionChecks(clusterName, new("INFINITE"), "INFINITE"),
+			},
+			{
+				Config:            configDatabaseEdition(projectID, clusterName, new("CORE")),
+				Check:             checkDatabaseEdition(new("CORE"), "CORE"),
+				ConfigStateChecks: pluralDatabaseEditionChecks(clusterName, new("CORE"), "CORE"),
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedCluster_core(t *testing.T) {
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:            configDatabaseEdition(projectID, clusterName, new("CORE")),
+				Check:             checkDatabaseEdition(new("CORE"), "CORE"),
+				ConfigStateChecks: pluralDatabaseEditionChecks(clusterName, new("CORE"), "CORE"),
+			},
+			{
+				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE")),
+				Check:             checkDatabaseEdition(new("INFINITE"), "INFINITE"),
+				ConfigStateChecks: pluralDatabaseEditionChecks(clusterName, new("INFINITE"), "INFINITE"),
+			},
+			{
+				Config:            configDatabaseEdition(projectID, clusterName, nil),
+				Check:             checkDatabaseEdition(nil, "CORE"),
+				ConfigStateChecks: pluralDatabaseEditionChecks(clusterName, nil, "CORE"),
+			},
+		},
+	})
+}
+
 func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 	resource.ParallelTest(t, *replicaSetAWSProviderTestCase(t))
+}
+
+func configDatabaseEdition(projectID, clusterName string, databaseEdition *string) string {
+	var databaseEditionConfig string
+	if databaseEdition != nil {
+		databaseEditionConfig = fmt.Sprintf("database_edition = %q", *databaseEdition)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id     = %[1]q
+			name           = %[2]q
+			cluster_type   = "REPLICASET"
+			backup_enabled = true
+			pit_enabled    = true
+			%[3]s
+
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+				}]
+			}]
+		}
+	`, projectID, clusterName, databaseEditionConfig) + dataSourcesConfig
+}
+
+func checkDatabaseEdition(databaseEdition *string, effectiveDatabaseEdition string) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{
+		acc.CheckExistsCluster(resourceName),
+		resource.TestCheckResourceAttr(dataSourceName, "effective_database_edition", effectiveDatabaseEdition),
+	}
+	if databaseEdition == nil {
+		checks = append(checks,
+			resource.TestCheckNoResourceAttr(resourceName, "database_edition"),
+			resource.TestCheckNoResourceAttr(dataSourceName, "database_edition"),
+		)
+	} else {
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, "database_edition", *databaseEdition),
+			resource.TestCheckResourceAttr(dataSourceName, "database_edition", *databaseEdition),
+		)
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func pluralDatabaseEditionChecks(clusterName string, databaseEdition *string, effectiveDatabaseEdition string) []statecheck.StateCheck {
+	var databaseEditionCheck knownvalue.Check = knownvalue.Null()
+	if databaseEdition != nil {
+		databaseEditionCheck = knownvalue.StringExact(*databaseEdition)
+	}
+	return []statecheck.StateCheck{
+		acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(clusterName), map[string]knownvalue.Check{
+			"database_edition":           databaseEditionCheck,
+			"effective_database_edition": knownvalue.StringExact(effectiveDatabaseEdition),
+		}),
+	}
 }
 
 func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {

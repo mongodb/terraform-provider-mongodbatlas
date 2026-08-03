@@ -32,6 +32,7 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		BiConnector:                      newBiConnector(ctx, input.BiConnectorConfig, diags),
 		ClusterType:                      input.ClusterType.ValueStringPointer(),
 		ConfigServerManagementMode:       conversion.NilForUnknown(input.ConfigServerManagementMode, input.ConfigServerManagementMode.ValueStringPointer()),
+		DatabaseEdition:                  conversion.NilForUnknown(input.DatabaseEdition, input.DatabaseEdition.ValueStringPointer()),
 		EncryptionAtRestProvider:         conversion.NilForUnknown(input.EncryptionAtRestProvider, input.EncryptionAtRestProvider.ValueStringPointer()),
 		GlobalClusterSelfManagedSharding: conversion.NilForUnknown(input.GlobalClusterSelfManagedSharding, input.GlobalClusterSelfManagedSharding.ValueBoolPointer()),
 		Labels:                           newComponentLabel(ctx, diags, input.Labels),

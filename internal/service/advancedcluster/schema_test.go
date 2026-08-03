@@ -31,6 +31,11 @@ func TestAccAdvancedCluster_ValidationErrors(t *testing.T) {
 				ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
 			},
 			{
+				Config:      configBasic(projectID, clusterName, "database_edition = \"UNKNOWN\""),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
+			},
+			{
 				Config:      configBasic(projectID, clusterName, "advanced_configuration = {oplog_size_mb = -1}"),
 				ExpectError: regexp.MustCompile("Invalid Attribute Value"),
 			},

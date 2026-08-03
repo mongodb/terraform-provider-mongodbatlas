@@ -553,6 +553,7 @@ Refer to the following for full privatelink endpoint connection string examples:
       - `SHARDED`	Sharded cluster
       - `GEOSHARDED` Global Cluster
 
+* `database_edition` - (Optional) Database edition for the cluster. Valid values are `CORE` and `INFINITE`. If you omit this attribute, MongoDB Atlas selects the default database edition.
 * `encryption_at_rest_provider` - (Optional) Possible values are AWS, GCP, AZURE or NONE.  Only needed if you desire to manage the keys, see [Encryption at Rest using Customer Key Management](https://www.mongodb.com/docs/atlas/security-kms-encryption/) for complete documentation.  You must configure encryption at rest for the Atlas project before enabling it on any cluster in the project. For Documentation, see [AWS](https://www.mongodb.com/docs/atlas/security-aws-kms/), [GCP](https://www.mongodb.com/docs/atlas/security-kms-encryption/) and [Azure](https://www.mongodb.com/docs/atlas/security-azure-kms/#std-label-security-azure-kms). Requirements are if `replication_specs[#].region_configs[#].<type>Specs.instance_size` is M10 or greater and `backup_enabled` is false or omitted.   
 * `tags` - (Optional) Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
 * `labels` - (Optional) Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
