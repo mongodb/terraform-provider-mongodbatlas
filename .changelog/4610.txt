@@ -1,3 +1,19 @@
 ```release-note:enhancement
-resource/mongodbatlas_advanced_cluster: Adds database edition support to advanced clusters and their data sources
+resource/mongodbatlas_advanced_cluster: Adds attribute database_edition
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_cluster: Adds attribute database_edition
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_cluster: Adds attribute effective_database_edition
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_clusters: Adds attribute database_edition
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_clusters: Adds attribute effective_database_edition
 ```
