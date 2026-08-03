@@ -31,6 +31,7 @@ func NewTFModelPluralDS(projectID, name string, apiResp *[]admin.FlexBackupResto
 		return nil
 	}
 	var results []TFModel
+	//nolint:gocritic // TODO: CLOUDP-430469, revert before merging to master.
 	for _, job := range *apiResp {
 		results = append(results, *NewTFModel(&job))
 	}

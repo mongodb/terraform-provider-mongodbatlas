@@ -112,6 +112,7 @@ func flattenBuckets(buckets []admin.DiskBackupSnapshotExportBucketResponse) []ma
 
 	results = make([]map[string]any, len(buckets))
 
+	//nolint:gocritic // TODO: CLOUDP-430469, revert before merging to master.
 	for k, bucket := range buckets {
 		results[k] = map[string]any{
 			"export_bucket_id": bucket.GetId(),

@@ -153,6 +153,7 @@ func flattenCloudBackupSnapshotExportJobs(jobs []admin.DiskBackupExportJob) []ma
 
 	results = make([]map[string]any, len(jobs))
 
+	//nolint:gocritic // TODO: CLOUDP-430469, revert before merging to master.
 	for k, job := range jobs {
 		results[k] = map[string]any{
 			"export_job_id":                      job.GetId(),

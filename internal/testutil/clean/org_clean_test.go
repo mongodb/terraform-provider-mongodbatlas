@@ -328,6 +328,7 @@ func removePrivateEndpointServices(ctx context.Context, t *testing.T, dryRun boo
 			return 0, clean.SkipUnauthorizedErr(resp, err)
 		}
 
+		//nolint:gocritic // TODO: CLOUDP-430469, revert before merging to master.
 		for _, service := range endpointServices {
 			id := service.GetId()
 			t.Logf("delete private endpoint service %s for provider %s", id, provider)

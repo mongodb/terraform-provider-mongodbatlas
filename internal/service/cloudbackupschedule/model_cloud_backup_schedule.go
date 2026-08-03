@@ -22,8 +22,8 @@ func FlattenPolicyItem(items []admin.DiskBackupApiPolicyItem, frequencyType stri
 
 func FlattenExport(roles *admin.DiskBackupSnapshotSchedule20240805) []map[string]any {
 	exportList := make([]map[string]any, 0)
-	emptyStruct := admin.DiskBackupSnapshotSchedule20240805{}
-	if emptyStruct.GetExport() != roles.GetExport() {
+	// TODO: CLOUDP-430469, revert before merging to master.
+	if roles.Export != nil {
 		exportList = append(exportList, map[string]any{
 			"frequency_type":   roles.Export.GetFrequencyType(),
 			"export_bucket_id": roles.Export.GetExportBucketId(),

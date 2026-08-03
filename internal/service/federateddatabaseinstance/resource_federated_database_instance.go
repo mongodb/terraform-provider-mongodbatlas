@@ -842,6 +842,7 @@ func flattenDataFederationCollections(atlasCollections []admin.DataLakeDatabaseC
 func flattenDataFederationDataSources(atlasDataSources []admin.DataLakeDatabaseDataSourceSettings) []map[string]any {
 	out := make([]map[string]any, len(atlasDataSources))
 
+	//nolint:gocritic // TODO: CLOUDP-430469, revert before merging to master.
 	for i, AtlasDataSource := range atlasDataSources {
 		out[i] = map[string]any{
 			"allow_insecure":        AtlasDataSource.GetAllowInsecure(),

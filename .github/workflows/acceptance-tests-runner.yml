@@ -334,10 +334,11 @@ jobs:
             - 'internal/serviceapi/streaminstanceapi/*.go'
             - 'internal/serviceapi/streamprocessorapi/*.go'
           backup:
-            - 'internal/service/cloudbackupschedule/*.go'
+            # TODO: CLOUDP-430469, revert before merging to master.
+            # - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'
-            - 'internal/service/cloudbackupsnapshotexportbucket/*.go'
-            - 'internal/service/cloudbackupsnapshotexportjob/*.go'
+            # - 'internal/service/cloudbackupsnapshotexportbucket/*.go'
+            # - 'internal/service/cloudbackupsnapshotexportjob/*.go'
             - 'internal/service/cloudbackupsnapshotrestorejob/*.go'  
             - 'internal/service/onlinearchive/*.go'
           control_plane_ip_addresses:
@@ -374,7 +375,8 @@ jobs:
           event_trigger:
             - 'internal/service/eventtrigger/*.go'  
           federated:
-            - 'internal/service/federateddatabaseinstance/*.go'
+            # TODO: CLOUDP-430469, revert before merging to master.
+            # - 'internal/service/federateddatabaseinstance/*.go'
             - 'internal/service/federatedquerylimit/*.go'  
             - 'internal/service/federatedsettingsidentityprovider/*.go'
             - 'internal/service/federatedsettingsorgconfig/*.go'
@@ -397,7 +399,8 @@ jobs:
             - 'internal/service/networkpeering/*.go'
             - 'internal/service/privateendpointregionalmode/*.go'
             - 'internal/service/privatelinkendpoint/*.go'
-            - 'internal/service/privatelinkendpointservice/*.go'
+            # TODO: CLOUDP-430469, revert before merging to master.
+            # - 'internal/service/privatelinkendpointservice/*.go'
           project:
             - 'internal/common/autogen/*.go'
             - 'internal/service/accesslistapikey/*.go'
