@@ -164,6 +164,9 @@ resource "mongodbatlas_search_index" "conf-dynamic" {
 }
 ```
 
+### Further Examples
+- [Search Index Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_search_index)
+
 ## Argument Reference
 
 * `type` - (Optional) Type of index: `search` or `vectorSearch`. Default type is `search`.
