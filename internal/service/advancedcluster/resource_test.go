@@ -74,7 +74,7 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_infinite(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 2)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -82,14 +82,17 @@ func TestAccClusterAdvancedCluster_infinite(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE")),
+				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2),
 				Check:             checkDatabaseEdition(new("INFINITE"), "INFINITE"),
 				ConfigStateChecks: pluralDatabaseEditionChecks(clusterName, new("INFINITE"), "INFINITE"),
 			},
 			{
-				Config:            configDatabaseEdition(projectID, clusterName, new("CORE")),
-				Check:             checkDatabaseEdition(new("CORE"), "CORE"),
-				ConfigStateChecks: pluralDatabaseEditionChecks(clusterName, new("CORE"), "CORE"),
+				Config:      configDatabaseEdition(projectID, clusterName, new("CORE"), 2),
+				ExpectError: regexp.MustCompile("databaseEdition cannot be changed after the cluster has been created"),
+			},
+			{
+				Config:      configDatabaseEdition(projectID, clusterName, nil, 2),
+				ExpectError: regexp.MustCompile("databaseEdition cannot be changed after the cluster has been created"),
 			},
 		},
 	})
@@ -104,17 +107,16 @@ func TestAccClusterAdvancedCluster_core(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:            configDatabaseEdition(projectID, clusterName, new("CORE")),
+				Config:            configDatabaseEdition(projectID, clusterName, new("CORE"), 3),
 				Check:             checkDatabaseEdition(new("CORE"), "CORE"),
 				ConfigStateChecks: pluralDatabaseEditionChecks(clusterName, new("CORE"), "CORE"),
 			},
 			{
-				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE")),
-				Check:             checkDatabaseEdition(new("INFINITE"), "INFINITE"),
-				ConfigStateChecks: pluralDatabaseEditionChecks(clusterName, new("INFINITE"), "INFINITE"),
+				Config:      configDatabaseEdition(projectID, clusterName, new("INFINITE"), 3),
+				ExpectError: regexp.MustCompile("databaseEdition cannot be changed after the cluster has been created"),
 			},
 			{
-				Config:            configDatabaseEdition(projectID, clusterName, nil),
+				Config:            configDatabaseEdition(projectID, clusterName, nil, 3),
 				Check:             checkDatabaseEdition(nil, "CORE"),
 				ConfigStateChecks: pluralDatabaseEditionChecks(clusterName, nil, "CORE"),
 			},
@@ -126,7 +128,7 @@ func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 	resource.ParallelTest(t, *replicaSetAWSProviderTestCase(t))
 }
 
-func configDatabaseEdition(projectID, clusterName string, databaseEdition *string) string {
+func configDatabaseEdition(projectID, clusterName string, databaseEdition *string, nodeCount int) string {
 	var databaseEditionConfig string
 	if databaseEdition != nil {
 		databaseEditionConfig = fmt.Sprintf("database_edition = %q", *databaseEdition)
@@ -145,7 +147,7 @@ func configDatabaseEdition(projectID, clusterName string, databaseEdition *strin
 				region_configs = [{
 					electable_specs = {
 						instance_size = "M10"
-						node_count    = 3
+						node_count    = %[4]d
 					}
 					provider_name = "AWS"
 					priority      = 7
@@ -153,7 +155,7 @@ func configDatabaseEdition(projectID, clusterName string, databaseEdition *strin
 				}]
 			}]
 		}
-	`, projectID, clusterName, databaseEditionConfig) + dataSourcesConfig
+	`, projectID, clusterName, databaseEditionConfig, nodeCount) + dataSourcesConfig
 }
 
 func checkDatabaseEdition(databaseEdition *string, effectiveDatabaseEdition string) resource.TestCheckFunc {
