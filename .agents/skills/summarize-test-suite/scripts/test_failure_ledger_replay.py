@@ -346,7 +346,7 @@ class HistoricalReplayTest(unittest.TestCase):
             self.assertEqual(unit["allowed_categories"], ["cleanup"])
         self.assertEqual(
             hashlib.sha256(result["slack_mrkdwn"].encode()).hexdigest(),
-            "20457451243f276f38a16ae0feaed62a27ce7fce8eaf437ca76ed2fe907720af",
+            "2a923fb243b90acd957140720b418fe5b6b1fe3b7aa27c9eab8c162aef3d09af",
         )
 
     def test_classification_projection_compacts_only_supported_replays(

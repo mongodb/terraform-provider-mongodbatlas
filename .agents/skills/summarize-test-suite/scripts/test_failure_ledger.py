@@ -169,9 +169,9 @@ class FailureLedgerTest(unittest.TestCase):
         )
 
     @staticmethod
-    def _test_job_name(leaf_name: str) -> str:
+    def _test_job_name(leaf_name: str, *, auth: str = "pak") -> str:
         return (
-            "1.15.x-latest-pak / tests-1.15.x-latest-dev "
+            f"1.15.x-latest-{auth} / tests-1.15.x-latest-dev "
             f"/ {leaf_name}"
         )
 
@@ -195,11 +195,12 @@ class FailureLedgerTest(unittest.TestCase):
         *,
         leaf_name: str = "encryption",
         run_number: int = 1098,
+        auth: str = "pak",
     ) -> dict[str, object]:
         self.write_jobs(
             {
                 "id": 1,
-                "name": self._test_job_name(leaf_name),
+                "name": self._test_job_name(leaf_name, auth=auth),
                 "conclusion": "failure",
             },
         )
@@ -2688,6 +2689,54 @@ class FailureLedgerTest(unittest.TestCase):
         self.assertTrue(unit["machine_facts"]["shape_b_candidate"])
         self.assertTrue(unit["machine_facts"]["evidence_scope_complete"])
 
+    def test_analysis_marks_pak_later_step_authorization_candidate(self) -> None:
+        lines = [
+            "2026-07-23T00:00:00Z === RUN   TestAccProjectAccessList",
+            "2026-07-23T00:00:01Z Step 2/2 error: apply failed",
+            (
+                "2026-07-23T00:00:02Z Error: "
+                "https://cloud-dev.mongodb.com/api/atlas/v2/groups/one/"
+                "accessList/10.0.0.1 DELETE: HTTP 401 Unauthorized"
+            ),
+            (
+                "2026-07-23T00:00:03Z Error: "
+                "https://cloud-dev.mongodb.com/api/atlas/v2/groups/one/"
+                "accessList/10.0.0.2 DELETE: HTTP 401 Unauthorized"
+            ),
+            (
+                "2026-07-23T00:00:04Z "
+                "--- FAIL: TestAccProjectAccessList (2.00s)"
+            ),
+            (
+                "2026-07-23T00:00:05Z "
+                "FAIL\tgithub.com/example/project\t2.000s"
+            ),
+        ]
+
+        pak_analysis = self._analysis_from_failed_test_log(
+            lines,
+            leaf_name="project",
+            auth="pak",
+        )
+        sa_analysis = self._analysis_from_failed_test_log(
+            lines,
+            leaf_name="project",
+            auth="sa",
+        )
+
+        pak_facts = pak_analysis["test_units"][0]["machine_facts"]
+        sa_facts = sa_analysis["test_units"][0]["machine_facts"]
+        self.assertTrue(pak_facts["pak_authorization_failure_candidate"])
+        self.assertEqual(
+            pak_facts["authorization_failure_distinct_requests"],
+            2,
+        )
+        self.assertFalse(sa_facts["pak_authorization_failure_candidate"])
+        self.assertEqual(
+            sa_facts["authorization_failure_distinct_requests"],
+            2,
+        )
+
     def test_analysis_keeps_owned_terminal_go_source_context(self) -> None:
         analysis = self._analysis_from_failed_test_log(
             [
@@ -4470,6 +4519,56 @@ class FailureLedgerTest(unittest.TestCase):
         red_result = finalize_analysis(analysis, red)
         self.assertEqual(red_result["headline"], "CODE REGRESSION DETECTED")
         self.assertEqual(red_result["verdict"], "red")
+
+    def test_pak_authorization_candidate_requires_ambiguity(self) -> None:
+        analysis = self.synthetic_analysis(["TestAuth", "TestTimeout"])
+        analysis["test_units"][0]["machine_facts"][
+            "pak_authorization_failure_candidate"
+        ] = True
+        analysis["test_units"][0]["machine_facts"][
+            "authorization_failure_distinct_requests"
+        ] = 20
+        analysis["analysis_digest"] = _canonical_digest(
+            analysis,
+            omit_key="analysis_digest",
+        )
+        groups = [
+            {
+                "unit_ids": ["test-0"],
+                "category": "code_regression",
+                "cause": "PAK DELETE requests returned HTTP 401.",
+                "evidence_refs": ["evidence-0"],
+            },
+            {
+                "remaining": True,
+                "category": "timeout",
+                "cause": "The operation exceeded its polling deadline.",
+                "evidence_refs": ["evidence-1"],
+            },
+        ]
+
+        with self.assertRaisesRegex(
+            FinalizationError,
+            "PAK authorization-regression candidates require",
+        ):
+            finalize_analysis(
+                analysis,
+                self.model_decisions(analysis, groups),
+            )
+
+        groups[0]["ambiguity"] = (
+            "The run cannot isolate AuthN from credentials or environment."
+        )
+        result = finalize_analysis(
+            analysis,
+            self.model_decisions(analysis, groups),
+        )
+
+        self.assertEqual(result["verdict"], "red")
+        self.assertEqual(result["confidence"], "medium")
+        self.assertIn("*Code regression (1 test)*:", result["slack_mrkdwn"])
+        self.assertIn("*Other failures*:", result["slack_mrkdwn"])
+        self.assertIn("• Timeout: 1 test", result["slack_mrkdwn"])
 
     def test_finalize_green_and_suite_unverified(self) -> None:
         green = self.synthetic_analysis([], green_eligible=True)

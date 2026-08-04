@@ -90,6 +90,16 @@ Evaluate categories in this exact order. First match wins.
 
 1. `code_regression`. Use for provider-inconsistent or unexpected state, “bug in the provider,” plugin non-response, RPC errors, non-empty or unexpected plans, provider attribute assertion failures, and non-deadline panics.
    Also use for build/tooling failures that prevent trusted test execution, an attributed `INVALID_ATTRIBUTE`, a termination-protection delete rejection, or Shape A below. Do not downgrade based on whether the fix is in provider code, tests, tooling, or upstream. A terminal backend status is `api_error`; propagation-only evidence is `timeout`.
+   When `.run_context.auth` is `pak` and
+   `.machine_facts.pak_authorization_failure_candidate` is true, classify a
+   401/403 from a normal operation the test expected to succeed as
+   `code_regression`, even when MMS/AuthN is the likely owner. Add `ambiguity`
+   because one run cannot distinguish an AuthN/backend regression from a
+   credential or environment problem. Treat
+   `.authorization_failure_distinct_requests` as an exact request-target
+   count, not as proof of the responsible component. If the operation was an
+   expected failure, apply the normal first-match rules instead, but retain the
+   ambiguity required by the candidate.
 2. `cloud_capacity`. Use for `OUT_OF_CAPACITY`, `NO_CAPACITY`, “No Capacity,” or account billing/service-capacity rejection such as `HOURLY_BILLING_LIMIT_EXCEEDED`. Do not use it for the test-project limit below.
 3. `api_contract`. Use when Atlas rejects a request the test expected to be valid, including unsupported combinations, role-assumption or region constraints, and an `ExpectError` wording mismatch where the intended failed state occurred but Atlas changed the message.
 4. `timeout`. Use for polling or context deadlines, DNS/network timeouts, the Go runner's `panic: test timed out after ...`, Shape B, and the propagation-lag shapes below.
@@ -169,6 +179,7 @@ For every group:
 - Use only a listed category and evidence owned by the selected units. Cite at least one representative owned evidence reference per group. Inspect every selected unit before sharing a category and cause; one repeated string is not proof that every identity shares the cause.
 - Keep `cause` and optional `ambiguity` factual, single-line, and concise.
 - For every Shape B timeout group, add `ambiguity` and use `note: "delete_on_timeout_unverified"`. It is invalid for other groups; omit `note` otherwise.
+- For every PAK authorization-regression candidate, add `ambiguity` naming the unresolved ownership. The finalizer rejects a candidate without it.
 - For every `unresolved` group, add `ambiguity` naming the missing evidence.
 
 Use `why`, `action`, and `tldr` only when useful. `why` must name the operational evidence gap. On a non-green verdict, concrete `action` requests review. `tldr` is rendered only for red. Do not put numeric subcause splits or time windows in prose unless owned evidence covers every unit in that statement.

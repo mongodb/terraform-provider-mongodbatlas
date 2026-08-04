@@ -219,6 +219,16 @@ HIGH_SIGNAL_EVIDENCE_RE = re.compile(
     r"Plugin did not respond|rpc error:|timed? out|timeout",
     re.IGNORECASE,
 )
+AUTHORIZATION_FAILURE_RE = re.compile(
+    r"\bHTTP(?: ERROR)?\s+(?:401|403)\b",
+    re.IGNORECASE,
+)
+AUTHORIZATION_REQUEST_RE = re.compile(
+    r"\b(?P<url>https?://\S+)\s+"
+    r"(?P<method>GET|POST|PUT|PATCH|DELETE):\s+"
+    r"HTTP(?: ERROR)?\s+(?:401|403)\b",
+    re.IGNORECASE,
+)
 MAX_GROUPS_PER_ORG_RE = re.compile(
     r"\bMAX_GROUPS_PER_ORG_EXCEEDED\b",
     re.IGNORECASE,
@@ -1859,12 +1869,34 @@ def _test_phase_and_evidence(
         )
         is not None
     )
+    _, auth = _job_context(str(entry.get("job_name", "")))
+    authorization_failure_observed = any(
+        AUTHORIZATION_FAILURE_RE.search(str(item["text"])) is not None
+        for item in decision_context
+    )
+    authorization_requests = {
+        (match.group("method").upper(), match.group("url"))
+        for item in decision_context
+        if (match := AUTHORIZATION_REQUEST_RE.search(str(item["text"])))
+        is not None
+    }
+    later_step_observed = any(
+        anchor["step"] > 1 for anchor in full_step_anchors
+    )
     machine_facts = {
         "leftover_indicator_observed": leftover,
         "shape_b_candidate": shape_b_signal and not leftover,
         "post_test_destroy": bool(post_destroy_lines),
         "evidence_scope_complete": scope_complete,
         "mixed_phase": len(occurrence_kinds) > 1,
+        "pak_authorization_failure_candidate": (
+            auth == "pak"
+            and authorization_failure_observed
+            and later_step_observed
+        ),
+        "authorization_failure_distinct_requests": len(
+            authorization_requests
+        ),
     }
     return (
         phase,
@@ -2919,6 +2951,38 @@ def _validate_analysis_input(value: Any) -> dict[str, Any]:
                     "mixed_phase",
                 )
             )
+            or (
+                "pak_authorization_failure_candidate"
+                in unit["machine_facts"]
+                and not isinstance(
+                    unit["machine_facts"][
+                        "pak_authorization_failure_candidate"
+                    ],
+                    bool,
+                )
+            )
+            or (
+                "authorization_failure_distinct_requests"
+                in unit["machine_facts"]
+                and (
+                    not isinstance(
+                        unit["machine_facts"][
+                            "authorization_failure_distinct_requests"
+                        ],
+                        int,
+                    )
+                    or isinstance(
+                        unit["machine_facts"][
+                            "authorization_failure_distinct_requests"
+                        ],
+                        bool,
+                    )
+                    or unit["machine_facts"][
+                        "authorization_failure_distinct_requests"
+                    ]
+                    < 0
+                )
+            )
             or not isinstance(unit.get("allowed_categories"), list)
             or not unit["allowed_categories"]
             or len(unit["allowed_categories"])
@@ -3359,6 +3423,19 @@ def _validate_model_decisions(
                 "Shape-B timeout decisions require ambiguity and the "
                 "delete_on_timeout_unverified note"
             )
+        pak_authorization_units = [
+            unit_id
+            for unit_id in group["unit_ids"]
+            if test_units[unit_id]
+            .get("machine_facts", {})
+            .get("pak_authorization_failure_candidate")
+            is True
+        ]
+        if pak_authorization_units and group["ambiguity"] is None:
+            raise FinalizationError(
+                "PAK authorization-regression candidates require an "
+                "ambiguity explanation"
+            )
         if group["category"] == "unresolved" and group["ambiguity"] is None:
             raise FinalizationError(
                 "unresolved decisions require an ambiguity explanation"
@@ -3682,7 +3759,17 @@ def _render_summary(
         )
 
     if verdict == "red" and category_counts["code_regression"]:
-        lines.extend(["", "*Code regressions*:"])
+        regression_total = category_counts["code_regression"]
+        lines.extend(
+            [
+                "",
+                (
+                    f"*Code {_plural(regression_total, 'regression')} "
+                    f"({regression_total} "
+                    f"{_plural(regression_total, 'test')})*:"
+                ),
+            ]
+        )
         regression_groups = by_category["code_regression"]
         for group in regression_groups[: (2 if compact else 5)]:
             names = [
@@ -3721,6 +3808,7 @@ def _render_summary(
             )
             lines.append(f"*Other failures*: {values}")
         else:
+            lines.append("*Other failures*:")
             for category in other_categories:
                 category_groups = by_category[category]
                 causes = _prioritized_causes(
