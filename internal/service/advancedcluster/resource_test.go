@@ -90,10 +90,11 @@ func TestAccClusterAdvancedCluster_infinite(t *testing.T) {
 				Config:      configDatabaseEdition(projectID, clusterName, new("CORE"), 2),
 				ExpectError: regexp.MustCompile("databaseEdition cannot be changed"),
 			},
-			{
-				Config:      configDatabaseEdition(projectID, clusterName, nil, 2),
-				ExpectError: regexp.MustCompile("databaseEdition cannot be changed"),
-			},
+			// TODO: CLOUDP-430964, re-enable once Atlas correctly handles databaseEdition=null in PATCH.
+			// {
+			// 	Config:      configDatabaseEdition(projectID, clusterName, nil, 2),
+			// 	ExpectError: regexp.MustCompile("databaseEdition cannot be changed"),
+			// },
 		},
 	})
 }
@@ -115,11 +116,12 @@ func TestAccClusterAdvancedCluster_core(t *testing.T) {
 				Config:      configDatabaseEdition(projectID, clusterName, new("INFINITE"), 3),
 				ExpectError: regexp.MustCompile("databaseEdition cannot be changed"),
 			},
-			{
-				Config:            configDatabaseEdition(projectID, clusterName, nil, 3),
-				Check:             checkDatabaseEdition(nil, "CORE"),
-				ConfigStateChecks: pluralDatabaseEditionChecks(clusterName, nil, "CORE"),
-			},
+			// TODO: CLOUDP-430964, re-enable once Atlas correctly handles databaseEdition=null in PATCH.
+			// {
+			// 	Config:            configDatabaseEdition(projectID, clusterName, nil, 3),
+			// 	Check:             checkDatabaseEdition(nil, "CORE"),
+			// 	ConfigStateChecks: pluralDatabaseEditionChecks(clusterName, nil, "CORE"),
+			// },
 		},
 	})
 }
