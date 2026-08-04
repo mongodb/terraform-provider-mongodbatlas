@@ -233,6 +233,53 @@ class FailureLedgerTest(unittest.TestCase):
             ("dev", "pak"),
         )
 
+    def test_workflow_job_name_shape_matches_role_classifier(self) -> None:
+        test_suite_workflow = (
+            REPOSITORY_ROOT / ".github/workflows/test-suite.yml"
+        ).read_text(encoding="utf-8")
+        acceptance_workflow = (
+            REPOSITORY_ROOT / ".github/workflows/acceptance-tests.yml"
+        ).read_text(encoding="utf-8")
+        runner_workflow = (
+            REPOSITORY_ROOT
+            / ".github/workflows/acceptance-tests-runner.yml"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn(
+            "    name: ${{ matrix.terraform_version || 'latest' }}-"
+            "${{ matrix.provider_version || 'latest' }}-"
+            "${{ needs.variables.outputs.use_sa == 'true' && 'sa' "
+            "|| 'pak' }}\n",
+            test_suite_workflow,
+        )
+        self.assertIn(
+            "    name: tests-${{ inputs.terraform_version || 'latest' }}-"
+            "${{ inputs.provider_version || 'latest' }}-"
+            "${{ inputs.atlas_cloud_env || 'dev' }}\n",
+            acceptance_workflow,
+        )
+        for leaf_name in (
+            "get-provider-version",
+            "change-detection",
+            "config",
+            "slack-notification-stream",
+        ):
+            with self.subTest(leaf_name=leaf_name):
+                self.assertIn(f"\n  {leaf_name}:\n", runner_workflow)
+
+        expected_roles = {
+            "latest-latest-pak / tests-latest-latest-dev / config": "test",
+            "latest-latest-sa / tests-latest-latest-qa / "
+            "get-provider-version": "setup",
+            "1.15.x-latest-pak / tests-1.15.x-latest-dev / "
+            "change-detection": "setup",
+            "1.15.x-latest-pak / tests-1.15.x-latest-dev / "
+            "slack-notification-stream": "reporting",
+        }
+        for job_name, expected_role in expected_roles.items():
+            with self.subTest(job_name=job_name):
+                self.assertEqual(_job_role(job_name), expected_role)
+
     def test_package_teardown_marker_matches_its_go_producer(self) -> None:
         producer = (
             REPOSITORY_ROOT / "internal/testutil/acc/shared_resource.go"
