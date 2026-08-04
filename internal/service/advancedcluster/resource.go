@@ -548,7 +548,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 		diags.AddError(errorPatchPayload, err.Error())
 		return clusterDiff{}
 	}
-	if stateReq.DatabaseEdition != nil && planReq.DatabaseEdition == nil {
+	if stateReq.DatabaseEdition != nil && plan.DatabaseEdition.IsNull() {
 		if patchReq == nil {
 			patchReq = new(admin.ClusterDescription20240805)
 		}
