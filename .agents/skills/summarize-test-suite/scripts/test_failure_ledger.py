@@ -3793,6 +3793,44 @@ class FailureLedgerTest(unittest.TestCase):
         self.assertIn("Small API cause one.", result["slack_mrkdwn"])
         self.assertNotIn("Small API cause two.", result["slack_mrkdwn"])
 
+    def test_summary_preserves_complete_validated_causes(self) -> None:
+        cause = (
+            "Step 2/2 apply failed because Atlas rejected every project IP "
+            "access list entry DELETE with HTTP 401 Unauthorized "
+            '(UNEXPECTED_ERROR, "You are not authorized for this resource"), '
+            "which also broke the post-test destroy."
+        )
+        self.assertGreater(len(cause), 160)
+        self.assertLessEqual(len(cause), 240)
+        cases = (
+            ("code_regression", False),
+            ("api_error", False),
+            ("unresolved", False),
+            ("timeout", True),
+        )
+        for category, shape_b in cases:
+            with self.subTest(category=category, shape_b=shape_b):
+                analysis = self.synthetic_analysis(
+                    ["TestOne"],
+                    shape_b_unit="test-0" if shape_b else None,
+                )
+                group = {
+                    "remaining": True,
+                    "category": category,
+                    "cause": cause,
+                    "evidence_refs": ["evidence-0"],
+                }
+                if category == "unresolved":
+                    group["ambiguity"] = "The evidence is inconclusive."
+                if shape_b:
+                    group["ambiguity"] = "Deletion completion is ambiguous."
+                    group["note"] = "delete_on_timeout_unverified"
+                decisions = self.model_decisions(analysis, [group])
+
+                result = finalize_analysis(analysis, decisions)
+
+                self.assertIn(cause, result["slack_mrkdwn"])
+
     def test_finalize_rejects_category_not_allowed_by_unit(self) -> None:
         analysis = self.synthetic_analysis(["TestOne"])
         analysis["test_units"][0]["allowed_categories"] = ["timeout"]

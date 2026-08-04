@@ -3689,7 +3689,10 @@ def _render_summary(
                 str(test_units[unit_id]["test"])
                 for unit_id in group["unit_ids"]
             ]
-            cause = _slack_text(str(group["cause"]), 120 if compact else 220)
+            cause = _slack_text(
+                str(group["cause"]),
+                120 if compact else MAX_MODEL_DECISION_CAUSE_CHARS,
+            )
             if len(names) == 1:
                 lines.append(f"• `{_slack_text(names[0], 100)}` — {cause}")
             else:
@@ -3723,7 +3726,7 @@ def _render_summary(
                 causes = _prioritized_causes(
                     category_groups,
                     limit=2,
-                    text_limit=160,
+                    text_limit=MAX_MODEL_DECISION_CAUSE_CHARS,
                 )
                 cause_suffix = (
                     f" — {'; '.join(causes)}" if causes else ""
@@ -3739,7 +3742,9 @@ def _render_summary(
         unresolved_causes = _prioritized_causes(
             by_category["unresolved"],
             limit=2,
-            text_limit=180,
+            text_limit=(
+                180 if compact else MAX_MODEL_DECISION_CAUSE_CHARS
+            ),
         )
         suffix = (
             f" — {'; '.join(unresolved_causes)}"
@@ -3760,7 +3765,10 @@ def _render_summary(
         names = [str(test_units[unit_id]["test"]) for unit_id in shape_b_ids]
         causes = []
         for group in shape_b_groups:
-            cause = _slack_text(str(group["cause"]), 140)
+            cause = _slack_text(
+                str(group["cause"]),
+                140 if compact else MAX_MODEL_DECISION_CAUSE_CHARS,
+            )
             if cause not in causes:
                 causes.append(cause)
         name_suffix = (
