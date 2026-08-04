@@ -1,9 +1,6 @@
 package projectipaccesslist
 
 import (
-	"context"
-
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20250312022/admin"
@@ -44,7 +41,7 @@ func NewTfProjectIPAccessListModel(projectIPAccessListModel *TfProjectIPAccessLi
 	}
 }
 
-func NewTfProjectIPAccessListDSModel(ctx context.Context, accessList *admin.NetworkPermissionEntry) (*TfProjectIPAccessListDSModel, diag.Diagnostics) {
+func NewTfProjectIPAccessListDSModel(accessList *admin.NetworkPermissionEntry) *TfProjectIPAccessListDSModel {
 	databaseUserModel := &TfProjectIPAccessListDSModel{
 		ProjectID:        types.StringValue(accessList.GetGroupId()),
 		Comment:          types.StringValue(accessList.GetComment()),
@@ -66,5 +63,5 @@ func NewTfProjectIPAccessListDSModel(ctx context.Context, accessList *admin.Netw
 	})
 
 	databaseUserModel.ID = types.StringValue(id)
-	return databaseUserModel, nil
+	return databaseUserModel
 }

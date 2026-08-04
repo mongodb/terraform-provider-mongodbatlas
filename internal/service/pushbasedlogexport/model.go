@@ -1,18 +1,15 @@
 package pushbasedlogexport
 
 import (
-	"context"
-
 	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func NewTFPushBasedLogExport(ctx context.Context, projectID string, apiResp *admin.PushBasedLogExportProject, timeout *timeouts.Value, deleteOnCreateTimeout *types.Bool) (*TFPushBasedLogExportRSModel, diag.Diagnostics) {
+func NewTFPushBasedLogExport(projectID string, apiResp *admin.PushBasedLogExportProject, timeout *timeouts.Value, deleteOnCreateTimeout *types.Bool) *TFPushBasedLogExportRSModel {
 	tfModel := &TFPushBasedLogExportRSModel{
 		TFPushBasedLogExportCommonModel: TFPushBasedLogExportCommonModel{
 			ProjectID:  types.StringPointerValue(&projectID),
@@ -30,7 +27,7 @@ func NewTFPushBasedLogExport(ctx context.Context, projectID string, apiResp *adm
 	if deleteOnCreateTimeout != nil {
 		tfModel.DeleteOnCreateTimeout = *deleteOnCreateTimeout
 	}
-	return tfModel, nil
+	return tfModel
 }
 
 func NewPushBasedLogExportCreateReq(plan *TFPushBasedLogExportRSModel) *admin.CreatePushBasedLogExportProjectRequest {

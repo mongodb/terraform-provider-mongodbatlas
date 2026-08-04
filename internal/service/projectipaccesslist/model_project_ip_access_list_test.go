@@ -206,7 +206,7 @@ func TestNewTfProjectIPAccessListDSModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, _ := projectipaccesslist.NewTfProjectIPAccessListDSModel(t.Context(), tc.sdkModel)
+			resultModel := projectipaccesslist.NewTfProjectIPAccessListDSModel(tc.sdkModel)
 
 			assert.Equal(t, tc.expectedResult, resultModel)
 		})

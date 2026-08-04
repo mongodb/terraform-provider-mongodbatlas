@@ -53,16 +53,17 @@ func config(projectID string, enabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_settings_api" "test" {
 			project_id = %[1]q
-			is_collect_database_specifics_statistics_enabled = %[2]t
-			is_data_explorer_enabled = %[2]t
-			is_data_explorer_gen_ai_features_enabled = %[2]t
+			is_collect_database_specifics_statistics_enabled 		= %[2]t
+			is_data_explorer_enabled 								= %[2]t
+			is_data_explorer_gen_ai_features_enabled 				= %[2]t
 			is_data_explorer_gen_ai_sample_document_passing_enabled = %[2]t
-			is_extended_storage_sizes_enabled = %[2]t
-			is_performance_advisor_enabled = %[2]t
-			is_realtime_performance_panel_enabled = %[2]t
-			is_schema_advisor_enabled = %[2]t
-			is_cluster_ai_assistant_enabled = %[2]t
-			is_native_reranking_enabled = %[2]t
+			is_extended_storage_sizes_enabled 						= %[2]t
+			is_performance_advisor_enabled 							= %[2]t
+			is_realtime_performance_panel_enabled 					= %[2]t
+			is_schema_advisor_enabled 								= %[2]t
+			is_cluster_ai_assistant_enabled 						= %[2]t
+			is_native_reranking_enabled 							= %[2]t
+			is_data_validation_enabled 								= %[2]t
 		}
 	`, projectID, enabled)
 }
@@ -89,6 +90,7 @@ func check(projectID string, enabled bool) resource.TestCheckFunc {
 		"is_schema_advisor_enabled":                               expected,
 		"is_cluster_ai_assistant_enabled":                         expected,
 		"is_native_reranking_enabled":                             expected,
+		"is_data_validation_enabled":                              expected,
 	}
 	checks := acc.AddAttrChecks(resourceName, nil, attrChecks)
 	checks = append(checks, checkExists(resourceName))

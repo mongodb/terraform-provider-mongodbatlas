@@ -130,18 +130,18 @@ func TestV1xMigAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
 				Config:            configShardedTransitionOldToNewSchema(t, !isSDKv2, projectID, clusterName, false, true, false),
-				Check:             acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
+				Check:             acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER_WIDE_SCALING"),
 			},
 			mig.TestStepCheckEmptyPlan(configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true, false)),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true, false),
-				Check:                    acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
+				Check:                    acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER_WIDE_SCALING"),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true, true),
-				Check:                    acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
+				Check:                    acc.CheckIndependentShardScalingMode(resourceName, clusterName, "INDEPENDENT_SHARD_SCALING"),
 			},
 			mig.TestStepCheckEmptyPlan(configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true, true)),
 		},
@@ -282,7 +282,7 @@ func TestV1xMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.
 				Config:            configGeoShardedTransitionOldToNewSchema(t, !isSDKv2, projectID, clusterName, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkGeoShardedTransitionOldToNewSchema(false, false),
-					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER_WIDE_SCALING")),
 			},
 			mig.TestStepCheckEmptyPlan(configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true)),
 			{
@@ -290,7 +290,7 @@ func TestV1xMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.
 				Config:                   configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkGeoShardedTransitionOldToNewSchema(true, true),
-					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER_WIDE_SCALING")),
 			},
 			mig.TestStepCheckEmptyPlan(configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true)),
 		},

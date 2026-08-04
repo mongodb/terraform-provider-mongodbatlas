@@ -116,7 +116,7 @@ func TestNewTfEncryptionAtRestRSModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := encryptionatrest.NewTFEncryptionAtRestRSModel(t.Context(), projectID, tc.sdkModel)
+			resultModel := encryptionatrest.NewTFEncryptionAtRestRSModel(projectID, tc.sdkModel)
 			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
@@ -144,7 +144,7 @@ func TestNewTFAwsKmsConfig(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := encryptionatrest.NewTFAwsKmsConfig(t.Context(), tc.sdkModel)
+			resultModel := encryptionatrest.NewTFAwsKmsConfig(tc.sdkModel)
 			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
@@ -172,7 +172,7 @@ func TestNewTFAzureKeyVaultConfig(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := encryptionatrest.NewTFAzureKeyVaultConfig(t.Context(), tc.sdkModel)
+			resultModel := encryptionatrest.NewTFAzureKeyVaultConfig(tc.sdkModel)
 			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
@@ -200,7 +200,7 @@ func TestNewTFGcpKmsConfig(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := encryptionatrest.NewTFGcpKmsConfig(t.Context(), tc.sdkModel)
+			resultModel := encryptionatrest.NewTFGcpKmsConfig(tc.sdkModel)
 			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}

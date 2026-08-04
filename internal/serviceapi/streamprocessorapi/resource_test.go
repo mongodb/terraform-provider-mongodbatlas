@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -37,9 +38,10 @@ const (
 
 func TestAccStreamProcessorAPI_basic(t *testing.T) {
 	var (
-		projectID     = acc.ProjectIDExecution(t)
-		instanceName  = acc.RandomName()
-		processorName = acc.RandomName()
+		projectID       = acc.ProjectIDExecution(t)
+		instanceName    = acc.RandomName()
+		processorName   = acc.RandomName()
+		failoverEnabled = false // Always false, we are only doing a sanity test for this internal resource.
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -48,12 +50,12 @@ func TestAccStreamProcessorAPI_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, instanceName, processorName, pipeline),
-				Check:  checkBasic(projectID, instanceName, processorName),
+				Config: configBasic(projectID, instanceName, processorName, pipeline, failoverEnabled),
+				Check:  checkBasic(projectID, instanceName, processorName, failoverEnabled),
 			},
 			{
-				Config:   configBasic(projectID, instanceName, processorName, pipelineEquivalentWithBlankLines),
-				Check:    checkBasic(projectID, instanceName, processorName),
+				Config:   configBasic(projectID, instanceName, processorName, pipelineEquivalentWithBlankLines, failoverEnabled),
+				Check:    checkBasic(projectID, instanceName, processorName, failoverEnabled),
 				PlanOnly: true, // no plan changes if the pipeline JSON is equivalent.
 			},
 			{
@@ -65,14 +67,14 @@ func TestAccStreamProcessorAPI_basic(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "name", // id is not used because _id is returned in Atlas which is not a legal name for a Terraform attribute.
 			},
 			{
-				Config:      configBasic(projectID, instanceName, processorName, pipelineInvalidJSON),
+				Config:      configBasic(projectID, instanceName, processorName, pipelineInvalidJSON, failoverEnabled),
 				ExpectError: regexp.MustCompile("marshal failed for JSON custom type"),
 			},
 		},
 	})
 }
 
-func configBasic(projectID, instanceName, processorName, pipeline string) string {
+func configBasic(projectID, instanceName, processorName, pipeline string, failoverEnabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_instance_api" "test" {
 			group_id = %[1]q
@@ -95,22 +97,22 @@ func configBasic(projectID, instanceName, processorName, pipeline string) string
 		}
 
 		resource "mongodbatlas_stream_processor_api" "test" {
-			group_id      = mongodbatlas_stream_instance_api.test.group_id
-			tenant_name   = mongodbatlas_stream_instance_api.test.name
-			name          = %[3]q
-
-			pipeline = %[4]s
-
-		  depends_on = [mongodbatlas_stream_connection.test]
+			group_id         = mongodbatlas_stream_instance_api.test.group_id
+			tenant_name      = mongodbatlas_stream_instance_api.test.name
+			name             = %[3]q
+			pipeline 		 = %[4]s
+			failover_enabled = %[5]t
+            depends_on = [mongodbatlas_stream_connection.test]
 		}
-	`, projectID, instanceName, processorName, pipeline)
+	`, projectID, instanceName, processorName, pipeline, failoverEnabled)
 }
 
-func checkBasic(projectID, instanceName, processorName string) resource.TestCheckFunc {
+func checkBasic(projectID, instanceName, processorName string, failoverEnabled bool) resource.TestCheckFunc {
 	mapChecks := map[string]string{
-		"group_id":    projectID,
-		"tenant_name": instanceName,
-		"name":        processorName,
+		"group_id":         projectID,
+		"tenant_name":      instanceName,
+		"name":             processorName,
+		"failover_enabled": strconv.FormatBool(failoverEnabled),
 	}
 	checks := acc.AddAttrChecks(resourceName, nil, mapChecks)
 	checks = append(checks, checkExists(resourceName))
