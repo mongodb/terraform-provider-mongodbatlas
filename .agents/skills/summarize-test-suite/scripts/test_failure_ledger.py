@@ -3850,7 +3850,7 @@ class FailureLedgerTest(unittest.TestCase):
             "which also broke the post-test destroy."
         )
         self.assertGreater(len(cause), 160)
-        self.assertLessEqual(len(cause), 240)
+        self.assertLessEqual(len(cause), 300)
         cases = (
             ("code_regression", False),
             ("api_error", False),
@@ -4453,9 +4453,9 @@ class FailureLedgerTest(unittest.TestCase):
             (
                 self.model_decisions(
                     analysis,
-                    [{**valid_group, "cause": "x" * 241}],
+                    [{**valid_group, "cause": "x" * 301}],
                 ),
-                "cause exceeds 240 characters",
+                "cause exceeds 300 characters",
             ),
             (
                 self.model_decisions(
