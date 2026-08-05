@@ -1,0 +1,7 @@
+```release-note:new-resource
+Adds `mongodbatlas_cluster_overload_simulation`
+```
+
+```release-note:new-datasource
+Adds `mongodbatlas_cluster_overload_simulation`
+```
