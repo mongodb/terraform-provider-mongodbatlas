@@ -68,6 +68,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"region": schema.StringAttribute{
+				Computed: true,
+			},
 
 			// cluster type specific
 			"cluster_name": schema.StringAttribute{

@@ -292,9 +292,10 @@ func GetCompleteLambdaConfig(projectID, region string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_stream_privatelink_endpoint" "test" {
 		project_id    = %[1]q
-		provider_name = "AWS"
-		vendor        = "LAMBDA"
-		region        = %[2]q
+		provider_name       = "AWS"
+		vendor              = "LAMBDA"
+		region              = %[2]q
+		service_endpoint_id = "com.amazonaws.%[2]s.lambda"
 	}
 
 	data "mongodbatlas_stream_privatelink_endpoint" "test" {

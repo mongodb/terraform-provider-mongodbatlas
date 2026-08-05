@@ -1265,11 +1265,12 @@ func configureAWSLambdaPrivateLink(projectID, workspaceName, clusterName, connec
 		}
 
 		resource "mongodbatlas_stream_privatelink_endpoint" "test" {
-			project_id    = %[1]q
-			provider_name = "AWS"
-			vendor        = "LAMBDA"
-			region        = %[6]q
-			depends_on    = [mongodbatlas_advanced_cluster.test]
+			project_id          = %[1]q
+			provider_name       = "AWS"
+			vendor              = "LAMBDA"
+			region              = %[6]q
+			service_endpoint_id = "com.amazonaws.%[6]s.lambda"
+			depends_on          = [mongodbatlas_advanced_cluster.test]
 		}
 
 		resource "mongodbatlas_stream_connection" "test" {
@@ -1297,6 +1298,7 @@ func checkAWSLambdaPrivateLinkAttributes(resourceName, workspaceName, connection
 		resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName),
 		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 		resource.TestCheckResourceAttr(resourceName, "type", "AWSLambda"),
+		resource.TestCheckResourceAttrSet(resourceName, "region"),
 		resource.TestCheckResourceAttrSet(resourceName, "aws.role_arn"),
 		resource.TestCheckResourceAttr(resourceName, "networking.access.type", "PRIVATE_LINK"),
 		resource.TestCheckResourceAttrSet(resourceName, "networking.access.connection_id"),

@@ -64,6 +64,7 @@ If `type` is of value `AWSKinesisDataStreams` the following additional attribute
 If `type` is of value `AWSLambda` the following additional attributes are defined:
 * `aws` - The configuration for AWS Lambda connection. See [AWS](#aws).
 * `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
+* `region` - The connection region, derived by Atlas from the stream workspace's data process region.
 
 If `type` is of value `GCPPubSub` the following additional attributes are defined:
 * `gcp` - The configuration for GCP Pub/Sub connection. See [GCP](#gcp).

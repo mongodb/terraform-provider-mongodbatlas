@@ -160,10 +160,11 @@ resource "mongodbatlas_stream_connection" "test" {
 
 ```terraform
 resource "mongodbatlas_stream_privatelink_endpoint" "aws_lambda" {
-    project_id    = var.project_id
-    provider_name = "AWS"
-    vendor        = "LAMBDA"
-    region        = "us-east-1"
+    project_id          = var.project_id
+    provider_name       = "AWS"
+    vendor              = "LAMBDA"
+    region              = "us-east-1"
+    service_endpoint_id = "com.amazonaws.us-east-1.lambda"
 }
 
 resource "mongodbatlas_stream_connection" "example_aws_lambda_private_link" {
@@ -413,6 +414,9 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
 * `schema_registry_provider` - The Schema Registry provider. Must be set to `CONFLUENT`.
 * `schema_registry_urls` - List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
 * `schema_registry_authentication` - Authentication configuration for Schema Registry. See [Schema Registry Authentication](#schema-registry-authentication).
+
+In addition to the arguments above, the following attributes are exported:
+* `region` - The connection region, derived by Atlas from the stream workspace's data process region.
 
 ### Authentication
 

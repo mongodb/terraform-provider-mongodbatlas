@@ -51,6 +51,7 @@ type TFStreamConnectionCommonModel struct {
 	InstanceName     types.String `tfsdk:"instance_name"`
 	ConnectionName   types.String `tfsdk:"connection_name"`
 	Type             types.String `tfsdk:"type"`
+	Region           types.String `tfsdk:"region"`
 	ClusterName      types.String `tfsdk:"cluster_name"`
 	ClusterProjectID types.String `tfsdk:"cluster_project_id"`
 	Authentication   types.Object `tfsdk:"authentication"`
