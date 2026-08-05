@@ -208,6 +208,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `bi_connector_config` - Configuration settings applied to BI Connector for Atlas on this cluster. See [below](#bi_connector_config). In prior versions of the MongoDB Atlas Terraform Provider, this parameter was named `bi_connector`.
 * `cluster_type` - Type of the cluster that you want to create.
+* `database_edition` - Database edition explicitly requested for the cluster. Valid values are `CORE` and `INFINITE`. This value is absent if MongoDB Cloud selected the default.
+* `effective_database_edition` - Database edition that the cluster currently uses. Valid values are `CORE` and `INFINITE`.
 * `encryption_at_rest_provider` - Possible values are AWS, GCP, AZURE or NONE.
 * `tags` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
 * `labels` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels).
