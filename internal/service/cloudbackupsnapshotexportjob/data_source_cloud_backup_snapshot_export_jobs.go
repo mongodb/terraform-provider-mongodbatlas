@@ -153,7 +153,8 @@ func flattenCloudBackupSnapshotExportJobs(jobs []admin.DiskBackupExportJob) []ma
 
 	results = make([]map[string]any, len(jobs))
 
-	for k, job := range jobs {
+	for k := range jobs {
+		job := &jobs[k]
 		results[k] = map[string]any{
 			"export_job_id":                      job.GetId(),
 			"created_at":                         conversion.TimePtrToStringPtr(job.CreatedAt),

@@ -112,7 +112,8 @@ func flattenBuckets(buckets []admin.DiskBackupSnapshotExportBucketResponse) []ma
 
 	results = make([]map[string]any, len(buckets))
 
-	for k, bucket := range buckets {
+	for k := range buckets {
+		bucket := &buckets[k]
 		results[k] = map[string]any{
 			"export_bucket_id": bucket.GetId(),
 			"bucket_name":      bucket.GetBucketName(),

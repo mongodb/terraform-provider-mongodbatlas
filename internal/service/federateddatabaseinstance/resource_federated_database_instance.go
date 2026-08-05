@@ -842,7 +842,8 @@ func flattenDataFederationCollections(atlasCollections []admin.DataLakeDatabaseC
 func flattenDataFederationDataSources(atlasDataSources []admin.DataLakeDatabaseDataSourceSettings) []map[string]any {
 	out := make([]map[string]any, len(atlasDataSources))
 
-	for i, AtlasDataSource := range atlasDataSources {
+	for i := range atlasDataSources {
+		AtlasDataSource := &atlasDataSources[i]
 		out[i] = map[string]any{
 			"allow_insecure":        AtlasDataSource.GetAllowInsecure(),
 			"collection":            AtlasDataSource.GetCollection(),

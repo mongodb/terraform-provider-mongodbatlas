@@ -31,8 +31,9 @@ func NewTFModelPluralDS(projectID, name string, apiResp *[]admin.FlexBackupResto
 		return nil
 	}
 	var results []TFModel
-	for _, job := range *apiResp {
-		results = append(results, *NewTFModel(&job))
+	jobs := *apiResp
+	for i := range jobs {
+		results = append(results, *NewTFModel(&jobs[i]))
 	}
 	return &TFFlexRestoreJobsDSModel{
 		ProjectID: types.StringValue(projectID),
