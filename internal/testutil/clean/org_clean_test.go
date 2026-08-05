@@ -32,7 +32,7 @@ const (
 )
 
 var (
-	defaultBotProjectPrefixes = []string{
+	defaultProjectPrefixes = []string{
 		"cfn-", // general CFN tests
 		"ct-",  // CFN contract tests
 		"test-acc-tf-p-",
@@ -230,7 +230,7 @@ func projectPrefixes() []string {
 			return prefixes
 		}
 	}
-	return defaultBotProjectPrefixes
+	return defaultProjectPrefixes
 }
 
 func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bool, prefixes []string) string {
@@ -242,7 +242,7 @@ func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bo
 		}
 	}
 	if !matchesPrefix {
-		return "not bot project"
+		return "name does not match cleanup prefixes"
 	}
 	if p.GetCreated().After(skipProjectsAfter) {
 		return "created after " + skipProjectsAfter.Format("2006-01-02T15:04")

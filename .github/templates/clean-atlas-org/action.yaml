@@ -1,5 +1,5 @@
 name: clean-atlas-org
-description: 'Cleans up an Atlas organization bot projects'
+description: 'Cleans up test projects in an Atlas organization'
 
 inputs:
   repo-path:
@@ -12,7 +12,7 @@ inputs:
     description: 'Only projects with 0 clusters'
     default: 'false'
   project-prefixes:
-    description: 'Comma-separated project name prefixes to clean, defaults to the repo bot project prefixes'
+    description: 'Comma-separated project name prefixes to clean, defaults to the built-in project prefixes'
     default: ''
 
 runs:
