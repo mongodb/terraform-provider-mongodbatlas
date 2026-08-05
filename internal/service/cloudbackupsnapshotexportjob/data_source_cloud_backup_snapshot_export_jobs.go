@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -153,7 +153,8 @@ func flattenCloudBackupSnapshotExportJobs(jobs []admin.DiskBackupExportJob) []ma
 
 	results = make([]map[string]any, len(jobs))
 
-	for k, job := range jobs {
+	for k := range jobs {
+		job := &jobs[k]
 		results[k] = map[string]any{
 			"export_job_id":                      job.GetId(),
 			"created_at":                         conversion.TimePtrToStringPtr(job.CreatedAt),
