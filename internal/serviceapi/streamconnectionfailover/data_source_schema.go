@@ -87,7 +87,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"config": dsschema.MapAttribute{
 				Computed:            true,
-				MarkdownDescription: "Applies to type: Kafka. A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.",
+				MarkdownDescription: "Applies to type: Kafka. Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters.",
 				CustomType:          customtypes.NewMapType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
@@ -97,7 +97,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"db_role_to_execute": dsschema.SingleNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "Applies to type: Cluster. The name of a built-in or custom DB Role to connect to an Atlas Cluster.",
+				MarkdownDescription: "Applies to type: Cluster. Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster.",
 				CustomType:          customtypes.NewObjectType[TFDSDbRoleToExecuteModel](ctx),
 				Attributes: map[string]dsschema.Attribute{
 					"role": dsschema.StringAttribute{
@@ -150,7 +150,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"region": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The connection region.",
+				MarkdownDescription: "Connection region.",
 			},
 			"security": dsschema.SingleNestedAttribute{
 				Computed:            true,
@@ -169,11 +169,11 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"state": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The connection state.",
+				MarkdownDescription: "Connection state.",
 			},
 			"type": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The connection type.",
+				MarkdownDescription: "Connection type.",
 			},
 			"workspace_name": dsschema.StringAttribute{
 				Required:            true,
