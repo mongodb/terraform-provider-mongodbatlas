@@ -436,6 +436,44 @@ resources:
             optional: true
             computed: true
 
+  # Generated from the OpenAPI dev private-preview specification at https://raw.githubusercontent.com/mongodb/openapi/dev/openapi/v2/private/openapi-private-preview-overload-protection-simulation.yaml.
+  cluster_overload_simulation:
+    read: &cluster-overload-simulation-read
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/overloadSimulations/{simulationId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/overloadSimulations
+      method: POST
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/overloadSimulations/{simulationId}
+      method: DELETE
+      wait:
+        state_property: "state"
+        pending_states: ["PENDING", "ACTIVE", "FAILED", "ENDING", "COMPLETED"]
+        target_states: ["DELETED"] # DELETED is a special state value when the API returns 404 or an empty object.
+        timeout_seconds: 3600 # One hour.
+        min_timeout_seconds: 10
+        delay_seconds: 10
+    id_attributes: ["project_id", "cluster_name", "simulation_id"]
+    version_header: application/vnd.atlas.preview+json
+    schema:
+      aliases:
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+        duration_seconds:
+          computability:
+            required: true
+    datasources:
+      read: *cluster-overload-simulation-read
+      schema:
+        aliases:
+          groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description
+
   custom_db_role_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
