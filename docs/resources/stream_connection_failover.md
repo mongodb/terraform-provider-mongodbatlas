@@ -77,8 +77,8 @@ resource "mongodbatlas_stream_connection_failover" "example" {
 
 - `connection_name` (String) Label that identifies the stream connection name.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
-- `region` (String) The connection's region.
-- `type` (String) Type of the connection.
+- `region` (String) The connection region.
+- `type` (String) The connection type.
 - `workspace_name` (String) Label that identifies the stream workspace.
 
 ### Optional
@@ -94,7 +94,7 @@ The following attributes depend on the value of `type`:
 Optional:
 - `cluster_name` (String) Name of the cluster configured for this connection.
 - `cluster_project_id` (String) Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.
-- `db_role_to_execute` (Attributes) The name of a Built in or Custom DB Role to connect to an Atlas Cluster. (see [below for nested schema](#nestedatt--db_role_to_execute))
+- `db_role_to_execute` (Attributes) The name of a built-in or custom DB Role to connect to an Atlas Cluster. (see [below for nested schema](#nestedatt--db_role_to_execute))
 
 #### `Kafka`
 
@@ -108,7 +108,7 @@ Optional:
 ### Read-Only
 
 - `failover_connection_id` (String) Unique identifier of the connection.
-- `state` (String) The state of the connection.
+- `state` (String) The connection state.
 
 <a id="nestedatt--authentication"></a>
 ### Nested Schema for `authentication`
@@ -118,7 +118,7 @@ Optional:
 - `client_id` (String) OIDC client identifier for authentication to the Kafka cluster.
 - `client_secret` (String, Sensitive) OIDC client secret for authentication to the Kafka cluster.
 - `mechanism` (String) Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.
-- `method` (String) SASL OAUTHBEARER authentication method. Can only be OIDC currently.
+- `method` (String) SASL OAUTHBEARER authentication method. Currently, only OIDC is supported.
 - `password` (String, Sensitive) Password of the account to connect to the Kafka cluster.
 - `sasl_oauthbearer_extensions` (String) SASL OAUTHBEARER extensions parameter for additional OAuth2 configuration.
 - `scope` (String) OIDC scope parameter defining the access permissions requested.
