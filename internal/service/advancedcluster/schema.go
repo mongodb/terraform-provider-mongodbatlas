@@ -165,9 +165,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			"database_edition": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: descDatabaseEdition,
-				Validators: []validator.String{
-					stringvalidator.OneOf("CORE", "INFINITE"),
-				},
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed: true,

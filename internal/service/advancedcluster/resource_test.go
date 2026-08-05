@@ -94,6 +94,7 @@ func TestAccClusterAdvancedCluster_infinite(t *testing.T) {
 				Config:      configDatabaseEdition(projectID, clusterName, nil, 2),
 				ExpectError: regexp.MustCompile("databaseEdition cannot be changed"),
 			},
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -119,6 +120,7 @@ func TestAccClusterAdvancedCluster_core(t *testing.T) {
 				Config:      configDatabaseEdition(projectID, clusterName, nil, 3),
 				ExpectError: regexp.MustCompile("databaseEdition cannot be changed"),
 			},
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
