@@ -25,7 +25,6 @@ Usage:
 """
 
 import argparse
-import calendar
 import datetime
 import io
 import json
@@ -40,12 +39,8 @@ REPO = "mongodb/terraform-provider-mongodbatlas"
 WORKFLOW = "test-suite.yml"
 CACHE_ROOT = os.path.join(tempfile.gettempdir(), "monthly-test-suite-summary")
 
-VERDICT_TOKENS = (":red_circle:", ":yellow_circle:", ":green_circle:")
-VERDICT_MAP = {
-    ":red_circle:": "red",
-    ":yellow_circle:": "yellow",
-    ":green_circle:": "green",
-}
+# The leading emoji is the daily verdict; first occurrence wins.
+VERDICT_RE = re.compile(r":(red|yellow|green)_circle:")
 
 # Bullet form: "• Cloud capacity: 5 tests (e.g., ...)"
 CATEGORY_BULLET_RE = re.compile(r"^\s*•\s*([A-Za-z /]+?):\s*(\d+)\s+tests?\b")
@@ -62,33 +57,19 @@ KNOWN_CATEGORIES = (
 
 FAILING_TESTS_LINE_RE = re.compile(r"\*Failing tests\*[^:]*:\s*(.+)$")
 BACKTICK_RE = re.compile(r"`([^`]+)`")
-AND_N_MORE_RE = re.compile(r",?\s*(?:…|,)?\s*and\s+\d+\s+more\.?\s*$")
 SUBTEST_COUNT_SUFFIX_RE = re.compile(r"\s*\(×\d+\s+subtests\)\s*$")
 
 REGRESSION_HEADER_RE = re.compile(r"^\*\d+ code regressions?\*")
 REGRESSION_BULLET_RE = re.compile(r"^\s*•\s*(.+)$")
 
 
-def gh_api(endpoint):
-    """Run `gh api` and return parsed JSON."""
-    result = subprocess.run(
-        ["gh", "api", endpoint],
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(f"gh api {endpoint} failed: {result.stderr.strip()}")
-    return json.loads(result.stdout)
-
-
-def gh_api_bytes(endpoint):
-    """Run `gh api` and return raw bytes (for artifact zip download)."""
+def gh_api(endpoint, raw=False):
+    """Run `gh api`; return parsed JSON, or raw bytes when raw=True."""
     result = subprocess.run(["gh", "api", endpoint], capture_output=True)
     if result.returncode != 0:
-        raise RuntimeError(
-            f"gh api {endpoint} failed: {result.stderr.decode(errors='replace').strip()}"
-        )
-    return result.stdout
+        err = result.stderr.decode(errors="replace").strip()
+        raise RuntimeError(f"gh api {endpoint} failed: {err}")
+    return result.stdout if raw else json.loads(result.stdout)
 
 
 def last_month_range(anchor):
@@ -126,7 +107,9 @@ def fetch_summary(run_id):
     if summary_artifact is None:
         return None
 
-    blob = gh_api_bytes(f"repos/{REPO}/actions/artifacts/{summary_artifact['id']}/zip")
+    blob = gh_api(
+        f"repos/{REPO}/actions/artifacts/{summary_artifact['id']}/zip", raw=True
+    )
     with zipfile.ZipFile(io.BytesIO(blob)) as zf:
         names = [n for n in zf.namelist() if n.endswith("summary.md")]
         if not names:
@@ -140,13 +123,8 @@ def fetch_summary(run_id):
 
 
 def parse_verdict(text):
-    """The leading emoji is the verdict; pick the earliest-occurring token."""
-    best_pos, best = None, None
-    for token in VERDICT_TOKENS:
-        pos = text.find(token)
-        if pos != -1 and (best_pos is None or pos < best_pos):
-            best_pos, best = pos, VERDICT_MAP[token]
-    return best
+    m = VERDICT_RE.search(text)
+    return m.group(1) if m else None
 
 
 def parse_categories(text):
@@ -173,23 +151,18 @@ def normalize_test_name(name):
 
 
 def parse_failing_tests(text):
-    """Test names from the '*Failing tests*' line. Lower bound: the daily
-    summary caps this list (first 10, then ', and N more')."""
+    """Backticked test names from the '*Failing tests*' line. Lower bound: the
+    daily summary caps this list (first 10, then ', and N more')."""
     for line in text.splitlines():
         m = FAILING_TESTS_LINE_RE.search(line)
-        if not m:
-            continue
-        rest = m.group(1)
-        names = [normalize_test_name(n) for n in BACKTICK_RE.findall(rest)]
-        if not names:
-            rest = AND_N_MORE_RE.sub("", rest)
-            names = [normalize_test_name(p) for p in rest.split(",") if p.strip()]
-        return [n for n in names if n]
+        if m:
+            names = BACKTICK_RE.findall(m.group(1))
+            return [normalize_test_name(n) for n in names]
     return []
 
 
 def parse_regressions(text):
-    """Regression bullets from a red-run summary: [{test, line}]."""
+    """Regression bullet lines from a red-run summary (for the narrative)."""
     regressions = []
     in_section = False
     for line in text.splitlines():
@@ -199,21 +172,10 @@ def parse_regressions(text):
         if in_section:
             bullet = REGRESSION_BULLET_RE.match(line)
             if bullet:
-                content = bullet.group(1)
-                names = BACKTICK_RE.findall(content)
-                regressions.append(
-                    {
-                        "test": normalize_test_name(names[0]) if names else content,
-                        "line": content,
-                    }
-                )
+                regressions.append(bullet.group(1))
             elif line.strip() == "":
                 in_section = False
     return regressions
-
-
-def month_label(start):
-    return f"{start.strftime('%b')}/{start.strftime('%y')}"
 
 
 def main():
@@ -230,7 +192,7 @@ def main():
         datetime.date.fromisoformat(args.date) if args.date else datetime.date.today()
     )
     start, end = last_month_range(anchor)
-    label = month_label(start)
+    label = start.strftime("%b/%y")  # e.g. Jul/26
     month_id = start.strftime("%Y-%m")
 
     runs = list_scheduled_runs(start, end)
@@ -318,7 +280,7 @@ def main():
     }
 
     json_out = args.json_out or os.path.join(CACHE_ROOT, f"{month_id}-result.json")
-    os.makedirs(os.path.dirname(json_out), exist_ok=True)
+    os.makedirs(os.path.dirname(json_out) or ".", exist_ok=True)
     with open(json_out, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
 
@@ -331,21 +293,19 @@ def main():
         f"| **% without regression** | {pct} |",
     ]
     if no_summary_runs or unknown_runs:
-        notes = []
+
+        def refs(runs):
+            return ", ".join(
+                f"[#{r['run_number']} ({r['date']})]({r['url']})" for r in runs
+            )
+
+        exclusions = []
         if no_summary_runs:
-            refs = ", ".join(
-                f"[#{r['run_number']} ({r['date']})]({r['url']})" for r in no_summary_runs
-            )
-            notes.append(f"no summary available: {refs}")
+            exclusions.append(f"no summary available: {refs(no_summary_runs)}")
         if unknown_runs:
-            refs = ", ".join(
-                f"[#{r['run_number']} ({r['date']})]({r['url']})" for r in unknown_runs
-            )
-            notes.append(f"unparseable summary verdict: {refs}")
+            exclusions.append(f"unparseable summary verdict: {refs(unknown_runs)}")
         lines.append("")
-        lines.append(
-            "*Excluded from the percentage: " + "; ".join(notes) + ".*"
-        )
+        lines.append("*Excluded from the percentage: " + "; ".join(exclusions) + ".*")
 
     # Write the metrics section to monthly-summary-<anchor-date>.md in the cwd.
     # The agent appends the **Notes:** narrative section to this file (Step 3 of
