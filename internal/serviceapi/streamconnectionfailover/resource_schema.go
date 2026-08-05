@@ -38,7 +38,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"method": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "SASL OAUTHBEARER authentication method. Can only be OIDC currently.",
+						MarkdownDescription: "SASL OAUTHBEARER authentication method. Currently, only OIDC is supported.",
 					},
 					"password": schema.StringAttribute{
 						Optional:            true,
@@ -102,7 +102,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"db_role_to_execute": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "Optional for type: Cluster. The name of a Built in or Custom DB Role to connect to an Atlas Cluster.",
+				MarkdownDescription: "Optional for type: Cluster. The name of a built-in or custom DB Role to connect to an Atlas Cluster.",
 				CustomType:          customtypes.NewObjectType[TFDbRoleToExecuteModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"role": schema.StringAttribute{
@@ -159,7 +159,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"region": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The connection's region.",
+				MarkdownDescription: "The connection region.",
 			},
 			"security": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -178,7 +178,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"state": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The state of the connection.",
+				MarkdownDescription: "The connection state.",
 			},
 			"workspace_name": schema.StringAttribute{
 				Required:            true,
@@ -187,7 +187,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"type": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Type of the connection.",
+				MarkdownDescription: "The connection type.",
 				Validators: []validator.String{
 					customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
 						Mapping: map[string]customvalidator.VariantDefinition{

@@ -12,6 +12,8 @@ schema:
                 allowed:
                     - api_name: aws
                       tf_schema_name: aws
+                    - api_name: publicPrivateNetworking
+                      tf_schema_name: public_private_networking
             AzureBlobStorage:
                 allowed:
                     - api_name: azure
@@ -780,7 +782,7 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
-          description: 'Optional for type: AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC).'
+          description: 'Optional for type: AWSLambda, AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC).'
           custom_type:
             package: customtypes
             name: PublicPrivateNetworking
