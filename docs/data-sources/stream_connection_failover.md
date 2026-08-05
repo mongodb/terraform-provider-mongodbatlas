@@ -34,9 +34,9 @@ output "failover_bootstrap_servers" {
 
 ### Read-Only
 
-- `region` (String) The connection region.
-- `state` (String) The connection state.
-- `type` (String) The connection type.
+- `region` (String) Connection region.
+- `state` (String) Connection state.
+- `type` (String) Connection type.
 
 <!-- polymorphic attributes restructured by docpostprocess -->
 The following attributes depend on the value of `type`:
@@ -45,13 +45,13 @@ The following attributes depend on the value of `type`:
 
 - `cluster_name` (String) Name of the cluster configured for this connection.
 - `cluster_project_id` (String) Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.
-- `db_role_to_execute` (Attributes) The name of a built-in or custom DB Role to connect to an Atlas Cluster. (see [below for nested schema](#nestedatt--db_role_to_execute))
+- `db_role_to_execute` (Attributes) Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster. (see [below for nested schema](#nestedatt--db_role_to_execute))
 
 #### `Kafka`
 
 - `authentication` (Attributes) User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode. (see [below for nested schema](#nestedatt--authentication))
 - `bootstrap_servers` (String) Comma separated list of server addresses.
-- `config` (Map of String) A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
+- `config` (Map of String) Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters.
 - `networking` (Attributes) Networking configuration for Streams connections. (see [below for nested schema](#nestedatt--networking))
 - `security` (Attributes) Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. (see [below for nested schema](#nestedatt--security))
 

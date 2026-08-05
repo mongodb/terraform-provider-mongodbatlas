@@ -91,7 +91,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"config": schema.MapAttribute{
 				Optional:            true,
-				MarkdownDescription: "Optional for type: Kafka. A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.",
+				MarkdownDescription: "Optional for type: Kafka. Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters.",
 				CustomType:          customtypes.NewMapType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
@@ -102,7 +102,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"db_role_to_execute": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "Optional for type: Cluster. The name of a built-in or custom DB Role to connect to an Atlas Cluster.",
+				MarkdownDescription: "Optional for type: Cluster. Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster.",
 				CustomType:          customtypes.NewObjectType[TFDbRoleToExecuteModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"role": schema.StringAttribute{
@@ -159,7 +159,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"region": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The connection region.",
+				MarkdownDescription: "Connection region.",
 			},
 			"security": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -178,7 +178,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"state": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The connection state.",
+				MarkdownDescription: "Connection state.",
 			},
 			"workspace_name": schema.StringAttribute{
 				Required:            true,
@@ -187,7 +187,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"type": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The connection type.",
+				MarkdownDescription: "Connection type.",
 				Validators: []validator.String{
 					customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
 						Mapping: map[string]customvalidator.VariantDefinition{

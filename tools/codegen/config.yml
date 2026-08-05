@@ -2,6 +2,20 @@ variables:
   # API descriptions mention using the /orgs and /groups endpoints to fetch user's orgs/projects, removing that part.
   org_id_description: &org_id_description "Unique 24-hexadecimal digit string that identifies the organization that contains your projects."
   project_id_description: &project_id_description "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation."
+  # Copy corrections requested in the mongodbatlas_stream_connection_failover review (PR #4617).
+  # These descriptions come from the shared Streams schemas in the API spec (StreamsConnection,
+  # DBRoleToExecute, StreamsKafkaConnection), so the same wording is also used by the public API
+  # reference, the SDK, and the hand-written mongodbatlas_stream_connection docs. These overrides are
+  # a stopgap that applies the copy to the generated failover schema only.
+  # TODO(CLOUDP-431787): once the descriptions are corrected upstream, delete these anchors and the
+  # `description` overrides that reference them (in both the resource and datasources blocks of
+  # stream_connection_failover), then refetch the spec and regenerate so the descriptions track the
+  # spec again. The hand-written mongodbatlas_stream_connection docs need a manual sync at that point.
+  connection_region_description: &connection_region_description "Connection region."
+  connection_state_description: &connection_state_description "Connection state."
+  connection_type_description: &connection_type_description "Connection type."
+  db_role_to_execute_description: &db_role_to_execute_description "Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster."
+  kafka_config_description: &kafka_config_description "Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters."
 
 resources:
   # Singleton resource in project.
@@ -942,15 +956,22 @@ resources:
         # mongodbatlas_stream_connection resource clears maps the same way on this endpoint.
         config:
           request_body_usage: send_null_as_empty_on_update
+          description: *kafka_config_description
         connection_name:
           computability:
             required: true
         region:
           computability:
             required: true
+          description: *connection_region_description
+        state:
+          description: *connection_state_description
         type:
           computability:
             required: true
+          description: *connection_type_description
+        db_role_to_execute:
+          description: *db_role_to_execute_description
         db_role_to_execute.role:
           computability:
             required: true
@@ -1011,6 +1032,28 @@ resources:
           # ([/groups](#tag/...)) that the docs link-checker flags as a broken fragment.
           project_id:
             description: *project_id_description
+          # Mirror the resource's copy corrections in both the singular and plural (`results.`)
+          # shapes. Stopgap; removed with the anchors under TODO(CLOUDP-431787).
+          region:
+            description: *connection_region_description
+          state:
+            description: *connection_state_description
+          type:
+            description: *connection_type_description
+          db_role_to_execute:
+            description: *db_role_to_execute_description
+          config:
+            description: *kafka_config_description
+          results.region:
+            description: *connection_region_description
+          results.state:
+            description: *connection_state_description
+          results.type:
+            description: *connection_type_description
+          results.db_role_to_execute:
+            description: *db_role_to_execute_description
+          results.config:
+            description: *kafka_config_description
 
   alert_configuration_api:
     read:
