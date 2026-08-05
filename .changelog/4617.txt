@@ -1,0 +1,7 @@
+```release-note:bug
+data-source/mongodbatlas_stream_connection_failover: Marks `authentication.ssl_key` and `authentication.ssl_key_password` as sensitive so they are no longer shown in plaintext
+```
+
+```release-note:bug
+data-source/mongodbatlas_stream_connection_failovers: Marks `results.authentication.ssl_key` and `results.authentication.ssl_key_password` as sensitive so they are no longer shown in plaintext
+```
