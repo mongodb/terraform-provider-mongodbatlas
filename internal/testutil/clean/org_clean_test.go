@@ -32,10 +32,11 @@ const (
 )
 
 var (
-	botProjectPrefixes = []string{
+	defaultBotProjectPrefixes = []string{
 		"cfn-", // general CFN tests
 		"ct-",  // CFN contract tests
 		"test-acc-tf-p-",
+		"atlas-examples-e2e-", // terraform-mongodbatlas-modules/atlas-examples e2e tests
 	}
 	// keptPrefixes has the prefix of the projects that we want to delete their resources but keep the projects themselves.
 	// Useful when a feature flag or cloud provider is configured outside of the test
@@ -97,8 +98,9 @@ func TestCleanProjectAndClusters(t *testing.T) {
 	t.Logf("found %d projects (DRY_RUN=%t)", projectsBefore, dryRun)
 	projectsToClean := map[string]string{}
 	projectInfos := []string{}
+	prefixes := projectPrefixes()
 	for _, p := range projects {
-		skipReason := projectSkipReason(&p, skipProjectsAfter, onlyZeroClusters)
+		skipReason := projectSkipReason(&p, skipProjectsAfter, onlyZeroClusters, prefixes)
 		projectName := p.GetName()
 		projectID := p.GetId()
 		if skipReason != "" {
@@ -215,15 +217,31 @@ func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, clie
 	return strings.Join(changes, ", "), nil
 }
 
-func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bool) string {
-	usesBotPrefix := false
-	for _, botPrefix := range botProjectPrefixes {
-		if strings.HasPrefix(p.GetName(), botPrefix) {
-			usesBotPrefix = true
+func projectPrefixes() []string {
+	prefixesStr := os.Getenv("MONGODB_ATLAS_CLEAN_PROJECT_PREFIXES")
+	if prefixesStr != "" {
+		prefixes := []string{}
+		for prefix := range strings.SplitSeq(prefixesStr, ",") {
+			if trimmed := strings.TrimSpace(prefix); trimmed != "" {
+				prefixes = append(prefixes, trimmed)
+			}
+		}
+		if len(prefixes) > 0 {
+			return prefixes
+		}
+	}
+	return defaultBotProjectPrefixes
+}
+
+func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bool, prefixes []string) string {
+	matchesPrefix := false
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(p.GetName(), prefix) {
+			matchesPrefix = true
 			break
 		}
 	}
-	if !usesBotPrefix {
+	if !matchesPrefix {
 		return "not bot project"
 	}
 	if p.GetCreated().After(skipProjectsAfter) {

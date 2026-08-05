@@ -11,6 +11,9 @@ inputs:
   clean-only-when-no-clusters:
     description: 'Only projects with 0 clusters'
     default: 'false'
+  project-prefixes:
+    description: 'Comma-separated project name prefixes to clean, defaults to the repo bot project prefixes'
+    default: ''
 
 runs:
   using: 'composite'
@@ -25,3 +28,4 @@ runs:
         DRY_RUN: ${{ inputs.dry-run }}
         MONGODB_ATLAS_CLEAN_ORG: 'true'
         MONGODB_ATLAS_CLEAN_ONLY_WHEN_NO_CLUSTERS: ${{ inputs.clean-only-when-no-clusters }}
+        MONGODB_ATLAS_CLEAN_PROJECT_PREFIXES: ${{ inputs.project-prefixes }}
