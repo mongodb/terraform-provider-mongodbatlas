@@ -883,7 +883,6 @@ components:
                     type: string
                 nodeCount:
                     description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
-                    example: 3
                     format: int32
                     type: integer
             title: AWS Cluster Hardware Settings
@@ -1860,8 +1859,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/AlertAuditTypeView'
                 groupId:
@@ -1960,8 +1957,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/AlertConfigAuditTypeView'
                 groupId:
@@ -3812,12 +3807,6 @@ components:
                     example: 507f191e810c19729de860ea
                     pattern: ^[a-fA-F0-9]{24}$
                     type: string
-                errorReason:
-                    description: Reason the standby link is in an error state. Only present when the status is DEGRADED or FAILED.
-                    example: STANDBY_NOT_EMPTY
-                    nullable: true
-                    readOnly: true
-                    type: string
                 groupId:
                     description: Unique 24-hexadecimal digit string that identifies the project containing the clusters in the standby link.
                     example: 32b6e34b3d91647abb20e7b8
@@ -3934,8 +3923,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/ApiUserEventTypeViewForNdsGroup'
                 groupId:
@@ -4032,8 +4019,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/ApiUserEventTypeViewForOrg'
                 groupId:
@@ -4798,8 +4783,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     description: Unique identifier of event type.
                     enum:
@@ -4904,8 +4887,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     description: Unique identifier of event type.
                     enum:
@@ -5384,8 +5365,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/AutomationConfigEventTypeView'
                 groupId:
@@ -6128,7 +6107,6 @@ components:
                     type: string
                 nodeCount:
                     description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
-                    example: 3
                     format: int32
                     type: integer
             type: object
@@ -7674,8 +7652,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/BillingEventTypeViewForNdsGroup'
                 groupId:
@@ -7772,8 +7748,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/BillingEventTypeViewForOrg'
                 groupId:
@@ -8359,8 +8333,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/ChartsAuditTypeView'
                 groupId:
@@ -9715,7 +9687,6 @@ components:
                         Precedence is given to this region when a primary election occurs. If your `regionConfigs` has only `readOnlySpecs`, `analyticsSpecs`, or both, set this value to `0`. If you have multiple `regionConfigs` objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is `7`.
 
                         **Example:** If you have three regions, their priorities would be `7`, `6`, and `5` respectively. If you added two more regions for supporting electable nodes, the priorities of those regions would be `4` and `3` respectively.
-                    example: 7
                     format: int32
                     maximum: 7
                     minimum: 0
@@ -12487,8 +12458,6 @@ components:
                     example: test_db
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/DataExplorerAccessedEventTypeView'
                 groupId:
@@ -12578,8 +12547,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/DataExplorerEventTypeView'
                 groupId:
@@ -13662,8 +13629,6 @@ components:
                     type: string
                 currentValue:
                     $ref: '#/components/schemas/DataMetricValueView'
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 deskLocation:
                     description: Desk location of MongoDB employee associated with the event.
                     readOnly: true
@@ -14530,7 +14495,6 @@ components:
                     type: number
                 nodeCount:
                     description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
-                    example: 3
                     format: int32
                     type: integer
             readOnly: true
@@ -14661,7 +14625,6 @@ components:
                           type: string
                         - enum:
                             - STREAM_PROCESSOR_STATE_IS_FAILED
-                            - STREAM_PROCESSOR_AUTOSCALE_INITIATED
                             - OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD
                           title: Stream Processor Event Types
                           type: string
@@ -14931,7 +14894,6 @@ components:
                           type: string
                         - enum:
                             - STREAM_PROCESSOR_STATE_IS_FAILED
-                            - STREAM_PROCESSOR_AUTOSCALE_INITIATED
                             - OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD
                           title: Stream Processor Event Types
                           type: string
@@ -15086,8 +15048,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     description: Unique identifier of event type.
                     oneOf:
@@ -15375,11 +15335,6 @@ components:
                         - enum:
                             - STREAM_PROCESSOR_STATE_IS_FAILED
                             - STREAM_PROCESSOR_STARTED
-                            - STREAM_PROCESSOR_AUTOSCALE_INITIATED
-                            - STREAM_PROCESSOR_CREATED
-                            - STREAM_PROCESSOR_STOPPED
-                            - STREAM_PROCESSOR_DROPPED
-                            - STREAM_PROCESSOR_MODIFIED
                             - INSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD
                             - OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD
                           title: Stream Processor Event Types
@@ -15526,8 +15481,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     description: Unique identifier of event type.
                     oneOf:
@@ -17776,7 +17729,6 @@ components:
                     type: integer
             type: object
         DropIndexSuggestionsResponse:
-            description: Response that contains Performance Advisor drop index suggestions.
             properties:
                 hiddenIndexes:
                     description: List that contains the documents with information about the hidden indexes that the Performance Advisor suggests to remove.
@@ -18009,7 +17961,6 @@ components:
                         $ref: '#/components/schemas/Link'
                     readOnly: true
                     type: array
-            readOnly: true
             required:
                 - expirationTime
                 - grantType
@@ -18150,102 +18101,6 @@ components:
                     type: string
             required:
                 - cloudProvider
-            type: object
-        EnvelopedDropIndexSuggestionsResponse:
-            description: Response envelope that wraps the response payload in `content` and includes response metadata such as `status` and `locations`.
-            properties:
-                content:
-                    $ref: '#/components/schemas/DropIndexSuggestionsResponse'
-                links:
-                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-                    externalDocs:
-                        description: Web Linking Specification (RFC 5988)
-                        url: https://datatracker.ietf.org/doc/html/rfc5988
-                    items:
-                        $ref: '#/components/schemas/Link'
-                    readOnly: true
-                    type: array
-                locations:
-                    description: URLs of resources created by this request.
-                    items:
-                        type: string
-                    maxItems: 100
-                    readOnly: true
-                    type: array
-                status:
-                    description: HTTP status code returned with this response.
-                    format: int32
-                    maximum: 599
-                    minimum: 100
-                    readOnly: true
-                    type: integer
-            required:
-                - content
-                - status
-            type: object
-        EnvelopedPerformanceAdvisorResponse:
-            description: Response envelope that wraps the response payload in `content` and includes response metadata such as `status` and `locations`.
-            properties:
-                content:
-                    $ref: '#/components/schemas/PerformanceAdvisorResponse'
-                links:
-                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-                    externalDocs:
-                        description: Web Linking Specification (RFC 5988)
-                        url: https://datatracker.ietf.org/doc/html/rfc5988
-                    items:
-                        $ref: '#/components/schemas/Link'
-                    readOnly: true
-                    type: array
-                locations:
-                    description: URLs of resources created by this request.
-                    items:
-                        type: string
-                    maxItems: 100
-                    readOnly: true
-                    type: array
-                status:
-                    description: HTTP status code returned with this response.
-                    format: int32
-                    maximum: 599
-                    minimum: 100
-                    readOnly: true
-                    type: integer
-            required:
-                - content
-                - status
-            type: object
-        EnvelopedSchemaAdvisorResponse:
-            description: Response envelope that wraps the response payload in `content` and includes response metadata such as `status` and `locations`.
-            properties:
-                content:
-                    $ref: '#/components/schemas/SchemaAdvisorResponse'
-                links:
-                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-                    externalDocs:
-                        description: Web Linking Specification (RFC 5988)
-                        url: https://datatracker.ietf.org/doc/html/rfc5988
-                    items:
-                        $ref: '#/components/schemas/Link'
-                    readOnly: true
-                    type: array
-                locations:
-                    description: URLs of resources created by this request.
-                    items:
-                        type: string
-                    maxItems: 100
-                    readOnly: true
-                    type: array
-                status:
-                    description: HTTP status code returned with this response.
-                    format: int32
-                    maximum: 599
-                    minimum: 100
-                    readOnly: true
-                    type: integer
-            required:
-                - content
-                - status
             type: object
         EventSeverity:
             description: Severity of the event.
@@ -18482,8 +18337,6 @@ components:
                     - FTS_INDEX_BUILD_FAILED
                     - FTS_INDEX_CREATED
                     - FTS_INDEX_UPDATED
-                    - FTS_INDEX_PARTITIONS_CHANGED
-                    - FTS_INDEX_REBUILT
                     - FTS_INDEX_DELETED
                     - FTS_INDEX_CLEANED_UP
                     - FTS_INDEX_STALE
@@ -18863,7 +18716,6 @@ components:
                     - CLUSTER_INSTANCE_ENABLED
                     - SEARCH_HOST_PAUSE_ALL_INITIAL_SYNCS
                     - SEARCH_HOST_DISABLE_FTS
-                    - SEARCH_HOST_PAUSE_INITIAL_SYNC_ON_INDEX_IDS
                     - CLUSTER_BLOCK_WRITE
                     - CLUSTER_UNBLOCK_WRITE
                     - KMIP_KEY_ROTATION_SCHEDULED
@@ -18896,8 +18748,6 @@ components:
                     - CLUSTER_MONGUARD_ENABLED
                     - CLUSTER_MONGUARD_DISABLED
                     - CLUSTER_MONGODB_VERSION_UPDATED
-                    - VOLUME_IMPAIRED
-                    - VOLUME_IMPAIRED_RESOLVED
                   title: Atlas Audit Types
                   type: string
                 - enum:
@@ -19071,11 +18921,6 @@ components:
                 - enum:
                     - STREAM_PROCESSOR_STATE_IS_FAILED
                     - STREAM_PROCESSOR_STARTED
-                    - STREAM_PROCESSOR_AUTOSCALE_INITIATED
-                    - STREAM_PROCESSOR_CREATED
-                    - STREAM_PROCESSOR_STOPPED
-                    - STREAM_PROCESSOR_DROPPED
-                    - STREAM_PROCESSOR_MODIFIED
                     - INSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD
                     - OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD
                   title: Stream Processor Event Types
@@ -19634,8 +19479,6 @@ components:
                 - FTS_INDEX_BUILD_FAILED
                 - FTS_INDEX_CREATED
                 - FTS_INDEX_UPDATED
-                - FTS_INDEX_PARTITIONS_CHANGED
-                - FTS_INDEX_REBUILT
                 - FTS_INDEX_DELETED
                 - FTS_INDEX_CLEANED_UP
                 - FTS_INDEX_STALE
@@ -19665,8 +19508,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/FTSIndexAuditTypeView'
                 groupId:
@@ -22280,7 +22121,6 @@ components:
                     type: string
                 nodeCount:
                     description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
-                    example: 3
                     format: int32
                     type: integer
             type: object
@@ -23969,8 +23809,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 deskLocation:
                     description: Desk location of MongoDB employee associated with the event.
                     readOnly: true
@@ -24662,8 +24500,6 @@ components:
                     type: string
                 currentValue:
                     $ref: '#/components/schemas/HostMetricValue'
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 deskLocation:
                     description: Desk location of MongoDB employee associated with the event.
                     readOnly: true
@@ -25582,80 +25418,6 @@ components:
                     type: number
             title: Line Item
             type: object
-        InvoiceReportRequest:
-            properties:
-                formatSpecVersion:
-                    description: Version of the report format specification.
-                    type: string
-                reportFormat:
-                    description: Format of the report.
-                    enum:
-                        - CSV
-                    type: string
-                reportType:
-                    description: Type of report to generate.
-                    enum:
-                        - FOCUS
-                    type: string
-            required:
-                - reportFormat
-                - reportType
-            type: object
-        InvoiceReportResponse:
-            description: Status and details of a previously requested invoice report.
-            properties:
-                downloadUrl:
-                    description: URL to download the report. Present only when the report has succeeded.
-                    readOnly: true
-                    type: string
-                expiresAt:
-                    description: Time at which the download URL expires. This parameter expresses its value in the ISO 8601 timestamp format in UTC. Present only when the report has succeeded.
-                    format: date-time
-                    readOnly: true
-                    type: string
-                failureReason:
-                    description: Reason the report failed. Present only when the report has failed.
-                    readOnly: true
-                    type: string
-                formatSpecVersion:
-                    description: Version of the report format specification.
-                    type: string
-                invoiceId:
-                    description: Unique 24-hexadecimal digit string that identifies the invoice.
-                    pattern: ^([a-f0-9]{24})$
-                    readOnly: true
-                    type: string
-                reportFormat:
-                    description: Format of the generated report.
-                    enum:
-                        - CSV
-                    type: string
-                reportId:
-                    description: Unique 24-hexadecimal digit string that identifies the report.
-                    pattern: ^([a-f0-9]{24})$
-                    readOnly: true
-                    type: string
-                reportType:
-                    description: Type of the generated report.
-                    enum:
-                        - FOCUS
-                    type: string
-                state:
-                    description: Current state of the report generation.
-                    enum:
-                        - PENDING
-                        - RUNNING
-                        - SUCCEEDED
-                        - FAILED
-                    readOnly: true
-                    type: string
-            required:
-                - invoiceId
-                - reportFormat
-                - reportId
-                - reportType
-                - state
-            type: object
         JournalingCommitsInWriteLockRawMetricThresholdView:
             properties:
                 metricName:
@@ -26569,12 +26331,6 @@ components:
                 - name
             title: Tenant Cluster Upgrade Request
             type: object
-        LegacyRegionsConfig:
-            additionalProperties:
-                $ref: '#/components/schemas/RegionSpec'
-            description: Physical location where MongoDB Cloud provisions cluster nodes.
-            title: Region Configuration
-            type: object
         LegacyReplicationSpec:
             properties:
                 id:
@@ -26596,7 +26352,11 @@ components:
                     format: int32
                     type: integer
                 regionsConfig:
-                    $ref: '#/components/schemas/LegacyRegionsConfig'
+                    additionalProperties:
+                        $ref: '#/components/schemas/RegionSpec'
+                    description: Physical location where MongoDB Cloud provisions cluster nodes.
+                    title: Region Configuration
+                    type: object
                 zoneName:
                     description: Human-readable label that identifies the zone in a Global Cluster. Provide this value only if `clusterType` is `GEOSHARDED`.
                     type: string
@@ -28306,7 +28066,7 @@ components:
                         - OTEL
                     type: string
                 metricIntegrationId:
-                    description: Unique identifier of the metric integration configuration.
+                    description: Unique hexadecimal digit string that identifies the metric integration configuration.
                     example: 507f1f77bcf86cd799439011
                     maxLength: 24
                     minLength: 24
@@ -29109,7 +28869,6 @@ components:
                 - CLUSTER_INSTANCE_ENABLED
                 - SEARCH_HOST_PAUSE_ALL_INITIAL_SYNCS
                 - SEARCH_HOST_DISABLE_FTS
-                - SEARCH_HOST_PAUSE_INITIAL_SYNC_ON_INDEX_IDS
                 - CLUSTER_BLOCK_WRITE
                 - CLUSTER_UNBLOCK_WRITE
                 - KMIP_KEY_ROTATION_SCHEDULED
@@ -29142,8 +28901,6 @@ components:
                 - CLUSTER_MONGUARD_ENABLED
                 - CLUSTER_MONGUARD_DISABLED
                 - CLUSTER_MONGODB_VERSION_UPDATED
-                - VOLUME_IMPAIRED
-                - VOLUME_IMPAIRED_RESOLVED
             example: CLUSTER_CREATED
             title: Atlas Audit Types
             type: string
@@ -29182,8 +28939,6 @@ components:
                     example: user1
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/NDSAuditTypeViewForNdsGroup'
                 groupId:
@@ -29278,8 +29033,6 @@ components:
                     example: user1
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/NDSAuditTypeViewForOrg'
                 groupId:
@@ -29421,8 +29174,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/NDSAutoScalingAuditTypeViewForNdsGroup'
                 groupId:
@@ -29620,8 +29371,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/NDSServerlessInstanceAuditTypeView'
                 groupId:
@@ -29722,8 +29471,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 endpointId:
                     description: Unique 24-hexadecimal digit string that identifies the endpoint associated with this event.
                     example: 32b6e34b3d91647abb20e7b8
@@ -30359,8 +30106,6 @@ components:
                     type: string
                 currentValue:
                     $ref: '#/components/schemas/NumberMetricValueView'
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 deskLocation:
                     description: Desk location of MongoDB employee associated with the event.
                     readOnly: true
@@ -31515,8 +31260,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/OrgEventTypeViewForOrg'
                 groupId:
@@ -32345,57 +32088,6 @@ components:
                     type: object
             readOnly: true
             title: Outbound Control Plane IP Addresses By Cloud Provider
-            type: object
-        OverloadProtectionSimulationRequest:
-            description: Request to start an overload protection simulation for a cluster.
-            properties:
-                durationSeconds:
-                    description: Duration of the overload protection simulation in seconds.
-                    format: int32
-                    type: integer
-            type: object
-        OverloadProtectionSimulationResponse:
-            description: Overload protection simulation for a cluster.
-            properties:
-                cancelRequestedAt:
-                    description: Date and time when cancellation of the overload protection simulation was requested. This parameter is only present when a cancellation has been requested and expresses its value in the ISO 8601 timestamp format in UTC.
-                    format: date-time
-                    readOnly: true
-                    type: string
-                clusterName:
-                    description: Human-readable label that identifies the cluster on which the simulation is running.
-                    readOnly: true
-                    type: string
-                durationSeconds:
-                    description: Duration of the overload protection simulation in seconds.
-                    format: int32
-                    type: integer
-                expiresAt:
-                    description: Date and time when the overload protection simulation expires. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-                    format: date-time
-                    readOnly: true
-                    type: string
-                groupId:
-                    description: Unique 24-hexadecimal character string that identifies the project that contains the cluster.
-                    example: 32b6e34b3d91647abb20e7b8
-                    pattern: ^[a-fA-F0-9]{24}$
-                    readOnly: true
-                    type: string
-                requestDate:
-                    description: Date and time when the overload protection simulation was requested. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-                    format: date-time
-                    readOnly: true
-                    type: string
-                simulationId:
-                    description: Unique identifier of the overload protection simulation.
-                    example: 32b6e34b3d91647abb20e7b8
-                    pattern: ^[a-fA-F0-9]{24}$
-                    readOnly: true
-                    type: string
-                state:
-                    description: Current state of the overload protection simulation.
-                    readOnly: true
-                    type: string
             type: object
         PagerDuty:
             description: Details to integrate one PagerDuty account with one MongoDB Cloud project.
@@ -33919,32 +33611,6 @@ components:
             required:
                 - results
             type: object
-        PaginatedInvoiceReportView:
-            properties:
-                links:
-                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-                    externalDocs:
-                        description: Web Linking Specification (RFC 5988)
-                        url: https://datatracker.ietf.org/doc/html/rfc5988
-                    items:
-                        $ref: '#/components/schemas/Link'
-                    readOnly: true
-                    type: array
-                results:
-                    description: List of returned documents that MongoDB Cloud provides when completing this request.
-                    items:
-                        $ref: '#/components/schemas/InvoiceReportResponse'
-                    readOnly: true
-                    type: array
-                totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
-                    format: int32
-                    minimum: 0
-                    readOnly: true
-                    type: integer
-            required:
-                - results
-            type: object
         PaginatedLegacyClusterView:
             properties:
                 links:
@@ -34169,33 +33835,6 @@ components:
                     description: List of returned documents that MongoDB Cloud provides when completing this request.
                     items:
                         $ref: '#/components/schemas/AtlasOrganization'
-                    readOnly: true
-                    type: array
-                totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
-                    format: int32
-                    minimum: 0
-                    readOnly: true
-                    type: integer
-            required:
-                - results
-            type: object
-        PaginatedOverloadProtectionSimulationResponse:
-            description: List of overload protection simulations for a cluster.
-            properties:
-                links:
-                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-                    externalDocs:
-                        description: Web Linking Specification (RFC 5988)
-                        url: https://datatracker.ietf.org/doc/html/rfc5988
-                    items:
-                        $ref: '#/components/schemas/Link'
-                    readOnly: true
-                    type: array
-                results:
-                    description: List of returned documents that MongoDB Cloud provides when completing this request.
-                    items:
-                        $ref: '#/components/schemas/OverloadProtectionSimulationResponse'
                     readOnly: true
                     type: array
                 totalCount:
@@ -34717,7 +34356,6 @@ components:
                     $ref: '#/components/schemas/PerformanceAdvisorOpStats'
             type: object
         PerformanceAdvisorResponse:
-            description: Response that contains Performance Advisor suggested indexes and query shapes.
             properties:
                 shapes:
                     description: List of query predicates, sorts, and projections that the Performance Advisor suggests.
@@ -34823,16 +34461,8 @@ components:
                     description: This boolean will be true when the server can identify the query source as non-server. This field is only available for MDB 8.0+.
                     readOnly: true
                     type: boolean
-                hasAutoEmbedding:
-                    description: Flag that indicates whether the slow query used automated embedding, where MongoDB Cloud generates embeddings from raw text at query time instead of the client supplying a precomputed vector.
-                    readOnly: true
-                    type: boolean
                 hasIndexCoverage:
                     description: Indicates if the query has index coverage.
-                    readOnly: true
-                    type: boolean
-                hasRerank:
-                    description: Flag that indicates whether the slow query used the `$rerank` aggregation stage, which reorders results using Voyage AI reranking models. Always `false` for MongoDB deployments earlier than 8.3.
                     readOnly: true
                     type: boolean
                 hasSort:
@@ -34862,13 +34492,6 @@ components:
                 responseLength:
                     description: The length in bytes of the operation's result document.
                     format: int64
-                    readOnly: true
-                    type: integer
-                tokensUsed:
-                    description: The total inference tokens consumed by this operation, including tokens used by `$rerank`. Returned only for inference queries that consumed tokens; it is omitted otherwise, including for MongoDB deployments earlier than 8.3.
-                    example: 363
-                    format: int64
-                    minimum: 0
                     readOnly: true
                     type: integer
             readOnly: true
@@ -34914,19 +34537,6 @@ components:
                     type: array
             required:
                 - pinnedNamespaces
-            type: object
-        Principal:
-            description: Information about a principal, such as an OAuth application, that triggered the event through delegated access.
-            properties:
-                id:
-                    description: The identifier of this principal.
-                    type: string
-                name:
-                    description: The human-readable name of this principal.
-                    type: string
-                onBehalfOf:
-                    $ref: '#/components/schemas/Principal'
-            readOnly: true
             type: object
         PrivateEndpointHostname:
             description: Set of Private endpoint and hostnames.
@@ -35800,8 +35410,6 @@ components:
                     type: string
                 currentValue:
                     $ref: '#/components/schemas/RawMetricValueView'
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 deskLocation:
                     description: Desk location of MongoDB employee associated with the event.
                     readOnly: true
@@ -36456,8 +36064,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/ResourceEventTypeView'
                 groupId:
@@ -36553,8 +36159,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/ResourceEventTypeViewForOrg'
                 groupId:
@@ -36946,7 +36550,6 @@ components:
                     type: array
             type: object
         SchemaAdvisorResponse:
-            description: Response that contains Performance Advisor schema suggestions.
             properties:
                 recommendations:
                     description: List that contains the documents with information about the schema advice that Performance Advisor suggests.
@@ -37023,8 +36626,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/SearchDeploymentAuditTypeView'
                 groupId:
@@ -39030,8 +38631,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/ServiceAccountEventTypeViewForNdsGroup'
                 groupId:
@@ -39153,8 +38752,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/ServiceAccountEventTypeViewForOrg'
                 groupId:
@@ -39263,9 +38860,7 @@ components:
                 secretExpiresAfterHours:
                     description: The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings.
                     example: 8
-                    exclusiveMinimum: true
                     format: int32
-                    minimum: 0
                     type: integer
             required:
                 - secretExpiresAfterHours
@@ -39510,41 +39105,40 @@ components:
                 - type
             title: Splunk Log Export Integration Response
             type: object
-        SqlInterfaceStatusResponse:
+        StartStreamProcessorWithPreviewView:
+            description: A request to start a stream processor.
             properties:
-                status:
-                    description: Current or desired SQL Interface status for the cluster. The GET endpoint returns OFF when no status is configured.
-                    enum:
-                        - "ON"
-                        - "OFF"
-                    type: string
-                supported:
-                    default: false
-                    description: Whether the cluster tier and type support SQL Interface.
+                failover:
+                    $ref: '#/components/schemas/StreamsStartProcessorFailover'
+                links:
+                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                    externalDocs:
+                        description: Web Linking Specification (RFC 5988)
+                        url: https://datatracker.ietf.org/doc/html/rfc5988
+                    items:
+                        $ref: '#/components/schemas/Link'
                     readOnly: true
+                    type: array
+                resumeFromCheckpoint:
+                    description: When true or not specified, the stream processor resumes from its last checkpoint. When false, the stream processor starts fresh.
                     type: boolean
-                unsupportedReason:
-                    description: Machine-readable reason why SQL Interface isn't supported for this cluster. Present only when supported is false.
-                    enum:
-                        - UNSUPPORTED_TIER
-                        - UNSUPPORTED_TYPE
-                        - UNSUPPORTED_MONGODB_VERSION
-                    nullable: true
-                    readOnly: true
+                startAtOperationTime:
+                    description: The operation time after which the change stream source should begin reporting. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                    externalDocs:
+                        description: ISO 8601
+                        url: https://en.wikipedia.org/wiki/ISO_8601
+                    format: date-time
                     type: string
-            required:
-                - status
-            type: object
-        SqlInterfaceStatusUpdateRequest:
-            properties:
-                status:
-                    description: Current or desired SQL Interface status for the cluster. The GET endpoint returns OFF when no status is configured.
+                tier:
+                    description: Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.
                     enum:
-                        - "ON"
-                        - "OFF"
+                        - SP50
+                        - SP30
+                        - SP10
+                        - SP5
+                        - SP2
+                    title: Stream Workspace Tier
                     type: string
-            required:
-                - status
             type: object
         StateReason:
             description: State reason of the Job. This is set when the job state is "Failed".
@@ -39791,7 +39385,6 @@ components:
             description: Event type that triggers an alert.
             enum:
                 - STREAM_PROCESSOR_STATE_IS_FAILED
-                - STREAM_PROCESSOR_AUTOSCALE_INITIATED
             example: STREAM_PROCESSOR_STATE_IS_FAILED
             externalDocs:
                 description: Atlas Alert Event Types
@@ -39813,11 +39406,6 @@ components:
             enum:
                 - STREAM_PROCESSOR_STATE_IS_FAILED
                 - STREAM_PROCESSOR_STARTED
-                - STREAM_PROCESSOR_AUTOSCALE_INITIATED
-                - STREAM_PROCESSOR_CREATED
-                - STREAM_PROCESSOR_STOPPED
-                - STREAM_PROCESSOR_DROPPED
-                - STREAM_PROCESSOR_MODIFIED
                 - INSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD
                 - OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD
             example: STREAM_PROCESSOR_STATE_IS_FAILED
@@ -39836,11 +39424,6 @@ components:
                     type: string
                 eventTypeName:
                     $ref: '#/components/schemas/StreamProcessorEventTypeViewForNdsGroup'
-                fromTier:
-                    description: Tier the stream processor scaled from.
-                    example: SP10
-                    readOnly: true
-                    type: string
                 groupId:
                     description: Unique 24-hexadecimal digit string that identifies the project in which the event occurred. The `eventId` identifies the specific event.
                     example: 32b6e34b3d91647abb20e7b8
@@ -39867,11 +39450,6 @@ components:
                         $ref: '#/components/schemas/Link'
                     readOnly: true
                     type: array
-                modifiedBy:
-                    description: Username of the user who modified the stream processor.
-                    example: user@example.com
-                    readOnly: true
-                    type: string
                 orgId:
                     description: Unique 24-hexadecimal digit string that identifies the organization to which these events apply.
                     example: 32b6e34b3d91647abb20e7b8
@@ -39895,21 +39473,6 @@ components:
                     type: string
                 raw:
                     $ref: '#/components/schemas/raw'
-                reason:
-                    description: Reason for the autoscale event.
-                    example: Out of memory
-                    readOnly: true
-                    type: string
-                region:
-                    description: Cloud provider region in which the stream processor is running.
-                    example: US_EAST_1
-                    readOnly: true
-                    type: string
-                toTier:
-                    description: Tier the stream processor scaled to.
-                    example: SP30
-                    readOnly: true
-                    type: string
             required:
                 - created
                 - eventTypeName
@@ -40098,8 +39661,6 @@ components:
                 - properties:
                     aws:
                         $ref: '#/components/schemas/StreamsAWSConnectionConfig'
-                    publicPrivateNetworking:
-                        $ref: '#/components/schemas/StreamsPublicPrivateLinkNetworking'
                   type: object
             description: The configuration for AWS Lambda connections.
             type: object
@@ -40197,7 +39758,6 @@ components:
                         - SchemaRegistry
                         - GCPPubSub
                     type: string
-            readOnly: true
             type: object
         StreamsDLQ:
             description: Dead letter queue for the stream processor.
@@ -40651,16 +40211,6 @@ components:
                     items:
                         $ref: '#/components/schemas/Document'
                     type: array
-                tier:
-                    description: Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.
-                    enum:
-                        - SP50
-                        - SP30
-                        - SP10
-                        - SP5
-                        - SP2
-                    title: Stream Workspace Tier
-                    type: string
             type: object
         StreamsModifyStreamProcessorOptions:
             description: Additional options for modifying a stream processor.
@@ -40783,8 +40333,6 @@ components:
                         -- `MSK` for AWS MSK Kafka clusters
                         -- `CONFLUENT` for Confluent Kafka clusters on AWS
                         -- `KINESIS` for AWS Kinesis Data Streams
-                        -- `S3` for AWS S3
-                        -- `LAMBDA` for AWS Lambda
 
                         - Azure
                         -- `EVENTHUB` for Azure EventHub.
@@ -41508,8 +41056,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/TeamEventTypeView'
                 groupId:
@@ -41622,8 +41168,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/TeamEventTypeViewForNdsGroup'
                 groupId:
@@ -42445,8 +41989,6 @@ components:
                     type: string
                 currentValue:
                     $ref: '#/components/schemas/TimeMetricValueView'
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 deskLocation:
                     description: Desk location of MongoDB employee associated with the event.
                     readOnly: true
@@ -43103,8 +42645,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/UserEventTypeViewForNdsGroup'
                 groupId:
@@ -43196,8 +42736,6 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
-                delegatePrincipal:
-                    $ref: '#/components/schemas/Principal'
                 eventTypeName:
                     $ref: '#/components/schemas/UserEventTypeViewForOrg'
                 groupId:
@@ -44517,7 +44055,7 @@ info:
     termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
     title: MongoDB Atlas Administration API
     version: "2.0"
-    x-xgen-sha: 5f0d1a5ec8b3f49b9f5fe1eecc5aec081ab93d3a
+    x-xgen-sha: c6e77b772100f70e747b736b6e33822423222413
 openapi: 3.0.1
 paths:
     /api/atlas/v2:
@@ -49184,7 +48722,7 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getGroupCluster
             x-xgen-operation-id-override: getCluster
         patch:
-            description: 'Updates the details for one cluster in the specified project. Clusters contain a group of hosts that maintain the same data set. This resource can update clusters with asymmetrically-sized shards. To update a cluster''s termination protection, the requesting Service Account or API Key must have the Project Owner role. For all other updates, the requesting Service Account or API Key must have the Project Cluster Manager role, the Project Cluster Resilience Tester role, or the Project Replica Set Manager role. You can''t modify a paused cluster (`paused : true`). You must call this endpoint to set `paused : false`. After this endpoint responds with `paused : false`, you can call it again with the changes you want to make to the cluster. This feature is not available for serverless clusters.'
+            description: 'Updates the details for one cluster in the specified project. Clusters contain a group of hosts that maintain the same data set. This resource can update clusters with asymmetrically-sized shards. To update a cluster''s termination protection, the requesting Service Account or API Key must have the Project Owner role. For all other updates, the requesting Service Account or API Key must have the Project Cluster Manager role or the Project Replica Set Manager role. You can''t modify a paused cluster (`paused : true`). You must call this endpoint to set `paused : false`. After this endpoint responds with `paused : false`, you can call it again with the changes you want to make to the cluster. This feature is not available for serverless clusters.'
             operationId: updateGroupCluster
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -49274,7 +48812,6 @@ paths:
                 - Clusters
             x-rolesRequirements:
                 - Project Cluster Manager
-                - Project Cluster Resilience Tester
                 - Project Replica Set Manager
             x-xgen-changelog:
                 "2025-06-05": Fixed a bug that previously permitted users to configure multiple regionConfigs for the same region and cloud provider within a replicationSpec
@@ -51162,60 +50699,10 @@ paths:
                 "201":
                     content:
                         application/vnd.atlas.2025-03-12+json:
-                            examples:
-                                Multiple collections:
-                                    description: Multiple collections
-                                    value:
-                                        collectionSuffix: ""
-                                        collections:
-                                            - sourceNamespace: sales.orders
-                                              targetNamespace: sales.orders
-                                            - sourceNamespace: sales.customers
-                                              targetNamespace: sales.customers
-                                        createdAt: "2026-07-07T12:00:00Z"
-                                        databaseSuffix: ""
-                                        databases: []
-                                        id: 32b6e34b3d91647abb20e7b8
-                                        indexStatus:
-                                            failedCollectionCount: 0
-                                            state: IN_PROGRESS
-                                        indexStrategy: ALL
-                                        restoredDocuments: 15500
-                                        snapshotId: 6c5e8a2f9b1d4e3a7f0c1b2d
-                                        state: IN_PROGRESS
-                                        targetClusterName: targetCluster
-                                        targetGroupId: 5f3a1b2c4d5e6f7a8b9c0d1e
-                                        totalDocuments: 20000
-                                        writeStrategy: CREATE_NEW
                             schema:
                                 $ref: '#/components/schemas/ApiAtlasCollectionRestoreJobResponse'
                             x-xgen-version: "2025-03-12"
                         application/vnd.atlas.preview+json:
-                            examples:
-                                Multiple collections:
-                                    description: Multiple collections
-                                    value:
-                                        collectionSuffix: ""
-                                        collections:
-                                            - sourceNamespace: sales.orders
-                                              targetNamespace: sales.orders
-                                            - sourceNamespace: sales.customers
-                                              targetNamespace: sales.customers
-                                        createdAt: "2026-07-07T12:00:00Z"
-                                        databaseSuffix: ""
-                                        databases: []
-                                        id: 32b6e34b3d91647abb20e7b8
-                                        indexStatus:
-                                            failedCollectionCount: 0
-                                            state: IN_PROGRESS
-                                        indexStrategy: ALL
-                                        restoredDocuments: 15500
-                                        snapshotId: 6c5e8a2f9b1d4e3a7f0c1b2d
-                                        state: IN_PROGRESS
-                                        targetClusterName: targetCluster
-                                        targetGroupId: 5f3a1b2c4d5e6f7a8b9c0d1e
-                                        totalDocuments: 20000
-                                        writeStrategy: CREATE_NEW
                             schema:
                                 $ref: '#/components/schemas/ApiAtlasCollectionRestoreJobResponse'
                             x-sunset: "2026-08-10"
@@ -51275,60 +50762,10 @@ paths:
                 "200":
                     content:
                         application/vnd.atlas.2025-03-12+json:
-                            examples:
-                                Multiple collections:
-                                    description: Multiple collections
-                                    value:
-                                        collectionSuffix: ""
-                                        collections:
-                                            - sourceNamespace: sales.orders
-                                              targetNamespace: sales.orders
-                                            - sourceNamespace: sales.customers
-                                              targetNamespace: sales.customers
-                                        createdAt: "2026-07-07T12:00:00Z"
-                                        databaseSuffix: ""
-                                        databases: []
-                                        id: 32b6e34b3d91647abb20e7b8
-                                        indexStatus:
-                                            failedCollectionCount: 0
-                                            state: IN_PROGRESS
-                                        indexStrategy: ALL
-                                        restoredDocuments: 15500
-                                        snapshotId: 6c5e8a2f9b1d4e3a7f0c1b2d
-                                        state: IN_PROGRESS
-                                        targetClusterName: targetCluster
-                                        targetGroupId: 5f3a1b2c4d5e6f7a8b9c0d1e
-                                        totalDocuments: 20000
-                                        writeStrategy: CREATE_NEW
                             schema:
                                 $ref: '#/components/schemas/ApiAtlasCollectionRestoreJobResponse'
                             x-xgen-version: "2025-03-12"
                         application/vnd.atlas.preview+json:
-                            examples:
-                                Multiple collections:
-                                    description: Multiple collections
-                                    value:
-                                        collectionSuffix: ""
-                                        collections:
-                                            - sourceNamespace: sales.orders
-                                              targetNamespace: sales.orders
-                                            - sourceNamespace: sales.customers
-                                              targetNamespace: sales.customers
-                                        createdAt: "2026-07-07T12:00:00Z"
-                                        databaseSuffix: ""
-                                        databases: []
-                                        id: 32b6e34b3d91647abb20e7b8
-                                        indexStatus:
-                                            failedCollectionCount: 0
-                                            state: IN_PROGRESS
-                                        indexStrategy: ALL
-                                        restoredDocuments: 15500
-                                        snapshotId: 6c5e8a2f9b1d4e3a7f0c1b2d
-                                        state: IN_PROGRESS
-                                        targetClusterName: targetCluster
-                                        targetGroupId: 5f3a1b2c4d5e6f7a8b9c0d1e
-                                        totalDocuments: 20000
-                                        writeStrategy: CREATE_NEW
                             schema:
                                 $ref: '#/components/schemas/ApiAtlasCollectionRestoreJobResponse'
                             x-sunset: "2026-08-10"
@@ -51415,60 +50852,10 @@ paths:
                 "200":
                     content:
                         application/vnd.atlas.2025-03-12+json:
-                            examples:
-                                Two collection states:
-                                    description: Two collection states
-                                    value:
-                                        links:
-                                            - href: https://cloud.mongodb.com/api/atlas
-                                              rel: self
-                                        results:
-                                            - effectiveTargetNamespace: sales.orders
-                                              indexStatus:
-                                                state: SUCCESSFUL
-                                              restoredDocuments: 12000
-                                              sourceNamespace: sales.orders
-                                              state: SUCCESSFUL
-                                              targetNamespace: sales.orders
-                                              totalDocuments: 12000
-                                            - effectiveTargetNamespace: sales.customers
-                                              indexStatus:
-                                                state: IN_PROGRESS
-                                              restoredDocuments: 3500
-                                              sourceNamespace: sales.customers
-                                              state: IN_PROGRESS
-                                              targetNamespace: sales.customers
-                                              totalDocuments: 8000
-                                        totalCount: 2
                             schema:
                                 $ref: '#/components/schemas/PaginatedApiAtlasCollectionRestoreCollectionStateView'
                             x-xgen-version: "2025-03-12"
                         application/vnd.atlas.preview+json:
-                            examples:
-                                Two collection states:
-                                    description: Two collection states
-                                    value:
-                                        links:
-                                            - href: https://cloud.mongodb.com/api/atlas
-                                              rel: self
-                                        results:
-                                            - effectiveTargetNamespace: sales.orders
-                                              indexStatus:
-                                                state: SUCCESSFUL
-                                              restoredDocuments: 12000
-                                              sourceNamespace: sales.orders
-                                              state: SUCCESSFUL
-                                              targetNamespace: sales.orders
-                                              totalDocuments: 12000
-                                            - effectiveTargetNamespace: sales.customers
-                                              indexStatus:
-                                                state: IN_PROGRESS
-                                              restoredDocuments: 3500
-                                              sourceNamespace: sales.customers
-                                              state: IN_PROGRESS
-                                              targetNamespace: sales.customers
-                                              totalDocuments: 8000
-                                        totalCount: 2
                             schema:
                                 $ref: '#/components/schemas/PaginatedApiAtlasCollectionRestoreCollectionStateView'
                             x-sunset: "2026-08-10"
@@ -51532,34 +50919,10 @@ paths:
                 "200":
                     content:
                         application/vnd.atlas.2025-03-12+json:
-                            examples:
-                                Single collection state:
-                                    description: Single collection state
-                                    value:
-                                        effectiveTargetNamespace: sales.orders
-                                        indexStatus:
-                                            state: SUCCESSFUL
-                                        restoredDocuments: 12000
-                                        sourceNamespace: sales.orders
-                                        state: SUCCESSFUL
-                                        targetNamespace: sales.orders
-                                        totalDocuments: 12000
                             schema:
                                 $ref: '#/components/schemas/ApiAtlasCollectionRestoreCollectionStateResponse'
                             x-xgen-version: "2025-03-12"
                         application/vnd.atlas.preview+json:
-                            examples:
-                                Single collection state:
-                                    description: Single collection state
-                                    value:
-                                        effectiveTargetNamespace: sales.orders
-                                        indexStatus:
-                                            state: SUCCESSFUL
-                                        restoredDocuments: 12000
-                                        sourceNamespace: sales.orders
-                                        state: SUCCESSFUL
-                                        targetNamespace: sales.orders
-                                        totalDocuments: 12000
                             schema:
                                 $ref: '#/components/schemas/ApiAtlasCollectionRestoreCollectionStateResponse'
                             x-sunset: "2026-08-10"
@@ -52915,7 +52278,6 @@ paths:
                 - Cluster Outage Simulation
             x-rolesRequirements:
                 - Project Cluster Manager
-                - Project Cluster Resilience Tester
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cluster-Outage-Simulation/operation/getGroupClusterOutageSimulation
             x-xgen-method-verb-override:
                 customMethod: false
@@ -52982,226 +52344,6 @@ paths:
                 customMethod: "True"
                 verb: start
             x-xgen-operation-id-override: startOutageSimulation
-    /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/overloadSimulations:
-        get:
-            description: Returns all overload protection simulations for one cluster.
-            operationId: listGroupClusterOverloadSimulations
-            parameters:
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/itemsPerPage'
-                - $ref: '#/components/parameters/pageNum'
-                - $ref: '#/components/parameters/pretty'
-                - $ref: '#/components/parameters/groupId'
-                - description: Human-readable label that identifies the cluster on which the overload protection simulations are running.
-                  in: path
-                  name: clusterName
-                  required: true
-                  schema:
-                    pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
-                    type: string
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.preview+json:
-                            schema:
-                                $ref: '#/components/schemas/PaginatedOverloadProtectionSimulationResponse'
-                            x-xgen-preview:
-                                name: overload-protection-simulation
-                            x-xgen-version: preview
-                    description: OK
-                    headers:
-                        RateLimit-Limit:
-                            $ref: '#/components/headers/HeaderRateLimitLimit'
-                        RateLimit-Remaining:
-                            $ref: '#/components/headers/HeaderRateLimitRemaining'
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "429":
-                    $ref: '#/components/responses/tooManyRequests'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Return All Overload Protection Simulations
-            tags:
-                - Overload Protection Simulation
-            x-rolesRequirements:
-                - Project Read Only
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Overload-Protection-Simulation/operation/listGroupClusterOverloadSimulations
-            x-xgen-operation-id-override: listClusterOverloadSimulations
-        post:
-            description: Starts an overload protection simulation for one cluster. Returns a 409 if a simulation is already in progress or completed; DELETE the existing simulation before starting a new one.
-            operationId: createGroupClusterOverloadSimulation
-            parameters:
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/pretty'
-                - $ref: '#/components/parameters/groupId'
-                - description: Human-readable label that identifies the cluster on which to start the overload protection simulation.
-                  in: path
-                  name: clusterName
-                  required: true
-                  schema:
-                    pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
-                    type: string
-            requestBody:
-                content:
-                    application/vnd.atlas.preview+json:
-                        schema:
-                            $ref: '#/components/schemas/OverloadProtectionSimulationRequest'
-                        x-xgen-preview:
-                            name: overload-protection-simulation
-                        x-xgen-version: preview
-                description: 'Details of the overload protection simulation to start. Valid durations (in seconds): 900, 3600, 28800, 86400.'
-                required: true
-            responses:
-                "201":
-                    content:
-                        application/vnd.atlas.preview+json:
-                            schema:
-                                $ref: '#/components/schemas/OverloadProtectionSimulationResponse'
-                            x-xgen-preview:
-                                name: overload-protection-simulation
-                            x-xgen-version: preview
-                    description: Created
-                    headers:
-                        RateLimit-Limit:
-                            $ref: '#/components/headers/HeaderRateLimitLimit'
-                        RateLimit-Remaining:
-                            $ref: '#/components/headers/HeaderRateLimitRemaining'
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "409":
-                    $ref: '#/components/responses/conflict'
-                "429":
-                    $ref: '#/components/responses/tooManyRequests'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Create One Overload Protection Simulation
-            tags:
-                - Overload Protection Simulation
-            x-rolesRequirements:
-                - Project Cluster Manager
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Overload-Protection-Simulation/operation/createGroupClusterOverloadSimulation
-            x-xgen-operation-id-override: createClusterOverloadSimulation
-    /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/overloadSimulations/{simulationId}:
-        delete:
-            description: Deletes the overload protection simulation for one cluster.
-            operationId: deleteGroupClusterOverloadSimulation
-            parameters:
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/pretty'
-                - $ref: '#/components/parameters/groupId'
-                - description: Human-readable label that identifies the cluster on which the overload protection simulation is running.
-                  in: path
-                  name: clusterName
-                  required: true
-                  schema:
-                    pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
-                    type: string
-                - description: Unique 24-hexadecimal digit string that identifies the overload protection simulation.
-                  in: path
-                  name: simulationId
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "202":
-                    content:
-                        application/vnd.atlas.preview+json:
-                            x-xgen-preview:
-                                name: overload-protection-simulation
-                            x-xgen-version: preview
-                    description: Accepted
-                    headers:
-                        RateLimit-Limit:
-                            $ref: '#/components/headers/HeaderRateLimitLimit'
-                        RateLimit-Remaining:
-                            $ref: '#/components/headers/HeaderRateLimitRemaining'
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "409":
-                    $ref: '#/components/responses/conflict'
-                "429":
-                    $ref: '#/components/responses/tooManyRequests'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Delete One Overload Protection Simulation
-            tags:
-                - Overload Protection Simulation
-            x-rolesRequirements:
-                - Project Cluster Manager
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Overload-Protection-Simulation/operation/deleteGroupClusterOverloadSimulation
-            x-xgen-operation-id-override: deleteClusterOverloadSimulation
-        get:
-            description: Returns the overload protection simulation for one cluster.
-            operationId: getGroupClusterOverloadSimulation
-            parameters:
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/pretty'
-                - $ref: '#/components/parameters/groupId'
-                - description: Human-readable label that identifies the cluster on which the overload protection simulation is running.
-                  in: path
-                  name: clusterName
-                  required: true
-                  schema:
-                    pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
-                    type: string
-                - description: Unique 24-hexadecimal digit string that identifies the overload protection simulation.
-                  in: path
-                  name: simulationId
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.preview+json:
-                            schema:
-                                $ref: '#/components/schemas/OverloadProtectionSimulationResponse'
-                            x-xgen-preview:
-                                name: overload-protection-simulation
-                            x-xgen-version: preview
-                    description: OK
-                    headers:
-                        RateLimit-Limit:
-                            $ref: '#/components/headers/HeaderRateLimitLimit'
-                        RateLimit-Remaining:
-                            $ref: '#/components/headers/HeaderRateLimitRemaining'
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "429":
-                    $ref: '#/components/responses/tooManyRequests'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Return One Overload Protection Simulation
-            tags:
-                - Overload Protection Simulation
-            x-rolesRequirements:
-                - Project Read Only
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Overload-Protection-Simulation/operation/getGroupClusterOverloadSimulation
-            x-xgen-operation-id-override: getClusterOverloadSimulation
     /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/performanceAdvisor/dropIndexSuggestions:
         get:
             description: Returns the indexes that the Performance Advisor suggests to drop. The Performance Advisor suggests dropping unused, redundant, and hidden indexes to improve write performance and increase storage space.
@@ -53215,18 +52357,12 @@ paths:
                   schema:
                     pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
                     type: string
-                - description: Flag that indicates whether Application wraps the response in an `envelope` JSON object. Some API clients cannot access the HTTP response headers or status code. To remediate this, set envelope=true in the query. Endpoints that return a list of results use the results object as an envelope. Application adds the status parameter to the response body.
-                  in: query
-                  name: envelope
-                  schema:
-                    default: true
-                    type: boolean
             responses:
                 "200":
                     content:
                         application/vnd.atlas.2024-08-05+json:
                             schema:
-                                $ref: '#/components/schemas/EnvelopedDropIndexSuggestionsResponse'
+                                $ref: '#/components/schemas/DropIndexSuggestionsResponse'
                             x-xgen-version: "2024-08-05"
                     description: OK
                     headers:
@@ -53259,12 +52395,6 @@ paths:
             operationId: listGroupClusterPerformanceAdvisorSchemaAdvice
             parameters:
                 - $ref: '#/components/parameters/groupId'
-                - description: Flag that indicates whether Application wraps the response in an `envelope` JSON object. Some API clients cannot access the HTTP response headers or status code. To remediate this, set envelope=true in the query. Endpoints that return a list of results use the results object as an envelope. Application adds the status parameter to the response body.
-                  in: query
-                  name: envelope
-                  schema:
-                    default: true
-                    type: boolean
                 - description: Human-readable label that identifies the cluster.
                   in: path
                   name: clusterName
@@ -53277,7 +52407,7 @@ paths:
                     content:
                         application/vnd.atlas.2024-08-05+json:
                             schema:
-                                $ref: '#/components/schemas/EnvelopedSchemaAdvisorResponse'
+                                $ref: '#/components/schemas/SchemaAdvisorResponse'
                             x-xgen-version: "2024-08-05"
                     description: OK
                     headers:
@@ -53317,12 +52447,6 @@ paths:
                   schema:
                     pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
                     type: string
-                - description: Flag that indicates whether Application wraps the response in an `envelope` JSON object. Some API clients cannot access the HTTP response headers or status code. To remediate this, set envelope=true in the query. Endpoints that return a list of results use the results object as an envelope. Application adds the status parameter to the response body.
-                  in: query
-                  name: envelope
-                  schema:
-                    default: true
-                    type: boolean
                 - description: Process IDs from which to retrieve suggested indexes. A `processId` is a combination of host and port that serves the MongoDB process. The host must be the hostname, FQDN, IPv4 address, or IPv6 address of the host that runs the MongoDB process (`mongod` or `mongos`). The port must be the IANA port on which the MongoDB process listens for requests. To include multiple `processIds`, pass the parameter multiple times delimited with an ampersand (`&`) between each `processId`.
                   in: query
                   name: processIds
@@ -53367,7 +52491,7 @@ paths:
                     content:
                         application/vnd.atlas.2024-08-05+json:
                             schema:
-                                $ref: '#/components/schemas/EnvelopedPerformanceAdvisorResponse'
+                                $ref: '#/components/schemas/PerformanceAdvisorResponse'
                             x-xgen-version: "2024-08-05"
                     description: OK
                     headers:
@@ -55345,115 +54469,6 @@ paths:
                 - Project Owner
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Legacy-Backup/operation/updateGroupClusterSnapshot
             x-xgen-operation-id-override: updateClusterSnapshot
-    /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/sqlInterface:
-        get:
-            description: Returns the current SQL Interface status, either ON or OFF, for the specified cluster. If no status is configured, this resource returns OFF. The response also indicates whether SQL Interface is supported for this cluster.
-            operationId: getGroupClusterSqlInterface
-            parameters:
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/groupId'
-                - $ref: '#/components/parameters/pretty'
-                - description: Human-readable label that identifies the cluster.
-                  in: path
-                  name: clusterName
-                  required: true
-                  schema:
-                    pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
-                    type: string
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.preview+json:
-                            schema:
-                                $ref: '#/components/schemas/SqlInterfaceStatusResponse'
-                            x-xgen-preview:
-                                name: sql-interface
-                            x-xgen-version: preview
-                    description: SQL Interface status successfully retrieved.
-                    headers:
-                        RateLimit-Limit:
-                            $ref: '#/components/headers/HeaderRateLimitLimit'
-                        RateLimit-Remaining:
-                            $ref: '#/components/headers/HeaderRateLimitRemaining'
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "429":
-                    $ref: '#/components/responses/tooManyRequests'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Return SQL Interface Status
-            tags:
-                - Clusters
-            x-rolesRequirements:
-                - Project Read Only
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getGroupClusterSqlInterface
-            x-xgen-operation-id-override: getClusterSqlInterface
-        patch:
-            description: Enables or disables the SQL Interface for the specified cluster by setting its status to ON or OFF. Returns a conflict if SQL Interface can't be enabled for this cluster or project.
-            operationId: updateGroupClusterSqlInterface
-            parameters:
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/groupId'
-                - $ref: '#/components/parameters/pretty'
-                - description: Human-readable label that identifies the cluster.
-                  in: path
-                  name: clusterName
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/vnd.atlas.preview+json:
-                        schema:
-                            $ref: '#/components/schemas/SqlInterfaceStatusUpdateRequest'
-                        x-xgen-preview:
-                            name: sql-interface
-                        x-xgen-version: preview
-                description: Desired SQL Interface status for the cluster.
-                required: true
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.preview+json:
-                            schema:
-                                $ref: '#/components/schemas/SqlInterfaceStatusResponse'
-                            x-xgen-preview:
-                                name: sql-interface
-                            x-xgen-version: preview
-                    description: SQL Interface status successfully updated.
-                    headers:
-                        RateLimit-Limit:
-                            $ref: '#/components/headers/HeaderRateLimitLimit'
-                        RateLimit-Remaining:
-                            $ref: '#/components/headers/HeaderRateLimitRemaining'
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "409":
-                    $ref: '#/components/responses/conflict'
-                "429":
-                    $ref: '#/components/responses/tooManyRequests'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Update SQL Interface Status
-            tags:
-                - Clusters
-            x-rolesRequirements:
-                - Project Cluster Manager
-                - Project Replica Set Manager
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/updateGroupClusterSqlInterface
-            x-xgen-operation-id-override: updateClusterSqlInterface
     /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/status:
         get:
             description: Returns the status of all changes that you made to the specified cluster in the specified project. Use this resource to check the progress MongoDB Cloud has made in processing your changes. The response does not include the deployment of new dedicated clusters.
@@ -60809,7 +59824,7 @@ paths:
                 - $ref: '#/components/parameters/itemsPerPage'
                 - $ref: '#/components/parameters/pageNum'
                 - $ref: '#/components/parameters/pretty'
-                - description: Optional filter by integration type (e.g., `OTEL`).
+                - description: Optional filter by integration type (e.g., `OTEL`). When specified, `providerType` must also be specified.
                   in: query
                   name: integrationType
                   schema:
@@ -65659,6 +64674,13 @@ paths:
                     application/vnd.atlas.2023-02-01+json:
                         schema:
                             $ref: '#/components/schemas/StreamsTenantUpdateRequest'
+                    application/vnd.atlas.preview+json:
+                        schema:
+                            $ref: '#/components/schemas/StreamsTenantUpdateRequest'
+                        x-xgen-preview:
+                            name: regional-failover
+                            public: "false"
+                        x-xgen-version: preview
                 description: Details to update in the streams workspace.
                 required: true
             responses:
@@ -65668,6 +64690,13 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/StreamsTenant'
                             x-xgen-version: "2023-02-01"
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/StreamsTenant'
+                            x-xgen-preview:
+                                name: regional-failover
+                                public: "false"
+                            x-xgen-version: preview
                     description: OK
                     headers:
                         RateLimit-Limit:
@@ -66198,6 +65227,12 @@ paths:
                     content:
                         application/vnd.atlas.2025-03-12+json:
                             x-xgen-version: "2025-03-12"
+                        application/vnd.atlas.preview+json:
+                            x-sunset: "2026-07-20"
+                            x-xgen-preview:
+                                name: regional-failover
+                                public: "false"
+                            x-xgen-version: preview
                     description: No Content
                     headers:
                         RateLimit-Limit:
@@ -66632,12 +65667,24 @@ paths:
                         schema:
                             $ref: '#/components/schemas/StreamsStartStreamProcessorWith'
                         x-xgen-version: "2025-03-12"
+                    application/vnd.atlas.preview+json:
+                        schema:
+                            $ref: '#/components/schemas/StartStreamProcessorWithPreviewView'
+                        x-xgen-preview:
+                            name: regional-failover
+                            public: "false"
+                        x-xgen-version: preview
                 description: Options for starting a stream processor.
             responses:
                 "200":
                     content:
                         application/vnd.atlas.2025-03-12+json:
                             x-xgen-version: "2025-03-12"
+                        application/vnd.atlas.preview+json:
+                            x-xgen-preview:
+                                name: regional-failover
+                                public: "false"
+                            x-xgen-version: preview
                     description: OK
                     headers:
                         RateLimit-Limit:
@@ -70429,154 +69476,6 @@ paths:
                 - Organization Billing Viewer
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Invoices/operation/searchOrgInvoiceLineItems
             x-xgen-operation-id-override: searchInvoiceLineItems
-    /api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}/reports:
-        get:
-            description: Returns all unexpired reports for the specified invoice, newest first. Listed reports never include a download URL; retrieve a single report to obtain one.
-            operationId: listOrgInvoiceReports
-            parameters:
-                - $ref: '#/components/parameters/orgId'
-                - description: Unique string that identifies the invoice to list reports for.
-                  in: path
-                  name: invoiceId
-                  required: true
-                  schema:
-                    type: string
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/includeCount'
-                - $ref: '#/components/parameters/itemsPerPage'
-                - $ref: '#/components/parameters/pageNum'
-                - $ref: '#/components/parameters/pretty'
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.2025-03-12+json:
-                            schema:
-                                $ref: '#/components/schemas/PaginatedInvoiceReportView'
-                            x-xgen-version: "2025-03-12"
-                    description: Reports listed successfully
-                    headers:
-                        RateLimit-Limit:
-                            $ref: '#/components/headers/HeaderRateLimitLimit'
-                        RateLimit-Remaining:
-                            $ref: '#/components/headers/HeaderRateLimitRemaining'
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "429":
-                    $ref: '#/components/responses/tooManyRequests'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Return All Invoice Reports for One Invoice
-            tags:
-                - Invoices
-            x-rolesRequirements:
-                - Organization Billing Viewer
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Invoices/operation/listOrgInvoiceReports
-        post:
-            description: Requests asynchronous generation of a report for the specified invoice. Returns a report identifier that can be used to poll the report status.
-            operationId: createOrgInvoiceReport
-            parameters:
-                - $ref: '#/components/parameters/orgId'
-                - description: Unique string that identifies the invoice for which to generate the report.
-                  in: path
-                  name: invoiceId
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/vnd.atlas.2025-03-12+json:
-                        schema:
-                            $ref: '#/components/schemas/InvoiceReportRequest'
-                        x-xgen-version: "2025-03-12"
-                description: Create Invoice Report request body.
-                required: true
-            responses:
-                "201":
-                    content:
-                        application/vnd.atlas.2025-03-12+json:
-                            schema:
-                                $ref: '#/components/schemas/InvoiceReportResponse'
-                            x-xgen-version: "2025-03-12"
-                    description: Report generation requested successfully
-                    headers:
-                        RateLimit-Limit:
-                            $ref: '#/components/headers/HeaderRateLimitLimit'
-                        RateLimit-Remaining:
-                            $ref: '#/components/headers/HeaderRateLimitRemaining'
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "429":
-                    $ref: '#/components/responses/tooManyRequests'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Create One Invoice Report
-            tags:
-                - Invoices
-            x-rolesRequirements:
-                - Organization Billing Viewer
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Invoices/operation/createOrgInvoiceReport
-    /api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}/reports/{reportId}:
-        get:
-            description: Returns the status and details of a previously requested invoice report.
-            operationId: getOrgInvoiceReport
-            parameters:
-                - $ref: '#/components/parameters/orgId'
-                - description: Unique string that identifies the invoice the report was generated for.
-                  in: path
-                  name: invoiceId
-                  required: true
-                  schema:
-                    type: string
-                - description: Unique string that identifies the report to retrieve.
-                  in: path
-                  name: reportId
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.2025-03-12+json:
-                            schema:
-                                $ref: '#/components/schemas/InvoiceReportResponse'
-                            x-xgen-version: "2025-03-12"
-                    description: Report retrieved successfully
-                    headers:
-                        RateLimit-Limit:
-                            $ref: '#/components/headers/HeaderRateLimitLimit'
-                        RateLimit-Remaining:
-                            $ref: '#/components/headers/HeaderRateLimitRemaining'
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "429":
-                    $ref: '#/components/responses/tooManyRequests'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Return One Invoice Report
-            tags:
-                - Invoices
-            x-rolesRequirements:
-                - Organization Billing Viewer
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Invoices/operation/getOrgInvoiceReport
-            x-xgen-operation-id-override: getOrgInvoiceReport
     /api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}:generateAndDownloadReport:
         post:
             description: Generates and downloads a report for the specified invoice.
@@ -73708,8 +72607,6 @@ tags:
       name: Online Archive
     - description: Returns, adds, and edits organizational units in MongoDB Cloud.
       name: Organizations
-    - description: Returns and starts overload protection simulations for a cluster.
-      name: Overload Protection Simulation
     - description: Returns suggested indexes and slow query data for a database deployment. Also enables or disables MongoDB Cloud-managed slow operation thresholds. To view field values in a sample query, you must have the Project Data Access Read Only role or higher. Otherwise, MongoDB Cloud returns redacted data rather than the field values.
       name: Performance Advisor
     - description: Returns, adds, edits, and removes private endpoint services.

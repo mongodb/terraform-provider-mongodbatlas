@@ -188,7 +188,7 @@ schema:
           tf_schema_name: tier
           tf_model_name: Tier
           api_name: tier
-          req_body_usage: all_request_bodies
+          req_body_usage: omit_in_update_body
           sensitive: false
           create_only: false
           present_in_any_response: true
