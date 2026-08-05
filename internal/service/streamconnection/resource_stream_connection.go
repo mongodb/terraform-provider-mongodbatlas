@@ -21,6 +21,7 @@ const streamConnectionName = "stream_connection"
 // Connection type constants used to differentiate API field mapping by connection type.
 const (
 	ConnectionTypeAWSKinesisDataStreams = "AWSKinesisDataStreams"
+	ConnectionTypeAWSLambda             = "AWSLambda"
 	ConnectionTypeAzureBlobStorage      = "AzureBlobStorage"
 	ConnectionTypeGCPPubSub             = "GCPPubSub"
 	ConnectionTypeKafka                 = "Kafka"

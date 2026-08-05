@@ -402,7 +402,7 @@ output "privatelink_endpoint_id" {
 - `provider_name` (String) Provider where the endpoint is deployed. Valid values are AWS, AZURE, and GCP.
 - `vendor` (String) Vendor that manages the endpoint. The following are the vendor values per provider:
 
-	* **AWS**: MSK, CONFLUENT, and S3
+	* **AWS**: MSK, CONFLUENT, S3, and LAMBDA
 
 	* **Azure**: EVENTHUB, CONFLUENT, and AZURE_BLOB_STORAGE
 

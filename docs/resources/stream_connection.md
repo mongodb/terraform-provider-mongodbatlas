@@ -154,6 +154,35 @@ resource "mongodbatlas_stream_connection" "test" {
 
 ```
 
+### Example AWSLambda Connection with Private Link
+
+~> **NOTE:** An AWS cluster must be provisioned in the same region before creating an AWS Lambda private endpoint.
+
+```terraform
+resource "mongodbatlas_stream_privatelink_endpoint" "aws_lambda" {
+    project_id    = var.project_id
+    provider_name = "AWS"
+    vendor        = "LAMBDA"
+    region        = "us-east-1"
+}
+
+resource "mongodbatlas_stream_connection" "example_aws_lambda_private_link" {
+    project_id      = var.project_id
+    workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+    connection_name = "AWSLambdaPLConnection"
+    type            = "AWSLambda"
+    aws = {
+      role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/lambdaRole"
+    }
+    networking = {
+      access = {
+        type          = "PRIVATE_LINK"
+        connection_id = mongodbatlas_stream_privatelink_endpoint.aws_lambda.id
+      }
+    }
+}
+```
+
 ### Example GCPPubSub Connection
 
 ```terraform
@@ -366,6 +395,7 @@ If `type` is of value `AWSKinesisDataStreams` the following additional arguments
 
 If `type` is of value `AWSLambda` the following additional arguments are defined:
 * `aws` - The configuration for AWS Lambda connection. See [AWS](#aws).
+* `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
 
 If `type` is of value `GCPPubSub` the following additional arguments are defined:
 * `gcp` - The configuration for GCP Pub/Sub connection. See [GCP](#gcp).
