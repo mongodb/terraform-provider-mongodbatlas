@@ -221,7 +221,8 @@ func waitForNoInterfaceEndpoints(t *testing.T, projectID, providerName, region s
 			if err != nil {
 				return nil, "", err
 			}
-			for _, svc := range services {
+			for i := range services {
+				svc := &services[i]
 				if svc.GetRegionName() == region && len(svc.GetInterfaceEndpoints()) > 0 {
 					return "", "PENDING", nil
 				}

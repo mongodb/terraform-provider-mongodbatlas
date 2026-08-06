@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
-	"go.mongodb.org/atlas-sdk/v20250312022/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -141,7 +141,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 				MongoDBCloudUsersAPI:  cloudUsersMock,
 			}
 
-			_, err := project.GetProjectPropsFromAPI(t.Context(), projectPropsParams, nil)
+			_, err := project.GetProjectPropsFromAPI(t.Context(), projectPropsParams)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)

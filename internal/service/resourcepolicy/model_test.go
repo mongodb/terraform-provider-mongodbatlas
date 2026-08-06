@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -159,7 +159,7 @@ func TestNewAdminPolicies(t *testing.T) {
 			Body: types.StringValue("policy2"),
 		},
 	}
-	apiModels := resourcepolicy.NewAdminPolicies(t.Context(), policies)
+	apiModels := resourcepolicy.NewAdminPolicies(policies)
 	assert.Len(t, apiModels, 2)
 	assert.Equal(t, "policy1", apiModels[0].GetBody())
 	assert.Equal(t, "policy2", apiModels[1].GetBody())
@@ -234,7 +234,7 @@ func TestModifyPlan_SkipsValidationWhenValuesUnknownOrNull(t *testing.T) {
 func buildResourcePolicyPlan(t *testing.T, orgIDValue, nameValue any) tfsdk.Plan {
 	t.Helper()
 	ctx := t.Context()
-	schema := resourcepolicy.ResourceSchema(ctx)
+	schema := resourcepolicy.ResourceSchema()
 	userMetadataType := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"id":   tftypes.String,

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
-	"go.mongodb.org/atlas-sdk/v20250312022/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/mockadmin"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -21,7 +21,6 @@ var (
 	CreatingState = "CREATING"
 	UpdatingState = "UPDATING"
 	DeletingState = "DELETING"
-	DeletedState  = "DELETED"
 	UnknownState  = ""
 	sc500         = conversion.IntPtr(500)
 	sc200         = conversion.IntPtr(200)

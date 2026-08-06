@@ -8,7 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 )
 
 var (
@@ -206,7 +206,7 @@ func TestNewTfProjectIPAccessListDSModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, _ := projectipaccesslist.NewTfProjectIPAccessListDSModel(t.Context(), tc.sdkModel)
+			resultModel := projectipaccesslist.NewTfProjectIPAccessListDSModel(tc.sdkModel)
 
 			assert.Equal(t, tc.expectedResult, resultModel)
 		})

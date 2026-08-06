@@ -9,7 +9,7 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -1287,25 +1287,25 @@ func TestAccCluster_basic_RedactClientLogData(t *testing.T) {
 				Config: configRedactClientLogData(orgID, projectName, clusterName, nil),
 				Check: acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "false"},
-					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER_WIDE_SCALING")),
 			},
 			{
 				Config: configRedactClientLogData(orgID, projectName, clusterName, new(false)),
 				Check: acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "false"},
-					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER_WIDE_SCALING")),
 			},
 			{
 				Config: configRedactClientLogData(orgID, projectName, clusterName, new(true)),
 				Check: acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "true"},
-					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")), // latest PATCH API is called, ensure autoscaling mode is not modified
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER_WIDE_SCALING")), // latest PATCH API is called, ensure autoscaling mode is not modified
 			},
 			{
 				Config: configRedactClientLogData(orgID, projectName, clusterName, new(false)),
 				Check: acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "false"},
-					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER_WIDE_SCALING")),
 			},
 		},
 	})

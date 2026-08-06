@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 )
 
 const (
@@ -49,11 +49,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	connV2 := r.Client.AtlasV2
 	orgID := plan.OrgId.ValueString()
 	teamID := plan.TeamId.ValueString()
-	cloudUserTeamAssignmentReq, diags := NewUserTeamAssignmentReq(ctx, &plan)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
+	cloudUserTeamAssignmentReq := NewUserTeamAssignmentReq(&plan)
 
 	apiResp, _, err := connV2.MongoDBCloudUsersAPI.AddOrgTeamUser(ctx, orgID, teamID, cloudUserTeamAssignmentReq).Execute()
 	if err != nil {
