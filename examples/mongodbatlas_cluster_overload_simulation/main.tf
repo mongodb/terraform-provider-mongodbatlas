@@ -18,7 +18,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 }
 
 resource "mongodbatlas_cluster_overload_simulation" "this" {
-  project_id       = var.project_id
+  project_id       = mongodbatlas_advanced_cluster.this.project_id
   cluster_name     = mongodbatlas_advanced_cluster.this.name
   duration_seconds = var.duration_seconds
 }

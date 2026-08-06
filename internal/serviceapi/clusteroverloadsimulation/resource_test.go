@@ -42,6 +42,7 @@ func TestAccClusterOverloadSimulation_basic(t *testing.T) {
 					captureSimulationID(resourceName, &firstID),
 				),
 			},
+			// Changing duration_seconds replaces the simulation because the API does not support updates.
 			{
 				Config: configBasic(&clusterInfo, 3600),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -106,7 +107,7 @@ func checkBasic(projectID, clusterName string, durationSeconds int64) resource.T
 		resource.TestCheckResourceAttrSet(resourceName, "expires_at"),
 		resource.TestCheckResourceAttrSet(resourceName, "request_date"),
 		resource.TestCheckResourceAttrSet(resourceName, "simulation_id"),
-		resource.TestCheckResourceAttrSet(resourceName, "state"),
+		resource.TestCheckResourceAttr(resourceName, "state", "ACTIVE"),
 	}
 	for _, attr := range []string{"project_id", "cluster_name", "duration_seconds", "expires_at", "request_date", "simulation_id", "state"} {
 		checks = append(checks, resource.TestCheckResourceAttrPair(dataSourceName, attr, resourceName, attr))

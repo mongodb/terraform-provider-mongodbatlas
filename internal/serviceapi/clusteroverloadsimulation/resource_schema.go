@@ -50,7 +50,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Current state of the overload protection simulation.",
 			},
+			"delete_on_create_timeout": schema.BoolAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
+				PlanModifiers:       []planmodifier.Bool{customplanmodifier.CreateOnlyBoolWithDefault(true)},
+			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
 				Delete: true,
 			}),
 		},
@@ -58,13 +65,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	CancelRequestedAt types.String   `tfsdk:"cancel_requested_at" autogen:"omitjson"`
-	ClusterName       types.String   `tfsdk:"cluster_name" autogen:"omitjson"`
-	DurationSeconds   types.Int64    `tfsdk:"duration_seconds" autogen:"omitjsonupdate"`
-	ExpiresAt         types.String   `tfsdk:"expires_at" autogen:"omitjson"`
-	ProjectId         types.String   `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	RequestDate       types.String   `tfsdk:"request_date" autogen:"omitjson"`
-	SimulationId      types.String   `tfsdk:"simulation_id" autogen:"omitjson"`
-	State             types.String   `tfsdk:"state" autogen:"omitjson"`
-	Timeouts          timeouts.Value `tfsdk:"timeouts" autogen:"omitjson"`
+	CancelRequestedAt     types.String   `tfsdk:"cancel_requested_at" autogen:"omitjson"`
+	ClusterName           types.String   `tfsdk:"cluster_name" autogen:"omitjson"`
+	DurationSeconds       types.Int64    `tfsdk:"duration_seconds" autogen:"omitjsonupdate"`
+	ExpiresAt             types.String   `tfsdk:"expires_at" autogen:"omitjson"`
+	ProjectId             types.String   `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	RequestDate           types.String   `tfsdk:"request_date" autogen:"omitjson"`
+	SimulationId          types.String   `tfsdk:"simulation_id" autogen:"omitjson"`
+	State                 types.String   `tfsdk:"state" autogen:"omitjson"`
+	DeleteOnCreateTimeout types.Bool     `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
+	Timeouts              timeouts.Value `tfsdk:"timeouts" autogen:"omitjson"`
 }

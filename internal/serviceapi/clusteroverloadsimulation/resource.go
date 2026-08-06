@@ -54,12 +54,30 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "POST",
 	}
+	timeout, localDiags := plan.Timeouts.Create(ctx, 3600*time.Second)
+	resp.Diagnostics.Append(localDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	reqHandle := autogen.HandleCreateReq{
 		Hooks:      r,
 		Resp:       resp,
 		Client:     r.Client,
 		Plan:       &plan,
 		CallParams: &callParams,
+		DeleteReq: func(model any) *autogen.HandleDeleteReq {
+			return deleteRequest(r, r.Client, model.(*TFModel), &resp.Diagnostics)
+		},
+		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
+		Wait: &autogen.WaitReq{
+			StateProperty:     "state",
+			PendingStates:     []string{"PENDING"},
+			TargetStates:      []string{"ACTIVE"},
+			Timeout:           timeout,
+			MinTimeoutSeconds: 10,
+			DelaySeconds:      10,
+			CallParams:        readAPICallParams,
+		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)
 }
