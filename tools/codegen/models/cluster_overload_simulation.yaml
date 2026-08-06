@@ -127,7 +127,7 @@ operations:
                 - COMPLETED
             target_states:
                 - DELETED
-            timeout_seconds: 3600
+            timeout_seconds: 300
             min_timeout_seconds: 10
             delay_seconds: 10
         http_method: DELETE
@@ -139,7 +139,7 @@ operations:
                 - PENDING
             target_states:
                 - ACTIVE
-            timeout_seconds: 3600
+            timeout_seconds: 300
             min_timeout_seconds: 10
             delay_seconds: 10
         http_method: POST

@@ -445,18 +445,18 @@ resources:
     create:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/overloadSimulations
       method: POST
-      wait: &cluster-overload-simulation-create-wait
+      wait: &cluster-overload-simulation-wait
         state_property: "state"
         pending_states: ["PENDING"]
         target_states: ["ACTIVE"]
-        timeout_seconds: 3600 # One hour.
+        timeout_seconds: 300
         min_timeout_seconds: 10
         delay_seconds: 10
     delete:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/overloadSimulations/{simulationId}
       method: DELETE
       wait:
-        <<: *cluster-overload-simulation-create-wait
+        <<: *cluster-overload-simulation-wait
         pending_states: ["PENDING", "ACTIVE", "FAILED", "ENDING", "COMPLETED"]
         target_states: ["DELETED"] # DELETED is a special state value when the API returns 404 or an empty object.
     id_attributes: ["project_id", "cluster_name", "simulation_id"]
