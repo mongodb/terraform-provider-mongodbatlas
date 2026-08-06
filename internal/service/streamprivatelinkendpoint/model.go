@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -23,7 +23,7 @@ const (
 
 // Authentication schemes supported for MSK Private Link connections.
 const (
-	AuthenticationSchemeSaslScram = "SASL/SCRAM"
+	AuthenticationSchemeSaslScram = "SASL_SCRAM"
 	AuthenticationSchemeTLS       = "TLS"
 	AuthenticationSchemeIAM       = "IAM"
 
@@ -138,7 +138,7 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		AuthenticationScheme: plan.AuthenticationScheme.ValueStringPointer(),
 	}
 
-	// authentication_scheme only applies to MSK. When it is not provided, default to SASL/SCRAM.
+	// authentication_scheme only applies to MSK. When it is not provided, default to SASL_SCRAM.
 	if plan.Vendor.ValueString() == VendorMSK && (plan.AuthenticationScheme.IsNull() || plan.AuthenticationScheme.ValueString() == "") {
 		result.AuthenticationScheme = admin.PtrString(DefaultAuthenticationScheme)
 	}

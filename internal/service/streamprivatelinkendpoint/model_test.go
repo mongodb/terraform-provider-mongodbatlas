@@ -6,10 +6,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 )
 
 type sdkToTFModelTestCase struct {
@@ -387,7 +387,7 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 				AuthenticationScheme: &authSchemeTLS,
 			},
 		},
-		"TF state with MSK vendor and no authentication scheme defaults to SASL/SCRAM": {
+		"TF state with MSK vendor and no authentication scheme defaults to SASL_SCRAM": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Id:                    types.StringValue(id),
 				Arn:                   types.StringValue(mskArn),
@@ -609,7 +609,7 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 			expectError: false,
 			errorCount:  0,
 		},
-		"AWS MSK missing authentication_scheme defaults to SASL/SCRAM": {
+		"AWS MSK missing authentication_scheme defaults to SASL_SCRAM": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Provider: types.StringValue(constant.AWS),
 				Vendor:   types.StringValue(streamprivatelinkendpoint.VendorMSK),
@@ -618,7 +618,7 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 			expectError: false,
 			errorCount:  0,
 		},
-		"AWS MSK with SASL/SCRAM authentication_scheme": {
+		"AWS MSK with SASL_SCRAM authentication_scheme": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Provider:             types.StringValue(constant.AWS),
 				Vendor:               types.StringValue(streamprivatelinkendpoint.VendorMSK),

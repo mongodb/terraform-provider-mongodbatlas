@@ -126,7 +126,7 @@ func ResourceSchema() schema.Schema {
 			"authentication_scheme": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Authentication mechanism to use with this private link connection. Only applies when the vendor is `MSK`. Valid values are `SASL/SCRAM`, `TLS`, and `IAM`. Defaults to `SASL/SCRAM` when not specified.",
+				MarkdownDescription: "Authentication mechanism to use with this private link connection. Only applies when the vendor is `MSK`. Valid values are `SASL_SCRAM`, `TLS`, and `IAM`. Defaults to `SASL_SCRAM` when not specified.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(AuthenticationSchemeSaslScram, AuthenticationSchemeTLS, AuthenticationSchemeIAM),
 				},
