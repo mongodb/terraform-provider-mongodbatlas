@@ -314,6 +314,7 @@ jobs:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/alertconfigurationapi/*.go'
             - 'internal/serviceapi/auditingapi/*.go'
+            - 'internal/serviceapi/clusteradaptivesettings/*.go'
             - 'internal/serviceapi/customdbroleapi/*.go'
             - 'internal/serviceapi/databaseuserapi/*.go'
             - 'internal/serviceapi/maintenancewindowapi/*.go'
@@ -692,6 +693,7 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/serviceapi/alertconfigurationapi
             ./internal/serviceapi/auditingapi
+            ./internal/serviceapi/clusteradaptivesettings
             ./internal/serviceapi/customdbroleapi
             ./internal/serviceapi/databaseuserapi
             ./internal/serviceapi/logintegration

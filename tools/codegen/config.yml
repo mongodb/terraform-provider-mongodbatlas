@@ -23,6 +23,49 @@ resources:
       resets_to_defaults: true
     version_header: application/vnd.atlas.2023-01-01+json
 
+  # Singleton resource per cluster.
+  # Create, update, and delete use PATCH.
+  cluster_adaptive_settings:
+    read: &cluster-adaptive-settings-read
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/adaptiveSettings
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/adaptiveSettings
+      method: PATCH
+    update:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/adaptiveSettings
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/adaptiveSettings
+      method: PATCH
+      static_request_body: '{"adaptiveSettingsOverrides": null}'
+      resets_to_defaults: true
+    id_attributes: ["project_id", "cluster_name"]
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+        adaptive_settings_overrides:
+          description: &adaptive_settings_overrides_description "JSON-encoded map of customer-specified Adaptive Settings overrides. Use `jsonencode` to configure this attribute. Each supported entry that you specify takes precedence over the corresponding Atlas-managed default."
+          request_body_usage: "send_null_as_null_on_update"
+        effective_adaptive_settings:
+          description: &effective_adaptive_settings_description "JSON-encoded map of the effective Adaptive Settings currently applied to your cluster, based on your overrides and Atlas-managed defaults. Atlas-managed defaults can vary by MongoDB version."
+    datasources:
+      read: *cluster-adaptive-settings-read
+      schema:
+        aliases:
+          groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description
+          adaptive_settings_overrides:
+            description: *adaptive_settings_overrides_description
+          effective_adaptive_settings:
+            description: *effective_adaptive_settings_description
+
   cluster_old_api:
     deprecation_message: "This resource is deprecated. Please use the mongodbatlas_cluster_api resource instead."
     read:
