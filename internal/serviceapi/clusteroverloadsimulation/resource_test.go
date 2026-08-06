@@ -55,6 +55,7 @@ func TestAccClusterOverloadSimulation_basic(t *testing.T) {
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportState:                          true,
 				ImportStateVerify:                    true,
+				ImportStateVerifyIgnore:              []string{"delete_on_create_timeout"},
 				ImportStateVerifyIdentifierAttribute: "simulation_id",
 			},
 		},
