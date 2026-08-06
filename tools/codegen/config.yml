@@ -436,6 +436,7 @@ resources:
             optional: true
             computed: true
 
+  # TODO CLOUDP-397756: Use the stable API specification before merging to master.
   # Generated from the OpenAPI dev private-preview specification at https://raw.githubusercontent.com/mongodb/openapi/dev/openapi/v2/private/openapi-private-preview-overload-protection-simulation.yaml.
   cluster_overload_simulation:
     read: &cluster-overload-simulation-read

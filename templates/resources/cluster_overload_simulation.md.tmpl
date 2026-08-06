@@ -8,8 +8,6 @@ subcategory: "Clusters"
 
 ~> **IMPORTANT:** An overload protection simulation intentionally applies load to the target cluster. Use it only in an environment where the resulting performance impact is acceptable.
 
--> **NOTE:** This resource uses a private-preview API. The feature must be enabled for the Atlas project, and the target cluster must run MongoDB 9.0 or later.
-
 -> **NOTE:** Only one undeleted overload protection simulation can exist for a cluster. Delete the existing simulation before starting another one.
 
 -> **NOTE:** Changes to `project_id`, `cluster_name`, or `duration_seconds` replace the simulation because the API does not support updates.

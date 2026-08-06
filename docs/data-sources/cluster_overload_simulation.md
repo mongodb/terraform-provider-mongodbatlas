@@ -6,8 +6,6 @@ subcategory: "Clusters"
 
 `mongodbatlas_cluster_overload_simulation` describes one overload protection simulation for a MongoDB Atlas cluster.
 
--> **NOTE:** This data source uses a private-preview API. The feature must be enabled for the Atlas project.
-
 ## Example Usages
 
 ```terraform
