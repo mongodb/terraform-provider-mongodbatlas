@@ -87,7 +87,7 @@ resource "mongodbatlas_stream_processor" "stream-processor-kafka-to-cluster-exam
 }
 
 # Modifying the $source stage of an existing processor requires discarding the current checkpoint.
-# Without resume_from_checkpoint = false, the Atlas Admin API rejects the change with HTTP 400.
+# Without resume_from_checkpoint = false, the Atlas Admin API rejects the change.
 resource "mongodbatlas_stream_processor" "stream-processor-source-change-example" {
   project_id     = var.project_id
   workspace_name = mongodbatlas_stream_instance.example.instance_name
@@ -105,10 +105,8 @@ resource "mongodbatlas_stream_processor" "stream-processor-source-change-example
     } },
     { "$emit" = { "connectionName" : mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_from_cluster" } }
   ])
-  state = "STARTED"
-  options = {
-    resume_from_checkpoint = false
-  }
+  state                  = "STARTED"
+  resume_from_checkpoint = false
 }
 
 data "mongodbatlas_stream_processors" "example-stream-processors" {

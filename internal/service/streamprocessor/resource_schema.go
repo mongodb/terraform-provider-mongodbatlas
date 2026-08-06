@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -72,11 +71,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Optional configuration for the stream processor.",
 				Attributes: map[string]schema.Attribute{
-					"resume_from_checkpoint": schema.BoolAttribute{
-						Optional: true,
-						MarkdownDescription: "When `true`, the stream processor resumes from its last checkpoint after being modified. Set to `false` to discard the existing checkpoint, which is required when modifying the `$source` stage of the `pipeline`." +
-							" Defaults to `true` when not set.\n\n**NOTE** This attribute only affects update operations, it is ignored on create. The Atlas Admin API does not return this value, so it is stored from configuration and is always `null` in the `mongodbatlas_stream_processor` and `mongodbatlas_stream_processors` data sources.",
-					},
 					"dlq": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"coll": schema.StringAttribute{
@@ -92,17 +86,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								MarkdownDescription: "Name of the database to use for the DLQ.",
 							},
 						},
-						Optional:            true,
+						Required:            true,
 						MarkdownDescription: "Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information.",
-						// Attached here rather than to options so that options itself is not part of the
-						// set, which would make the validator always pass when the block is present.
-						// Uses an absolute path so the error message reads `options.resume_from_checkpoint`
-						// rather than a relative `options.dlq.<.resume_from_checkpoint`.
-						Validators: []validator.Object{
-							objectvalidator.AtLeastOneOf(path.Expressions{
-								path.MatchRoot("options").AtName("resume_from_checkpoint"),
-							}...),
-						},
 					},
 				},
 			},
@@ -131,6 +116,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Indicates whether this stream processor is eligible for failover. When `true`, an operator can trigger a failover event to migrate the stream processor to a secondary region configured in the workspace's `failover_regions`. Requires an Atlas-to-Atlas or Atlas-to-Kafka pipeline with `failover_regions` configured on the workspace.",
 			},
+			"resume_from_checkpoint": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "When `true`, the stream processor resumes from its last checkpoint after being updated. Set to `false` to discard the existing checkpoint, which is necessary when modifying the `$source` stage of the `pipeline`." +
+					" Defaults to `true` when not set.\n\n**NOTE** This attribute only affects updates, it is ignored on create and cannot be imported.",
+			},
 		},
 	}
 }
@@ -149,11 +139,11 @@ type TFStreamProcessorRSModel struct {
 	Timeouts              timeouts.Value       `tfsdk:"timeouts"`
 	DeleteOnCreateTimeout types.Bool           `tfsdk:"delete_on_create_timeout"`
 	FailoverEnabled       types.Bool           `tfsdk:"failover_enabled"`
+	ResumeFromCheckpoint  types.Bool           `tfsdk:"resume_from_checkpoint"`
 }
 
 type TFOptionsModel struct {
-	Dlq                  types.Object `tfsdk:"dlq"`
-	ResumeFromCheckpoint types.Bool   `tfsdk:"resume_from_checkpoint"`
+	Dlq types.Object `tfsdk:"dlq"`
 }
 
 type TFDlqModel struct {
@@ -163,8 +153,7 @@ type TFDlqModel struct {
 }
 
 var OptionsObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"dlq":                    DlqObjectType,
-	"resume_from_checkpoint": types.BoolType,
+	"dlq": DlqObjectType,
 }}
 
 var DlqObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
