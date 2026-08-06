@@ -223,7 +223,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// modify the stream processor
-	modifyAPIRequestParams, diags := NewStreamProcessorUpdateReq(ctx, &plan)
+	modifyAPIRequestParams, diags := NewStreamProcessorUpdateReq(ctx, &plan, &state)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

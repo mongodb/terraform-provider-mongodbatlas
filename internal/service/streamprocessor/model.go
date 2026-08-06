@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 )
 
@@ -55,7 +56,16 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 	return streamProcessor, nil
 }
 
-func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.UpdateStreamProcessorApiParams, diag.Diagnostics) {
+// pipelineChanged reports whether the plan changes the pipeline, comparing semantically so that
+// formatting-only differences in the JSON string are not treated as a change.
+func pipelineChanged(plan, state *TFStreamProcessorRSModel) bool {
+	if state == nil {
+		return true
+	}
+	return !schemafunc.EqualJSON(state.Pipeline.ValueString(), plan.Pipeline.ValueString(), "stream processor pipeline")
+}
+
+func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProcessorRSModel) (*admin.UpdateStreamProcessorApiParams, diag.Diagnostics) {
 	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
 	if diags != nil {
 		return nil, diags
@@ -98,7 +108,12 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSM
 	}
 
 	// resume_from_checkpoint is a top-level attribute in Terraform but nested under options in the API.
-	if !plan.ResumeFromCheckpoint.IsNull() && !plan.ResumeFromCheckpoint.IsUnknown() {
+	// It is only sent when the pipeline changes, the only updates the API rejects for a checkpoint
+	// incompatible with the new pipeline. Omitting it for other updates, for example a tier or dlq
+	// change, avoids discarding the checkpoint when the value is left in the configuration. The field
+	// is never sent as true either, omission lets the API apply its own default.
+	resumeFromCheckpointSet := !plan.ResumeFromCheckpoint.IsNull() && !plan.ResumeFromCheckpoint.IsUnknown()
+	if resumeFromCheckpointSet && pipelineChanged(plan, state) {
 		apiOptions.ResumeFromCheckpoint = plan.ResumeFromCheckpoint.ValueBoolPointer()
 		optionsSet = true
 	}

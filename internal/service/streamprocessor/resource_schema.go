@@ -118,8 +118,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"resume_from_checkpoint": schema.BoolAttribute{
 				Optional: true,
-				MarkdownDescription: "When `true`, the stream processor resumes from its last checkpoint after being updated. Set to `false` to discard the existing checkpoint, which is necessary when modifying the `$source` stage of the `pipeline`." +
-					" Defaults to `true` when not set.\n\n**NOTE** This attribute only affects updates, it is ignored on create and cannot be imported.",
+				MarkdownDescription: "Controls checkpoint behavior when the `pipeline` changes. When `true`, the stream processor resumes from its last checkpoint. Set to `false` to discard the existing checkpoint, which is necessary when modifying the `$source` stage or a window stage, as the API rejects those changes while resuming from an incompatible checkpoint." +
+					" Defaults to `true` when not set.\n\n**NOTE** This attribute only applies to updates that change the `pipeline`. It has no effect on create, on updates that leave the `pipeline` unchanged, such as a `tier` or `state` change, and cannot be imported.",
 			},
 		},
 	}
