@@ -5,6 +5,7 @@ import (
 	"errors"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -138,10 +139,18 @@ func (r *databaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 						path.MatchRelative().AtParent().AtName("ldap_auth_type"),
 						path.MatchRelative().AtParent().AtName("aws_iam_type"),
 					}...),
+					stringvalidator.AlsoRequires(
+						path.MatchRelative().AtParent().AtName("password_wo_version"),
+					),
 				},
 			},
 			"password_wo_version": schema.Int64Attribute{
 				Optional: true,
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(
+						path.MatchRelative().AtParent().AtName("password_wo"),
+					),
+				},
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
@@ -241,19 +250,9 @@ func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	// password_wo is nullified by the framework in the plan (write-only semantics), so read it from
-	// config instead. password_wo_version is non-write-only and remains in the plan unchanged.
+	// Write-only values are nullified in the plan, so password_wo must be read from config.
 	if !configModel.PasswordWo.IsNull() {
 		plan.PasswordWo = configModel.PasswordWo
-		// Validate: password_wo requires password_wo_version to be set for rotation detection
-		if configModel.PasswordWoVersion.IsNull() {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("password_wo_version"),
-				"Missing Required Attribute",
-				"When 'password_wo' is set, 'password_wo_version' must also be specified to enable password rotation detection.",
-			)
-			return
-		}
 	}
 
 	dbUserReq, localDiags := NewMongoDBDatabaseUser(ctx, types.StringNull(), types.StringNull(), types.Int64Null(), plan)
@@ -327,21 +326,9 @@ func (r *databaseUserRS) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	// Write-only attribute handling: The Terraform framework nullifies write-only values in the plan
-	// (to prevent them from being persisted in state), but they remain available in the config.
-	// We must read from config to access the original user-provided value, then the framework
-	// ensures it never appears in the resulting state.
+	// Write-only values are nullified in the plan, so password_wo must be read from config.
 	if !configModel.PasswordWo.IsNull() {
 		plan.PasswordWo = configModel.PasswordWo
-		// Validate: password_wo requires password_wo_version to be set for rotation detection
-		if configModel.PasswordWoVersion.IsNull() {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("password_wo_version"),
-				"Missing Required Attribute",
-				"When 'password_wo' is set, 'password_wo_version' must also be specified to enable password rotation detection.",
-			)
-			return
-		}
 	}
 
 	dbUserReq, localDiags := NewMongoDBDatabaseUser(ctx, state.Password, state.Description, state.PasswordWoVersion, plan)
