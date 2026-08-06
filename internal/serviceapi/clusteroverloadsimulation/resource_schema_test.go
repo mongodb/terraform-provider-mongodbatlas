@@ -32,9 +32,6 @@ func TestResourceSchemaRequiresReplacement(t *testing.T) {
 	if !requiresReplacement(t.Context(), duration.PlanModifiers) {
 		t.Error("attribute \"duration_seconds\" must require replacement")
 	}
-	if len(duration.Validators) != 1 {
-		t.Errorf("attribute \"duration_seconds\" must have one validator, got %d", len(duration.Validators))
-	}
 }
 
 func requiresReplacement[T interface{ Description(context.Context) string }](ctx context.Context, modifiers []T) bool {

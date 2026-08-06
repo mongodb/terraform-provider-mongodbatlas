@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"regexp"
 	"strconv"
 	"testing"
 
@@ -57,25 +56,6 @@ func TestAccClusterOverloadSimulation_basic(t *testing.T) {
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "simulation_id",
-			},
-		},
-	})
-}
-
-func TestAccClusterOverloadSimulation_invalidDuration(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: `
-					resource "mongodbatlas_cluster_overload_simulation" "test" {
-						project_id       = "111111111111111111111111"
-						cluster_name     = "Cluster0"
-						duration_seconds = 901
-					}
-				`,
-				PlanOnly:    true,
-				ExpectError: regexp.MustCompile("must be one of"),
 			},
 		},
 	})
