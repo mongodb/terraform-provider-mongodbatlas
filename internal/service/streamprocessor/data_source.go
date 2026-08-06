@@ -36,19 +36,19 @@ func (d *StreamProccesorDS) Schema(ctx context.Context, req datasource.SchemaReq
 	})
 }
 
-// dataSourceResultsOverridenFields removes resource-only attributes from the data sources. A nil
+// dataSourceOmittedFields lists resource-only attributes to remove from the data sources, a nil
 // value deletes the attribute. resume_from_checkpoint only applies to updates and is never returned
 // by the API, so it would always be null.
-func dataSourceResultsOverridenFields() map[string]dsschema.Attribute {
+func dataSourceOmittedFields() map[string]dsschema.Attribute {
 	return map[string]dsschema.Attribute{
 		"resume_from_checkpoint": nil,
 	}
 }
 
-// dataSourceOverridenFields builds on dataSourceResultsOverridenFields, adding the root-level
+// dataSourceOverridenFields builds on dataSourceOmittedFields, adding the root-level
 // attributes that only apply to the singular data source.
 func dataSourceOverridenFields() map[string]dsschema.Attribute {
-	fields := dataSourceResultsOverridenFields()
+	fields := dataSourceOmittedFields()
 	fields["instance_name"] = dsschema.StringAttribute{
 		Optional:            true,
 		MarkdownDescription: "Label that identifies the stream processing workspace.",
