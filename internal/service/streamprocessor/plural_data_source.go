@@ -30,7 +30,7 @@ type streamProcessorsDS struct {
 func (d *streamProcessorsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
 		RequiredFields:      []string{"project_id"},
-		OverridenFields:     dataSourceResultsOverridenFields(),
+		OverridenFields:     dataSourceOmittedFields(),
 		OverrideResultsDoc:  "Returns all Stream Processors within the specified stream instance.\n\nTo use this resource, the requesting API Key must have the Project Owner\n\nrole or Project Stream Processing Owner role.",
 		OverridenRootFields: dataSourceOverridenFields(),
 	})

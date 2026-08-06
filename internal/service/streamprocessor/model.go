@@ -57,10 +57,12 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 }
 
 // pipelineChanged reports whether the plan changes the pipeline, comparing semantically so that
-// formatting-only differences in the JSON string are not treated as a change.
+// formatting-only differences in the JSON string are not treated as a change. Without prior state
+// there is nothing to compare, so it reports no change and the caller omits resume_from_checkpoint,
+// the safer default for a flag that discards checkpoints.
 func pipelineChanged(plan, state *TFStreamProcessorRSModel) bool {
 	if state == nil {
-		return true
+		return false
 	}
 	return !schemafunc.EqualJSON(state.Pipeline.ValueString(), plan.Pipeline.ValueString(), "stream processor pipeline")
 }
