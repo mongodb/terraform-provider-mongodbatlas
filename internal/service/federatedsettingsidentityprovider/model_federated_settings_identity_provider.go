@@ -4,7 +4,7 @@ import (
 	"cmp"
 	"slices"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -49,7 +49,7 @@ func expandAssociatedDomains(d *schema.ResourceData) *[]string {
 	return &associatedDomainsSlice
 }
 
-func ExpandIdentityProviderUpdate(d *schema.ResourceData, existingIdentityProvider *admin.FederationIdentityProvider) *admin.FederationIdentityProviderUpdate {
+func ExpandIdentityProviderUpdate(existingIdentityProvider *admin.FederationIdentityProvider) *admin.FederationIdentityProviderUpdate {
 	return &admin.FederationIdentityProviderUpdate{
 		AssociatedDomains:          existingIdentityProvider.AssociatedDomains,
 		Audience:                   existingIdentityProvider.Audience,

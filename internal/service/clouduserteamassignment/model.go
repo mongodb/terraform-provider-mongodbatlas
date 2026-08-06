@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 )
 
 func NewTFUserTeamAssignmentModel(ctx context.Context, apiResp *admin.OrgUserResponse) (*TFUserTeamAssignmentModel, diag.Diagnostics) {
@@ -82,9 +82,9 @@ func NewTFProjectRoleAssignments(ctx context.Context, groupRoleAssignments *[]ad
 	return praSet
 }
 
-func NewUserTeamAssignmentReq(ctx context.Context, plan *TFUserTeamAssignmentModel) (*admin.AddOrRemoveUserFromTeam, diag.Diagnostics) {
+func NewUserTeamAssignmentReq(plan *TFUserTeamAssignmentModel) *admin.AddOrRemoveUserFromTeam {
 	addOrRemoveUserFromTeam := admin.AddOrRemoveUserFromTeam{
 		Id: plan.UserId.ValueString(),
 	}
-	return &addOrRemoveUserFromTeam, nil
+	return &addOrRemoveUserFromTeam
 }

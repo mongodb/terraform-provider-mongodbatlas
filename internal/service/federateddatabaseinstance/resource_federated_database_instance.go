@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -842,7 +842,8 @@ func flattenDataFederationCollections(atlasCollections []admin.DataLakeDatabaseC
 func flattenDataFederationDataSources(atlasDataSources []admin.DataLakeDatabaseDataSourceSettings) []map[string]any {
 	out := make([]map[string]any, len(atlasDataSources))
 
-	for i, AtlasDataSource := range atlasDataSources {
+	for i := range atlasDataSources {
+		AtlasDataSource := &atlasDataSources[i]
 		out[i] = map[string]any{
 			"allow_insecure":        AtlasDataSource.GetAllowInsecure(),
 			"collection":            AtlasDataSource.GetCollection(),

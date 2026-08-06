@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserteamassignment"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 )
 
 const (
@@ -172,8 +172,7 @@ func TestNewUserTeamAssignmentReq(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			req, diags := clouduserteamassignment.NewUserTeamAssignmentReq(ctx, tc.plan)
-			assert.False(t, diags.HasError(), "expected no diagnostics")
+			req := clouduserteamassignment.NewUserTeamAssignmentReq(tc.plan)
 			assert.Equal(t, tc.expected, req)
 		})
 	}

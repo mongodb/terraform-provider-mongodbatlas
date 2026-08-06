@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -81,7 +81,7 @@ func TestNewTFPushBasedLogExport(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, _ := pushbasedlogexport.NewTFPushBasedLogExport(t.Context(), tc.projectID, tc.apiResp, tc.timeout, tc.deleteOnCreateTimeout)
+			resultModel := pushbasedlogexport.NewTFPushBasedLogExport(tc.projectID, tc.apiResp, tc.timeout, tc.deleteOnCreateTimeout)
 			if !assert.Equal(t, tc.expectedTFModel, resultModel) {
 				t.Errorf("result model does not match expected output: expected %+v, got %+v", tc.expectedTFModel, resultModel)
 			}

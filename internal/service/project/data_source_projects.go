@@ -12,7 +12,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 )
 
 const projectsDataSourceName = "projects"
@@ -33,7 +33,7 @@ type ProjectsDS struct {
 }
 
 func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(), &conversion.PluralDataSourceSchemaRequest{
 		OverridenFields: dataSourceOverridenFields(),
 		HasLegacyFields: true,
 	})
@@ -83,7 +83,7 @@ func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClien
 			MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersAPI,
 		}
 
-		projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &diagnostics)
+		projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams)
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
 			projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, projectProps)
 			diagnostics = append(diagnostics, diags...)

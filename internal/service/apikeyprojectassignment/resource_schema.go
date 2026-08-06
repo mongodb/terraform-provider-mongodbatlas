@@ -1,13 +1,11 @@
 package apikeyprojectassignment
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func ResourceSchema(ctx context.Context) schema.Schema {
+func ResourceSchema() schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"api_key_id": schema.StringAttribute{

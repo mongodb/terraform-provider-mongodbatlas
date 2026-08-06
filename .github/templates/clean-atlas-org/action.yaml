@@ -1,5 +1,5 @@
 name: clean-atlas-org
-description: 'Cleans up an Atlas organization bot projects'
+description: 'Cleans up test projects in an Atlas organization'
 
 inputs:
   repo-path:
@@ -11,6 +11,9 @@ inputs:
   clean-only-when-no-clusters:
     description: 'Only projects with 0 clusters'
     default: 'false'
+  project-prefixes:
+    description: 'Comma-separated project name prefixes to clean, defaults to the built-in project prefixes'
+    default: ''
 
 runs:
   using: 'composite'
@@ -25,3 +28,4 @@ runs:
         DRY_RUN: ${{ inputs.dry-run }}
         MONGODB_ATLAS_CLEAN_ORG: 'true'
         MONGODB_ATLAS_CLEAN_ONLY_WHEN_NO_CLUSTERS: ${{ inputs.clean-only-when-no-clusters }}
+        MONGODB_ATLAS_CLEAN_PROJECT_PREFIXES: ${{ inputs.project-prefixes }}

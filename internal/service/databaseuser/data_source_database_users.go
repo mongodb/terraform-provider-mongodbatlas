@@ -140,11 +140,7 @@ func (d *DatabaseUsersDS) Read(ctx context.Context, req datasource.ReadRequest, 
 		return
 	}
 
-	dbUserModel, diagnostic := NewTFDatabaseUsersModel(ctx, projectID, dbUser.GetResults())
-	resp.Diagnostics.Append(diagnostic...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	dbUserModel := NewTFDatabaseUsersModel(projectID, dbUser.GetResults())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &dbUserModel)...)
 	if resp.Diagnostics.HasError() {

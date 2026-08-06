@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_alert_configuration: Supports in-place updates for `severity_override`
+```

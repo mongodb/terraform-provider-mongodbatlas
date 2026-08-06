@@ -250,10 +250,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	existingIdentityProvider, _, err := connV2.FederatedAuthenticationAPI.GetIdentityProvider(ctx, federationSettingsID, idpID).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error retreiving federation settings identity provider (%s): %s", federationSettingsID, err))
+		return diag.FromErr(fmt.Errorf("error retrieving federation settings identity provider (%s): %s", federationSettingsID, err))
 	}
 
-	updateRequest := ExpandIdentityProviderUpdate(d, existingIdentityProvider)
+	updateRequest := ExpandIdentityProviderUpdate(existingIdentityProvider)
 
 	if d.HasChange("protocol") {
 		protocol := d.Get("protocol").(string)

@@ -21,7 +21,3 @@ func StatusBadRequest(resp *http.Response) bool {
 func StatusInternalServerError(resp *http.Response) bool {
 	return resp != nil && resp.StatusCode == http.StatusInternalServerError
 }
-
-func StatusConflict(resp *http.Response) bool {
-	return resp != nil && resp.StatusCode == http.StatusConflict
-}

@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 )
 
 const (
@@ -303,7 +303,7 @@ func convertOutageSimulationToSchema(outageSimulation *admin.ClusterOutageSimula
 		return fmt.Errorf(errorClusterOutageSimulationSetting, "cluster_name", err)
 	}
 
-	if outageFilters := convertOutageFiltersToSchema(outageSimulation.GetOutageFilters(), d); outageFilters != nil {
+	if outageFilters := convertOutageFiltersToSchema(outageSimulation.GetOutageFilters()); outageFilters != nil {
 		if err := d.Set("outage_filters", outageFilters); err != nil {
 			return fmt.Errorf(errorClusterOutageSimulationSetting, "outage_filters", err)
 		}
@@ -311,7 +311,7 @@ func convertOutageSimulationToSchema(outageSimulation *admin.ClusterOutageSimula
 	return nil
 }
 
-func convertOutageFiltersToSchema(outageFilters []admin.AtlasClusterOutageSimulationOutageFilter, d *schema.ResourceData) []map[string]any {
+func convertOutageFiltersToSchema(outageFilters []admin.AtlasClusterOutageSimulationOutageFilter) []map[string]any {
 	outageFilterList := make([]map[string]any, 0)
 	for _, v := range outageFilters {
 		outageFilterList = append(outageFilterList, map[string]any{

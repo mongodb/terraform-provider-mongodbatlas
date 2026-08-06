@@ -24,7 +24,7 @@ type pluralDS struct {
 }
 
 func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = PluralDataSourceSchema(ctx)
+	resp.Schema = PluralDataSourceSchema()
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 

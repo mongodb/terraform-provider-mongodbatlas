@@ -36,8 +36,8 @@ func (d *resourcePolicysDS) Schema(ctx context.Context, req datasource.SchemaReq
 	reqSchema := &conversion.PluralDataSourceSchemaRequest{
 		RequiredFields: []string{"org_id"},
 	}
-	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), reqSchema)
-	clone := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), reqSchema)
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(), reqSchema)
+	clone := conversion.PluralDataSourceSchemaFromResource(ResourceSchema(), reqSchema)
 	resourcePolicies := clone.Attributes["results"].(schema.ListNestedAttribute)
 	resourcePolicies.DeprecationMessage = fmt.Sprintf(constant.DeprecationParamWithReplacement, "`results`")
 	resourcePolicies.Description = ""

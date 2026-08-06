@@ -561,6 +561,10 @@ resources:
           computability:
             optional: true
             computed: true
+        is_data_validation_enabled:
+          computability:
+            optional: true
+            computed: true
 
   project_api:
     read:
@@ -767,11 +771,16 @@ resources:
       aliases:
         processorName: name # path param name does not match the API request property.
       overrides:
-        options: # optional but when not configured, Atlas returns a default value.
+        # These are optional but when not configured, Atlas returns a default value.
+        options:
           computability:
             optional: true
             computed: true
-        tier: # optional, but when not configured Atlas returns the parent stream instance's tier.
+        tier:
+          computability:
+            optional: true
+            computed: true
+        failover_enabled:
           computability:
             optional: true
             computed: true
