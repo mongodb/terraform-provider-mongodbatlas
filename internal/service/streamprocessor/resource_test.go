@@ -92,6 +92,126 @@ func TestAccStreamProcessor_withFailoverEnabled(t *testing.T) {
 		}})
 }
 
+// TestAccStreamProcessor_resumeFromCheckpoint verifies that modifying the $source stage of a running
+// processor is rejected unless resume_from_checkpoint is false, because the Atlas Admin API defaults
+// it to true. Requires a real Atlas cluster so the processor can run and produce a checkpoint.
+func TestAccStreamProcessor_resumeFromCheckpoint(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t, false)
+		randomSuffix           = acctest.RandString(5)
+		workspaceName          = acc.RandomName()
+		processorName          = "new-processor-resume-" + randomSuffix
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				// Baseline: running processor with a $source-level filter.
+				Config: configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "insert", nil),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
+					resource.TestCheckNoResourceAttr(resourceName, "resume_from_checkpoint"),
+					// Resource-only attribute, not part of the data source schema.
+					resource.TestCheckNoResourceAttr(dataSourceName, "resume_from_checkpoint"),
+				),
+			},
+			{
+				// The same $source change without resume_from_checkpoint is rejected by the API, since it
+				// defaults to true and the existing checkpoint is incompatible with the new $source.
+				Config:      configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", nil),
+				ExpectError: regexp.MustCompile("resumeFromCheckpoint must be false"),
+			},
+			{
+				// resume_from_checkpoint = true is rejected the same way as omitting it.
+				Config:      configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", new(true)),
+				ExpectError: regexp.MustCompile("resumeFromCheckpoint must be false"),
+			},
+			{
+				// Setting it to false discards the checkpoint and allows the $source change.
+				Config: configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", new(false)),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "resume_from_checkpoint", "false"),
+					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// resume_from_checkpoint is not returned by the API so it cannot be imported.
+				ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "resume_from_checkpoint", "stats"},
+			},
+		}})
+}
+
+// configWithResumeFromCheckpoint builds an Atlas-to-Atlas processor whose $source carries an
+// operationType filter, so that changing operationType between steps is a $source modification.
+func configWithResumeFromCheckpoint(t *testing.T, projectID, workspaceName, clusterName, processorName, operationType string, resumeFromCheckpoint *bool) string {
+	t.Helper()
+
+	resumeAttr := ""
+	if resumeFromCheckpoint != nil {
+		resumeAttr = fmt.Sprintf("resume_from_checkpoint = %t", *resumeFromCheckpoint)
+	}
+
+	return fmt.Sprintf(`
+	resource "mongodbatlas_stream_workspace" "resume_workspace" {
+		project_id     = %[1]q
+		workspace_name = %[2]q
+		data_process_region = {
+			cloud_provider = "AWS"
+			region         = "VIRGINIA_USA"
+		}
+		stream_config = {
+			tier = "SP10"
+		}
+	}
+
+	resource "mongodbatlas_stream_connection" "cluster_src" {
+		project_id      = %[1]q
+		workspace_name  = mongodbatlas_stream_workspace.resume_workspace.workspace_name
+		connection_name = "cluster-src"
+		type            = "Cluster"
+		cluster_name    = %[3]q
+		db_role_to_execute = {
+			role = "atlasAdmin"
+			type = "BUILT_IN"
+		}
+	}
+
+	resource "mongodbatlas_stream_processor" "processor" {
+		project_id     = %[1]q
+		workspace_name = mongodbatlas_stream_workspace.resume_workspace.workspace_name
+		processor_name = %[4]q
+		pipeline = jsonencode([
+			{ "$source" = {
+				"connectionName" = mongodbatlas_stream_connection.cluster_src.connection_name
+				"config" = {
+					"pipeline" = [
+						{ "$match" = { "operationType" = %[5]q } }
+					]
+				}
+			} },
+			{ "$merge" = {
+				"into" = {
+					"connectionName" = mongodbatlas_stream_connection.cluster_src.connection_name
+					"db"             = "resume_test"
+					"coll"           = "sink"
+				}
+			} }
+		])
+		state = "STARTED"
+		%[6]s
+	}
+
+	`, projectID, workspaceName, clusterName, processorName, operationType, resumeAttr) + processorDataSources()
+}
+
 func TestAccStreamProcessor_withTier(t *testing.T) {
 	var (
 		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)

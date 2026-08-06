@@ -303,7 +303,7 @@ func TestSDKToTFModel(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			sdkModel := tc.sdkModel
-			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", sdkModel, nil, nil, tc.failoverEnabled)
+			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", sdkModel, nil, nil, tc.failoverEnabled, nil)
 			assert.False(t, diags.HasError())
 			assert.Equal(t, tc.expectedTFModel.Options, resultModel.Options)
 			if sdkModel.Stats != nil {
@@ -510,6 +510,110 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 			} else {
 				assert.Nil(t, updateReq.StreamsModifyStreamProcessor.FailoverEnabled)
 			}
+		})
+	}
+}
+
+// TestNewStreamProcessorUpdateReqResumeFromCheckpoint checks that the top-level
+// resume_from_checkpoint attribute is sent nested under options, and that options is only populated
+// when there is something to send.
+func TestNewStreamProcessorUpdateReqResumeFromCheckpoint(t *testing.T) {
+	validPipeline := jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]")
+
+	testCases := map[string]struct {
+		options              types.Object
+		resumeFromCheckpoint types.Bool
+		expectOptionsSet     bool
+		expectDlqSet         bool
+		expectResumeSet      bool
+		expectedResumeValue  bool
+	}{
+		"neither set": {
+			resumeFromCheckpoint: types.BoolNull(),
+			options:              types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
+			expectOptionsSet:     false,
+		},
+		"resume_from_checkpoint false, no dlq": {
+			resumeFromCheckpoint: types.BoolValue(false),
+			options:              types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
+			expectOptionsSet:     true,
+			expectResumeSet:      true,
+			expectedResumeValue:  false,
+		},
+		"resume_from_checkpoint true, no dlq": {
+			resumeFromCheckpoint: types.BoolValue(true),
+			options:              types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
+			expectOptionsSet:     true,
+			expectResumeSet:      true,
+			expectedResumeValue:  true,
+		},
+		"dlq only": {
+			resumeFromCheckpoint: types.BoolNull(),
+			options:              optionsToTFModel(t, &streamOptionsExample),
+			expectOptionsSet:     true,
+			expectDlqSet:         true,
+		},
+		"both dlq and resume_from_checkpoint": {
+			resumeFromCheckpoint: types.BoolValue(false),
+			options:              optionsToTFModel(t, &streamOptionsExample),
+			expectOptionsSet:     true,
+			expectDlqSet:         true,
+			expectResumeSet:      true,
+			expectedResumeValue:  false,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			model := &streamprocessor.TFStreamProcessorRSModel{
+				WorkspaceName:        types.StringValue(workspaceName),
+				InstanceName:         types.StringNull(),
+				Pipeline:             validPipeline,
+				ProcessorName:        types.StringValue(processorName),
+				ProjectID:            types.StringValue(projectID),
+				Options:              tc.options,
+				ResumeFromCheckpoint: tc.resumeFromCheckpoint,
+			}
+			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), model)
+			require.False(t, diags.HasError())
+
+			apiOptions := updateReq.StreamsModifyStreamProcessor.Options
+			if !tc.expectOptionsSet {
+				assert.Nil(t, apiOptions)
+				return
+			}
+			require.NotNil(t, apiOptions)
+
+			if tc.expectDlqSet {
+				require.NotNil(t, apiOptions.Dlq)
+				assert.Equal(t, "testColl", apiOptions.Dlq.GetColl())
+			} else {
+				assert.Nil(t, apiOptions.Dlq)
+			}
+
+			if tc.expectResumeSet {
+				require.NotNil(t, apiOptions.ResumeFromCheckpoint)
+				assert.Equal(t, tc.expectedResumeValue, *apiOptions.ResumeFromCheckpoint)
+			} else {
+				assert.Nil(t, apiOptions.ResumeFromCheckpoint)
+			}
+		})
+	}
+}
+
+// TestSDKToTFModelResumeFromCheckpoint checks that resume_from_checkpoint is carried over from the
+// plan or prior state, since the API response never contains it.
+func TestSDKToTFModelResumeFromCheckpoint(t *testing.T) {
+	for name, resumeFromCheckpoint := range map[string]types.Bool{
+		"null":  types.BoolNull(),
+		"false": types.BoolValue(false),
+		"true":  types.BoolValue(true),
+	} {
+		t.Run(name, func(t *testing.T) {
+			sdkModel := streamProcessorWithStats(t, nil)
+			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", sdkModel, nil, nil, nil, &resumeFromCheckpoint)
+			require.False(t, diags.HasError())
+			assert.Equal(t, resumeFromCheckpoint, resultModel.ResumeFromCheckpoint)
 		})
 	}
 }
