@@ -582,7 +582,7 @@ func TestAccDatabaseUser_writeOnlyValidation(t *testing.T) {
 			{
 				Config:      configDatabaseUserPasswordAndPasswordWo(projectID, username),
 				PlanOnly:    true,
-				ExpectError: regexp.MustCompile(`Attribute "password_wo" cannot be specified when\s+"password" is\s+specified`),
+				ExpectError: regexp.MustCompile(`Attribute "password" cannot be specified when\s+"password_wo" is\s+specified`),
 			},
 			{
 				Config:      configDatabaseUserPasswordWoOnly(projectID, username),
