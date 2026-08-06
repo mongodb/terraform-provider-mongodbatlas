@@ -92,127 +92,6 @@ func TestAccStreamProcessor_withFailoverEnabled(t *testing.T) {
 		}})
 }
 
-// TestAccStreamProcessor_resumeFromCheckpoint verifies that modifying the $source stage of a running
-// processor fails with HTTP 400 unless resume_from_checkpoint is false, because the Atlas Admin API
-// defaults it to true. Requires a real Atlas cluster so the processor can run and produce a checkpoint.
-func TestAccStreamProcessor_resumeFromCheckpoint(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ClusterNameExecution(t, false)
-		randomSuffix           = acctest.RandString(5)
-		workspaceName          = acc.RandomName()
-		processorName          = "new-processor-resume-" + randomSuffix
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroyStreamProcessor,
-		Steps: []resource.TestStep{
-			{
-				// Baseline: running processor with a $source-level filter.
-				Config: configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "insert", nil),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
-					resource.TestCheckNoResourceAttr(resourceName, "options.resume_from_checkpoint"),
-				),
-			},
-			{
-				// Change the $source filter with resume_from_checkpoint = false, which the API requires
-				// to accept a $source modification.
-				Config: configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", new(false)),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "options.resume_from_checkpoint", "false"),
-					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
-					// The API never returns this value, so data sources always report null.
-					resource.TestCheckNoResourceAttr(dataSourceName, "options.resume_from_checkpoint"),
-				),
-			},
-			{
-				// The value is write-only, so it must be preserved from state rather than nulled on refresh.
-				Config:   configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", new(false)),
-				PlanOnly: true,
-			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-				// resume_from_checkpoint is not returned by the API so it cannot be imported. This config
-				// sets no dlq either, so the whole options object is absent after import, which also
-				// drops the object's element count (options.%).
-				ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "options.", "stats"},
-			},
-		}})
-}
-
-// configWithResumeFromCheckpoint builds an Atlas-to-Atlas processor whose $source carries an
-// operationType filter, so that changing operationType between steps is a $source modification.
-func configWithResumeFromCheckpoint(t *testing.T, projectID, workspaceName, clusterName, processorName, operationType string, resumeFromCheckpoint *bool) string {
-	t.Helper()
-
-	optionsBlock := ""
-	if resumeFromCheckpoint != nil {
-		optionsBlock = fmt.Sprintf(`
-		options = {
-			resume_from_checkpoint = %t
-		}
-	`, *resumeFromCheckpoint)
-	}
-
-	return fmt.Sprintf(`
-	resource "mongodbatlas_stream_workspace" "resume_workspace" {
-		project_id     = %[1]q
-		workspace_name = %[2]q
-		data_process_region = {
-			cloud_provider = "AWS"
-			region         = "VIRGINIA_USA"
-		}
-		stream_config = {
-			tier = "SP10"
-		}
-	}
-
-	resource "mongodbatlas_stream_connection" "cluster_src" {
-		project_id      = %[1]q
-		workspace_name  = mongodbatlas_stream_workspace.resume_workspace.workspace_name
-		connection_name = "cluster-src"
-		type            = "Cluster"
-		cluster_name    = %[3]q
-		db_role_to_execute = {
-			role = "atlasAdmin"
-			type = "BUILT_IN"
-		}
-	}
-
-	resource "mongodbatlas_stream_processor" "processor" {
-		project_id     = %[1]q
-		workspace_name = mongodbatlas_stream_workspace.resume_workspace.workspace_name
-		processor_name = %[4]q
-		pipeline = jsonencode([
-			{ "$source" = {
-				"connectionName" = mongodbatlas_stream_connection.cluster_src.connection_name
-				"config" = {
-					"pipeline" = [
-						{ "$match" = { "operationType" = %[5]q } }
-					]
-				}
-			} },
-			{ "$merge" = {
-				"into" = {
-					"connectionName" = mongodbatlas_stream_connection.cluster_src.connection_name
-					"db"             = "resume_test"
-					"coll"           = "sink"
-				}
-			} }
-		])
-		state = "STARTED"
-		%[6]s
-	}
-
-	`, projectID, workspaceName, clusterName, processorName, operationType, optionsBlock) + processorDataSources()
-}
-
 func TestAccStreamProcessor_withTier(t *testing.T) {
 	var (
 		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
@@ -510,34 +389,10 @@ func TestAccStreamProcessor_createErrors(t *testing.T) {
 				ExpectError: regexp.MustCompile("Invalid JSON String Value"),
 			},
 			{
-				// dlq and resume_from_checkpoint are both optional, but an empty options block is not valid.
-				// Kept before the final step: the post-test destroy reuses the last step's config, and a
-				// config rejected at validation time makes that destroy fail.
-				Config:      configWithEmptyOptions(t, projectID, workspaceName, processorName),
-				ExpectError: regexp.MustCompile("At least one attribute out of"),
-			},
-			{
 				Config:      config(t, projectID, workspaceName, processorName, streamprocessor.StoppedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
 				ExpectError: regexp.MustCompile("When creating a stream processor, the only valid states are CREATED and STARTED"),
 			},
 		}})
-}
-
-func configWithEmptyOptions(t *testing.T, projectID, workspaceName, processorName string) string {
-	t.Helper()
-	return fmt.Sprintf(`
-	resource "mongodbatlas_stream_processor" "processor" {
-		project_id     = %[1]q
-		workspace_name = %[2]q
-		processor_name = %[3]q
-		pipeline = jsonencode([
-			{ "$source" = { "connectionName" = "sample_stream_solar" } },
-			{ "$emit" = { "connectionName" = "__testLog" } }
-		])
-		state   = "CREATED"
-		options = {}
-	}
-	`, projectID, workspaceName, processorName)
 }
 
 func TestAccStreamProcessor_createTimeoutWithDeleteOnCreate(t *testing.T) {

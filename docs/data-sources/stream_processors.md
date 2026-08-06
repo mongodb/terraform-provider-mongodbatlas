@@ -60,8 +60,8 @@ resource "mongodbatlas_stream_processor" "stream-processor-sample-example" {
   workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "sampleProcessorName"
   pipeline = jsonencode([
-    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-sample.connection_name } },
-    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "sample", "coll" : "solar", "timeseries" : { "timeField" : "_ts" } } }
+    { "$source" = { "connectionName" = mongodbatlas_stream_connection.example-sample.connection_name } },
+    { "$emit" = { "connectionName" : mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "sample", "coll" : "solar", "timeseries" : { "timeField" : "_ts" } } }
   ])
   state = "STARTED"
   tier  = "SP30"
@@ -72,8 +72,8 @@ resource "mongodbatlas_stream_processor" "stream-processor-cluster-to-kafka-exam
   workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "clusterProcessorName"
   pipeline = jsonencode([
-    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name } },
-    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_from_cluster" } }
+    { "$source" = { "connectionName" = mongodbatlas_stream_connection.example-cluster.connection_name } },
+    { "$emit" = { "connectionName" : mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_from_cluster" } }
   ])
   state = "CREATED"
 }
@@ -83,14 +83,14 @@ resource "mongodbatlas_stream_processor" "stream-processor-kafka-to-cluster-exam
   workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "kafkaProcessorName"
   pipeline = jsonencode([
-    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_source" } },
-    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "kafka", "coll" : "topic_source", "timeseries" : { "timeField" : "ts" } }
+    { "$source" = { "connectionName" = mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_source" } },
+    { "$emit" = { "connectionName" : mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "kafka", "coll" : "topic_source", "timeseries" : { "timeField" : "ts" } }
   }])
   state = "CREATED"
   options = {
     dlq = {
       coll            = "exampleColumn"
-      connection_name = resource.mongodbatlas_stream_connection.example-cluster.connection_name
+      connection_name = mongodbatlas_stream_connection.example-cluster.connection_name
       db              = "exampleDb"
     }
   }
@@ -104,7 +104,7 @@ resource "mongodbatlas_stream_processor" "stream-processor-source-change-example
   processor_name = "sourceChangeProcessorName"
   pipeline = jsonencode([
     { "$source" = {
-      "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name
+      "connectionName" = mongodbatlas_stream_connection.example-cluster.connection_name
       # Changing this filter, or setting startAtOperationTime to replay from a different point in
       # the oplog, is a $source modification.
       "config" = {
@@ -113,7 +113,7 @@ resource "mongodbatlas_stream_processor" "stream-processor-source-change-example
         ]
       }
     } },
-    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_from_cluster" } }
+    { "$emit" = { "connectionName" : mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_from_cluster" } }
   ])
   state = "STARTED"
   options = {
@@ -187,9 +187,6 @@ Read-Only:
 Read-Only:
 
 - `dlq` (Attributes) Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information. (see [below for nested schema](#nestedatt--results--options--dlq))
-- `resume_from_checkpoint` (Boolean) When `true`, the stream processor resumes from its last checkpoint after being modified. Set to `false` to discard the existing checkpoint, which is required when modifying the `$source` stage of the `pipeline`. Defaults to `true` when not set.
-
-**NOTE** This attribute only affects update operations, it is ignored on create. The Atlas Admin API does not return this value, so it is stored from configuration and is always `null` in the `mongodbatlas_stream_processor` and `mongodbatlas_stream_processors` data sources.
 
 <a id="nestedatt--results--options--dlq"></a>
 ### Nested Schema for `results.options.dlq`
