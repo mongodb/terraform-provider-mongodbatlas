@@ -68,8 +68,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			// Read-only: the create/update endpoints discard `region` from the request body
+			// (ApiStreamsConnectionView.toConnection() drops it for every connection type), and
+			// Atlas derives the value it returns from the workspace's data process region.
+			// UseStateForUnknown keeps it from re-planning as "known after apply", which would
+			// leave a non-empty plan after apply; refresh still picks up server-side changes.
 			"region": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 
 			// cluster type specific
