@@ -3,7 +3,7 @@ package streamaccountdetails_test
 import (
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamaccountdetails"
@@ -64,10 +64,7 @@ func TestStreamAccountDetailsSDKToTFModel(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			resultModel, diags := streamaccountdetails.NewTFStreamAccountDetails(t.Context(), dummyProjectID, tc.cloudProvider, tc.region, tc.SDKResp)
-			if diags.HasError() {
-				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
-			}
+			resultModel := streamaccountdetails.NewTFStreamAccountDetails(dummyProjectID, tc.cloudProvider, tc.region, tc.SDKResp)
 			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
 	}

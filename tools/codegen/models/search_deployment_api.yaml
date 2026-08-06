@@ -12,6 +12,79 @@ schema:
           create_only: true
           present_in_any_response: false
           request_only_required_on_create: false
+        - int64: {}
+          description: Default number of Search Nodes per region. Applied to a region without an explicit override.
+          computed_optional_required: optional
+          tf_schema_name: default_node_count
+          tf_model_name: DefaultNodeCount
+          api_name: defaultNodeCount
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Cloud service provider on which Search Nodes are provisioned.
+                      computed_optional_required: computed
+                      tf_schema_name: cloud_provider
+                      tf_model_name: CloudProvider
+                      api_name: cloudProvider
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Hardware specification for the Search Node instance sizes.
+                      computed_optional_required: computed
+                      tf_schema_name: instance_size
+                      tf_model_name: InstanceSize
+                      api_name: instanceSize
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - int64: {}
+                      description: Number of Search Nodes in this region.
+                      computed_optional_required: computed
+                      tf_schema_name: node_count
+                      tf_model_name: NodeCount
+                      api_name: nodeCount
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Cloud provider region where Search Nodes are provisioned.
+                      computed_optional_required: computed
+                      tf_schema_name: region_name
+                      tf_model_name: RegionName
+                      api_name: regionName
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: List of settings that configure the Search Nodes for your cluster, with per-region detail including the region name and cloud provider.
+          custom_type:
+            package: customtypes
+            name: EffectiveSpecs
+            model: customtypes.NestedListValue[TFEffectiveSpecsModel]
+            schema: customtypes.NewNestedListType[TFEffectiveSpecsModel](ctx)
+          computed_optional_required: computed
+          tf_schema_name: effective_specs
+          tf_model_name: EffectiveSpecs
+          api_name: effectiveSpecs
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Cloud service provider that manages your customer keys to provide an additional layer of Encryption At Rest for the cluster.
           computed_optional_required: computed
@@ -52,6 +125,17 @@ schema:
             nested_object:
                 attributes:
                     - string: {}
+                      description: Cloud service provider that hosts the Search Nodes in this region. Required when a region is specified.
+                      computed_optional_required: optional
+                      tf_schema_name: cloud_provider
+                      tf_model_name: CloudProvider
+                      api_name: cloudProvider
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: false
+                      request_only_required_on_create: false
+                    - string: {}
                       description: Hardware specification for the Search Node instance sizes.
                       computed_optional_required: required
                       tf_schema_name: instance_size
@@ -72,6 +156,17 @@ schema:
                       sensitive: false
                       create_only: false
                       present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Cloud provider region where Search Nodes are provisioned. Required when the request configures more than one region; optional for single-region requests.
+                      computed_optional_required: optional
+                      tf_schema_name: region_name
+                      tf_model_name: RegionName
+                      api_name: regionName
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: false
                       request_only_required_on_create: false
           description: List of settings that configure the Search Nodes for your cluster. Provide one element per region when configuring asymmetric deployments; a single element applies to all regions.
           custom_type:

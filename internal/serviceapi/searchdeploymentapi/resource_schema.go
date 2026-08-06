@@ -21,6 +21,35 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Label that identifies the cluster to create Search Nodes for.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
+			"default_node_count": schema.Int64Attribute{
+				Optional:            true,
+				MarkdownDescription: "Default number of Search Nodes per region. Applied to a region without an explicit override.",
+			},
+			"effective_specs": schema.ListNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "List of settings that configure the Search Nodes for your cluster, with per-region detail including the region name and cloud provider.",
+				CustomType:          customtypes.NewNestedListType[TFEffectiveSpecsModel](ctx),
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"cloud_provider": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Cloud service provider on which Search Nodes are provisioned.",
+						},
+						"instance_size": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Hardware specification for the Search Node instance sizes.",
+						},
+						"node_count": schema.Int64Attribute{
+							Computed:            true,
+							MarkdownDescription: "Number of Search Nodes in this region.",
+						},
+						"region_name": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Cloud provider region where Search Nodes are provisioned.",
+						},
+					},
+				},
+			},
 			"encryption_at_rest_provider": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Cloud service provider that manages your customer keys to provide an additional layer of Encryption At Rest for the cluster.",
@@ -40,6 +69,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				CustomType:          customtypes.NewNestedListType[TFSpecsModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
+						"cloud_provider": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "Cloud service provider that hosts the Search Nodes in this region. Required when a region is specified.",
+						},
 						"instance_size": schema.StringAttribute{
 							Required:            true,
 							MarkdownDescription: "Hardware specification for the Search Node instance sizes.",
@@ -47,6 +80,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"node_count": schema.Int64Attribute{
 							Optional:            true,
 							MarkdownDescription: "Number of Search Nodes in this region. Optional; falls back to the request-level default when omitted.",
+						},
+						"region_name": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "Cloud provider region where Search Nodes are provisioned. Required when the request configures more than one region; optional for single-region requests.",
 						},
 					},
 				},
@@ -71,16 +108,26 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	ClusterName              types.String                              `tfsdk:"cluster_name" autogen:"omitjson"`
-	EncryptionAtRestProvider types.String                              `tfsdk:"encryption_at_rest_provider" autogen:"omitjson"`
-	GroupId                  types.String                              `tfsdk:"group_id" autogen:"omitjson"`
-	Id                       types.String                              `tfsdk:"id" autogen:"omitjson"`
-	Specs                    customtypes.NestedListValue[TFSpecsModel] `tfsdk:"specs"`
-	StateName                types.String                              `tfsdk:"state_name" autogen:"omitjson"`
-	DeleteOnCreateTimeout    types.Bool                                `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
-	Timeouts                 timeouts.Value                            `tfsdk:"timeouts" autogen:"omitjson"`
+	ClusterName              types.String                                       `tfsdk:"cluster_name" autogen:"omitjson"`
+	DefaultNodeCount         types.Int64                                        `tfsdk:"default_node_count"`
+	EffectiveSpecs           customtypes.NestedListValue[TFEffectiveSpecsModel] `tfsdk:"effective_specs" autogen:"omitjson"`
+	EncryptionAtRestProvider types.String                                       `tfsdk:"encryption_at_rest_provider" autogen:"omitjson"`
+	GroupId                  types.String                                       `tfsdk:"group_id" autogen:"omitjson"`
+	Id                       types.String                                       `tfsdk:"id" autogen:"omitjson"`
+	Specs                    customtypes.NestedListValue[TFSpecsModel]          `tfsdk:"specs"`
+	StateName                types.String                                       `tfsdk:"state_name" autogen:"omitjson"`
+	DeleteOnCreateTimeout    types.Bool                                         `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
+	Timeouts                 timeouts.Value                                     `tfsdk:"timeouts" autogen:"omitjson"`
+}
+type TFEffectiveSpecsModel struct {
+	CloudProvider types.String `tfsdk:"cloud_provider" autogen:"omitjson"`
+	InstanceSize  types.String `tfsdk:"instance_size" autogen:"omitjson"`
+	NodeCount     types.Int64  `tfsdk:"node_count" autogen:"omitjson"`
+	RegionName    types.String `tfsdk:"region_name" autogen:"omitjson"`
 }
 type TFSpecsModel struct {
-	InstanceSize types.String `tfsdk:"instance_size"`
-	NodeCount    types.Int64  `tfsdk:"node_count"`
+	CloudProvider types.String `tfsdk:"cloud_provider"`
+	InstanceSize  types.String `tfsdk:"instance_size"`
+	NodeCount     types.Int64  `tfsdk:"node_count"`
+	RegionName    types.String `tfsdk:"region_name"`
 }

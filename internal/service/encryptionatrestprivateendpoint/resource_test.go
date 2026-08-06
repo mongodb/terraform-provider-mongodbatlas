@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -372,7 +372,7 @@ func configAWSWithTimeouts(projectID, awsIAMRoleName, awsIAMRolePolicyName strin
 }
 
 func configAWSProject(projectName, orgID, awsIAMRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration, timeoutConfig string, deleteOnCreateTimeout *bool) string {
-	encryptionAtRestConfig := acc.ConfigProjectWithAwsKmsPrivateNetworking(projectName, orgID, awsIAMRoleName, awsIAMRolePolicyName, awsKms, false, true, false)
+	encryptionAtRestConfig := acc.ConfigProjectWithAwsKmsPrivateNetworking(projectName, orgID, awsIAMRoleName, awsIAMRolePolicyName, awsKms)
 	return configEARPrivateEndpoint(encryptionAtRestConfig, awsKms, timeoutConfig, deleteOnCreateTimeout)
 }
 

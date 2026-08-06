@@ -38,7 +38,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"method": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "SASL OAUTHBEARER authentication method. Can only be OIDC currently.",
+						MarkdownDescription: "SASL OAUTHBEARER authentication method. Currently, only OIDC is supported.",
 					},
 					"password": schema.StringAttribute{
 						Optional:            true,
@@ -60,6 +60,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"ssl_key": schema.StringAttribute{
 						Optional:            true,
 						MarkdownDescription: "SSL key for client authentication to Kafka.",
+						Sensitive:           true,
 					},
 					"ssl_key_password": schema.StringAttribute{
 						Optional:            true,
@@ -147,7 +148,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"db_role_to_execute": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "Optional for type: Cluster. The name of a Built in or Custom DB Role to connect to an Atlas Cluster.",
+				MarkdownDescription: "Optional for type: Cluster. The name of a built-in or custom DB Role to connect to an Atlas Cluster.",
 				CustomType:          customtypes.NewObjectType[TFDbRoleToExecuteModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"role": schema.StringAttribute{
@@ -205,7 +206,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"connection_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.",
+				MarkdownDescription: "Human-readable label that identifies the stream connection. For the Sample type, this is the name of the sample source.",
 			},
 			"networking": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -300,7 +301,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"region": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "The connection's region.",
+				MarkdownDescription: "The connection region.",
 			},
 			"schema_registry_authentication": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -356,7 +357,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"state": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The state of the connection.",
+				MarkdownDescription: "The connection state.",
 			},
 			"workspace_name": schema.StringAttribute{
 				Required:            true,
@@ -365,7 +366,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"type": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Type of the connection.",
+				MarkdownDescription: "The connection type.",
 				Validators: []validator.String{
 					customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
 						Mapping: map[string]customvalidator.VariantDefinition{
@@ -459,7 +460,7 @@ type TFAuthenticationModel struct {
 	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions"`
 	Scope                     types.String `tfsdk:"scope"`
 	SslCertificate            types.String `tfsdk:"ssl_certificate"`
-	SslKey                    types.String `tfsdk:"ssl_key"`
+	SslKey                    types.String `tfsdk:"ssl_key" autogen:"sensitive"`
 	SslKeyPassword            types.String `tfsdk:"ssl_key_password" autogen:"sensitive"`
 	TokenEndpointUrl          types.String `tfsdk:"token_endpoint_url"`
 	Username                  types.String `tfsdk:"username"`

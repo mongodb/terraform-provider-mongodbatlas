@@ -102,25 +102,22 @@ type attributeGenerator interface {
 
 func generator(attr *codespec.Attribute, disc *codespec.Discriminator) attributeGenerator {
 	if attr.Int64 != nil {
-		return &Int64AttrGenerator{intModel: *attr.Int64, attr: *attr}
+		return &Int64AttrGenerator{attr: *attr}
 	}
 	if attr.Float64 != nil {
 		return &Float64AttrGenerator{
-			floatModel: *attr.Float64,
-			attr:       *attr,
+			attr: *attr,
 		}
 	}
 	if attr.String != nil {
 		return &StringAttrGenerator{
-			stringModel:   *attr.String,
 			attr:          *attr,
 			discriminator: disc,
 		}
 	}
 	if attr.Bool != nil {
 		return &BoolAttrGenerator{
-			boolModel: *attr.Bool,
-			attr:      *attr,
+			attr: *attr,
 		}
 	}
 	if attr.List != nil {
@@ -149,8 +146,7 @@ func generator(attr *codespec.Attribute, disc *codespec.Discriminator) attribute
 	}
 	if attr.Number != nil {
 		return &NumberAttrGenerator{
-			numberModel: *attr.Number,
-			attr:        *attr,
+			attr: *attr,
 		}
 	}
 	if attr.Set != nil {

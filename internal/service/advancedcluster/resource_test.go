@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -725,7 +725,7 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, useSDKv2 ...bool) resource
 				Config: configShardedNewSchema(t, orgID, projectName, clusterName, 50, "M30", "M40", new(2000), new(2500), false, false, isSDKv2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkShardedNewSchema(isTPF, 50, "M30", "M40", new(2000), new(2500), true, false),
-					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD")),
+					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "INDEPENDENT_SHARD_SCALING")),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},

@@ -25,7 +25,7 @@ type streamsWorkspaceDS struct {
 }
 
 func (d *streamsWorkspaceDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(), &conversion.DataSourceSchemaRequest{
 		RequiredFields: []string{"project_id", "workspace_name"},
 	})
 }

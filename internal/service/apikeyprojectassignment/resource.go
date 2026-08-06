@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -34,7 +34,7 @@ type rs struct {
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = ResourceSchema(ctx)
+	resp.Schema = ResourceSchema()
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 

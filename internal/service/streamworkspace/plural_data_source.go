@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 )
 
 var _ datasource.DataSource = &streamsWorkspacesDS{}
@@ -29,7 +29,7 @@ type streamsWorkspacesDS struct {
 }
 
 func (d *streamsWorkspacesDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(), &conversion.PluralDataSourceSchemaRequest{
 		RequiredFields:  []string{"project_id"},
 		HasLegacyFields: true,
 	})

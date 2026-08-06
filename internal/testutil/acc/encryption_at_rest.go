@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -92,7 +92,7 @@ func ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName string
 	return config
 }
 
-func ConfigProjectWithAwsKmsPrivateNetworking(projectName, orgID, awsIAMRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes bool) string {
+func ConfigProjectWithAwsKmsPrivateNetworking(projectName, orgID, awsIAMRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration) string {
 	config := fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 		   name   = %[1]q

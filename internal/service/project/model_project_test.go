@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -267,7 +267,7 @@ func TestLimitsDataSourceSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := project.NewTFLimitsDataSourceModel(t.Context(), tc.dataFederationLimits)
+			resultModel := project.NewTFLimitsDataSourceModel(tc.dataFederationLimits)
 			assert.Equal(t, tc.expectedTFModel, resultModel)
 		})
 	}
