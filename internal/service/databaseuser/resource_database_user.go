@@ -251,9 +251,7 @@ func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Write-only values are nullified in the plan, so password_wo must be read from config.
-	if !configModel.PasswordWo.IsNull() {
-		plan.PasswordWo = configModel.PasswordWo
-	}
+	plan.PasswordWo = configModel.PasswordWo
 
 	dbUserReq, localDiags := NewMongoDBDatabaseUser(ctx, types.StringNull(), types.StringNull(), types.Int64Null(), plan)
 	resp.Diagnostics.Append(localDiags...)
@@ -327,9 +325,7 @@ func (r *databaseUserRS) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	// Write-only values are nullified in the plan, so password_wo must be read from config.
-	if !configModel.PasswordWo.IsNull() {
-		plan.PasswordWo = configModel.PasswordWo
-	}
+	plan.PasswordWo = configModel.PasswordWo
 
 	dbUserReq, localDiags := NewMongoDBDatabaseUser(ctx, state.Password, state.Description, state.PasswordWoVersion, plan)
 	resp.Diagnostics.Append(localDiags...)

@@ -37,6 +37,14 @@ var (
 		ImportStateIdFunc:       importStateIDFunc(resourceName),
 		ImportState:             true,
 		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{"password"},
+	}
+	// Atlas does not return password_wo_version, so it is null after import.
+	importStepWriteOnly = resource.TestStep{
+		ResourceName:            resourceName,
+		ImportStateIdFunc:       importStateIDFunc(resourceName),
+		ImportState:             true,
+		ImportStateVerify:       true,
 		ImportStateVerifyIgnore: []string{"password", "password_wo_version"},
 	}
 )
@@ -561,7 +569,7 @@ func TestAccDatabaseUser_withPasswordWriteOnly(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "password_wo"),
 				),
 			},
-			importStep,
+			importStepWriteOnly,
 		},
 	})
 }
