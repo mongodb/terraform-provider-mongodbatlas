@@ -31,9 +31,4 @@ variable "duration_seconds" {
   description = "Duration of the overload protection simulation in seconds."
   type        = number
   default     = 900
-
-  validation {
-    condition     = contains([900, 3600, 28800, 86400], var.duration_seconds)
-    error_message = "Duration must be one of 900, 3600, 28800, or 86400 seconds."
-  }
 }

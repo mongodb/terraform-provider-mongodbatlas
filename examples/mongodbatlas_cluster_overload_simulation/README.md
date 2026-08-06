@@ -1,8 +1,6 @@
 # MongoDB Atlas Cluster Overload Simulation
 
-This example creates a MongoDB 9.0 cluster, starts an overload protection simulation, and reads the simulation with the corresponding data source.
-
-The overload protection simulation API is in private preview. Use an Atlas project where the feature is enabled. Only one undeleted simulation can exist for a cluster.
+This example creates a cluster, starts an overload protection simulation, and reads the simulation with the corresponding data source.
 
 Configure MongoDB Atlas provider credentials with environment variables, then supply the project ID:
 

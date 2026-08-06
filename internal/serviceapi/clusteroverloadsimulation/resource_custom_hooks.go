@@ -11,14 +11,18 @@ import (
 
 func (r *rs) ResourceSchema(ctx context.Context, s schema.Schema) schema.Schema {
 	for _, name := range []string{"project_id", "cluster_name"} {
-		attr := s.Attributes[name].(schema.StringAttribute)
+		attr, ok := s.Attributes[name].(schema.StringAttribute)
+		if !ok {
+			continue
+		}
 		attr.PlanModifiers = []planmodifier.String{stringplanmodifier.RequiresReplace()}
 		s.Attributes[name] = attr
 	}
 
-	duration := s.Attributes["duration_seconds"].(schema.Int64Attribute)
-	duration.PlanModifiers = []planmodifier.Int64{int64planmodifier.RequiresReplace()}
-	s.Attributes["duration_seconds"] = duration
+	if duration, ok := s.Attributes["duration_seconds"].(schema.Int64Attribute); ok {
+		duration.PlanModifiers = []planmodifier.Int64{int64planmodifier.RequiresReplace()}
+		s.Attributes["duration_seconds"] = duration
+	}
 
 	return s
 }

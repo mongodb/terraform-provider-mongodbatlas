@@ -57,5 +57,3 @@ data "mongodbatlas_cluster_overload_simulation" "this" {
 - `expires_at` (String) Date and time when the overload protection simulation expires. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 - `request_date` (String) Date and time when the overload protection simulation was requested. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 - `state` (String) Current state of the overload protection simulation.
-
-For more information, see [Return One Overload Protection Simulation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Overload-Protection-Simulation/operation/getGroupClusterOverloadSimulation) in the MongoDB Atlas API documentation.
