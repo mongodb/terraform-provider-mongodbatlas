@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"slices"
 	"testing"
 
@@ -11,6 +12,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -47,6 +49,8 @@ func TestAccDatabaseUser_basic(t *testing.T) {
 			resource.TestCheckNoResourceAttr(resourceName, "description"),
 			resource.TestCheckNoResourceAttr(dataSourceName, "description"),
 			resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
+			resource.TestCheckNoResourceAttr(resourceName, "password_wo"),
+			resource.TestCheckNoResourceAttr(resourceName, "password_wo_version"),
 		}
 	)
 
@@ -525,7 +529,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func TestAccDatabaseUser_withPasswordWo(t *testing.T) {
+func TestAccDatabaseUser_withPasswordWriteOnly(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomName()
@@ -535,6 +539,9 @@ func TestAccDatabaseUser_withPasswordWo(t *testing.T) {
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_11_0), // write-only attributes require Terraform 1.11+
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigDatabaseUserPasswordWo(projectID, username),
@@ -543,17 +550,23 @@ func TestAccDatabaseUser_withPasswordWo(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "password_wo_version", "1"),
-					// password_wo should not be stored in state
 					resource.TestCheckNoResourceAttr(resourceName, "password_wo"),
-					// legacy password should not be set
 					resource.TestCheckNoResourceAttr(resourceName, "password"),
 				),
 			},
+			{
+				Config: acc.ConfigDatabaseUserPasswordWoVersionUpdate(projectID, username),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "password_wo_version", "2"),
+					resource.TestCheckNoResourceAttr(resourceName, "password_wo"),
+				),
+			},
+			importStep,
 		},
 	})
 }
 
-func TestAccDatabaseUser_withPasswordWoVersionUpdate(t *testing.T) {
+func TestAccDatabaseUser_writeOnlyValidation(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomName()
@@ -562,19 +575,24 @@ func TestAccDatabaseUser_withPasswordWoVersionUpdate(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_11_0),
+		},
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserPasswordWo(projectID, username),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "password_wo_version", "1"),
-				),
+				Config:      configDatabaseUserPasswordAndPasswordWo(projectID, username),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`Attribute "password_wo" cannot be specified when\s+"password" is\s+specified`),
 			},
 			{
-				Config: acc.ConfigDatabaseUserPasswordWoVersionUpdate(projectID, username),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "password_wo_version", "2"),
-				),
+				Config:      configDatabaseUserPasswordWoOnly(projectID, username),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`Attribute "password_wo_version" must be specified when\s+"password_wo" is\s+specified`),
+			},
+			{
+				Config:      configDatabaseUserPasswordWoVersionOnly(projectID, username),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`Attribute "password_wo" must be specified when\s+"password_wo_version" is\s+specified`),
 			},
 		},
 	})
@@ -633,4 +651,54 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["username"], ids["auth_database_name"]), nil
 	}
+}
+
+func configDatabaseUserPasswordAndPasswordWo(projectID, username string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_database_user" "test" {
+			project_id          = %[1]q
+			username            = %[2]q
+			password            = "test-acc-password"
+			password_wo         = "test-acc-password-wo"
+			password_wo_version = 1
+			auth_database_name  = "admin"
+
+			roles {
+				role_name     = "atlasAdmin"
+				database_name = "admin"
+			}
+		}
+	`, projectID, username)
+}
+
+func configDatabaseUserPasswordWoOnly(projectID, username string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_database_user" "test" {
+			project_id         = %[1]q
+			username           = %[2]q
+			password_wo        = "test-acc-password-wo"
+			auth_database_name = "admin"
+
+			roles {
+				role_name     = "atlasAdmin"
+				database_name = "admin"
+			}
+		}
+	`, projectID, username)
+}
+
+func configDatabaseUserPasswordWoVersionOnly(projectID, username string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_database_user" "test" {
+			project_id          = %[1]q
+			username            = %[2]q
+			password_wo_version = 1
+			auth_database_name  = "admin"
+
+			roles {
+				role_name     = "atlasAdmin"
+				database_name = "admin"
+			}
+		}
+	`, projectID, username)
 }
