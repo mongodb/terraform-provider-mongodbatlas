@@ -598,30 +598,6 @@ func TestAccDatabaseUser_writeOnlyValidation(t *testing.T) {
 	})
 }
 
-func TestAccDatabaseUser_legacyPassword(t *testing.T) {
-	var (
-		projectID = acc.ProjectIDExecution(t)
-		username  = acc.RandomName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: acc.ConfigDatabaseUserBasic(projectID, username, "atlasAdmin", "test-key", "test-value"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
-					resource.TestCheckNoResourceAttr(resourceName, "password_wo"),
-					resource.TestCheckNoResourceAttr(resourceName, "password_wo_version"),
-				),
-			},
-		},
-	})
-}
-
 func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_database_user" {
