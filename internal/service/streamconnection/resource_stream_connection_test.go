@@ -1298,7 +1298,6 @@ func checkAWSLambdaPrivateLinkAttributes(resourceName, workspaceName, connection
 		resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName),
 		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 		resource.TestCheckResourceAttr(resourceName, "type", "AWSLambda"),
-		resource.TestCheckResourceAttrSet(resourceName, "region"),
 		resource.TestCheckResourceAttrSet(resourceName, "aws.role_arn"),
 		resource.TestCheckResourceAttr(resourceName, "networking.access.type", "PRIVATE_LINK"),
 		resource.TestCheckResourceAttrSet(resourceName, "networking.access.connection_id"),

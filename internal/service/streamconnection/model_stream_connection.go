@@ -200,7 +200,6 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 			ProjectID:              types.StringValue(projID),
 			ConnectionName:         types.StringPointerValue(apiResp.Name),
 			Type:                   types.StringPointerValue(apiResp.Type),
-			Region:                 types.StringPointerValue(apiResp.Region),
 			ClusterName:            types.StringPointerValue(apiResp.ClusterName),
 			ClusterProjectID:       types.StringPointerValue(apiResp.ClusterGroupId),
 			BootstrapServers:       types.StringPointerValue(apiResp.BootstrapServers),

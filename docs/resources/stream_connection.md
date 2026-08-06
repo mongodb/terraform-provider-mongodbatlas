@@ -415,9 +415,6 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
 * `schema_registry_urls` - List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
 * `schema_registry_authentication` - Authentication configuration for Schema Registry. See [Schema Registry Authentication](#schema-registry-authentication).
 
-In addition to the arguments above, the following attributes are exported:
-* `region` - The connection region, derived by Atlas from the stream workspace's data process region.
-
 ### Authentication
 
 * `mechanism` - Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, or `OAUTHBEARER`.
