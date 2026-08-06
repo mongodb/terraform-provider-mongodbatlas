@@ -501,7 +501,7 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), tc.model)
+			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), tc.model, nil)
 			assert.False(t, diags.HasError())
 			assert.Equal(t, tc.expectedTenantName, updateReq.TenantName)
 			if tc.expectedFailoverSet {
@@ -514,67 +514,91 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 	}
 }
 
-// TestNewStreamProcessorUpdateReqResumeFromCheckpoint checks that the top-level
-// resume_from_checkpoint attribute is sent nested under options, and that options is only populated
-// when there is something to send.
+// TestNewStreamProcessorUpdateReqResumeFromCheckpoint checks that resume_from_checkpoint is sent
+// nested under options, and only when the pipeline changes. Leaving the value in the configuration
+// must not discard the checkpoint when unrelated attributes change.
 func TestNewStreamProcessorUpdateReqResumeFromCheckpoint(t *testing.T) {
-	validPipeline := jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]")
+	statePipeline := jsontypes.NewNormalizedValue(`[{"$source":{"connectionName":"sample_stream_solar"}},{"$emit":{"connectionName":"__testLog"}}]`)
+	// Same pipeline, different formatting: must not count as a change.
+	reformattedPipeline := jsontypes.NewNormalizedValue(`[{"$source": {"connectionName": "sample_stream_solar"}}, {"$emit": {"connectionName": "__testLog"}}]`)
+	changedPipeline := jsontypes.NewNormalizedValue(`[{"$source":{"connectionName":"other_source"}},{"$emit":{"connectionName":"__testLog"}}]`)
 
 	testCases := map[string]struct {
-		options              types.Object
+		planOptions          types.Object
+		stateOptions         types.Object
+		planPipeline         jsontypes.Normalized
+		planState            types.String
+		stateState           types.String
 		resumeFromCheckpoint types.Bool
 		expectOptionsSet     bool
 		expectDlqSet         bool
 		expectResumeSet      bool
 		expectedResumeValue  bool
 	}{
-		"neither set": {
-			resumeFromCheckpoint: types.BoolNull(),
-			options:              types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
-			expectOptionsSet:     false,
-		},
-		"resume_from_checkpoint false, no dlq": {
+		"pipeline change with false sends false": {
+			planPipeline:         changedPipeline,
 			resumeFromCheckpoint: types.BoolValue(false),
-			options:              types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
 			expectOptionsSet:     true,
 			expectResumeSet:      true,
 			expectedResumeValue:  false,
 		},
-		"resume_from_checkpoint true, no dlq": {
+		"pipeline change with true sends true": {
+			planPipeline:         changedPipeline,
 			resumeFromCheckpoint: types.BoolValue(true),
-			options:              types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
 			expectOptionsSet:     true,
 			expectResumeSet:      true,
 			expectedResumeValue:  true,
 		},
-		"dlq only": {
+		"pipeline change with omitted sends nothing": {
+			planPipeline:         changedPipeline,
 			resumeFromCheckpoint: types.BoolNull(),
-			options:              optionsToTFModel(t, &streamOptionsExample),
-			expectOptionsSet:     true,
-			expectDlqSet:         true,
+			expectOptionsSet:     false,
 		},
-		"both dlq and resume_from_checkpoint": {
+		"dlq only change with false omits the field": {
+			planPipeline:         statePipeline,
+			planOptions:          optionsToTFModel(t, &streamOptionsExample),
 			resumeFromCheckpoint: types.BoolValue(false),
-			options:              optionsToTFModel(t, &streamOptionsExample),
 			expectOptionsSet:     true,
 			expectDlqSet:         true,
-			expectResumeSet:      true,
-			expectedResumeValue:  false,
+			expectResumeSet:      false,
+		},
+		"state only change with false omits the field": {
+			planPipeline:         statePipeline,
+			resumeFromCheckpoint: types.BoolValue(false),
+			planState:            types.StringValue(stateStarted),
+			stateState:           types.StringValue(stateCreated),
+			expectOptionsSet:     false,
+		},
+		"reformatted pipeline is not a change so the field is omitted": {
+			planPipeline:         reformattedPipeline,
+			resumeFromCheckpoint: types.BoolValue(false),
+			expectOptionsSet:     false,
 		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			model := &streamprocessor.TFStreamProcessorRSModel{
+			plan := &streamprocessor.TFStreamProcessorRSModel{
 				WorkspaceName:        types.StringValue(workspaceName),
 				InstanceName:         types.StringNull(),
-				Pipeline:             validPipeline,
+				Pipeline:             tc.planPipeline,
 				ProcessorName:        types.StringValue(processorName),
 				ProjectID:            types.StringValue(projectID),
-				Options:              tc.options,
+				Options:              tc.planOptions,
 				ResumeFromCheckpoint: tc.resumeFromCheckpoint,
+				State:                tc.planState,
 			}
-			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), model)
+			state := &streamprocessor.TFStreamProcessorRSModel{
+				WorkspaceName: types.StringValue(workspaceName),
+				InstanceName:  types.StringNull(),
+				Pipeline:      statePipeline,
+				ProcessorName: types.StringValue(processorName),
+				ProjectID:     types.StringValue(projectID),
+				Options:       tc.stateOptions,
+				State:         tc.stateState,
+			}
+
+			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), plan, state)
 			require.False(t, diags.HasError())
 
 			apiOptions := updateReq.StreamsModifyStreamProcessor.Options
