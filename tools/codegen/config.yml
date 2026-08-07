@@ -38,9 +38,9 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/adaptiveSettings
       method: PATCH
+      # Adaptive Settings belong to the cluster, so destroy clears overrides instead of deleting the API object.
       static_request_body: '{"adaptiveSettingsOverrides": null}'
       resets_to_defaults: true
-    id_attributes: ["project_id", "cluster_name"]
     version_header: application/vnd.atlas.2025-03-12+json
     schema:
       aliases:
@@ -49,10 +49,13 @@ resources:
         project_id:
           description: *project_id_description
         adaptive_settings_overrides:
-          description: &adaptive_settings_overrides_description "JSON-encoded map of customer-specified Adaptive Settings overrides. Use `jsonencode` to configure this attribute. Each supported entry that you specify takes precedence over the corresponding Atlas-managed default."
+          # OpenAPI models this field as an object, but Terraform exposes it as a normalized JSON string.
+          description: &adaptive_settings_overrides_description "JSON-encoded map of customer-specified Adaptive Settings overrides, applied on a best-effort basis. Use `jsonencode` to configure this attribute. Each supported entry that you specify takes precedence over the corresponding Atlas-managed default."
+          # Preserve explicit null during update so removing the attribute clears all overrides through JSON Merge Patch.
           request_body_usage: "send_null_as_null_on_update"
         effective_adaptive_settings:
-          description: &effective_adaptive_settings_description "JSON-encoded map of the effective Adaptive Settings currently applied to your cluster, based on your overrides and Atlas-managed defaults. Atlas-managed defaults can vary by MongoDB version."
+          # OpenAPI models this field as an object, but Terraform exposes it as a normalized JSON string.
+          description: &effective_adaptive_settings_description "JSON-encoded map of the effective Adaptive Settings currently applied to your cluster, based on your overrides and Atlas-managed defaults. Atlas-managed defaults can vary by MongoDB version. An override for a setting unsupported by the cluster's MongoDB version doesn't take effect, and the effective value reflects the Atlas-managed default."
     datasources:
       read: *cluster-adaptive-settings-read
       schema:

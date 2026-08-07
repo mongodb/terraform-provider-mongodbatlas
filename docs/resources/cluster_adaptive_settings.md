@@ -36,11 +36,11 @@ data "mongodbatlas_cluster_adaptive_settings" "this" {
 
 ### Optional
 
-- `adaptive_settings_overrides` (String) JSON-encoded map of customer-specified Adaptive Settings overrides. Use `jsonencode` to configure this attribute. Each supported entry that you specify takes precedence over the corresponding Atlas-managed default.
+- `adaptive_settings_overrides` (String) JSON-encoded map of customer-specified Adaptive Settings overrides, applied on a best-effort basis. Use `jsonencode` to configure this attribute. Each supported entry that you specify takes precedence over the corresponding Atlas-managed default.
 
 ### Read-Only
 
-- `effective_adaptive_settings` (String) JSON-encoded map of the effective Adaptive Settings currently applied to your cluster, based on your overrides and Atlas-managed defaults. Atlas-managed defaults can vary by MongoDB version.
+- `effective_adaptive_settings` (String) JSON-encoded map of the effective Adaptive Settings currently applied to your cluster, based on your overrides and Atlas-managed defaults. Atlas-managed defaults can vary by MongoDB version. An override for a setting unsupported by the cluster's MongoDB version doesn't take effect, and the effective value reflects the Atlas-managed default.
 
 ## Import
 
