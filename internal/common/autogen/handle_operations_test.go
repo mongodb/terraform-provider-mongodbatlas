@@ -15,11 +15,11 @@ import (
 
 type contextHookError struct{}
 
-func (contextHookError) PreCreateAPICallWithContext(context.Context, config.APICallParams, []byte) (config.APICallParams, []byte, error) {
+func (contextHookError) PreCreateAPICall(context.Context, config.APICallParams, []byte) (config.APICallParams, []byte, error) {
 	return config.APICallParams{}, nil, errors.New("prepare create request")
 }
 
-func (contextHookError) PreUpdateAPICallWithContext(context.Context, config.APICallParams, []byte) (config.APICallParams, []byte, error) {
+func (contextHookError) PreUpdateAPICall(context.Context, config.APICallParams, []byte) (config.APICallParams, []byte, error) {
 	return config.APICallParams{}, nil, errors.New("prepare update request")
 }
 

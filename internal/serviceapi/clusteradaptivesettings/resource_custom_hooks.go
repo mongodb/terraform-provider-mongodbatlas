@@ -17,15 +17,15 @@ const (
 	effectiveAdaptiveSettingsAPIField = "effectiveAdaptiveSettings"
 )
 
-var _ autogen.PreCreateAPICallWithContextHook = &rs{}
-var _ autogen.PreUpdateAPICallWithContextHook = &rs{}
+var _ autogen.PreCreateAPICallHook = &rs{}
+var _ autogen.PreUpdateAPICallHook = &rs{}
 
-func (r *rs) PreCreateAPICallWithContext(ctx context.Context, callParams config.APICallParams, bodyReq []byte) (updatedParams config.APICallParams, updatedBody []byte, err error) {
+func (r *rs) PreCreateAPICall(ctx context.Context, callParams config.APICallParams, bodyReq []byte) (updatedParams config.APICallParams, updatedBody []byte, err error) {
 	updatedBody, err = r.adaptiveSettingsPatchBody(ctx, callParams, bodyReq)
 	return callParams, updatedBody, err
 }
 
-func (r *rs) PreUpdateAPICallWithContext(ctx context.Context, callParams config.APICallParams, bodyReq []byte) (updatedParams config.APICallParams, updatedBody []byte, err error) {
+func (r *rs) PreUpdateAPICall(ctx context.Context, callParams config.APICallParams, bodyReq []byte) (updatedParams config.APICallParams, updatedBody []byte, err error) {
 	updatedBody, err = r.adaptiveSettingsPatchBody(ctx, callParams, bodyReq)
 	return callParams, updatedBody, err
 }

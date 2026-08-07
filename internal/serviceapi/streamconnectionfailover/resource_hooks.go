@@ -29,12 +29,12 @@ func (r *rs) ResourceSchema(ctx context.Context, s schema.Schema) schema.Schema 
 // `connection_name` path param), so inject it into the create/update request body. Without it, the
 // server fails converting the request body and returns a 500 UNEXPECTED_ERROR.
 
-func (r *rs) PreCreateAPICall(callParams config.APICallParams, bodyReq []byte) (params config.APICallParams, body []byte) {
-	return callParams, injectConnectionName(callParams, bodyReq)
+func (r *rs) PreCreateAPICall(_ context.Context, callParams config.APICallParams, bodyReq []byte) (params config.APICallParams, body []byte, err error) {
+	return callParams, injectConnectionName(callParams, bodyReq), nil
 }
 
-func (r *rs) PreUpdateAPICall(callParams config.APICallParams, bodyReq []byte) (params config.APICallParams, body []byte) {
-	return callParams, injectConnectionName(callParams, bodyReq)
+func (r *rs) PreUpdateAPICall(_ context.Context, callParams config.APICallParams, bodyReq []byte) (params config.APICallParams, body []byte, err error) {
+	return callParams, injectConnectionName(callParams, bodyReq), nil
 }
 
 func injectConnectionName(callParams config.APICallParams, bodyReq []byte) []byte {

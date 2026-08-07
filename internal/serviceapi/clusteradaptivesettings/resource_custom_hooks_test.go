@@ -50,18 +50,18 @@ func TestAdaptiveSettingsRequestHooks(t *testing.T) {
 			t.Parallel()
 
 			resourceInstance, getCalls := configuredResource(t, http.StatusOK, `{"effectiveAdaptiveSettings":{"key1":true,"key2":false}}`)
-			createHook, ok := resourceInstance.(autogen.PreCreateAPICallWithContextHook)
+			createHook, ok := resourceInstance.(autogen.PreCreateAPICallHook)
 			require.True(t, ok)
-			updateHook, ok := resourceInstance.(autogen.PreUpdateAPICallWithContextHook)
+			updateHook, ok := resourceInstance.(autogen.PreUpdateAPICallHook)
 			require.True(t, ok)
 
 			callParams := adaptiveSettingsCallParams()
-			createParams, createBody, err := createHook.PreCreateAPICallWithContext(t.Context(), callParams, []byte(testCase.request))
+			createParams, createBody, err := createHook.PreCreateAPICall(t.Context(), callParams, []byte(testCase.request))
 			require.NoError(t, err)
 			require.Equal(t, callParams, createParams)
 			require.JSONEq(t, testCase.expected, string(createBody))
 
-			updateParams, updateBody, err := updateHook.PreUpdateAPICallWithContext(t.Context(), callParams, []byte(testCase.request))
+			updateParams, updateBody, err := updateHook.PreUpdateAPICall(t.Context(), callParams, []byte(testCase.request))
 			require.NoError(t, err)
 			require.Equal(t, callParams, updateParams)
 			require.JSONEq(t, testCase.expected, string(updateBody))
@@ -81,9 +81,9 @@ func TestRemovedAdaptiveSettingsOverridesResetTheWholeMap(t *testing.T) {
 	require.JSONEq(t, `{"adaptiveSettingsOverrides":null}`, string(bodyReq))
 
 	resourceInstance, getCalls := configuredResource(t, http.StatusOK, `{"effectiveAdaptiveSettings":{"key1":true,"key2":false}}`)
-	hook, ok := resourceInstance.(autogen.PreUpdateAPICallWithContextHook)
+	hook, ok := resourceInstance.(autogen.PreUpdateAPICallHook)
 	require.True(t, ok)
-	_, updatedBody, err := hook.PreUpdateAPICallWithContext(t.Context(), adaptiveSettingsCallParams(), bodyReq)
+	_, updatedBody, err := hook.PreUpdateAPICall(t.Context(), adaptiveSettingsCallParams(), bodyReq)
 	require.NoError(t, err)
 	require.JSONEq(t, `{"adaptiveSettingsOverrides":null}`, string(updatedBody))
 	require.Zero(t, getCalls.Load())
@@ -119,9 +119,9 @@ func TestAdaptiveSettingsRequestHookErrors(t *testing.T) {
 			t.Parallel()
 
 			resourceInstance, _ := configuredResource(t, testCase.statusCode, testCase.responseBody)
-			hook, ok := resourceInstance.(autogen.PreUpdateAPICallWithContextHook)
+			hook, ok := resourceInstance.(autogen.PreUpdateAPICallHook)
 			require.True(t, ok)
-			_, _, err := hook.PreUpdateAPICallWithContext(t.Context(), adaptiveSettingsCallParams(), []byte(`{"adaptiveSettingsOverrides":{"key1":true}}`))
+			_, _, err := hook.PreUpdateAPICall(t.Context(), adaptiveSettingsCallParams(), []byte(`{"adaptiveSettingsOverrides":{"key1":true}}`))
 			require.ErrorContains(t, err, testCase.errorText)
 		})
 	}
