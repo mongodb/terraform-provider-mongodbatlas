@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -50,6 +51,14 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 			{
 				// Removing the attribute after a non-empty map resets the whole API map with null.
 				Config: configWithoutOverrides(projectID, clusterName),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckNoResourceAttr(resourceName, "adaptive_settings_overrides"),
@@ -69,6 +78,14 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 			{
 				// An explicitly configured empty map resets every effective key while remaining {} in state.
 				Config: configBasic(projectID, clusterName, `{}`),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 				Check: checkResourceAndDataSource(
 					`{}`,
 				),
