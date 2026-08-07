@@ -1,0 +1,134 @@
+schema:
+    description: Updates the client-provided Adaptive Settings overrides for the specified cluster and returns the resulting Adaptive Settings, including the effective settings derived from those overrides and Atlas-managed defaults. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+    attributes:
+        - string: {}
+          description: JSON-encoded map of customer-specified Adaptive Settings overrides, applied on a best-effort basis. Use `jsonencode` to configure this attribute. Each supported entry that you specify takes precedence over the corresponding Atlas-managed default.
+          custom_type:
+            package: jsontypes
+            model: jsontypes.Normalized
+            schema: jsontypes.NormalizedType{}
+          computed_optional_required: optional
+          tf_schema_name: adaptive_settings_overrides
+          tf_model_name: AdaptiveSettingsOverrides
+          api_name: adaptiveSettingsOverrides
+          req_body_usage: send_null_as_null_on_update
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Human-readable label that identifies the cluster.
+          computed_optional_required: required
+          tf_schema_name: cluster_name
+          tf_model_name: ClusterName
+          api_name: clusterName
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - string: {}
+          description: JSON-encoded map of the effective Adaptive Settings currently applied to your cluster, based on your overrides and Atlas-managed defaults. Atlas-managed defaults can vary by MongoDB version. An override for a setting unsupported by the cluster's MongoDB version doesn't take effect, and the effective value reflects the Atlas-managed default.
+          custom_type:
+            package: jsontypes
+            model: jsontypes.Normalized
+            schema: jsontypes.NormalizedType{}
+          computed_optional_required: computed
+          tf_schema_name: effective_adaptive_settings
+          tf_model_name: EffectiveAdaptiveSettings
+          api_name: effectiveAdaptiveSettings
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+          computed_optional_required: required
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+operations:
+    delete:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/adaptiveSettings
+        static_request_body: '{"adaptiveSettingsOverrides": null}'
+        resets_to_defaults: true
+    create:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/adaptiveSettings
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/adaptiveSettings
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/adaptiveSettings
+    version_header: application/vnd.atlas.2025-03-12+json
+data_sources:
+    singular:
+        description: Returns the Adaptive Settings for the specified cluster, including client-provided overrides and the effective settings derived from those overrides and Atlas-managed defaults. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
+        attributes:
+            - string: {}
+              description: JSON-encoded map of customer-specified Adaptive Settings overrides, applied on a best-effort basis. Use `jsonencode` to configure this attribute. Each supported entry that you specify takes precedence over the corresponding Atlas-managed default.
+              custom_type:
+                package: jsontypes
+                model: jsontypes.Normalized
+                schema: jsontypes.NormalizedType{}
+              computed_optional_required: computed
+              tf_schema_name: adaptive_settings_overrides
+              tf_model_name: AdaptiveSettingsOverrides
+              api_name: adaptiveSettingsOverrides
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Human-readable label that identifies the cluster.
+              computed_optional_required: required
+              tf_schema_name: cluster_name
+              tf_model_name: ClusterName
+              api_name: clusterName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: JSON-encoded map of the effective Adaptive Settings currently applied to your cluster, based on your overrides and Atlas-managed defaults. Atlas-managed defaults can vary by MongoDB version. An override for a setting unsupported by the cluster's MongoDB version doesn't take effect, and the effective value reflects the Atlas-managed default.
+              custom_type:
+                package: jsontypes
+                model: jsontypes.Normalized
+                schema: jsontypes.NormalizedType{}
+              computed_optional_required: computed
+              tf_schema_name: effective_adaptive_settings
+              tf_model_name: EffectiveAdaptiveSettings
+              api_name: effectiveAdaptiveSettings
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/adaptiveSettings
+        version_header: application/vnd.atlas.2025-03-12+json
+name: cluster_adaptive_settings
+packageName: clusteradaptivesettings
