@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_database_user: Adds support for write-only `password_wo` and `password_wo_version` attributes so the password is not persisted in Terraform state
+```
