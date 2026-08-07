@@ -123,6 +123,7 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
+// TODO CLOUDP-397756: Use the Atlas SDK once the overload protection simulation API is stable.
 func readRequest(rs *terraform.ResourceState) config.APICallParams {
 	return config.APICallParams{
 		VersionHeader: apiVersionHeader,
