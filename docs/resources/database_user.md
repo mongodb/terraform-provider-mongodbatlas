@@ -115,6 +115,30 @@ resource "mongodbatlas_database_user" "test" {
 Note: OIDC support is only avalible starting in [MongoDB 7.0](https://www.mongodb.com/evolved#mdbsevenzero) or later. To learn more, see the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/security-oidc/).
 
 
+## Example of how to create a user with a write-only password
+
+`password_wo` is never written to state or plan files. Here an [ephemeral resource](https://developer.hashicorp.com/terraform/language/manage-sensitive-data/ephemeral) generates the password.
+
+```terraform
+ephemeral "random_password" "user" {
+  length = 32
+}
+
+resource "mongodbatlas_database_user" "test" {
+  username            = "test-acc-username"
+  password_wo         = ephemeral.random_password.user.result
+  password_wo_version = 1
+  project_id          = "<PROJECT-ID>"
+  auth_database_name  = "admin"
+
+  roles {
+    role_name     = "readWrite"
+    database_name = "dbforApp"
+  }
+}
+```
+
+
 ### Further Examples
 - [Database User](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_database_user)
 
