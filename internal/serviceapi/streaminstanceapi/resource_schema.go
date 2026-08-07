@@ -242,7 +242,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"public_private_networking": schema.SingleNestedAttribute{
 							Computed:            true,
-							MarkdownDescription: "Optional for type: AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC).",
+							MarkdownDescription: "Optional for type: AWSLambda, AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC).",
 							CustomType:          customtypes.NewObjectType[TFConnectionsPublicPrivateNetworkingModel](ctx),
 							Attributes: map[string]schema.Attribute{
 								"access": schema.SingleNestedAttribute{

@@ -219,16 +219,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				ElementType:         types.StringType,
 			},
 			"mongo_db_employee_access_grant": schema.SingleNestedAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "MongoDB employee granted access level and expiration for a cluster.",
 				CustomType:          customtypes.NewObjectType[TFMongoDBEmployeeAccessGrantModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"expiration_time": schema.StringAttribute{
-						Required:            true,
+						Computed:            true,
 						MarkdownDescription: "Expiration date for the employee access grant. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
 					},
 					"grant_type": schema.StringAttribute{
-						Required:            true,
+						Computed:            true,
 						MarkdownDescription: "Level of access to grant to MongoDB Employees.",
 					},
 				},
@@ -578,7 +578,7 @@ type TFModel struct {
 	GroupId                                   types.String                                               `tfsdk:"group_id" autogen:"omitjson"`
 	Id                                        types.String                                               `tfsdk:"id" autogen:"omitjson"`
 	Labels                                    customtypes.MapValue[types.String]                         `tfsdk:"labels" autogen:"listasmap,sendnullasemptyonupdate"`
-	MongoDBEmployeeAccessGrant                customtypes.ObjectValue[TFMongoDBEmployeeAccessGrantModel] `tfsdk:"mongo_db_employee_access_grant"`
+	MongoDBEmployeeAccessGrant                customtypes.ObjectValue[TFMongoDBEmployeeAccessGrantModel] `tfsdk:"mongo_db_employee_access_grant" autogen:"omitjson"`
 	MongoDBMajorVersion                       types.String                                               `tfsdk:"mongo_db_major_version"`
 	MongoDBVersion                            types.String                                               `tfsdk:"mongo_db_version" autogen:"omitjson"`
 	Name                                      types.String                                               `tfsdk:"name"`
@@ -626,8 +626,8 @@ type TFConnectionStringsPrivateEndpointEndpointsModel struct {
 	Region       types.String `tfsdk:"region" autogen:"omitjson"`
 }
 type TFMongoDBEmployeeAccessGrantModel struct {
-	ExpirationTime types.String `tfsdk:"expiration_time"`
-	GrantType      types.String `tfsdk:"grant_type"`
+	ExpirationTime types.String `tfsdk:"expiration_time" autogen:"omitjson"`
+	GrantType      types.String `tfsdk:"grant_type" autogen:"omitjson"`
 }
 type TFReplicationSpecsModel struct {
 	Id            types.String                                                      `tfsdk:"id" autogen:"omitjson"`
