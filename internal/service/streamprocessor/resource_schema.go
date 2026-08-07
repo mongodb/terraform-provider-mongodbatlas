@@ -116,6 +116,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Indicates whether this stream processor is eligible for failover. When `true`, an operator can trigger a failover event to migrate the stream processor to a secondary region configured in the workspace's `failover_regions`. Requires an Atlas-to-Atlas or Atlas-to-Kafka pipeline with `failover_regions` configured on the workspace.",
 			},
+			"resume_from_checkpoint": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "Controls checkpoint behavior when the `pipeline` changes. When `true`, the stream processor resumes from its last checkpoint. Set to `false` to discard the existing checkpoint, which is necessary when modifying the `$source` stage or a window stage, as the API rejects those changes while resuming from an incompatible checkpoint." +
+					" Defaults to `true` when not set.\n\n**NOTE** This attribute only applies to updates that change the `pipeline`. It has no effect on create, on updates that leave the `pipeline` unchanged, such as a `tier` or `state` change, and cannot be imported.",
+			},
 		},
 	}
 }
@@ -134,6 +139,7 @@ type TFStreamProcessorRSModel struct {
 	Timeouts              timeouts.Value       `tfsdk:"timeouts"`
 	DeleteOnCreateTimeout types.Bool           `tfsdk:"delete_on_create_timeout"`
 	FailoverEnabled       types.Bool           `tfsdk:"failover_enabled"`
+	ResumeFromCheckpoint  types.Bool           `tfsdk:"resume_from_checkpoint"`
 }
 
 type TFOptionsModel struct {

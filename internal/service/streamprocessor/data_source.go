@@ -36,24 +36,35 @@ func (d *StreamProccesorDS) Schema(ctx context.Context, req datasource.SchemaReq
 	})
 }
 
-func dataSourceOverridenFields() map[string]dsschema.Attribute {
+// dataSourceOmittedFields lists resource-only attributes to remove from the data sources, a nil
+// value deletes the attribute. resume_from_checkpoint only applies to updates and is never returned
+// by the API, so it would always be null.
+func dataSourceOmittedFields() map[string]dsschema.Attribute {
 	return map[string]dsschema.Attribute{
-		"instance_name": dsschema.StringAttribute{
-			Optional:            true,
-			MarkdownDescription: "Label that identifies the stream processing workspace.",
-			DeprecationMessage:  fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
-			Validators: []validator.String{
-				stringvalidator.ExactlyOneOf(path.MatchRoot("workspace_name")),
-			},
-		},
-		"workspace_name": dsschema.StringAttribute{
-			Optional:            true,
-			MarkdownDescription: "Label that identifies the stream processing workspace. Conflicts with `instance_name`.",
-			Validators: []validator.String{
-				stringvalidator.ExactlyOneOf(path.MatchRoot("instance_name")),
-			},
+		"resume_from_checkpoint": nil,
+	}
+}
+
+// dataSourceOverridenFields builds on dataSourceOmittedFields, adding the root-level
+// attributes that only apply to the singular data source.
+func dataSourceOverridenFields() map[string]dsschema.Attribute {
+	fields := dataSourceOmittedFields()
+	fields["instance_name"] = dsschema.StringAttribute{
+		Optional:            true,
+		MarkdownDescription: "Label that identifies the stream processing workspace.",
+		DeprecationMessage:  fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
+		Validators: []validator.String{
+			stringvalidator.ExactlyOneOf(path.MatchRoot("workspace_name")),
 		},
 	}
+	fields["workspace_name"] = dsschema.StringAttribute{
+		Optional:            true,
+		MarkdownDescription: "Label that identifies the stream processing workspace. Conflicts with `instance_name`.",
+		Validators: []validator.String{
+			stringvalidator.ExactlyOneOf(path.MatchRoot("instance_name")),
+		},
+	}
+	return fields
 }
 
 func (d *StreamProccesorDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

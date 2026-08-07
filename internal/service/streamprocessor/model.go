@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 )
 
@@ -55,7 +56,18 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 	return streamProcessor, nil
 }
 
-func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.UpdateStreamProcessorApiParams, diag.Diagnostics) {
+// pipelineChanged reports whether the plan changes the pipeline, comparing semantically so that
+// formatting-only differences in the JSON string are not treated as a change. Without prior state
+// there is nothing to compare, so it reports no change and the caller omits resume_from_checkpoint,
+// the safer default for a flag that discards checkpoints.
+func pipelineChanged(plan, state *TFStreamProcessorRSModel) bool {
+	if state == nil {
+		return false
+	}
+	return !schemafunc.EqualJSON(state.Pipeline.ValueString(), plan.Pipeline.ValueString(), "stream processor pipeline")
+}
+
+func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProcessorRSModel) (*admin.UpdateStreamProcessorApiParams, diag.Diagnostics) {
 	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
 	if diags != nil {
 		return nil, diags
@@ -77,6 +89,9 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSM
 		streamProcessorAPIParams.StreamsModifyStreamProcessor.FailoverEnabled = plan.FailoverEnabled.ValueBoolPointer()
 	}
 
+	apiOptions := &admin.StreamsModifyStreamProcessorOptions{}
+	optionsSet := false
+
 	if !plan.Options.IsNull() && !plan.Options.IsUnknown() {
 		optionsModel := &TFOptionsModel{}
 		if diags := plan.Options.As(ctx, optionsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
@@ -86,19 +101,33 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSM
 		if diags := optionsModel.Dlq.As(ctx, dlqModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
 		}
-		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = &admin.StreamsModifyStreamProcessorOptions{
-			Dlq: &admin.StreamsDLQ{
-				Coll:           dlqModel.Coll.ValueStringPointer(),
-				ConnectionName: dlqModel.ConnectionName.ValueStringPointer(),
-				Db:             dlqModel.DB.ValueStringPointer(),
-			},
+		apiOptions.Dlq = &admin.StreamsDLQ{
+			Coll:           dlqModel.Coll.ValueStringPointer(),
+			ConnectionName: dlqModel.ConnectionName.ValueStringPointer(),
+			Db:             dlqModel.DB.ValueStringPointer(),
 		}
+		optionsSet = true
+	}
+
+	// resume_from_checkpoint is a top-level attribute in Terraform but nested under options in the API.
+	// It is only sent when the pipeline changes, the only updates the API rejects for a checkpoint
+	// incompatible with the new pipeline. Omitting it for other updates, for example a tier or dlq
+	// change, avoids discarding the checkpoint when the value is left in the configuration. The field
+	// is never sent as true either, omission lets the API apply its own default.
+	resumeFromCheckpointSet := !plan.ResumeFromCheckpoint.IsNull() && !plan.ResumeFromCheckpoint.IsUnknown()
+	if resumeFromCheckpointSet && pipelineChanged(plan, state) {
+		apiOptions.ResumeFromCheckpoint = plan.ResumeFromCheckpoint.ValueBoolPointer()
+		optionsSet = true
+	}
+
+	if optionsSet {
+		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = apiOptions
 	}
 
 	return streamProcessorAPIParams, nil
 }
 
-func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, workspaceName string, apiResp *admin.StreamsProcessorWithStats, timeout *timeouts.Value, deleteOnCreateTimeout, failoverEnabled *types.Bool) (*TFStreamProcessorRSModel, diag.Diagnostics) {
+func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, workspaceName string, apiResp *admin.StreamsProcessorWithStats, timeout *timeouts.Value, deleteOnCreateTimeout, failoverEnabled, resumeFromCheckpoint *types.Bool) (*TFStreamProcessorRSModel, diag.Diagnostics) {
 	if apiResp == nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("streamProcessor API response is nil", "")}
 	}
@@ -142,6 +171,10 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, w
 	}
 	if failoverEnabled != nil {
 		tfModel.FailoverEnabled = *failoverEnabled
+	}
+	// Not returned by the API, so it is carried over from the plan or prior state.
+	if resumeFromCheckpoint != nil {
+		tfModel.ResumeFromCheckpoint = *resumeFromCheckpoint
 	}
 	return tfModel, nil
 }
