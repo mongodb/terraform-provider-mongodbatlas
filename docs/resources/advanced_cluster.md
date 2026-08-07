@@ -729,6 +729,8 @@ replication_specs = [
 
 -> **NOTE:** To enable extended storage sizes on certain M40+ dedicated clusters, use the `is_extended_storage_sizes_enabled` parameter in the [mongodbatlas_project resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project). This setting should only be used for temporary relief from disk size limits; consider sharding if more storage is required.
 
+~> **IMPORTANT:** When several `region_configs` entries in the same `replication_specs` share the same `priority`, Atlas returns them sorted by `region_name` in reverse alphabetical (descending) order. The provider matches your configuration entries to the returned entries by position, not by region name, so list same-priority `region_configs` in reverse alphabetical order by `region_name` in your configuration. Otherwise, you might see a `Provider produced inconsistent result after apply` or `Provider produced inconsistent final plan` error. For example, list `US_WEST_2` before `US_EAST_1` when both have `priority = 7`.
+
 * `analytics_specs` - (Optional) Hardware specifications for [analytics nodes](https://www.mongodb.com/docs/atlas/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. Analytics nodes handle analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only and can never become the [primary](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-primary). If you don't specify this parameter, no analytics nodes deploy to this region. See [below](#analytics_specs).
 * `auto_scaling` - (Optional) Configuration for the collection of settings that configures auto-scaling information for the cluster. The values for the `auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#auto_scaling).
 * `analytics_auto_scaling` - (Optional) Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. The values for the `analytics_auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#analytics_auto_scaling).
@@ -740,6 +742,7 @@ replication_specs = [
 * `priority` - (Optional)  Election priority of the region. For regions with only read-only nodes, set this value to 0.
   * If you have multiple `region_configs` objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is 7.
   * If your region has set `region_configs[#].electable_specs.node_count` to 1 or higher, it must have a priority of exactly one (1) less than another region in the `replication_specs[#].region_configs[#]` array. The highest-priority region must have a priority of 7. The lowest possible priority is 1.
+  * If several `region_configs` objects share the same priority, such as regions with only read-only or analytics nodes that have a priority of 0, list them in reverse alphabetical order by `region_name`. See the note at the beginning of this section.
 * `provider_name` - (Optional) Cloud service provider on which the servers are provisioned.
   The possible values are:
   - `AWS` - Amazon AWS
