@@ -46,9 +46,7 @@ func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescri
 	}
 
 	if !plan.PasswordWo.IsNull() {
-		if statePasswordWoVersion.IsNull() {
-			result.Password = plan.PasswordWo.ValueStringPointer()
-		} else if !plan.PasswordWoVersion.IsNull() && statePasswordWoVersion.ValueInt64() != plan.PasswordWoVersion.ValueInt64() {
+		if statePasswordWoVersion.IsNull() || statePasswordWoVersion.ValueInt64() != plan.PasswordWoVersion.ValueInt64() {
 			result.Password = plan.PasswordWo.ValueStringPointer()
 		}
 	} else if statePasswordValue != plan.Password {
@@ -99,18 +97,15 @@ func NewTfDatabaseUserModel(ctx context.Context, inModel *TfDatabaseUserModel, d
 		Scopes:           scopesSet,
 	}
 
-	if inModel != nil && inModel.Password.ValueString() != "" {
-		// The Password is not returned from the endpoint so we use the one provided in the model.
-		outModel.Password = inModel.Password
-	}
-	// password_wo is write-only, so it is never persisted to state.
-	outModel.PasswordWo = types.StringNull()
 	if inModel != nil {
+		if inModel.Password.ValueString() != "" {
+			// Password is not returned from the endpoint so we use the one provided in the model.
+			outModel.Password = inModel.Password
+		}
 		outModel.PasswordWoVersion = inModel.PasswordWoVersion
-	}
-	if inModel != nil && outModel.Description.Equal(types.StringValue("")) && inModel.Description.IsNull() {
-		// null != "" in TPF:  Error: Provider produced inconsistent result after apply. .description: was null, but now cty.StringVal("")
-		outModel.Description = types.StringNull()
+		if outModel.Description.Equal(types.StringValue("")) && inModel.Description.IsNull() {
+			outModel.Description = types.StringNull()
+		}
 	}
 	return outModel, nil
 }
