@@ -130,7 +130,7 @@ Accepted values include:
 * `username` - (Required) Username for authenticating to MongoDB. USER_ARN or ROLE_ARN if `aws_iam_type` is USER or ROLE.
 * `password` - (Optional) User's initial password. Only applicable for password-based authentication. Conflicts with `password_wo`. You can remove this argument from your Terraform configuration after user creation without impacting the user, password, or Terraform management. If you change your password management to outside of Terraform, we advise removing the argument from the Terraform configuration. **IMPORTANT:** The Terraform state file stores passwords as plain text, we recommend using `password_wo` instead.
 * `password_wo` - (Optional) User's password, never written to Terraform state or plan files. Only applicable for password-based authentication, and conflicts with `password`. Requires Terraform 1.11 or later, and must be set together with `password_wo_version`.
-* `password_wo_version` - (Optional) Integer that triggers an update of `password_wo`. To rotate the password, change `password_wo` and increment this value in the same edit.
+* `password_wo_version` - (Optional) Integer that triggers an update of `password_wo`. To rotate the password, change `password_wo` and increment this value in the same edit. Changing `password_wo` on its own has no effect, since Terraform cannot detect changes to a value that is not in state.
 * `description` - (Optional) Description of this database user.
 
 * `x509_type` - (Optional) X.509 method by which the provided username is authenticated. If no value is given, Atlas uses the default value of NONE. The accepted types are:
