@@ -48,12 +48,7 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(projectID, clusterName, `{}`),
-				Check: checkResourceAndDataSource(
-					`{}`,
-				),
-			},
-			{
+				// Removing the attribute after a non-empty map resets the whole API map with null.
 				Config: configWithoutOverrides(projectID, clusterName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -69,6 +64,13 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 				}`),
 				Check: checkResourceAndDataSource(
 					`{"SEARCH_OVERLOAD_PROTECTION":false}`,
+				),
+			},
+			{
+				// An explicitly configured empty map resets every effective key while remaining {} in state.
+				Config: configBasic(projectID, clusterName, `{}`),
+				Check: checkResourceAndDataSource(
+					`{}`,
 				),
 			},
 			{

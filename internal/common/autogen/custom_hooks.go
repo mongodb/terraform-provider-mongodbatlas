@@ -27,6 +27,10 @@ type PreCreateAPICallHook interface {
 	PreCreateAPICall(callParams config.APICallParams, bodyReq []byte) (config.APICallParams, []byte)
 }
 
+type PreCreateAPICallWithContextHook interface {
+	PreCreateAPICallWithContext(ctx context.Context, callParams config.APICallParams, bodyReq []byte) (config.APICallParams, []byte, error)
+}
+
 type PostCreateAPICallHook interface {
 	PostCreateAPICall(APICallResult) APICallResult
 }
@@ -41,6 +45,10 @@ type PostDeleteAPICallHook interface {
 
 type PreUpdateAPICallHook interface {
 	PreUpdateAPICall(callParams config.APICallParams, bodyReq []byte) (config.APICallParams, []byte)
+}
+
+type PreUpdateAPICallWithContextHook interface {
+	PreUpdateAPICallWithContext(ctx context.Context, callParams config.APICallParams, bodyReq []byte) (config.APICallParams, []byte, error)
 }
 
 type PostUpdateAPICallHook interface {

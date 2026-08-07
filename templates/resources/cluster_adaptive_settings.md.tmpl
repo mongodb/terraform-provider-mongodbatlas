@@ -6,7 +6,7 @@ subcategory: "Clusters"
 
 `{{.Name}}` provides a resource for managing Adaptive Settings overrides for one MongoDB Atlas cluster.
 
--> **NOTE:** Set `adaptive_settings_overrides` with `jsonencode`. The supported keys are `OVERLOAD_PROTECTION` and `SEARCH_OVERLOAD_PROTECTION`. Removing a key from the configured object resets that override. Destroying this resource resets all overrides to Atlas-managed defaults and does not delete the cluster.
+-> **NOTE:** Set `adaptive_settings_overrides` with `jsonencode`. The initial supported keys are `OVERLOAD_PROTECTION` and `SEARCH_OVERLOAD_PROTECTION`. Removing a key from the configured object resets that override. Removing the attribute or configuring an empty object resets all overrides. Destroying this resource also resets all overrides to Atlas-managed defaults and does not delete the cluster.
 
 ## Example Usages
 

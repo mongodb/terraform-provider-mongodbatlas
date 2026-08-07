@@ -438,7 +438,14 @@ var emptyJSON = []byte("{}")
 func callCreateWithHooks(ctx context.Context, client *config.MongoDBClient, callParams config.APICallParams, bodyReq []byte, hooks any) APICallResult {
 	var modifiedParams = callParams
 	var modifiedBody = bodyReq
-	if preCreateHook, ok := hooks.(PreCreateAPICallHook); ok {
+	switch preCreateHook := hooks.(type) {
+	case PreCreateAPICallWithContextHook:
+		var err error
+		modifiedParams, modifiedBody, err = preCreateHook.PreCreateAPICallWithContext(ctx, callParams, bodyReq)
+		if err != nil {
+			return APICallResult{Err: err}
+		}
+	case PreCreateAPICallHook:
 		modifiedParams, modifiedBody = preCreateHook.PreCreateAPICall(callParams, bodyReq)
 	}
 	callResult := callAPI(ctx, client, modifiedParams, modifiedBody)
@@ -484,7 +491,14 @@ func callDeleteWithHooks(ctx context.Context, client *config.MongoDBClient, call
 func callUpdateWithHooks(ctx context.Context, client *config.MongoDBClient, callParams config.APICallParams, bodyReq []byte, hooks any) APICallResult {
 	var modifiedParams = callParams
 	var modifiedBody = bodyReq
-	if preUpdateHook, ok := hooks.(PreUpdateAPICallHook); ok {
+	switch preUpdateHook := hooks.(type) {
+	case PreUpdateAPICallWithContextHook:
+		var err error
+		modifiedParams, modifiedBody, err = preUpdateHook.PreUpdateAPICallWithContext(ctx, callParams, bodyReq)
+		if err != nil {
+			return APICallResult{Err: err}
+		}
+	case PreUpdateAPICallHook:
 		modifiedParams, modifiedBody = preUpdateHook.PreUpdateAPICall(callParams, bodyReq)
 	}
 	callResult := callAPI(ctx, client, modifiedParams, modifiedBody)
