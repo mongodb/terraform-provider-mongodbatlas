@@ -63,7 +63,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: SASL OAUTHBEARER authentication method. Can only be OIDC currently.
+                      description: SASL OAUTHBEARER authentication method. Currently, only OIDC is supported.
                       computed_optional_required: optional
                       tf_schema_name: method
                       tf_model_name: Method
@@ -261,7 +261,7 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
-          description: 'Optional for type: Cluster. The name of a Built in or Custom DB Role to connect to an Atlas Cluster.'
+          description: 'Optional for type: Cluster. The name of a built-in or custom DB Role to connect to an Atlas Cluster.'
           custom_type:
             package: customtypes
             name: DbRoleToExecute
@@ -379,7 +379,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: The connection's region.
+          description: The connection region.
           computed_optional_required: required
           tf_schema_name: region
           tf_model_name: Region
@@ -430,7 +430,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: The state of the connection.
+          description: The connection state.
           computed_optional_required: computed
           tf_schema_name: state
           tf_model_name: State
@@ -452,7 +452,7 @@ schema:
           present_in_any_response: false
           request_only_required_on_create: false
         - string: {}
-          description: Type of the connection.
+          description: The connection type.
           computed_optional_required: required
           tf_schema_name: type
           tf_model_name: Type
@@ -597,7 +597,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: SASL OAUTHBEARER authentication method. Can only be OIDC currently.
+                          description: SASL OAUTHBEARER authentication method. Currently, only OIDC is supported.
                           computed_optional_required: computed
                           tf_schema_name: method
                           tf_model_name: Method
@@ -658,7 +658,7 @@ data_sources:
                           tf_model_name: SslKey
                           api_name: sslKey
                           req_body_usage: omit_always
-                          sensitive: false
+                          sensitive: true
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false
@@ -669,7 +669,7 @@ data_sources:
                           tf_model_name: SslKeyPassword
                           api_name: sslKeyPassword
                           req_body_usage: omit_always
-                          sensitive: false
+                          sensitive: true
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false
@@ -795,7 +795,7 @@ data_sources:
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false
-              description: 'Applies to type: Cluster. The name of a Built in or Custom DB Role to connect to an Atlas Cluster.'
+              description: 'Applies to type: Cluster. The name of a built-in or custom DB Role to connect to an Atlas Cluster.'
               custom_type:
                 package: customtypes
                 name: DbRoleToExecute
@@ -913,7 +913,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: The connection's region.
+              description: The connection region.
               computed_optional_required: computed
               tf_schema_name: region
               tf_model_name: Region
@@ -964,7 +964,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: The state of the connection.
+              description: The connection state.
               computed_optional_required: computed
               tf_schema_name: state
               tf_model_name: State
@@ -975,7 +975,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Type of the connection.
+              description: The connection type.
               computed_optional_required: computed
               tf_schema_name: type
               tf_model_name: Type
@@ -1087,7 +1087,7 @@ data_sources:
                                       present_in_any_response: false
                                       request_only_required_on_create: false
                                     - string: {}
-                                      description: SASL OAUTHBEARER authentication method. Can only be OIDC currently.
+                                      description: SASL OAUTHBEARER authentication method. Currently, only OIDC is supported.
                                       computed_optional_required: computed
                                       tf_schema_name: method
                                       tf_model_name: Method
@@ -1148,7 +1148,7 @@ data_sources:
                                       tf_model_name: SslKey
                                       api_name: sslKey
                                       req_body_usage: omit_always
-                                      sensitive: false
+                                      sensitive: true
                                       create_only: false
                                       present_in_any_response: false
                                       request_only_required_on_create: false
@@ -1159,7 +1159,7 @@ data_sources:
                                       tf_model_name: SslKeyPassword
                                       api_name: sslKeyPassword
                                       req_body_usage: omit_always
-                                      sensitive: false
+                                      sensitive: true
                                       create_only: false
                                       present_in_any_response: false
                                       request_only_required_on_create: false
@@ -1274,7 +1274,7 @@ data_sources:
                                       create_only: false
                                       present_in_any_response: false
                                       request_only_required_on_create: false
-                          description: 'Applies to type: Cluster. The name of a Built in or Custom DB Role to connect to an Atlas Cluster.'
+                          description: 'Applies to type: Cluster. The name of a built-in or custom DB Role to connect to an Atlas Cluster.'
                           custom_type:
                             package: customtypes
                             name: ResultsDbRoleToExecute
@@ -1381,7 +1381,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: The connection's region.
+                          description: The connection region.
                           computed_optional_required: computed
                           tf_schema_name: region
                           tf_model_name: Region
@@ -1432,7 +1432,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: The state of the connection.
+                          description: The connection state.
                           computed_optional_required: computed
                           tf_schema_name: state
                           tf_model_name: State
@@ -1443,7 +1443,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Type of the connection.
+                          description: The connection type.
                           computed_optional_required: computed
                           tf_schema_name: type
                           tf_model_name: Type
