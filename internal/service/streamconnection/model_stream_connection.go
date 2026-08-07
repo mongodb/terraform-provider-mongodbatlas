@@ -39,6 +39,17 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 			Scope:                     authenticationModel.Scope.ValueStringPointer(),
 			SaslOauthbearerExtensions: authenticationModel.SaslOauthbearerExtensions.ValueStringPointer(),
 		}
+		// authentication.aws is a nested block used for AWS_MSK_IAM authentication,
+		// distinct from the top-level aws block used by other connection types.
+		if !authenticationModel.AWS.IsNull() && !authenticationModel.AWS.IsUnknown() {
+			awsModel := &TFAWSModel{}
+			if diags := authenticationModel.AWS.As(ctx, awsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+				return nil, diags
+			}
+			streamConnection.Authentication.Aws = &admin.StreamsAWSConnectionConfig{
+				RoleArn: awsModel.RoleArn.ValueStringPointer(),
+			}
+		}
 	}
 	if !plan.Security.IsNull() {
 		securityModel := &TFConnectionSecurityModel{}
@@ -371,6 +382,19 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 			ClientID:                  types.StringPointerValue(authResp.ClientId),
 			Scope:                     types.StringPointerValue(authResp.Scope),
 			SaslOauthbearerExtensions: types.StringPointerValue(authResp.SaslOauthbearerExtensions),
+			// aws is always set to a typed value (real object or typed null) so the
+			// parent authentication object type is always satisfied.
+			AWS: types.ObjectNull(AWSObjectType.AttrTypes),
+		}
+
+		if authResp.Aws != nil {
+			awsObject, diags := types.ObjectValueFrom(ctx, AWSObjectType.AttrTypes, TFAWSModel{
+				RoleArn: types.StringPointerValue(authResp.Aws.RoleArn),
+			})
+			if diags.HasError() {
+				return nil, diags
+			}
+			resultAuthModel.AWS = awsObject
 		}
 
 		if currAuthConfig != nil && !currAuthConfig.IsNull() { // if config is available (create & update of resource) password value is set in new state

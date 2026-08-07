@@ -1,10 +1,12 @@
 package streamprivatelinkendpoint
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -121,6 +123,17 @@ func ResourceSchema() schema.Schema {
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"authentication_scheme": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Authentication mechanism to use with this private link connection. Only applies when the vendor is `MSK`. Valid values are `SASL_SCRAM`, `TLS`, and `IAM`. Defaults to `SASL_SCRAM` when not specified. Changing this value forces replacement of the private link connection.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.OneOf(AuthenticationSchemeSaslScram, AuthenticationSchemeTLS, AuthenticationSchemeIAM),
+				},
+			},
 		},
 	}
 }
@@ -141,6 +154,7 @@ type TFModel struct {
 	State                 types.String `tfsdk:"state"`
 	Vendor                types.String `tfsdk:"vendor"`
 	Arn                   types.String `tfsdk:"arn"`
+	AuthenticationScheme  types.String `tfsdk:"authentication_scheme"`
 }
 
 type TFModelDSP struct {

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -19,6 +19,16 @@ const (
 	VendorPubSub           = "PUBSUB"
 	VendorS3               = "S3"
 	VendorAzureBlobStorage = "AZURE_BLOB_STORAGE"
+)
+
+// Authentication schemes supported for MSK Private Link connections.
+const (
+	AuthenticationSchemeSaslScram = "SASL_SCRAM"
+	AuthenticationSchemeTLS       = "TLS"
+	AuthenticationSchemeIAM       = "IAM"
+
+	// DefaultAuthenticationScheme is used for MSK when no authentication_scheme is provided.
+	DefaultAuthenticationScheme = AuthenticationSchemeSaslScram
 )
 
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {
@@ -36,6 +46,7 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 		State:                 types.StringPointerValue(apiResp.State),
 		Vendor:                types.StringPointerValue(apiResp.Vendor),
 		Arn:                   types.StringPointerValue(apiResp.Arn),
+		AuthenticationScheme:  types.StringPointerValue(apiResp.AuthenticationScheme),
 	}
 
 	subdomain, diags := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
@@ -117,13 +128,19 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 	}
 
 	result := &admin.StreamsPrivateLinkConnection{
-		DnsDomain:         conversion.StringPtr(plan.DnsDomain.ValueString()),
-		Provider:          plan.Provider.ValueString(),
-		Region:            plan.Region.ValueStringPointer(),
-		ServiceEndpointId: plan.ServiceEndpointId.ValueStringPointer(),
-		State:             plan.State.ValueStringPointer(),
-		Vendor:            plan.Vendor.ValueStringPointer(),
-		Arn:               plan.Arn.ValueStringPointer(),
+		DnsDomain:            conversion.StringPtr(plan.DnsDomain.ValueString()),
+		Provider:             plan.Provider.ValueString(),
+		Region:               plan.Region.ValueStringPointer(),
+		ServiceEndpointId:    plan.ServiceEndpointId.ValueStringPointer(),
+		State:                plan.State.ValueStringPointer(),
+		Vendor:               plan.Vendor.ValueStringPointer(),
+		Arn:                  plan.Arn.ValueStringPointer(),
+		AuthenticationScheme: plan.AuthenticationScheme.ValueStringPointer(),
+	}
+
+	// authentication_scheme only applies to MSK. When it is not provided, default to SASL_SCRAM.
+	if plan.Vendor.ValueString() == VendorMSK && (plan.AuthenticationScheme.IsNull() || plan.AuthenticationScheme.ValueString() == "") {
+		result.AuthenticationScheme = admin.PtrString(DefaultAuthenticationScheme)
 	}
 
 	if !plan.DnsSubDomain.IsNull() {
