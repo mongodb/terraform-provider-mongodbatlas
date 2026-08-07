@@ -1,7 +1,7 @@
 ```release-note:new-resource
-mongodbatlas_cluster_adaptive_settings
+resource/mongodbatlas_cluster_adaptive_settings
 ```
 
 ```release-note:new-datasource
-mongodbatlas_cluster_adaptive_settings
+data-source/mongodbatlas_cluster_adaptive_settings
 ```

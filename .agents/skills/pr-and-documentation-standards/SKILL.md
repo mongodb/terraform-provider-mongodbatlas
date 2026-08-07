@@ -28,15 +28,13 @@ Add a changelog entry (`.changelog/<PR_NUMBER>.txt`) for:
 - Bug fixes (`release-note:bug`)
 - New features (`release-note:enhancement`)
 - Breaking changes (`release-note:breaking-change`)
-- New resources/data sources (`release-note:new-resource` / `release-note:new-datasource`)
+- New resources/data sources (`release-note:new-resource` / `release-note:new-data-source`)
 - Migration guides or user-facing documentation changes
 
 ### Changelog Entry Format
 
-- For `new-resource` and `new-datasource`, include only the Terraform name, such as `mongodbatlas_cluster_adaptive_settings`. Do not add `resource/` or `data-source/` prefixes, a verb, or punctuation.
-- For other entry types, use the required resource, data-source, or provider prefix, then start the description with a third-person singular verb such as `Emits`, `Adds`, `Fixes`, or `Updates`.
-- Do not end descriptions with punctuation.
-- Treat `contributing/changelog-process.md` as authoritative when examples or older entries disagree.
+- Start with a verb in 3rd person singular (e.g. `Emits`, `Adds`, `Fixes`, `Updates`)
+- Do not end with punctuation
 
 ## Documentation Style Guide
 
