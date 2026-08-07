@@ -50,6 +50,7 @@ func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescri
 			result.Password = plan.PasswordWo.ValueStringPointer()
 		}
 	} else if statePasswordValue != plan.Password {
+		// Password value has been modified or no previous state was present. Password is only updated if changed in the terraform configuration CLOUDP-235738
 		result.Password = plan.Password.ValueStringPointer()
 	}
 	if plan.Description.IsNull() && !stateDescriptionValue.Equal(plan.Description) {

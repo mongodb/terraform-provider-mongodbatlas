@@ -574,6 +574,39 @@ func TestAccDatabaseUser_withPasswordWriteOnly(t *testing.T) {
 	})
 }
 
+func TestAccDatabaseUser_migrateToPasswordWriteOnly(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_11_0),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConfigDatabaseUserBasic(projectID, username, "atlasAdmin", "key", "value"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
+					resource.TestCheckNoResourceAttr(resourceName, "password_wo_version"),
+				),
+			},
+			{
+				Config: acc.ConfigDatabaseUserPasswordWo(projectID, username),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "password_wo_version", "1"),
+					resource.TestCheckNoResourceAttr(resourceName, "password_wo"),
+					resource.TestCheckNoResourceAttr(resourceName, "password"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDatabaseUser_writeOnlyValidation(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
