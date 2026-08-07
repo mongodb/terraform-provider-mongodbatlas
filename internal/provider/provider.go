@@ -52,6 +52,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusteradaptivesettings"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusteroverloadsimulation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive"
 	autogenprojectipaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectipaccesslist"
@@ -312,6 +313,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		flexrestorejob.DataSource,
 		flexrestorejob.PluralDataSource,
 		clusteradaptivesettings.DataSource,
+		clusteroverloadsimulation.DataSource,
 		resourcepolicy.DataSource,
 		resourcepolicy.PluralDataSource,
 		clouduserorgassignment.DataSource,
@@ -366,6 +368,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		streamprivatelinkendpoint.Resource,
 		flexcluster.Resource,
 		clusteradaptivesettings.Resource,
+		clusteroverloadsimulation.Resource,
 		resourcepolicy.Resource,
 		clouduserorgassignment.Resource,
 		apikeyprojectassignment.Resource,

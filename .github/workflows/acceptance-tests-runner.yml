@@ -274,6 +274,7 @@ jobs:
       control_plane_ip_addresses: ${{ steps.filter.outputs.control_plane_ip_addresses == 'true' || env.mustTrigger == 'true' }}
       cloud_user: ${{ steps.filter.outputs.cloud_user == 'true' || env.mustTrigger == 'true' }}
       cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
+      cluster_adaptive: ${{ steps.filter.outputs.cluster_adaptive == 'true' || env.mustTrigger == 'true' }}
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
       config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
       encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
@@ -314,7 +315,6 @@ jobs:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/alertconfigurationapi/*.go'
             - 'internal/serviceapi/auditingapi/*.go'
-            - 'internal/serviceapi/clusteradaptivesettings/*.go'
             - 'internal/serviceapi/customdbroleapi/*.go'
             - 'internal/serviceapi/databaseuserapi/*.go'
             - 'internal/serviceapi/maintenancewindowapi/*.go'
@@ -349,6 +349,9 @@ jobs:
             - 'internal/service/clouduserteamassignment/*.go'
           cluster:
             - 'internal/service/cluster/*.go'
+          cluster_adaptive:
+            - 'internal/serviceapi/clusteradaptivesettings/*.go'
+            - 'internal/serviceapi/clusteroverloadsimulation/*.go'
           cluster_outage_simulation:
             - 'internal/service/clusteroutagesimulation/*.go'  
           config:
@@ -693,7 +696,6 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/serviceapi/alertconfigurationapi
             ./internal/serviceapi/auditingapi
-            ./internal/serviceapi/clusteradaptivesettings
             ./internal/serviceapi/customdbroleapi
             ./internal/serviceapi/databaseuserapi
             ./internal/serviceapi/logintegration
@@ -860,6 +862,30 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/cluster
+        run: make testacc
+
+  cluster_adaptive:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.cluster_adaptive == 'true' || inputs.test_group == 'cluster_adaptive' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_PACKAGES: |
+            ./internal/serviceapi/clusteradaptivesettings
+            ./internal/serviceapi/clusteroverloadsimulation
         run: make testacc
 
   cluster_outage_simulation:
