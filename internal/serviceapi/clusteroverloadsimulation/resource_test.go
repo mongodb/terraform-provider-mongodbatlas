@@ -2,7 +2,6 @@ package clusteroverloadsimulation_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"testing"
@@ -23,10 +22,7 @@ const (
 )
 
 func TestAccClusterOverloadSimulation_basic(t *testing.T) {
-	var (
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{MongoDBMajorVersion: "9.0"})
-		firstID     string
-	)
+	clusterInfo := acc.GetClusterInfo(t, &acc.ClusterRequest{MongoDBMajorVersion: "9.0"})
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
@@ -38,16 +34,6 @@ func TestAccClusterOverloadSimulation_basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkBasic(clusterInfo.ProjectID, clusterInfo.Name, 900),
 					checkExists(resourceName),
-					captureSimulationID(resourceName, &firstID),
-				),
-			},
-			// Changing duration_seconds replaces the simulation because the API does not support updates.
-			{
-				Config: configBasic(&clusterInfo, 3600),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkBasic(clusterInfo.ProjectID, clusterInfo.Name, 3600),
-					checkExists(resourceName),
-					checkSimulationReplaced(resourceName, &firstID),
 				),
 			},
 			{
@@ -147,36 +133,6 @@ func readRequest(rs *terraform.ResourceState) config.APICallParams {
 			"simulationId": rs.Primary.Attributes["simulation_id"],
 		},
 		Method: "GET",
-	}
-}
-
-func captureSimulationID(name string, target *string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("not found: %s", name)
-		}
-		*target = rs.Primary.Attributes["simulation_id"]
-		if *target == "" {
-			return fmt.Errorf("simulation_id is empty for %s", name)
-		}
-		return nil
-	}
-}
-
-func checkSimulationReplaced(name string, previousID *string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if *previousID == "" {
-			return errors.New("previous simulation_id is empty")
-		}
-		var currentID string
-		if err := captureSimulationID(name, &currentID)(s); err != nil {
-			return err
-		}
-		if currentID == *previousID {
-			return fmt.Errorf("expected simulation %s to be replaced", *previousID)
-		}
-		return nil
 	}
 }
 

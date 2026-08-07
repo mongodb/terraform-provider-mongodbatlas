@@ -8,7 +8,7 @@ subcategory: "Clusters"
 
 ~> **IMPORTANT:** An overload protection simulation intentionally applies load to the target cluster. Use it only in an environment where the resulting performance impact is acceptable.
 
--> **NOTE:** Atlas allows only one undeleted overload protection simulation per cluster. Terraform replaces the simulation when you change `project_id`, `cluster_name`, or `duration_seconds`.
+-> **NOTE:** Atlas allows only one undeleted overload protection simulation per cluster. To use a different `project_id`, `cluster_name`, or `duration_seconds`, first remove the resource from your configuration and apply to delete the existing simulation. Then add the resource with the new values and apply again.
 
 ## Example Usages
 
@@ -17,8 +17,6 @@ resource "mongodbatlas_advanced_cluster" "this" {
   project_id             = var.project_id
   name                   = var.cluster_name
   cluster_type           = "REPLICASET"
-  mongo_db_major_version = "9.0"
-
   replication_specs = [{
     region_configs = [{
       electable_specs = {

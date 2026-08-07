@@ -250,7 +250,3 @@ data_sources:
         version_header: application/vnd.atlas.preview+json
 name: cluster_overload_simulation
 packageName: clusteroverloadsimulation
-id_attributes:
-    - project_id
-    - cluster_name
-    - simulation_id

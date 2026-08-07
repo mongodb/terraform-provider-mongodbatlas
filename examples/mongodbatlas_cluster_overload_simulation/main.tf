@@ -2,8 +2,6 @@ resource "mongodbatlas_advanced_cluster" "this" {
   project_id             = var.project_id
   name                   = var.cluster_name
   cluster_type           = "REPLICASET"
-  mongo_db_major_version = "9.0"
-
   replication_specs = [{
     region_configs = [{
       electable_specs = {
