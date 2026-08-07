@@ -10,9 +10,10 @@ subcategory: "Clusters"
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
-  project_id             = var.project_id
-  name                   = var.cluster_name
-  cluster_type           = "REPLICASET"
+  project_id   = var.project_id
+  name         = var.cluster_name
+  cluster_type = "REPLICASET"
+
   replication_specs = [{
     region_configs = [{
       electable_specs = {
