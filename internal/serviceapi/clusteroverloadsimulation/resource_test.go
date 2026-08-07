@@ -1,0 +1,152 @@
+package clusteroverloadsimulation_test
+
+import (
+	"context"
+	"fmt"
+	"strconv"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+)
+
+const (
+	resourceName     = "mongodbatlas_cluster_overload_simulation.test"
+	dataSourceName   = "data.mongodbatlas_cluster_overload_simulation.test"
+	apiVersionHeader = "application/vnd.atlas.preview+json"
+	readPath         = "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/overloadSimulations/{simulationId}"
+)
+
+func TestAccClusterOverloadSimulation_basic(t *testing.T) {
+	clusterInfo := acc.GetClusterInfo(t, &acc.ClusterRequest{MongoDBMajorVersion: "9.0"})
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(&clusterInfo, 900),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkBasic(clusterInfo.ProjectID, clusterInfo.Name, 900),
+					checkExists(resourceName),
+				),
+			},
+			{
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIgnore:              []string{"delete_on_create_timeout"},
+				ImportStateVerifyIdentifierAttribute: "simulation_id",
+			},
+		},
+	})
+}
+
+func configBasic(info *acc.ClusterInfo, durationSeconds int64) string {
+	return fmt.Sprintf(`
+		%[1]s
+
+		resource "mongodbatlas_cluster_overload_simulation" "test" {
+			project_id       = %[2]q
+			cluster_name     = %[3]s
+			duration_seconds = %[4]d
+		}
+
+		data "mongodbatlas_cluster_overload_simulation" "test" {
+			project_id    = mongodbatlas_cluster_overload_simulation.test.project_id
+			cluster_name  = mongodbatlas_cluster_overload_simulation.test.cluster_name
+			simulation_id = mongodbatlas_cluster_overload_simulation.test.simulation_id
+		}
+	`, info.TerraformStr, info.ProjectID, info.TerraformNameRef, durationSeconds)
+}
+
+func checkBasic(projectID, clusterName string, durationSeconds int64) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+		resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+		resource.TestCheckResourceAttr(resourceName, "duration_seconds", strconv.FormatInt(durationSeconds, 10)),
+		resource.TestCheckResourceAttrSet(resourceName, "expires_at"),
+		resource.TestCheckResourceAttrSet(resourceName, "request_date"),
+		resource.TestCheckResourceAttrSet(resourceName, "simulation_id"),
+		resource.TestCheckResourceAttr(resourceName, "state", "ACTIVE"),
+	}
+	for _, attr := range []string{"project_id", "cluster_name", "duration_seconds", "expires_at", "request_date", "simulation_id", "state"} {
+		checks = append(checks, resource.TestCheckResourceAttrPair(dataSourceName, attr, resourceName, attr))
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func checkExists(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("not found: %s", name)
+		}
+		resp, err := acc.MongoDBClient.UntypedAPICall(context.Background(), readRequest(rs), nil)
+		if resp != nil && resp.Body != nil {
+			if closeErr := resp.Body.Close(); closeErr != nil && err == nil {
+				return fmt.Errorf("closing cluster overload simulation response: %w", closeErr)
+			}
+		}
+		if err != nil {
+			return fmt.Errorf("cluster overload simulation does not exist: %w", err)
+		}
+		return nil
+	}
+}
+
+func checkDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_cluster_overload_simulation" {
+			continue
+		}
+		resp, err := acc.MongoDBClient.UntypedAPICall(context.Background(), readRequest(rs), nil)
+		if resp != nil && resp.Body != nil {
+			if closeErr := resp.Body.Close(); closeErr != nil && err == nil {
+				return fmt.Errorf("closing cluster overload simulation response: %w", closeErr)
+			}
+		}
+		if validate.StatusNotFound(resp) {
+			continue
+		}
+		if err != nil {
+			return fmt.Errorf("checking cluster overload simulation destruction: %w", err)
+		}
+		return fmt.Errorf("cluster overload simulation %s still exists", rs.Primary.Attributes["simulation_id"])
+	}
+	return nil
+}
+
+// TODO CLOUDP-397756: Use the Atlas SDK once the overload protection simulation API is stable.
+func readRequest(rs *terraform.ResourceState) config.APICallParams {
+	return config.APICallParams{
+		VersionHeader: apiVersionHeader,
+		RelativePath:  readPath,
+		PathParams: map[string]string{
+			"projectId":    rs.Primary.Attributes["project_id"],
+			"clusterName":  rs.Primary.Attributes["cluster_name"],
+			"simulationId": rs.Primary.Attributes["simulation_id"],
+		},
+		Method: "GET",
+	}
+}
+
+func importStateIDFunc(name string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", name)
+		}
+		return fmt.Sprintf("%s/%s/%s",
+			rs.Primary.Attributes["project_id"],
+			rs.Primary.Attributes["cluster_name"],
+			rs.Primary.Attributes["simulation_id"],
+		), nil
+	}
+}

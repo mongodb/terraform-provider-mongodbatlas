@@ -1,0 +1,25 @@
+---
+subcategory: "Clusters"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` starts and deletes an overload protection simulation for one MongoDB Atlas cluster.
+
+~> **IMPORTANT:** An overload protection simulation intentionally applies load to the target cluster. Use it only in an environment where the resulting performance impact is acceptable.
+
+-> **NOTE:** Only one overload protection simulation can exist per cluster at a time. To change its configuration, remove the existing resource and apply, then add it with the new values and apply again.
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import a cluster overload simulation by using the project ID, cluster name, and simulation ID in the format `PROJECT_ID/CLUSTER_NAME/SIMULATION_ID`, for example:
+
+```shell
+terraform import mongodbatlas_cluster_overload_simulation.this 0123456789abcdef01234567/Cluster0/89abcdef0123456701234567
+```

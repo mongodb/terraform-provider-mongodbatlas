@@ -1,0 +1,252 @@
+schema:
+    description: |-
+        This API is in preview. Breaking changes might be introduced before it is released. Don't use preview APIs in production.
+
+         Starts an overload protection simulation for one cluster. Returns a 409 if a simulation is already in progress or completed; DELETE the existing simulation before starting a new one.
+    attributes:
+        - string: {}
+          description: Date and time when cancellation of the overload protection simulation was requested. This parameter is only present when a cancellation has been requested and expresses its value in the ISO 8601 timestamp format in UTC.
+          computed_optional_required: computed
+          tf_schema_name: cancel_requested_at
+          tf_model_name: CancelRequestedAt
+          api_name: cancelRequestedAt
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Human-readable label that identifies the cluster on which to start the overload protection simulation.
+          computed_optional_required: required
+          tf_schema_name: cluster_name
+          tf_model_name: ClusterName
+          api_name: clusterName
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - int64: {}
+          description: Duration of the overload protection simulation in seconds.
+          computed_optional_required: required
+          tf_schema_name: duration_seconds
+          tf_model_name: DurationSeconds
+          api_name: durationSeconds
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Date and time when the overload protection simulation expires. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+          computed_optional_required: computed
+          tf_schema_name: expires_at
+          tf_model_name: ExpiresAt
+          api_name: expiresAt
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+          computed_optional_required: required
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Date and time when the overload protection simulation was requested. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+          computed_optional_required: computed
+          tf_schema_name: request_date
+          tf_model_name: RequestDate
+          api_name: requestDate
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique identifier of the overload protection simulation.
+          computed_optional_required: computed
+          tf_schema_name: simulation_id
+          tf_model_name: SimulationId
+          api_name: simulationId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Current state of the overload protection simulation.
+          computed_optional_required: computed
+          tf_schema_name: state
+          tf_model_name: State
+          api_name: state
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - bool:
+            default: true
+          description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
+          computed_optional_required: computed_optional
+          tf_schema_name: delete_on_create_timeout
+          tf_model_name: DeleteOnCreateTimeout
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - timeouts:
+            configurable_timeouts:
+                - create
+                - delete
+          computed_optional_required: ""
+          tf_schema_name: timeouts
+          tf_model_name: Timeouts
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
+operations:
+    delete:
+        wait:
+            state_property: state
+            pending_states:
+                - PENDING
+                - ACTIVE
+                - FAILED
+                - ENDING
+                - COMPLETED
+            target_states:
+                - DELETED
+            timeout_seconds: 300
+            min_timeout_seconds: 10
+            delay_seconds: 10
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/overloadSimulations/{simulationId}
+    create:
+        wait:
+            state_property: state
+            pending_states:
+                - PENDING
+            target_states:
+                - ACTIVE
+            timeout_seconds: 300
+            min_timeout_seconds: 10
+            delay_seconds: 10
+        http_method: POST
+        path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/overloadSimulations
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/overloadSimulations/{simulationId}
+    version_header: application/vnd.atlas.preview+json
+data_sources:
+    singular:
+        description: |-
+            This API is in preview. Breaking changes might be introduced before it is released. Don't use preview APIs in production.
+
+             Returns the overload protection simulation for one cluster.
+        attributes:
+            - string: {}
+              description: Date and time when cancellation of the overload protection simulation was requested. This parameter is only present when a cancellation has been requested and expresses its value in the ISO 8601 timestamp format in UTC.
+              computed_optional_required: computed
+              tf_schema_name: cancel_requested_at
+              tf_model_name: CancelRequestedAt
+              api_name: cancelRequestedAt
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Human-readable label that identifies the cluster on which the overload protection simulation is running.
+              computed_optional_required: required
+              tf_schema_name: cluster_name
+              tf_model_name: ClusterName
+              api_name: clusterName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - int64: {}
+              description: Duration of the overload protection simulation in seconds.
+              computed_optional_required: computed
+              tf_schema_name: duration_seconds
+              tf_model_name: DurationSeconds
+              api_name: durationSeconds
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Date and time when the overload protection simulation expires. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+              computed_optional_required: computed
+              tf_schema_name: expires_at
+              tf_model_name: ExpiresAt
+              api_name: expiresAt
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Date and time when the overload protection simulation was requested. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+              computed_optional_required: computed
+              tf_schema_name: request_date
+              tf_model_name: RequestDate
+              api_name: requestDate
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies the overload protection simulation.
+              computed_optional_required: required
+              tf_schema_name: simulation_id
+              tf_model_name: SimulationId
+              api_name: simulationId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Current state of the overload protection simulation.
+              computed_optional_required: computed
+              tf_schema_name: state
+              tf_model_name: State
+              api_name: state
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/overloadSimulations/{simulationId}
+        version_header: application/vnd.atlas.preview+json
+name: cluster_overload_simulation
+packageName: clusteroverloadsimulation
