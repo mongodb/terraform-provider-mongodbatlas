@@ -8,7 +8,7 @@ subcategory: "Database Users"
 
 Each user has a set of roles that provide access to the project’s databases. User's roles apply to all the clusters in the project: if two clusters have a `products` database and a user has a role granting `read` access on the products database, the user has that access on both clusters.
 
-~> **IMPORTANT WARNING:** The `password` argument is stored in Terraform state in plain text. To avoid this, you can use `password_wo` instead, which is a [write-only argument](https://developer.hashicorp.com/terraform/language/resources/ephemeral/write-only) and is never written to state or plan files. It requires Terraform 1.11 or later. See [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data) for handling sensitive data in state.
+~> **IMPORTANT WARNING:** The `password` argument is stored in Terraform state in plain text. To avoid this issue, you can use `password_wo` instead, which is a [write-only argument](https://developer.hashicorp.com/terraform/language/resources/ephemeral/write-only) and is never written to state or plan files. It requires Terraform 1.11 or later. See [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data) for handling sensitive data in state.
 
 ## Example Usages
 
