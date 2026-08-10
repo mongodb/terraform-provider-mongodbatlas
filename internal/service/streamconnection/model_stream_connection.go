@@ -80,7 +80,7 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 			return nil, diags
 		}
 		switch plan.Type.ValueString() {
-		case ConnectionTypeAzureBlobStorage, ConnectionTypeGCPPubSub:
+		case ConnectionTypeAWSLambda, ConnectionTypeAzureBlobStorage, ConnectionTypeGCPPubSub:
 			streamConnection.PublicPrivateNetworking = &admin.StreamsPublicPrivateLinkNetworking{
 				Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
 					Type:         networkingAccessModel.Type.ValueStringPointer(),
@@ -277,7 +277,8 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 		connectionModel.DBRoleToExecute = dbRoleToExecuteModel
 	}
 
-	// The API returns networking in either Networking (Kafka, S3) or PublicPrivateNetworking (GCPPubSub, Azure) depending on connection type.
+	// The API returns networking in either Networking (Kafka, S3, AWSKinesisDataStreams) or
+	// PublicPrivateNetworking (AWSLambda, AzureBlobStorage, GCPPubSub) depending on connection type.
 	connectionModel.Networking = types.ObjectNull(NetworkingObjectType.AttrTypes)
 	var networkingAccessType, networkingConnectionID *string
 	if apiResp.Networking != nil && apiResp.Networking.Access != nil {
