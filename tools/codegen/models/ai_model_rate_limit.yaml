@@ -98,6 +98,7 @@ operations:
     delete:
         http_method: POST
         path: /api/atlas/v2/groups/{projectId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits:reset
+        resets_to_defaults: true
     create:
         http_method: PATCH
         path: /api/atlas/v2/groups/{projectId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits
