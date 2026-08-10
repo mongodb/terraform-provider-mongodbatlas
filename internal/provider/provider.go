@@ -340,8 +340,6 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		logintegration.PluralDataSource,
 		privatelinkendpointservicedatafederationonlinearchive.DataSource,
 		privatelinkendpointservicedatafederationonlinearchive.PluralDataSource,
-
-		// TODO: Auto-generated datasources, delete this comment before merging to master in CLOUDP-372674
 		aimodelapikey.DataSource,
 		aimodelapikey.PluralDataSource,
 		aimodelorgapikey.DataSource,
@@ -392,8 +390,6 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		projectserviceaccountsecret.Resource,
 		projectserviceaccountaccesslistentry.Resource,
 		privatelinkendpointservicedatafederationonlinearchive.Resource,
-
-		// TODO: Auto-generated resources, delete this comment before merging to master in CLOUDP-372674
 		aimodelapikey.Resource,
 		aimodelratelimit.Resource,
 	}
