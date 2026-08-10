@@ -90,6 +90,7 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits:reset
       method: POST
+      resets_to_defaults: true
     version_header: application/vnd.atlas.2025-03-12+json
     schema: &ai_model_rate_limit_schema
       aliases:
