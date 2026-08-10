@@ -29,7 +29,11 @@ const (
 	minTimeoutCreate      = 10 * time.Second
 )
 
-var createAccessListEntryMutex = concurrency.NewMutexKV()
+// Each access list entry is its own resource, which leads to concurrent calls within a single execution unless explicitly serialized by the user.
+// From API docs: "This endpoint doesn't support concurrent POST requests. You must submit multiple POST requests synchronously."
+// Locking both POSTs and DELETEs at the project level to avoid race conditions within a single execution.
+// Still, we verify that the entry was added/removed to/from the access list and retry otherwise in case of an external action.
+var accessListEntryMutex = concurrency.NewMutexKV()
 
 type projectIPAccessListRS struct {
 	config.RSCommon
@@ -162,7 +166,10 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
+		accessListEntryMutex.Lock(projectID)
 		httpResponse, err := connV2.ProjectIPAccessListAPI.DeleteAccessListEntry(ctx, projectID, entry).Execute()
+		// Unlock immediately to allow parallel reads (intentionally not deferring).
+		accessListEntryMutex.Unlock(projectID)
 		if err != nil {
 			if validate.StatusInternalServerError(httpResponse) {
 				return retry.RetryableError(err)
@@ -220,13 +227,10 @@ func createEntry(ctx context.Context, connV2 *admin.APIClient, projectIPAccessLi
 		Pending: []string{"pending"},
 		Target:  []string{"created", "failed"},
 		Refresh: func() (any, string, error) {
-			// Each access list entry is its own resource, which leads to concurrent calls within a single apply unless explicitly handled by the user.
-			// From API docs: "This endpoint doesn't support concurrent POST requests. You must submit multiple POST requests synchronously."
-			// Locking on a project level to avoid race conditions within a single apply. Still, we verify that the entry was added to the access list and retry otherwise in case of an external update.
-			createAccessListEntryMutex.Lock(projectID)
+			accessListEntryMutex.Lock(projectID)
 			_, httpResponse, err := connV2.ProjectIPAccessListAPI.CreateAccessListEntry(ctx, projectID, NewMongoDBProjectIPAccessList(projectIPAccessListModel)).Execute()
-			// Unlock immediately after create to allow parallel reads (intentionally not deferring).
-			createAccessListEntryMutex.Unlock(projectID)
+			// Unlock immediately to allow parallel reads (intentionally not deferring).
+			accessListEntryMutex.Unlock(projectID)
 			if err != nil {
 				if validate.StatusInternalServerError(httpResponse) {
 					return nil, "pending", nil
