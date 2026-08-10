@@ -6,6 +6,11 @@ ENHANCEMENTS:
 * data-source/mongodbatlas_stream_connections: Supports `networking` for `AWSLambda` connections. ([#4619](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4619))
 * resource/mongodbatlas_stream_connection: Supports `networking` with `PRIVATE_LINK` access for `AWSLambda` connections. ([#4619](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4619))
 
+BUG FIXES:
+
+* data-source/mongodbatlas_stream_connection_failover: Marks `authentication.ssl_key` and `authentication.ssl_key_password` as sensitive ([#4617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4617))
+* data-source/mongodbatlas_stream_connection_failovers: Marks `results.authentication.ssl_key` and `results.authentication.ssl_key_password` as sensitive ([#4617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4617))
+
 ## 2.15.0 (July 29, 2026)
 
 ENHANCEMENTS:
