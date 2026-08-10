@@ -32838,7 +32838,7 @@ components:
                 results:
                     description: List of returned documents that MongoDB Cloud provides when completing this request.
                     items:
-                        $ref: '#/components/schemas/StreamsConnection'
+                        $ref: '#/components/schemas/StreamsFailoverConnection'
                     readOnly: true
                     type: array
                 totalCount:
@@ -39869,6 +39869,92 @@ components:
                 - eventTypeName
                 - id
             title: Streams Events
+            type: object
+        StreamsFailoverClusterConnection:
+            allOf:
+                - $ref: '#/components/schemas/StreamsFailoverConnection'
+                - properties:
+                    clusterGroupId:
+                        description: Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.
+                        nullable: true
+                        type: string
+                    clusterName:
+                        description: Name of the cluster configured for this connection.
+                        type: string
+                    dbRoleToExecute:
+                        $ref: '#/components/schemas/DBRoleToExecute'
+                  type: object
+            type: object
+        StreamsFailoverConnection:
+            description: Settings that define a failover connection to an external data store.
+            discriminator:
+                mapping:
+                    Cluster: '#/components/schemas/StreamsFailoverClusterConnection'
+                    Kafka: '#/components/schemas/StreamsFailoverKafkaConnection'
+                propertyName: type
+            oneOf:
+                - $ref: '#/components/schemas/StreamsFailoverClusterConnection'
+                - $ref: '#/components/schemas/StreamsFailoverKafkaConnection'
+            properties:
+                id:
+                    description: Unique identifier of the connection.
+                    readOnly: true
+                    type: string
+                links:
+                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                    externalDocs:
+                        description: Web Linking Specification (RFC 5988)
+                        url: https://datatracker.ietf.org/doc/html/rfc5988
+                    items:
+                        $ref: '#/components/schemas/Link'
+                    readOnly: true
+                    type: array
+                name:
+                    description: Human-readable label that identifies the stream connection.
+                    type: string
+                region:
+                    description: The connection region.
+                    type: string
+                state:
+                    description: The connection state.
+                    enum:
+                        - PENDING
+                        - READY
+                        - DELETING
+                        - FAILED
+                    readOnly: true
+                    type: string
+                type:
+                    description: The connection type.
+                    enum:
+                        - Kafka
+                        - Cluster
+                    type: string
+            type: object
+        StreamsFailoverKafkaConnection:
+            allOf:
+                - $ref: '#/components/schemas/StreamsFailoverConnection'
+                - properties:
+                    authentication:
+                        $ref: '#/components/schemas/StreamsKafkaAuthentication'
+                    bootstrapServers:
+                        description: Comma separated list of server addresses.
+                        type: string
+                    config:
+                        additionalProperties:
+                            description: A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
+                            example: '{"group.protocol.type":"consumer","debug":"queue, msg, protocol"}'
+                            type: string
+                        description: A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
+                        example:
+                            debug: queue, msg, protocol
+                            group.protocol.type: consumer
+                        type: object
+                    networking:
+                        $ref: '#/components/schemas/StreamsKafkaNetworking'
+                    security:
+                        $ref: '#/components/schemas/StreamsKafkaSecurity'
+                  type: object
             type: object
         StreamsGCPConnectionConfig:
             description: GCP-specific configuration for the connection.
@@ -65022,14 +65108,6 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/PaginatedApiStreamsFailoverConnection'
                             x-xgen-version: "2025-03-12"
-                        application/vnd.atlas.preview+json:
-                            schema:
-                                $ref: '#/components/schemas/PaginatedApiStreamsFailoverConnection'
-                            x-sunset: "2026-07-20"
-                            x-xgen-preview:
-                                name: regional-failover
-                                public: "false"
-                            x-xgen-version: preview
                     description: OK
                     headers:
                         RateLimit-Limit:
@@ -65079,7 +65157,7 @@ paths:
                 content:
                     application/vnd.atlas.2025-03-12+json:
                         schema:
-                            $ref: '#/components/schemas/StreamsConnection'
+                            $ref: '#/components/schemas/StreamsFailoverConnection'
                         x-xgen-version: application/vnd.atlas.2025-03-12+json
                 description: Details to create one failover connection for a streams workspace in the specified project.
                 required: true
@@ -65088,16 +65166,8 @@ paths:
                     content:
                         application/vnd.atlas.2025-03-12+json:
                             schema:
-                                $ref: '#/components/schemas/StreamsConnection'
+                                $ref: '#/components/schemas/StreamsFailoverConnection'
                             x-xgen-version: "2025-03-12"
-                        application/vnd.atlas.preview+json:
-                            schema:
-                                $ref: '#/components/schemas/StreamsConnection'
-                            x-sunset: "2026-07-20"
-                            x-xgen-preview:
-                                name: regional-failover
-                                public: "false"
-                            x-xgen-version: preview
                     description: OK
                     headers:
                         RateLimit-Limit:
@@ -65217,16 +65287,8 @@ paths:
                     content:
                         application/vnd.atlas.2025-03-12+json:
                             schema:
-                                $ref: '#/components/schemas/StreamsConnection'
+                                $ref: '#/components/schemas/StreamsFailoverConnection'
                             x-xgen-version: "2025-03-12"
-                        application/vnd.atlas.preview+json:
-                            schema:
-                                $ref: '#/components/schemas/StreamsConnection'
-                            x-sunset: "2026-07-20"
-                            x-xgen-preview:
-                                name: regional-failover
-                                public: "false"
-                            x-xgen-version: preview
                     description: OK
                     headers:
                         RateLimit-Limit:
@@ -65280,7 +65342,7 @@ paths:
                 content:
                     application/vnd.atlas.2025-03-12+json:
                         schema:
-                            $ref: '#/components/schemas/StreamsConnection'
+                            $ref: '#/components/schemas/StreamsFailoverConnection'
                 description: Details to update one failover connection for a streams workspace in the specified project.
                 required: true
             responses:
@@ -65288,16 +65350,8 @@ paths:
                     content:
                         application/vnd.atlas.2025-03-12+json:
                             schema:
-                                $ref: '#/components/schemas/StreamsConnection'
+                                $ref: '#/components/schemas/StreamsFailoverConnection'
                             x-xgen-version: "2025-03-12"
-                        application/vnd.atlas.preview+json:
-                            schema:
-                                $ref: '#/components/schemas/StreamsConnection'
-                            x-sunset: "2026-07-20"
-                            x-xgen-preview:
-                                name: regional-failover
-                                public: "false"
-                            x-xgen-version: preview
                     description: OK
                     headers:
                         RateLimit-Limit:
