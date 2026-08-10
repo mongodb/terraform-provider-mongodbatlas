@@ -3,8 +3,7 @@ set -euo pipefail
 
 # Accepts a URL or a local file path to an OpenAPI spec.
 # If a local file is provided, it is copied directly; otherwise, it is downloaded from the given URL.
-# TODO: Use openapi dev branch, don't merge to master, remove in CLOUDP-372674
-SPEC_SOURCE="${1:-https://raw.githubusercontent.com/mongodb/openapi/dev/openapi/v2.yaml}"
+SPEC_SOURCE="${1:-https://raw.githubusercontent.com/mongodb/openapi/main/openapi/v2.yaml}"
 SPEC_PATH="tools/codegen/atlasapispec/raw-multi-version-api-spec.yml"
 FLATTENED_SPEC_PATH="tools/codegen/atlasapispec/multi-version-api-spec.flattened.yml"
 
