@@ -2,7 +2,9 @@ package aimodelratelimit_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"regexp"
 	"testing"
@@ -30,11 +32,17 @@ func TestAccAIModelRateLimit_basic(t *testing.T) {
 		orgID     = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID = acc.ProjectIDExecution(t)
 	)
+	// Rate limits are reset to defaults on destroy rather than removed, so CheckDestroy
+	// compares against a baseline captured before the resource is created.
+	baseline, err := getRateLimit(projectID, "ANY", "ANY", modelGroupName)
+	if err != nil {
+		t.Fatalf("failed to capture baseline rate limit for %s: %v", modelGroupName, err)
+	}
 	// Serial test execution to avoid conflicts with other tests that use the same project and model group names.
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		// TODO: CLOUDP-374704, CLOUDP-372674 - Implement CheckDestroy checking default limits when SDK can be used.
+		CheckDestroy:             checkDestroy(baseline),
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, projectID, 100, 1000),
@@ -163,6 +171,48 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 			rs.Primary.Attributes["cloud"],
 			rs.Primary.Attributes["geography"],
 			rs.Primary.Attributes["model_group_name"]), nil
+	}
+}
+
+type rateLimitValues struct {
+	RequestsPerMinuteLimit int `json:"requestsPerMinuteLimit"`
+	TokensPerMinuteLimit   int `json:"tokensPerMinuteLimit"`
+}
+
+// getRateLimit fetches the current requests/tokens per minute limits for a model group.
+// The baseline rate limit is captured before the resource is created, so that CheckDestroy
+// can verify that destroying the resource resets the rate limit back to the baseline.
+func getRateLimit(projectID, cloud, geography, modelGroupName string) (*rateLimitValues, error) {
+	resp, err := acc.GetAIModelRateLimit(context.Background(), projectID, cloud, geography, modelGroupName)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status %d fetching rate limit for %s", resp.StatusCode, modelGroupName)
+	}
+	var result rateLimitValues
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func checkDestroy(baseline *rateLimitValues) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for _, rs := range s.RootModule().Resources {
+			if rs.Type != resourceType {
+				continue
+			}
+			current, err := getRateLimit(rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cloud"], rs.Primary.Attributes["geography"], rs.Primary.Attributes["model_group_name"])
+			if err != nil {
+				return fmt.Errorf("checkDestroy: failed to get rate limit for %s: %w", rs.Primary.ID, err)
+			}
+			if *current != *baseline {
+				return fmt.Errorf("rate limit for %s was not reset to its pre-test values after destroy: got %+v, want %+v", rs.Primary.Attributes["model_group_name"], current, baseline)
+			}
+		}
+		return nil
 	}
 }
 
