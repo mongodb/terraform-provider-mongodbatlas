@@ -50,8 +50,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"pipeline": schema.StringAttribute{
 				CustomType: jsontypes.NormalizedType{},
 				Required:   true,
-				MarkdownDescription: "Stream aggregation pipeline you want to apply to your streaming data. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation)" +
-					" contain more information. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when setting this attribute. For more details see the [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)",
+				MarkdownDescription: "Stream aggregation pipeline you want to apply to your streaming data, as a JSON string. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation)" +
+					" contain more information. For more details see the [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/).\n\n" +
+					"**Field order matters.** MongoDB documents are ordered, and some pipeline constructs depend on the order of keys within a document: sort specifications, where key order is sort precedence, and equality comparisons against a document literal, which match by exact field order." +
+					" The order of fields in a `$addFields`/`$project` specification also becomes the field order of the documents the processor writes.\n\n" +
+					"Do not build this attribute with [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode): it serializes object keys in lexicographic order, so the pipeline Atlas receives will not match what you wrote." +
+					" Author the pipeline as a raw JSON string instead, using a heredoc or `file(\"pipeline.json\")`, which Terraform passes through unchanged.",
 			},
 			"processor_name": schema.StringAttribute{
 				Required:            true,

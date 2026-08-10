@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_stream_processor: Preserves the field order of pipeline stage subdocuments instead of sending them alphabetized.
+```

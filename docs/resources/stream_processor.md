@@ -11,6 +11,10 @@ subcategory: "Streams"
 2. The update will be performed while the processor is in `STOPPED` state
 3. If the processor was originally in `STARTED` state, it will be restarted after the update
 
+-> **NOTE:** `terraform plan` displays the `pipeline` attribute with its keys in alphabetical order, and renders it as `jsonencode(...)` even when the configuration uses a heredoc or `file()`. This is how Terraform renders any JSON-string attribute and does not reflect what is sent to Atlas: the pipeline is transmitted and stored in the order you authored it. To confirm the order that was applied, inspect the request body with `TF_LOG=DEBUG`, or run `sp.listStreamProcessors()` against the workspace.
+
+~> **IMPORTANT:** Do not use `jsonencode()` to build the `pipeline` attribute. `jsonencode()` emits object keys in lexicographic order, so a pipeline written as `{"orderType": ..., "orderSubtype": ...}` is sent to Atlas as `{"orderSubtype": ..., "orderType": ...}`. MongoDB documents are ordered, and sort specifications and equality comparisons against document literals are order-sensitive, so this can silently change what your processor does. Author `pipeline` as a raw JSON string (heredoc or `file()`) instead.
+
 ## Example Usages
 
 ```terraform
@@ -65,34 +69,42 @@ resource "mongodbatlas_stream_processor" "stream-processor-sample-example" {
   project_id     = var.project_id
   workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "sampleProcessorName"
-  pipeline = jsonencode([
-    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-sample.connection_name } },
-    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "sample", "coll" : "solar", "timeseries" : { "timeField" : "_ts" } } }
-  ])
-  state = "STARTED"
-  tier  = "SP30"
+  # Authored as a raw JSON string so the field order is preserved exactly. Do not use jsonencode,
+  # which emits object keys in lexicographic order.
+  pipeline = <<-JSON
+    [
+      {"$source": {"connectionName": "${resource.mongodbatlas_stream_connection.example-sample.connection_name}"}},
+      {"$emit": {"connectionName": "${resource.mongodbatlas_stream_connection.example-cluster.connection_name}", "db": "sample", "coll": "solar", "timeseries": {"timeField": "_ts"}}}
+    ]
+  JSON
+  state    = "STARTED"
+  tier     = "SP30"
 }
 
 resource "mongodbatlas_stream_processor" "stream-processor-cluster-to-kafka-example" {
   project_id     = var.project_id
   workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "clusterProcessorName"
-  pipeline = jsonencode([
-    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name } },
-    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_from_cluster" } }
-  ])
-  state = "CREATED"
+  pipeline       = <<-JSON
+    [
+      {"$source": {"connectionName": "${resource.mongodbatlas_stream_connection.example-cluster.connection_name}"}},
+      {"$emit": {"connectionName": "${resource.mongodbatlas_stream_connection.example-kafka.connection_name}", "topic": "topic_from_cluster"}}
+    ]
+  JSON
+  state          = "CREATED"
 }
 
 resource "mongodbatlas_stream_processor" "stream-processor-kafka-to-cluster-example" {
   project_id     = var.project_id
   workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "kafkaProcessorName"
-  pipeline = jsonencode([
-    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_source" } },
-    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "kafka", "coll" : "topic_source", "timeseries" : { "timeField" : "ts" } }
-  }])
-  state = "CREATED"
+  pipeline       = <<-JSON
+    [
+      {"$source": {"connectionName": "${resource.mongodbatlas_stream_connection.example-kafka.connection_name}", "topic": "topic_source"}},
+      {"$emit": {"connectionName": "${resource.mongodbatlas_stream_connection.example-cluster.connection_name}", "db": "kafka", "coll": "topic_source", "timeseries": {"timeField": "ts"}}}
+    ]
+  JSON
+  state          = "CREATED"
   options = {
     dlq = {
       coll            = "exampleColumn"
@@ -131,7 +143,11 @@ output "stream_processors_results" {
 
 ### Required
 
-- `pipeline` (String) Stream aggregation pipeline you want to apply to your streaming data. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation) contain more information. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when setting this attribute. For more details see the [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)
+- `pipeline` (String) Stream aggregation pipeline you want to apply to your streaming data, as a JSON string. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation) contain more information. For more details see the [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/).
+
+**Field order matters.** MongoDB documents are ordered, and some pipeline constructs depend on the order of keys within a document: sort specifications, where key order is sort precedence, and equality comparisons against a document literal, which match by exact field order. The order of fields in a `$addFields`/`$project` specification also becomes the field order of the documents the processor writes.
+
+Do not build this attribute with [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode): it serializes object keys in lexicographic order, so the pipeline Atlas receives will not match what you wrote. Author the pipeline as a raw JSON string instead, using a heredoc or `file("pipeline.json")`, which Terraform passes through unchanged.
 - `processor_name` (String) Label that identifies the stream processor.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 

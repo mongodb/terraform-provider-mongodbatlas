@@ -556,3 +556,30 @@ func TestGetWorkspaceOrInstanceName(t *testing.T) {
 		})
 	}
 }
+
+func TestPipelineFieldOrderPreserved(t *testing.T) {
+	// MongoDB documents are ordered, so the pipeline Atlas receives must carry the fields in the
+	// order the practitioner authored them. Byte equality is asserted on purpose: assert.JSONEq
+	// is order-blind and would pass against an alphabetized pipeline.
+	const pipeline = `[{"$addFields":{"helpers.id":{"orderType":"$orderType","orderSubtype":"$orderSubtype"}}},` +
+		`{"$merge":{"into":{"connectionName":"ClusterConnection","db":"demo","coll":"out"}}}]`
+
+	model := &streamprocessor.TFStreamProcessorRSModel{
+		ProjectID:     types.StringValue(projectID),
+		WorkspaceName: types.StringValue(workspaceName),
+		ProcessorName: types.StringValue(processorName),
+		Pipeline:      jsontypes.NewNormalizedValue(pipeline),
+	}
+
+	createReq, diags := streamprocessor.NewStreamProcessorReq(t.Context(), model)
+	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
+	createBody, err := json.Marshal(createReq.GetPipeline())
+	require.NoError(t, err)
+	assert.Equal(t, pipeline, string(createBody)) //nolint:testifylint // byte equality is the point: JSONEq is order-blind and would pass on an alphabetized pipeline
+
+	updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), model)
+	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
+	updateBody, err := json.Marshal(updateReq.StreamsModifyStreamProcessor.GetPipeline())
+	require.NoError(t, err)
+	assert.Equal(t, pipeline, string(updateBody)) //nolint:testifylint // byte equality is the point: JSONEq is order-blind and would pass on an alphabetized pipeline
+}
