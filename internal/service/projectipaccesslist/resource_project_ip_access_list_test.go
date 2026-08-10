@@ -113,6 +113,8 @@ func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 }
 
 func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
+	// Concurrent access list deletes get spurious 401 replay rejections under digest auth, related ticket: CLOUDP-432227
+	acc.SkipInPAK(t, "concurrent deletes fail with 401 under digest auth, see CLOUDP-432227")
 	var (
 		projectID        = acc.ProjectIDExecution(t)
 		resourceFmt      = "mongodbatlas_project_ip_access_list.test_%d"
