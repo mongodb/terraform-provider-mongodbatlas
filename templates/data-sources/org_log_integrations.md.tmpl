@@ -1,0 +1,17 @@
+---
+subcategory: "Log Integration"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes all log integrations configured at the organization level. Currently, OpenTelemetry is the only supported integration type.
+
+To use this data source, the requesting Service Account or API Key must have the Organization Owner role.
+
+## Example Usage
+
+{{ tffile "examples/mongodbatlas_org_log_integration/plural-data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Organization Log Integration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-push-based-log-export) Documentation.

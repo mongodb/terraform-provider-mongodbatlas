@@ -14,6 +14,8 @@ This example creates the following resources:
 ### MongoDB Atlas
 - Organization Log Integration configuration.
 
+It also shows how to use the `mongodbatlas_org_log_integration` and `mongodbatlas_org_log_integrations` data sources to read the configuration (see `singular-data-source.tf` and `plural-data-source.tf`).
+
 ## Usage
 
 **1\. Ensure your MongoDB Atlas credentials are set up.**
