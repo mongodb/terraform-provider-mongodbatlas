@@ -5,7 +5,8 @@ else
     ACCTEST_PACKAGES := "./..."
 endif
 
-ACCTEST_TIMEOUT?=300m
+# An empty environment or command-line value must not leave `go test -timeout` without a duration.
+override ACCTEST_TIMEOUT := $(or $(strip $(ACCTEST_TIMEOUT)),300m)
 PARALLEL_GO_TEST?=50
 
 BINARY_NAME=terraform-provider-mongodbatlas
