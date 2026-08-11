@@ -4,7 +4,7 @@ subcategory: "AI Models"
 
 # Data Source: mongodbatlas_ai_model_api_keys
 
-`mongodbatlas_ai_model_api_keys` returns all AI Model API Keys for the specified Project.
+`mongodbatlas_ai_model_api_keys` returns all AI Model API Keys for the specified project.
 
 ~> **NOTE:** The `secret` attribute is not available through this data source as it is only returned during initial creation. To access the secret, use the resource.
 
