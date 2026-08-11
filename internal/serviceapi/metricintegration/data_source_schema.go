@@ -18,14 +18,18 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				Computed:            true,
 				MarkdownDescription: "The temporality to send to the metric integration.",
 			},
+			"auth_type": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Authentication method the integration uses when exporting metrics to the endpoint.",
+			},
 			"endpoint": dsschema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "OpenTelemetry collector endpoint URL.",
 			},
-			"headers": dsschema.ListNestedAttribute{
+			"headers_redacted": dsschema.ListNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "HTTP headers for authentication and configuration. Header values are redacted in responses.",
-				CustomType:          customtypes.NewNestedListType[TFDSHeadersModel](ctx),
+				MarkdownDescription: "HTTP headers for authentication and configuration. Values are redacted and never returned in plaintext.",
+				CustomType:          customtypes.NewNestedListType[TFDSHeadersRedactedModel](ctx),
 				NestedObject: dsschema.NestedAttributeObject{
 					Attributes: map[string]dsschema.Attribute{
 						"name": dsschema.StringAttribute{
@@ -34,8 +38,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 						},
 						"value": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Header value.",
-							Sensitive:           true,
+							MarkdownDescription: "Redacted header value.",
 						},
 					},
 				},
@@ -67,16 +70,17 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
-	AggregationTemporality types.String                                  `tfsdk:"aggregation_temporality" autogen:"omitjson"`
-	Endpoint               types.String                                  `tfsdk:"endpoint" autogen:"omitjson"`
-	Headers                customtypes.NestedListValue[TFDSHeadersModel] `tfsdk:"headers" autogen:"omitjson"`
-	IntegrationType        types.String                                  `tfsdk:"integration_type" autogen:"omitjson"`
-	MetricIntegrationId    types.String                                  `tfsdk:"metric_integration_id" autogen:"omitjson"`
-	MetricSelection        customtypes.SetValue[types.String]            `tfsdk:"metric_selection" autogen:"omitjson"`
-	ProjectId              types.String                                  `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	ProviderType           types.String                                  `tfsdk:"provider_type" autogen:"omitjson"`
+	AggregationTemporality types.String                                          `tfsdk:"aggregation_temporality" autogen:"omitjson"`
+	AuthType               types.String                                          `tfsdk:"auth_type" autogen:"omitjson"`
+	Endpoint               types.String                                          `tfsdk:"endpoint" autogen:"omitjson"`
+	HeadersRedacted        customtypes.NestedListValue[TFDSHeadersRedactedModel] `tfsdk:"headers_redacted" autogen:"omitjson"`
+	IntegrationType        types.String                                          `tfsdk:"integration_type" autogen:"omitjson"`
+	MetricIntegrationId    types.String                                          `tfsdk:"metric_integration_id" autogen:"omitjson"`
+	MetricSelection        customtypes.SetValue[types.String]                    `tfsdk:"metric_selection" autogen:"omitjson"`
+	ProjectId              types.String                                          `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	ProviderType           types.String                                          `tfsdk:"provider_type" autogen:"omitjson"`
 }
-type TFDSHeadersModel struct {
+type TFDSHeadersRedactedModel struct {
 	Name  types.String `tfsdk:"name" autogen:"omitjson"`
-	Value types.String `tfsdk:"value" autogen:"sensitive,omitjson"`
+	Value types.String `tfsdk:"value" autogen:"omitjson"`
 }

@@ -97,6 +97,7 @@ func configBasic(projectID, integrationType, providerType, aggregation, endpoint
 			project_id              = %[1]q
 			integration_type        = %[2]q
 			provider_type           = %[3]q
+			auth_type               = "HEADER"
 			aggregation_temporality = %[4]q
 			endpoint                = %[5]q
 			metric_selection        = %[6]s
@@ -122,6 +123,7 @@ func checkBasic(integrationType, providerType, aggregation, endpoint string, met
 	mapChecks := map[string]string{
 		"integration_type":        integrationType,
 		"provider_type":           providerType,
+		"auth_type":               "HEADER",
 		"aggregation_temporality": aggregation,
 		"endpoint":                endpoint,
 		"metric_selection.#":      strconv.Itoa(len(metricSelection)),

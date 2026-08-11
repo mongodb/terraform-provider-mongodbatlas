@@ -1541,12 +1541,10 @@ resources:
     schema:
       aliases:
         groupId: projectId
-      ignores: ["links", "headers_redacted"]
+      ignores: ["links"]
       overrides:
         project_id:
           description: *project_id_description
-        metric_integration_id:
-          immutable_computed: true
         headers.value:
           sensitive: true
     datasources:
@@ -1559,7 +1557,7 @@ resources:
       schema:
         aliases:
           groupId: projectId
-        ignores: ["links", "results.links", "headers_redacted", "results.headers_redacted"]
+        ignores: ["links", "results.links"]
         overrides:
           project_id:
             description: *project_id_description
