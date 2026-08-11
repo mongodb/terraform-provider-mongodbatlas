@@ -125,8 +125,7 @@ func ResourceSchema() schema.Schema {
 			},
 			"authentication_scheme": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Authentication mechanism to use with this private link connection. Only applies when the vendor is `MSK`. Valid values are `SASL_SCRAM`, `TLS`, and `IAM`. Defaults to `SASL_SCRAM` when not specified. Changing this value forces replacement of the private link connection.",
+				MarkdownDescription: "Authentication mechanism to use with this private link connection. Only applies when the vendor is `MSK`. Valid values are `SASL_SCRAM`, `TLS`, and `IAM`. Changing this value forces replacement of the private link connection.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -134,27 +133,32 @@ func ResourceSchema() schema.Schema {
 					stringvalidator.OneOf(AuthenticationSchemeSaslScram, AuthenticationSchemeTLS, AuthenticationSchemeIAM),
 				},
 			},
+			"effective_authentication_scheme": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Authentication mechanism used by this private link connection. For MSK connections where `authentication_scheme` is not specified, Atlas defaults to `SASL_SCRAM`.",
+			},
 		},
 	}
 }
 
 type TFModel struct {
-	Id                    types.String `tfsdk:"id"`
-	DnsDomain             types.String `tfsdk:"dns_domain"`
-	DnsSubDomain          types.List   `tfsdk:"dns_sub_domain"`
-	ErrorMessage          types.String `tfsdk:"error_message"`
-	ProjectId             types.String `tfsdk:"project_id"`
-	InterfaceEndpointId   types.String `tfsdk:"interface_endpoint_id"`
-	InterfaceEndpointName types.String `tfsdk:"interface_endpoint_name"`
-	Provider              types.String `tfsdk:"provider_name"`
-	ProviderAccountId     types.String `tfsdk:"provider_account_id"`
-	Region                types.String `tfsdk:"region"`
-	ServiceEndpointId     types.String `tfsdk:"service_endpoint_id"`
-	ServiceAttachmentUris types.List   `tfsdk:"service_attachment_uris"`
-	State                 types.String `tfsdk:"state"`
-	Vendor                types.String `tfsdk:"vendor"`
-	Arn                   types.String `tfsdk:"arn"`
-	AuthenticationScheme  types.String `tfsdk:"authentication_scheme"`
+	Id                            types.String `tfsdk:"id"`
+	DnsDomain                     types.String `tfsdk:"dns_domain"`
+	DnsSubDomain                  types.List   `tfsdk:"dns_sub_domain"`
+	ErrorMessage                  types.String `tfsdk:"error_message"`
+	ProjectId                     types.String `tfsdk:"project_id"`
+	InterfaceEndpointId           types.String `tfsdk:"interface_endpoint_id"`
+	InterfaceEndpointName         types.String `tfsdk:"interface_endpoint_name"`
+	Provider                      types.String `tfsdk:"provider_name"`
+	ProviderAccountId             types.String `tfsdk:"provider_account_id"`
+	Region                        types.String `tfsdk:"region"`
+	ServiceEndpointId             types.String `tfsdk:"service_endpoint_id"`
+	ServiceAttachmentUris         types.List   `tfsdk:"service_attachment_uris"`
+	State                         types.String `tfsdk:"state"`
+	Vendor                        types.String `tfsdk:"vendor"`
+	Arn                           types.String `tfsdk:"arn"`
+	AuthenticationScheme          types.String `tfsdk:"authentication_scheme"`
+	EffectiveAuthenticationScheme types.String `tfsdk:"effective_authentication_scheme"`
 }
 
 type TFModelDSP struct {

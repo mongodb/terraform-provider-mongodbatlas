@@ -396,11 +396,11 @@ func basicMskTestCase(t *testing.T) *resource.TestCase {
 func checksStreamPrivatelinkEndpointMsk(projectID, provider, vendor, arn, authScheme string) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists()}
 	attrMap := map[string]string{
-		"project_id":            projectID,
-		"provider_name":         provider,
-		"vendor":                vendor,
-		"arn":                   arn,
-		"authentication_scheme": authScheme,
+		"project_id":                      projectID,
+		"provider_name":                   provider,
+		"vendor":                          vendor,
+		"arn":                             arn,
+		"effective_authentication_scheme": authScheme,
 	}
 	pluralMap := map[string]string{
 		"project_id": projectID,
@@ -410,6 +410,7 @@ func checksStreamPrivatelinkEndpointMsk(projectID, provider, vendor, arn, authSc
 		"id",
 		"state",
 	}
+	checks = acc.AddAttrChecks(resourceName, checks, map[string]string{"authentication_scheme": authScheme})
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
 	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
 }
