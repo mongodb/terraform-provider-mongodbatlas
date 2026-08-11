@@ -4,6 +4,7 @@ import (
 	"maps"
 	"reflect"
 	"slices"
+	"strings"
 
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -13,6 +14,10 @@ import (
 type DataSourceSchemaRequest struct {
 	OverridenFields map[string]dsschema.Attribute
 	RequiredFields  []string
+	// OmitFields removes attributes that are not part of the data source. Use a dotted path for
+	// nested attributes, e.g. "options.resume_from_checkpoint". Top-level attributes can also be
+	// removed with a nil value in OverridenFields.
+	OmitFields []string
 }
 
 type PluralDataSourceSchemaRequest struct {
@@ -20,13 +25,16 @@ type PluralDataSourceSchemaRequest struct {
 	OverridenRootFields map[string]dsschema.Attribute
 	OverrideResultsDoc  string
 	RequiredFields      []string
-	HasLegacyFields     bool
+	// OmitFields removes attributes from each element of results, see DataSourceSchemaRequest.
+	OmitFields      []string
+	HasLegacyFields bool
 }
 
 func DataSourceSchemaFromResource(rs schema.Schema, req *DataSourceSchemaRequest) dsschema.Schema {
 	attrs := convertAttrs(rs.Attributes, req.RequiredFields)
 	maps.Copy(attrs, convertBlocksToAttrs(rs.Blocks, req.RequiredFields))
 	overrideFields(attrs, req.OverridenFields)
+	omitFields(attrs, req.OmitFields)
 	ds := dsschema.Schema{Attributes: attrs}
 	UpdateSchemaDescription(&ds)
 	return ds
@@ -36,6 +44,7 @@ func PluralDataSourceSchemaFromResource(rs schema.Schema, req *PluralDataSourceS
 	attrs := convertAttrs(rs.Attributes, nil)
 	maps.Copy(attrs, convertBlocksToAttrs(rs.Blocks, nil))
 	overrideFields(attrs, req.OverridenFields)
+	omitFields(attrs, req.OmitFields)
 	rootAttrs := convertAttrs(rs.Attributes, req.RequiredFields)
 	for name := range rootAttrs {
 		if !slices.Contains(req.RequiredFields, name) {
@@ -175,6 +184,55 @@ func overrideFields(attrs, overridenFields map[string]dsschema.Attribute) {
 			attrs[name] = attr
 		}
 	}
+}
+
+// omitFields deletes the attributes addressed by dotted paths, e.g. "options.resume_from_checkpoint".
+// It panics on an unknown path so that a typo or a renamed attribute fails fast instead of silently
+// leaving the attribute in the schema.
+func omitFields(attrs map[string]dsschema.Attribute, paths []string) {
+	for _, path := range paths {
+		omitField(attrs, strings.Split(path, "."), path)
+	}
+}
+
+func omitField(attrs map[string]dsschema.Attribute, parts []string, path string) {
+	name := parts[0]
+	attr, found := attrs[name]
+	if !found {
+		panic("omit field not found, please fix caller: " + path)
+	}
+	if len(parts) == 1 {
+		delete(attrs, name)
+		return
+	}
+	nested := nestedAttrs(attr)
+	if nested == nil {
+		panic("omit field is not a nested attribute, please fix caller: " + path)
+	}
+	// Attributes maps are reference types, so deleting from the nested map is enough and the parent
+	// attribute does not need to be reassigned.
+	omitField(nested, parts[1:], path)
+}
+
+// nestedAttrs returns the child attributes of a nested attribute, held directly in Attributes for
+// single nested attributes and under NestedObject for list, set and map nested attributes.
+func nestedAttrs(attr dsschema.Attribute) map[string]dsschema.Attribute {
+	v := reflect.ValueOf(attr)
+	for _, fieldPath := range [][]string{{"Attributes"}, {"NestedObject", "Attributes"}} {
+		f := v
+		for _, name := range fieldPath {
+			if f = f.FieldByName(name); !f.IsValid() {
+				break
+			}
+		}
+		if !f.IsValid() {
+			continue
+		}
+		if nested, ok := f.Interface().(map[string]dsschema.Attribute); ok && nested != nil {
+			return nested
+		}
+	}
+	return nil
 }
 
 // UpdateAttr is exported for testing purposes only and should not be used directly.

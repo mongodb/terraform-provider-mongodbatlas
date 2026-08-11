@@ -141,9 +141,6 @@ output "stream_processors_results" {
 - `failover_enabled` (Boolean) Indicates whether this stream processor is eligible for failover. When `true`, an operator can trigger a failover event to migrate the stream processor to a secondary region configured in the workspace's `failover_regions`. Requires an Atlas-to-Atlas or Atlas-to-Kafka pipeline with `failover_regions` configured on the workspace.
 - `instance_name` (String, Deprecated) Label that identifies the stream processing workspace.
 - `options` (Attributes) Optional configuration for the stream processor. (see [below for nested schema](#nestedatt--options))
-- `resume_from_checkpoint` (Boolean) Controls checkpoint behavior when the `pipeline` changes. When `true`, the stream processor resumes from its last checkpoint. Set to `false` to discard the existing checkpoint, which is necessary when modifying the `$source` stage or a window stage, as the API rejects those changes while resuming from an incompatible checkpoint. Defaults to `true` when not set.
-
-**NOTE** This attribute only applies to updates that change the `pipeline`. It has no effect on create, on updates that leave the `pipeline` unchanged, such as a `tier` or `state` change, and cannot be imported.
 - `state` (String) The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`. When a Stream Processor is created without specifying the state, it will default to `CREATED` state. When a Stream Processor is updated without specifying the state, it will default to the Previous state. 
 
 **NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.
@@ -159,9 +156,12 @@ output "stream_processors_results" {
 <a id="nestedatt--options"></a>
 ### Nested Schema for `options`
 
-Required:
+Optional:
 
 - `dlq` (Attributes) Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information. (see [below for nested schema](#nestedatt--options--dlq))
+- `resume_from_checkpoint` (Boolean) Controls checkpoint behavior when the `pipeline` changes. When `true`, the stream processor resumes from its last checkpoint. Set to `false` to discard the existing checkpoint, which is necessary when modifying the `$source` stage or a window stage, as the API rejects those changes while resuming from an incompatible checkpoint. Defaults to `true` when not set.
+
+**NOTE** This attribute only applies to updates that change the `pipeline`. It has no effect on create, on updates that leave the `pipeline` unchanged, such as a `tier` or `state` change, and cannot be imported.
 
 <a id="nestedatt--options--dlq"></a>
 ### Nested Schema for `options.dlq`

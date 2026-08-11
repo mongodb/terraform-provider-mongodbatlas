@@ -13,6 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDataSourceSchemaFromResource(t *testing.T) {
@@ -643,6 +644,83 @@ func TestPluralDataSourceSchemaFromResource_overrideResultsDoc(t *testing.T) {
 		OverrideResultsDoc: doc,
 	})
 	assert.Equal(t, expected, ds)
+}
+
+func omitFieldsSchema() schema.Schema {
+	return schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"attrString": schema.StringAttribute{Optional: true, MarkdownDescription: "desc attrString"},
+			"single": schema.SingleNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "desc single",
+				Attributes: map[string]schema.Attribute{
+					"keep":   schema.StringAttribute{Optional: true, MarkdownDescription: "desc keep"},
+					"remove": schema.BoolAttribute{Optional: true, MarkdownDescription: "desc remove"},
+				},
+			},
+			"list": schema.ListNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "desc list",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"keep":   schema.StringAttribute{Optional: true, MarkdownDescription: "desc keep"},
+						"remove": schema.BoolAttribute{Optional: true, MarkdownDescription: "desc remove"},
+					},
+				},
+			},
+		},
+	}
+}
+
+func TestDataSourceSchemaFromResource_omitFields(t *testing.T) {
+	ds := conversion.DataSourceSchemaFromResource(omitFieldsSchema(), &conversion.DataSourceSchemaRequest{
+		OmitFields: []string{"attrString", "single.remove", "list.remove"},
+	})
+
+	assert.NotContains(t, ds.Attributes, "attrString")
+
+	single, ok := ds.Attributes["single"].(dsschema.SingleNestedAttribute)
+	require.True(t, ok)
+	assert.Contains(t, single.Attributes, "keep")
+	assert.NotContains(t, single.Attributes, "remove")
+
+	list, ok := ds.Attributes["list"].(dsschema.ListNestedAttribute)
+	require.True(t, ok)
+	assert.Contains(t, list.NestedObject.Attributes, "keep")
+	assert.NotContains(t, list.NestedObject.Attributes, "remove")
+}
+
+// TestPluralDataSourceSchemaFromResource_omitFields checks that omitted fields are removed from each
+// element of results.
+func TestPluralDataSourceSchemaFromResource_omitFields(t *testing.T) {
+	ds := conversion.PluralDataSourceSchemaFromResource(omitFieldsSchema(), &conversion.PluralDataSourceSchemaRequest{
+		OmitFields: []string{"single.remove"},
+	})
+
+	results, ok := ds.Attributes["results"].(dsschema.ListNestedAttribute)
+	require.True(t, ok)
+	single, ok := results.NestedObject.Attributes["single"].(dsschema.SingleNestedAttribute)
+	require.True(t, ok)
+	assert.Contains(t, single.Attributes, "keep")
+	assert.NotContains(t, single.Attributes, "remove")
+}
+
+func TestDataSourceSchemaFromResource_omitFieldsPanic(t *testing.T) {
+	testCases := map[string]string{
+		"omit field not found, please fix caller: unknown":                        "unknown",
+		"omit field not found, please fix caller: single.unknown":                 "single.unknown",
+		"omit field is not a nested attribute, please fix caller: attrString.sub": "attrString.sub",
+	}
+
+	for name, path := range testCases {
+		t.Run(name, func(t *testing.T) {
+			assert.PanicsWithValue(t, name, func() {
+				conversion.DataSourceSchemaFromResource(omitFieldsSchema(), &conversion.DataSourceSchemaRequest{
+					OmitFields: []string{path},
+				})
+			})
+		})
+	}
 }
 
 func TestUpdateSchemaDescription(t *testing.T) {

@@ -71,6 +71,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Optional configuration for the stream processor.",
 				Attributes: map[string]schema.Attribute{
+					"resume_from_checkpoint": schema.BoolAttribute{
+						Optional: true,
+						MarkdownDescription: "Controls checkpoint behavior when the `pipeline` changes. When `true`, the stream processor resumes from its last checkpoint. Set to `false` to discard the existing checkpoint, which is necessary when modifying the `$source` stage or a window stage, as the API rejects those changes while resuming from an incompatible checkpoint." +
+							" Defaults to `true` when not set.\n\n**NOTE** This attribute only applies to updates that change the `pipeline`. It has no effect on create, on updates that leave the `pipeline` unchanged, such as a `tier` or `state` change, and cannot be imported.",
+					},
 					"dlq": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"coll": schema.StringAttribute{
@@ -86,7 +91,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								MarkdownDescription: "Name of the database to use for the DLQ.",
 							},
 						},
-						Required:            true,
+						Optional:            true,
 						MarkdownDescription: "Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information.",
 					},
 				},
@@ -116,11 +121,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Indicates whether this stream processor is eligible for failover. When `true`, an operator can trigger a failover event to migrate the stream processor to a secondary region configured in the workspace's `failover_regions`. Requires an Atlas-to-Atlas or Atlas-to-Kafka pipeline with `failover_regions` configured on the workspace.",
 			},
-			"resume_from_checkpoint": schema.BoolAttribute{
-				Optional: true,
-				MarkdownDescription: "Controls checkpoint behavior when the `pipeline` changes. When `true`, the stream processor resumes from its last checkpoint. Set to `false` to discard the existing checkpoint, which is necessary when modifying the `$source` stage or a window stage, as the API rejects those changes while resuming from an incompatible checkpoint." +
-					" Defaults to `true` when not set.\n\n**NOTE** This attribute only applies to updates that change the `pipeline`. It has no effect on create, on updates that leave the `pipeline` unchanged, such as a `tier` or `state` change, and cannot be imported.",
-			},
 		},
 	}
 }
@@ -139,10 +139,16 @@ type TFStreamProcessorRSModel struct {
 	Timeouts              timeouts.Value       `tfsdk:"timeouts"`
 	DeleteOnCreateTimeout types.Bool           `tfsdk:"delete_on_create_timeout"`
 	FailoverEnabled       types.Bool           `tfsdk:"failover_enabled"`
-	ResumeFromCheckpoint  types.Bool           `tfsdk:"resume_from_checkpoint"`
 }
 
 type TFOptionsModel struct {
+	Dlq                  types.Object `tfsdk:"dlq"`
+	ResumeFromCheckpoint types.Bool   `tfsdk:"resume_from_checkpoint"`
+}
+
+// TFDSOptionsModel is the data source counterpart of TFOptionsModel. resume_from_checkpoint is
+// omitted from the data source schemas, see dataSourceOmittedFields.
+type TFDSOptionsModel struct {
 	Dlq types.Object `tfsdk:"dlq"`
 }
 
@@ -153,6 +159,13 @@ type TFDlqModel struct {
 }
 
 var OptionsObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"dlq":                    DlqObjectType,
+	"resume_from_checkpoint": types.BoolType,
+}}
+
+// DSOptionsObjectType mirrors OptionsObjectType without resume_from_checkpoint, matching the
+// narrower data source schemas.
+var DSOptionsObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"dlq": DlqObjectType,
 }}
 

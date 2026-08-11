@@ -114,9 +114,9 @@ func TestAccStreamProcessor_resumeFromCheckpoint(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
-					resource.TestCheckNoResourceAttr(resourceName, "resume_from_checkpoint"),
+					resource.TestCheckNoResourceAttr(resourceName, "options.resume_from_checkpoint"),
 					// Resource-only attribute, not part of the data source schema.
-					resource.TestCheckNoResourceAttr(dataSourceName, "resume_from_checkpoint"),
+					resource.TestCheckNoResourceAttr(dataSourceName, "options.resume_from_checkpoint"),
 				),
 			},
 			{
@@ -134,7 +134,7 @@ func TestAccStreamProcessor_resumeFromCheckpoint(t *testing.T) {
 				// Setting it to false discards the checkpoint and allows the $source change.
 				Config: configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", new(false)),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "resume_from_checkpoint", "false"),
+					resource.TestCheckResourceAttr(resourceName, "options.resume_from_checkpoint", "false"),
 					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
 				),
 			},
@@ -143,8 +143,10 @@ func TestAccStreamProcessor_resumeFromCheckpoint(t *testing.T) {
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
-				// resume_from_checkpoint is not returned by the API so it cannot be imported.
-				ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "resume_from_checkpoint", "stats"},
+				// resume_from_checkpoint is not returned by the API so it cannot be imported. This config
+				// sets no dlq either, so the whole options object is absent after import, which also
+				// drops the object's element count (options.%).
+				ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "options.", "stats"},
 			},
 		}})
 }
@@ -156,7 +158,7 @@ func configWithResumeFromCheckpoint(t *testing.T, projectID, workspaceName, clus
 
 	resumeAttr := ""
 	if resumeFromCheckpoint != nil {
-		resumeAttr = fmt.Sprintf("resume_from_checkpoint = %t", *resumeFromCheckpoint)
+		resumeAttr = fmt.Sprintf("options = { resume_from_checkpoint = %t }", *resumeFromCheckpoint)
 	}
 
 	return fmt.Sprintf(`
