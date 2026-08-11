@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_stream_connection: Supports `networking` for `AWSLambda` connections. ([#4619](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4619))
 * data-source/mongodbatlas_stream_connections: Supports `networking` for `AWSLambda` connections. ([#4619](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4619))
+* resource/mongodbatlas_database_user: Adds support for write-only `password_wo` and `password_wo_version` attributes so the password is not persisted in Terraform state ([#4621](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4621))
 * resource/mongodbatlas_stream_connection: Supports `networking` with `PRIVATE_LINK` access for `AWSLambda` connections. ([#4619](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4619))
 
 BUG FIXES:
