@@ -1552,20 +1552,4 @@ resources:
             immutable_computed: true
           otel_supplied_headers:
             sensitive: true
-    datasources:
-      read:
-        path: /api/atlas/v2/orgs/{orgId}/logIntegrations/{logIntegrationId}
-        method: GET
-      list:
-        path: /api/atlas/v2/orgs/{orgId}/logIntegrations
-        method: GET
-      schema:
-        aliases:
-          logIntegrationId: integrationId
-          id: integrationId
-          results.id: integrationId
-        overrides:
-          org_id:
-            description: *org_id_description
-          otel_supplied_headers:
-            sensitive: true
+    # TODO(CLOUDP-433799): add datasources config (singular + plural) when data sources are implemented
