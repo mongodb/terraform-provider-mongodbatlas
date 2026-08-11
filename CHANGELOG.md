@@ -1,5 +1,18 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_ai_model_api_key` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_api_keys` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_org_api_key` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_org_api_keys` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_org_rate_limit` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_org_rate_limits` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_rate_limit` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_rate_limits` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Resource:** `resource/mongodbatlas_ai_model_api_key` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Resource:** `resource/mongodbatlas_ai_model_rate_limit` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_stream_connection: Supports `networking` for `AWSLambda` connections. ([#4619](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4619))
