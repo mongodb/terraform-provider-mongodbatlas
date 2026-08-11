@@ -19,6 +19,7 @@ resource "mongodbatlas_metric_integration" "example" {
   project_id              = mongodbatlas_project.project.id
   integration_type        = "OTEL"
   provider_type           = "CUSTOM"
+  auth_type               = "HEADER"
   aggregation_temporality = "DELTA"
   endpoint                = var.datadog_endpoint
   metric_selection        = ["ATLAS_STREAM_PROCESSING"]
@@ -64,18 +65,19 @@ output "metric_integration_ids" {
 ### Read-Only
 
 - `aggregation_temporality` (String) The temporality to send to the metric integration.
+- `auth_type` (String) Authentication method the integration uses when exporting metrics to the endpoint.
 - `endpoint` (String) OpenTelemetry collector endpoint URL.
-- `headers` (Attributes List) HTTP headers for authentication and configuration. Header values are redacted in responses. (see [below for nested schema](#nestedatt--headers))
+- `headers_redacted` (Attributes List) HTTP headers for authentication and configuration. Values are redacted and never returned in plaintext. (see [below for nested schema](#nestedatt--headers_redacted))
 - `integration_type` (String) Type of metric integration. Identifies which protocol will be used for the integration.
 - `metric_selection` (Set of String) Array of metric categories to export. Determines which types of metrics are sent to the integration.
 - `provider_type` (String) The provider type for the metric integration. Identifies the third-party service provider.
 
-<a id="nestedatt--headers"></a>
-### Nested Schema for `headers`
+<a id="nestedatt--headers_redacted"></a>
+### Nested Schema for `headers_redacted`
 
 Read-Only:
 
 - `name` (String) Header name.
-- `value` (String, Sensitive) Header value.
+- `value` (String) Redacted header value.
 
 For more information see: [MongoDB Atlas - OTel Integration](https://www.mongodb.com/docs/atlas/tutorial/otel-integration/) Documentation.

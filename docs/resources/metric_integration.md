@@ -23,6 +23,7 @@ resource "mongodbatlas_metric_integration" "example" {
   project_id              = mongodbatlas_project.project.id
   integration_type        = "OTEL"
   provider_type           = "CUSTOM"
+  auth_type               = "HEADER"
   aggregation_temporality = "DELTA"
   endpoint                = var.datadog_endpoint
   metric_selection        = ["ATLAS_STREAM_PROCESSING"]
@@ -63,16 +64,21 @@ output "metric_integration_ids" {
 ### Required
 
 - `aggregation_temporality` (String) The temporality to send to the metric integration.
+- `auth_type` (String) Authentication method the integration uses when exporting metrics to the endpoint. `HEADER` authenticates with the static HTTP headers provided in the `headers` field, which must be set when this value is used.
 - `endpoint` (String) OpenTelemetry collector endpoint URL. Must use HTTPS.
-- `headers` (Attributes List) HTTP headers for authentication and configuration. Total size limit 2KB. (see [below for nested schema](#nestedatt--headers))
 - `integration_type` (String) Type of metric integration. Identifies which protocol will be used for the integration. This value cannot be modified after the integration is created.
 - `metric_selection` (Set of String) Array of metric categories to export. Determines which types of metrics are sent to the integration.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `provider_type` (String) The provider type for the metric integration. Identifies the third-party service provider.
 
+### Optional
+
+- `headers` (Attributes List) HTTP headers for authentication and configuration. Total size limit 2KB. Required when `authType` is `HEADER`. (see [below for nested schema](#nestedatt--headers))
+
 ### Read-Only
 
-- `metric_integration_id` (String) Unique hexadecimal digit string that identifies the metric integration configuration.
+- `headers_redacted` (Attributes List) HTTP headers for authentication and configuration. Values are redacted and never returned in plaintext. (see [below for nested schema](#nestedatt--headers_redacted))
+- `metric_integration_id` (String) Unique identifier of the metric integration configuration.
 
 <a id="nestedatt--headers"></a>
 ### Nested Schema for `headers`
@@ -81,6 +87,15 @@ Required:
 
 - `name` (String) Header name.
 - `value` (String, Sensitive) Header value.
+
+
+<a id="nestedatt--headers_redacted"></a>
+### Nested Schema for `headers_redacted`
+
+Read-Only:
+
+- `name` (String) Header name.
+- `value` (String) Redacted header value.
 
 ## Import
 
