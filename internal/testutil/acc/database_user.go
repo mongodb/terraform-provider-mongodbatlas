@@ -201,3 +201,37 @@ func ConfigDataBaseUserWithOIDCAuthType(projectID, username, authType, databaseN
 	}
 `, projectID, username, authType, databaseName, roleName)
 }
+
+func ConfigDatabaseUserPasswordWo(projectID, username string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_database_user" "test" {
+			project_id          = %[1]q
+			username            = %[2]q
+			password_wo         = "test-acc-password-wo"
+			password_wo_version = 1
+			auth_database_name  = "admin"
+
+			roles {
+				role_name     = "atlasAdmin"
+				database_name = "admin"
+			}
+		}
+	`, projectID, username)
+}
+
+func ConfigDatabaseUserPasswordWoVersionUpdate(projectID, username string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_database_user" "test" {
+			project_id          = %[1]q
+			username            = %[2]q
+			password_wo         = "test-acc-password-wo-updated"
+			password_wo_version = 2
+			auth_database_name  = "admin"
+
+			roles {
+				role_name     = "atlasAdmin"
+				database_name = "admin"
+			}
+		}
+	`, projectID, username)
+}
