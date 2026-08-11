@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 )
 
 // Connection state constants

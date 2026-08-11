@@ -59,7 +59,7 @@ func (d *streamConnectionDS) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	connV2 := d.Client.AtlasV2
+	connV2 := d.Client.AtlasPreview
 	projectID := streamConnectionConfig.ProjectID.ValueString()
 	instanceName := streamConnectionConfig.InstanceName.ValueString()
 	workspaceName := streamConnectionConfig.WorkspaceName.ValueString()

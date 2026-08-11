@@ -214,7 +214,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	projectID := streamConnectionPlan.ProjectID.ValueString()
 	workspaceOrInstanceName := getWorkspaceOrInstanceName(&streamConnectionPlan)
 	if workspaceOrInstanceName == "" {
@@ -266,7 +266,7 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	projectID := streamConnectionState.ProjectID.ValueString()
 	workspaceOrInstanceName := getWorkspaceOrInstanceName(&streamConnectionState)
 	if workspaceOrInstanceName == "" {
@@ -301,7 +301,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	projectID := streamConnectionPlan.ProjectID.ValueString()
 	workspaceOrInstanceName := getWorkspaceOrInstanceName(&streamConnectionPlan)
 	if workspaceOrInstanceName == "" {
@@ -348,7 +348,7 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	projectID := streamConnectionState.ProjectID.ValueString()
 	instanceName := getWorkspaceOrInstanceName(streamConnectionState)
 	if instanceName == "" {

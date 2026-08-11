@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/mongodb/atlas-sdk-go/admin"
+	"github.com/mongodb/atlas-sdk-go/mockadmin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
-	"go.mongodb.org/atlas-sdk/v20250312023/mockadmin"
 )
 
 type testCase struct {
