@@ -52,6 +52,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orglogintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive"
 	autogenprojectipaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccount"
@@ -348,6 +349,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 	resources := []func() resource.Resource{
 		project.Resource,
 		logintegration.Resource,
+		orglogintegration.Resource,
 		encryptionatrest.Resource,
 		databaseuser.Resource,
 		alertconfiguration.Resource,
