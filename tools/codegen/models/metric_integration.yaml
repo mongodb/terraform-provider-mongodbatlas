@@ -70,7 +70,7 @@ schema:
                       create_only: false
                       present_in_any_response: false
                       request_only_required_on_create: false
-          description: HTTP headers for authentication and configuration. Total size limit 2KB. Required when `authType` is `HEADER`.
+          description: HTTP headers for authentication and configuration. Total size limit 2KB. Required when `auth_type` is `HEADER`.
           custom_type:
             package: customtypes
             name: Headers

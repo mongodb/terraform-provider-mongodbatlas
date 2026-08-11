@@ -73,7 +73,7 @@ output "metric_integration_ids" {
 
 ### Optional
 
-- `headers` (Attributes List) HTTP headers for authentication and configuration. Total size limit 2KB. Required when `authType` is `HEADER`. (see [below for nested schema](#nestedatt--headers))
+- `headers` (Attributes List) HTTP headers for authentication and configuration. Total size limit 2KB. Required when `auth_type` is `HEADER`. (see [below for nested schema](#nestedatt--headers))
 
 ### Read-Only
 
