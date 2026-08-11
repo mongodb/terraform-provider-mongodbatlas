@@ -1561,3 +1561,5 @@ resources:
         overrides:
           project_id:
             description: *project_id_description
+          provider_type:
+            description: "The provider type for the metric integration. Identifies the third-party service provider."

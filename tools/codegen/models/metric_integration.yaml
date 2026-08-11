@@ -352,7 +352,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Optional filter by provider type (e.g., `CUSTOM`). When specified, `integrationType` must also be specified.
+              description: The provider type for the metric integration. Identifies the third-party service provider.
               computed_optional_required: optional
               tf_schema_name: provider_type
               tf_model_name: ProviderType

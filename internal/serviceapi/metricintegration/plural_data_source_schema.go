@@ -24,7 +24,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"provider_type": dsschema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Optional filter by provider type (e.g., `CUSTOM`). When specified, `integrationType` must also be specified.",
+				MarkdownDescription: "The provider type for the metric integration. Identifies the third-party service provider.",
 			},
 			"results": dsschema.ListNestedAttribute{
 				Computed:            true,
