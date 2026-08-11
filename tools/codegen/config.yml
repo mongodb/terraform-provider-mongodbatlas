@@ -18,6 +18,108 @@ variables:
   kafka_config_description: &kafka_config_description "Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters."
 
 resources:
+  ai_model_api_key:
+    create:
+      path: &ai_model_api_key_collection_path /api/atlas/v2/groups/{groupId}/aiModelApiKeys
+      method: POST
+    read: &ai-model-api-key-read-op
+      path: &ai_model_api_key_item_path /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}
+      method: GET
+    update:
+      path: *ai_model_api_key_item_path
+      method: PATCH
+    delete:
+      path: *ai_model_api_key_item_path
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema: &ai_model_api_key_schema
+      aliases:
+        groupId: projectId
+        results.groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+        created_at:
+          immutable_computed: true # Reduces plan verbosity.
+        created_by:
+          immutable_computed: true # Reduces plan verbosity.
+        masked_secret:
+          immutable_computed: true # Reduces plan verbosity.
+        secret:
+          immutable_computed: true # Preserves value in state across updates, reduces plan verbosity.
+    datasources:
+      read: *ai-model-api-key-read-op
+      list:
+        path: *ai_model_api_key_collection_path
+        method: GET
+      schema:
+        <<: *ai_model_api_key_schema
+        ignores: ["secret", "results.secret"]
+
+  ai_model_org_api_key:
+    version_header: application/vnd.atlas.2025-03-12+json
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/aiModelApiKeys/{apiKeyId}
+        method: GET
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/aiModelApiKeys
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+          results.groupId: projectId
+        overrides:
+          org_id:
+            description: *org_id_description
+          project_id:
+            description: *project_id_description
+        ignores: ["secret", "results.secret"]
+
+  ai_model_org_rate_limit:
+    version_header: application/vnd.atlas.2025-03-12+json
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits
+        method: GET
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/aiModelApiRateLimits
+        method: GET
+      schema:
+        overrides:
+          org_id:
+            description: *org_id_description
+
+  # PATCH is used for Create and Update, reset custom method for Delete.
+  ai_model_rate_limit:
+    create:
+      path: &ai_model_rate_limit_item_path /api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits
+      method: PATCH
+    read: &ai_model_rate_limit_read_op
+      path: *ai_model_rate_limit_item_path
+      method: GET
+    update:
+      path: *ai_model_rate_limit_item_path
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits:reset
+      method: POST
+      resets_to_defaults: true
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema: &ai_model_rate_limit_schema
+      aliases:
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+    datasources:
+      read: *ai_model_rate_limit_read_op
+      list:
+        path: /api/atlas/v2/groups/{groupId}/aiModelApiRateLimits
+        method: GET
+      schema:
+        <<: *ai_model_rate_limit_schema
+
   # Singleton resource in project.
   # Create, Delete and Update uses PATCH.
   auditing_api:

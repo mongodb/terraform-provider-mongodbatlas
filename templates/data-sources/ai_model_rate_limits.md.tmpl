@@ -1,0 +1,14 @@
+---
+subcategory: "AI Models"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` returns all AI Model Rate Limits for the specified Project.
+
+## Example Usages
+{{ tffile (printf "examples/%s/main.tf" "mongodbatlas_ai_model_rate_limit" )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information, see [Manage AI Model Rate Limits](https://www.mongodb.com/docs/voyageai/management/rate-limits/).
