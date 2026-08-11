@@ -66,7 +66,7 @@ output "metric_integration_ids" {
 ### Optional
 
 - `integration_type` (String) Optional filter by integration type (e.g., `OTEL`).
-- `provider_type` (String) The provider type for the metric integration. Identifies the third-party service provider.
+- `provider_type` (String) Optional filter by provider type (e.g., `CUSTOM`). When specified, `integrationType` must also be specified.
 
 ### Read-Only
 
