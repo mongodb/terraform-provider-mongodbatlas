@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-// GetMetricIntegration performs an authenticated GET against the metric integration preview endpoint.
+// GetMetricIntegration performs an authenticated GET against the metric integration endpoint.
 func GetMetricIntegration(ctx context.Context, projectID, integrationID string) (*http.Response, error) {
 	baseURL := config.NormalizeBaseURL(os.Getenv("MONGODB_ATLAS_BASE_URL"))
 	url := fmt.Sprintf("%s/api/atlas/v2/groups/%s/metricIntegrations/%s", baseURL, projectID, integrationID)
