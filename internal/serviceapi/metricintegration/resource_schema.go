@@ -35,7 +35,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"headers": schema.ListNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "HTTP headers for authentication and configuration. Total size limit 2KB. Required when `auth_type` is `HEADER`.",
+				MarkdownDescription: "Required for auth_type: HEADER. HTTP headers for authentication and configuration. Total size limit 2KB.",
 				CustomType:          customtypes.NewNestedListType[TFHeadersModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{

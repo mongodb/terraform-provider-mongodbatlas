@@ -1548,7 +1548,7 @@ resources:
         headers.value:
           sensitive: true
         headers:
-          description: "HTTP headers for authentication and configuration. Total size limit 2KB. Required when `auth_type` is `HEADER`."
+          description: "Required for auth_type: HEADER. HTTP headers for authentication and configuration. Total size limit 2KB."
     datasources:
       read:
         path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}

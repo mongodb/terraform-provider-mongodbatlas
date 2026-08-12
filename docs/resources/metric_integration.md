@@ -71,9 +71,13 @@ output "metric_integration_ids" {
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `provider_type` (String) The provider type for the metric integration. Identifies the third-party service provider.
 
-### Optional
+<!-- polymorphic attributes restructured by docpostprocess -->
+The following attributes depend on the value of `auth_type`:
 
-- `headers` (Attributes List) HTTP headers for authentication and configuration. Total size limit 2KB. Required when `auth_type` is `HEADER`. (see [below for nested schema](#nestedatt--headers))
+#### `HEADER`
+
+Required:
+- `headers` (Attributes List) HTTP headers for authentication and configuration. Total size limit 2KB. (see [below for nested schema](#nestedatt--headers))
 
 ### Read-Only
 
