@@ -73,8 +73,8 @@ resource "mongodbatlas_stream_processor" "stream-processor-sample-example" {
   # which emits object keys in lexicographic order.
   pipeline = <<-JSON
     [
-      {"$source": {"connectionName": "${resource.mongodbatlas_stream_connection.example-sample.connection_name}"}},
-      {"$emit": {"connectionName": "${resource.mongodbatlas_stream_connection.example-cluster.connection_name}", "db": "sample", "coll": "solar", "timeseries": {"timeField": "_ts"}}}
+      {"$source": {"connectionName": "${mongodbatlas_stream_connection.example-sample.connection_name}"}},
+      {"$emit": {"connectionName": "${mongodbatlas_stream_connection.example-cluster.connection_name}", "db": "sample", "coll": "solar", "timeseries": {"timeField": "_ts"}}}
     ]
   JSON
   state    = "STARTED"
@@ -87,8 +87,8 @@ resource "mongodbatlas_stream_processor" "stream-processor-cluster-to-kafka-exam
   processor_name = "clusterProcessorName"
   pipeline       = <<-JSON
     [
-      {"$source": {"connectionName": "${resource.mongodbatlas_stream_connection.example-cluster.connection_name}"}},
-      {"$emit": {"connectionName": "${resource.mongodbatlas_stream_connection.example-kafka.connection_name}", "topic": "topic_from_cluster"}}
+      {"$source": {"connectionName": "${mongodbatlas_stream_connection.example-cluster.connection_name}"}},
+      {"$emit": {"connectionName": "${mongodbatlas_stream_connection.example-kafka.connection_name}", "topic": "topic_from_cluster"}}
     ]
   JSON
   state          = "CREATED"
@@ -100,15 +100,15 @@ resource "mongodbatlas_stream_processor" "stream-processor-kafka-to-cluster-exam
   processor_name = "kafkaProcessorName"
   pipeline       = <<-JSON
     [
-      {"$source": {"connectionName": "${resource.mongodbatlas_stream_connection.example-kafka.connection_name}", "topic": "topic_source"}},
-      {"$emit": {"connectionName": "${resource.mongodbatlas_stream_connection.example-cluster.connection_name}", "db": "kafka", "coll": "topic_source", "timeseries": {"timeField": "ts"}}}
+      {"$source": {"connectionName": "${mongodbatlas_stream_connection.example-kafka.connection_name}", "topic": "topic_source"}},
+      {"$emit": {"connectionName": "${mongodbatlas_stream_connection.example-cluster.connection_name}", "db": "kafka", "coll": "topic_source", "timeseries": {"timeField": "ts"}}}
     ]
   JSON
   state          = "CREATED"
   options = {
     dlq = {
       coll            = "exampleColumn"
-      connection_name = resource.mongodbatlas_stream_connection.example-cluster.connection_name
+      connection_name = mongodbatlas_stream_connection.example-cluster.connection_name
       db              = "exampleDb"
     }
   }
