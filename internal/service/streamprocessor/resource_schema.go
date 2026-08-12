@@ -50,8 +50,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"pipeline": schema.StringAttribute{
 				CustomType: jsontypes.NormalizedType{},
 				Required:   true,
-				MarkdownDescription: "Stream aggregation pipeline you want to apply to your streaming data. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation)" +
-					" contain more information. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when setting this attribute. For more details see the [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)",
+				MarkdownDescription: "Stream aggregation pipeline you want to apply to your streaming data, as a JSON string. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation)" +
+					" contain more information. For more details see the [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)." +
+					" **Field order matters:** author this as a raw JSON string (heredoc or `file(\"pipeline.json\")`) and do not use [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode), which sorts object keys lexicographically, changing sort precedence, document-literal equality matches, and `$addFields`/`$project` output field order.",
 			},
 			"processor_name": schema.StringAttribute{
 				Required:            true,
