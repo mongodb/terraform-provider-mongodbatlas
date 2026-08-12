@@ -60,7 +60,7 @@ func pluralDataSourceReadAPICallParams(ctx context.Context, model *TFPluralDSMod
 		{APIName: "providerType", Value: model.ProviderType},
 	})
 	return &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.preview+json",
+		VersionHeader: "application/vnd.atlas.2025-03-12+json",
 		RelativePath:  "/api/atlas/v2/groups/{projectId}/metricIntegrations",
 		PathParams:    pathParams,
 		QueryParams:   queryParams,

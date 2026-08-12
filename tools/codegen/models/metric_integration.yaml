@@ -188,7 +188,7 @@ operations:
     update:
         http_method: PUT
         path: /api/atlas/v2/groups/{projectId}/metricIntegrations/{metricIntegrationId}
-    version_header: application/vnd.atlas.preview+json
+    version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
     singular:
         description: Returns the configuration for one metric integration identified by its unique ID.
@@ -509,6 +509,6 @@ data_sources:
         list:
             http_method: GET
             path: /api/atlas/v2/groups/{projectId}/metricIntegrations
-        version_header: application/vnd.atlas.preview+json
+        version_header: application/vnd.atlas.2025-03-12+json
 name: metric_integration
 packageName: metricintegration

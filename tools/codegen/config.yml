@@ -1538,6 +1538,7 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
       method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
     schema:
       aliases:
         groupId: projectId
