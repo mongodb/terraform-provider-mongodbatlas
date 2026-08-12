@@ -561,7 +561,7 @@ func TestPipelineFieldOrderPreserved(t *testing.T) {
 	// MongoDB documents are ordered, so the pipeline Atlas receives must carry the fields in the
 	// order the practitioner authored them. Byte equality is asserted on purpose: assert.JSONEq
 	// is order-blind and would pass against an alphabetized pipeline.
-	const pipeline = `[{"$addFields":{"helpers.id":{"orderType":"$orderType","orderSubtype":"$orderSubtype"}}},` +
+	const pipeline = `[{"$addFields":{"location":{"region":"$region","city":"$city"}}},` +
 		`{"$merge":{"into":{"connectionName":"ClusterConnection","db":"demo","coll":"out"}}}]`
 
 	model := &streamprocessor.TFStreamProcessorRSModel{
@@ -571,15 +571,20 @@ func TestPipelineFieldOrderPreserved(t *testing.T) {
 		Pipeline:      jsontypes.NewNormalizedValue(pipeline),
 	}
 
+	// The whole request body is marshaled, not just the pipeline, so the assertion covers the
+	// final SDK serialization, including the structs' own MarshalJSON, which the client invokes
+	// via json.Encoder and which delegates to encoding/json when no fields are explicitly null.
+	wantBody := `{"name":"` + processorName + `","pipeline":` + pipeline + `}`
+
 	createReq, diags := streamprocessor.NewStreamProcessorReq(t.Context(), model)
 	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
-	createBody, err := json.Marshal(createReq.GetPipeline())
+	createBody, err := json.Marshal(createReq)
 	require.NoError(t, err)
-	assert.Equal(t, pipeline, string(createBody)) //nolint:testifylint // byte equality is the point: JSONEq is order-blind and would pass on an alphabetized pipeline
+	assert.Equal(t, wantBody, string(createBody))
 
 	updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), model)
 	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
-	updateBody, err := json.Marshal(updateReq.StreamsModifyStreamProcessor.GetPipeline())
+	updateBody, err := json.Marshal(updateReq.StreamsModifyStreamProcessor)
 	require.NoError(t, err)
-	assert.Equal(t, pipeline, string(updateBody)) //nolint:testifylint // byte equality is the point: JSONEq is order-blind and would pass on an alphabetized pipeline
+	assert.Equal(t, wantBody, string(updateBody))
 }
