@@ -24,6 +24,7 @@ BUG FIXES:
 
 * data-source/mongodbatlas_stream_connection_failover: Marks `authentication.ssl_key` and `authentication.ssl_key_password` as sensitive ([#4617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4617))
 * data-source/mongodbatlas_stream_connection_failovers: Marks `results.authentication.ssl_key` and `results.authentication.ssl_key_password` as sensitive ([#4617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4617))
+* resource/mongodbatlas_stream_processor: Preserves the field order of pipeline stage subdocuments instead of sending them alphabetized. ([#4631](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4631))
 
 ## 2.15.0 (July 29, 2026)
 
