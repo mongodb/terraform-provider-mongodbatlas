@@ -46,6 +46,7 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 		State:                         types.StringPointerValue(apiResp.State),
 		Vendor:                        types.StringPointerValue(apiResp.Vendor),
 		Arn:                           types.StringPointerValue(apiResp.Arn),
+		AuthenticationScheme:          types.StringPointerValue(apiResp.AuthenticationScheme),
 		EffectiveAuthenticationScheme: types.StringPointerValue(apiResp.AuthenticationScheme),
 	}
 
@@ -86,7 +87,7 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		}
 	}
 
-	authenticationScheme := plan.AuthenticationScheme.ValueStringPointer()
+	var authenticationScheme *string
 	if plan.Vendor.ValueString() == VendorMSK {
 		if plan.Arn.IsNull() {
 			diags.AddError(fmt.Sprintf("arn is required for vendor %s", VendorMSK), "")
@@ -95,8 +96,12 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 			diags.AddError(fmt.Sprintf("region cannot be set for vendor %s", VendorMSK), "")
 		}
 		if plan.AuthenticationScheme.IsNull() || plan.AuthenticationScheme.ValueString() == "" {
-			authenticationScheme = new(DefaultAuthenticationScheme)
+			authenticationScheme = admin.PtrString(DefaultAuthenticationScheme)
+		} else {
+			authenticationScheme = plan.AuthenticationScheme.ValueStringPointer()
 		}
+	} else if !plan.AuthenticationScheme.IsNull() && !plan.AuthenticationScheme.IsUnknown() {
+		diags.AddError("authentication_scheme is only supported for vendor MSK", "")
 	}
 
 	if plan.Vendor.ValueString() == VendorS3 {

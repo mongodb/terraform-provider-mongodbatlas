@@ -158,6 +158,7 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				Vendor:                        types.StringValue(vendorMSK),
 				Region:                        types.StringValue(region),
 				State:                         types.StringValue(state),
+				AuthenticationScheme:          types.StringValue(authSchemeIAM),
 				EffectiveAuthenticationScheme: types.StringValue(authSchemeIAM),
 				ProjectId:                     types.StringValue(projectID),
 				DnsSubDomain:                  types.ListNull(types.StringType),
@@ -608,6 +609,17 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 			},
 			expectError: false,
 			errorCount:  0,
+		},
+		"non-MSK vendor with authentication_scheme errors": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:             types.StringValue(constant.AWS),
+				Vendor:               types.StringValue(streamprivatelinkendpoint.VendorS3),
+				Region:               types.StringValue(region),
+				ServiceEndpointId:    types.StringValue(serviceEndpointIDS3),
+				AuthenticationScheme: types.StringValue(authSchemeIAM),
+			},
+			expectError: true,
+			errorCount:  1,
 		},
 		"AWS MSK missing authentication_scheme defaults to SASL_SCRAM": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
