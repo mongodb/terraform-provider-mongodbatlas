@@ -151,10 +151,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if projectID == "" || integrationID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		// The metric integration API is preview-only and not yet part of the Atlas SDK, so existence
-		// is verified with a raw HTTP call using the preview version header.
-		// TODO: swap the raw HTTP call and preview header for the generated SDK method once the Atlas
-		// SDK supports the preview media type (CLOUDP-417642).
+
 		resp, err := acc.GetMetricIntegration(context.Background(), projectID, integrationID)
 		if err != nil {
 			return err

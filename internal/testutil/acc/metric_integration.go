@@ -17,6 +17,6 @@ func GetMetricIntegration(ctx context.Context, projectID, integrationID string) 
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Accept", "application/vnd.atlas.preview+json")
+	req.Header.Add("Accept", "application/vnd.atlas.2025-03-12+json")
 	return ConnV2().GetConfig().HTTPClient.Do(req)
 }
