@@ -96,7 +96,7 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 			diags.AddError(fmt.Sprintf("region cannot be set for vendor %s", VendorMSK), "")
 		}
 		if plan.AuthenticationScheme.IsNull() || plan.AuthenticationScheme.ValueString() == "" {
-			authenticationScheme = admin.PtrString(DefaultAuthenticationScheme)
+			authenticationScheme = new(DefaultAuthenticationScheme)
 		} else {
 			authenticationScheme = plan.AuthenticationScheme.ValueStringPointer()
 		}
