@@ -16,7 +16,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 		Attributes: map[string]dsschema.Attribute{
 			"integration_type": dsschema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Optional filter by integration type (e.g., `OTEL`). When specified, `providerType` must also be specified.",
+				MarkdownDescription: "Optional filter by integration type (e.g., `OTEL`).",
 			},
 			"project_id": dsschema.StringAttribute{
 				Required:            true,
@@ -36,14 +36,18 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							Computed:            true,
 							MarkdownDescription: "The temporality to send to the metric integration.",
 						},
+						"auth_type": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Authentication method the integration uses when exporting metrics to the endpoint.",
+						},
 						"endpoint": dsschema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "OpenTelemetry collector endpoint URL.",
 						},
-						"headers": dsschema.ListNestedAttribute{
+						"headers_redacted": dsschema.ListNestedAttribute{
 							Computed:            true,
-							MarkdownDescription: "HTTP headers for authentication and configuration. Header values are redacted in responses.",
-							CustomType:          customtypes.NewNestedListType[TFPluralDSResultsHeadersModel](ctx),
+							MarkdownDescription: "HTTP headers for authentication and configuration. Values are redacted and never returned in plaintext.",
+							CustomType:          customtypes.NewNestedListType[TFPluralDSResultsHeadersRedactedModel](ctx),
 							NestedObject: dsschema.NestedAttributeObject{
 								Attributes: map[string]dsschema.Attribute{
 									"name": dsschema.StringAttribute{
@@ -52,8 +56,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 									},
 									"value": dsschema.StringAttribute{
 										Computed:            true,
-										MarkdownDescription: "Header value.",
-										Sensitive:           true,
+										MarkdownDescription: "Redacted header value.",
 									},
 								},
 							},
@@ -64,7 +67,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 						},
 						"metric_integration_id": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Unique hexadecimal digit string that identifies the metric integration configuration.",
+							MarkdownDescription: "Unique identifier of the metric integration configuration.",
 						},
 						"metric_selection": dsschema.SetAttribute{
 							Computed:            true,
@@ -90,15 +93,16 @@ type TFPluralDSModel struct {
 	Results         customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
 }
 type TFPluralDSResultsModel struct {
-	AggregationTemporality types.String                                               `tfsdk:"aggregation_temporality" autogen:"omitjson"`
-	Endpoint               types.String                                               `tfsdk:"endpoint" autogen:"omitjson"`
-	Headers                customtypes.NestedListValue[TFPluralDSResultsHeadersModel] `tfsdk:"headers" autogen:"omitjson"`
-	IntegrationType        types.String                                               `tfsdk:"integration_type" autogen:"omitjson"`
-	MetricIntegrationId    types.String                                               `tfsdk:"metric_integration_id" autogen:"omitjson"`
-	MetricSelection        customtypes.SetValue[types.String]                         `tfsdk:"metric_selection" autogen:"omitjson"`
-	ProviderType           types.String                                               `tfsdk:"provider_type" autogen:"omitjson"`
+	AggregationTemporality types.String                                                       `tfsdk:"aggregation_temporality" autogen:"omitjson"`
+	AuthType               types.String                                                       `tfsdk:"auth_type" autogen:"omitjson"`
+	Endpoint               types.String                                                       `tfsdk:"endpoint" autogen:"omitjson"`
+	HeadersRedacted        customtypes.NestedListValue[TFPluralDSResultsHeadersRedactedModel] `tfsdk:"headers_redacted" autogen:"omitjson"`
+	IntegrationType        types.String                                                       `tfsdk:"integration_type" autogen:"omitjson"`
+	MetricIntegrationId    types.String                                                       `tfsdk:"metric_integration_id" autogen:"omitjson"`
+	MetricSelection        customtypes.SetValue[types.String]                                 `tfsdk:"metric_selection" autogen:"omitjson"`
+	ProviderType           types.String                                                       `tfsdk:"provider_type" autogen:"omitjson"`
 }
-type TFPluralDSResultsHeadersModel struct {
+type TFPluralDSResultsHeadersRedactedModel struct {
 	Name  types.String `tfsdk:"name" autogen:"omitjson"`
-	Value types.String `tfsdk:"value" autogen:"sensitive,omitjson"`
+	Value types.String `tfsdk:"value" autogen:"omitjson"`
 }

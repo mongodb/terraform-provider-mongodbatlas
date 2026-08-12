@@ -13,6 +13,17 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
+          description: Authentication method the integration uses when exporting metrics to the endpoint. `HEADER` authenticates with the static HTTP headers provided in the `headers` field, which must be set when this value is used.
+          computed_optional_required: required
+          tf_schema_name: auth_type
+          tf_model_name: AuthType
+          api_name: authType
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
           description: OpenTelemetry collector endpoint URL. Must use HTTPS.
           computed_optional_required: required
           tf_schema_name: endpoint
@@ -46,7 +57,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_any_response: true
+                      present_in_any_response: false
                       request_only_required_on_create: false
                     - string: {}
                       description: Header value.
@@ -57,19 +68,59 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
-                      present_in_any_response: true
+                      present_in_any_response: false
                       request_only_required_on_create: false
-          description: HTTP headers for authentication and configuration. Total size limit 2KB.
+          description: 'Required for auth_type: HEADER. HTTP headers for authentication and configuration. Total size limit 2KB.'
           custom_type:
             package: customtypes
             name: Headers
             model: customtypes.NestedListValue[TFHeadersModel]
             schema: customtypes.NewNestedListType[TFHeadersModel](ctx)
-          computed_optional_required: required
+          computed_optional_required: optional
           tf_schema_name: headers
           tf_model_name: Headers
           api_name: headers
           req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Header name.
+                      computed_optional_required: computed
+                      tf_schema_name: name
+                      tf_model_name: Name
+                      api_name: name
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Redacted header value.
+                      computed_optional_required: computed
+                      tf_schema_name: value
+                      tf_model_name: Value
+                      api_name: value
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: HTTP headers for authentication and configuration. Values are redacted and never returned in plaintext.
+          custom_type:
+            package: customtypes
+            name: HeadersRedacted
+            model: customtypes.NestedListValue[TFHeadersRedactedModel]
+            schema: customtypes.NewNestedListType[TFHeadersRedactedModel](ctx)
+          computed_optional_required: computed
+          tf_schema_name: headers_redacted
+          tf_model_name: HeadersRedacted
+          api_name: headersRedacted
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
           present_in_any_response: true
@@ -86,7 +137,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Unique hexadecimal digit string that identifies the metric integration configuration.
+          description: Unique identifier of the metric integration configuration.
           computed_optional_required: computed
           tf_schema_name: metric_integration_id
           tf_model_name: MetricIntegrationId
@@ -154,6 +205,17 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
+              description: Authentication method the integration uses when exporting metrics to the endpoint.
+              computed_optional_required: computed
+              tf_schema_name: auth_type
+              tf_model_name: AuthType
+              api_name: authType
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
               description: OpenTelemetry collector endpoint URL.
               computed_optional_required: computed
               tf_schema_name: endpoint
@@ -179,26 +241,26 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Header value.
+                          description: Redacted header value.
                           computed_optional_required: computed
                           tf_schema_name: value
                           tf_model_name: Value
                           api_name: value
                           req_body_usage: omit_always
-                          sensitive: true
+                          sensitive: false
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false
-              description: HTTP headers for authentication and configuration. Header values are redacted in responses.
+              description: HTTP headers for authentication and configuration. Values are redacted and never returned in plaintext.
               custom_type:
                 package: customtypes
-                name: Headers
-                model: customtypes.NestedListValue[TFHeadersModel]
-                schema: customtypes.NewNestedListType[TFHeadersModel](ctx)
+                name: HeadersRedacted
+                model: customtypes.NestedListValue[TFHeadersRedactedModel]
+                schema: customtypes.NewNestedListType[TFHeadersRedactedModel](ctx)
               computed_optional_required: computed
-              tf_schema_name: headers
-              tf_model_name: Headers
-              api_name: headers
+              tf_schema_name: headers_redacted
+              tf_model_name: HeadersRedacted
+              api_name: headersRedacted
               req_body_usage: omit_always
               sensitive: false
               create_only: false
@@ -268,7 +330,7 @@ data_sources:
         description: Returns all metric integration configurations for the project. Optionally filter by integration type and provider type.
         attributes:
             - string: {}
-              description: Optional filter by integration type (e.g., `OTEL`). When specified, `providerType` must also be specified.
+              description: Optional filter by integration type (e.g., `OTEL`).
               computed_optional_required: optional
               tf_schema_name: integration_type
               tf_model_name: IntegrationType
@@ -315,6 +377,17 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
+                          description: Authentication method the integration uses when exporting metrics to the endpoint.
+                          computed_optional_required: computed
+                          tf_schema_name: auth_type
+                          tf_model_name: AuthType
+                          api_name: authType
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
                           description: OpenTelemetry collector endpoint URL.
                           computed_optional_required: computed
                           tf_schema_name: endpoint
@@ -340,26 +413,26 @@ data_sources:
                                       present_in_any_response: false
                                       request_only_required_on_create: false
                                     - string: {}
-                                      description: Header value.
+                                      description: Redacted header value.
                                       computed_optional_required: computed
                                       tf_schema_name: value
                                       tf_model_name: Value
                                       api_name: value
                                       req_body_usage: omit_always
-                                      sensitive: true
+                                      sensitive: false
                                       create_only: false
                                       present_in_any_response: false
                                       request_only_required_on_create: false
-                          description: HTTP headers for authentication and configuration. Header values are redacted in responses.
+                          description: HTTP headers for authentication and configuration. Values are redacted and never returned in plaintext.
                           custom_type:
                             package: customtypes
-                            name: ResultsHeaders
-                            model: customtypes.NestedListValue[TFResultsHeadersModel]
-                            schema: customtypes.NewNestedListType[TFResultsHeadersModel](ctx)
+                            name: ResultsHeadersRedacted
+                            model: customtypes.NestedListValue[TFResultsHeadersRedactedModel]
+                            schema: customtypes.NewNestedListType[TFResultsHeadersRedactedModel](ctx)
                           computed_optional_required: computed
-                          tf_schema_name: headers
-                          tf_model_name: Headers
-                          api_name: headers
+                          tf_schema_name: headers_redacted
+                          tf_model_name: HeadersRedacted
+                          api_name: headersRedacted
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
@@ -377,7 +450,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Unique hexadecimal digit string that identifies the metric integration configuration.
+                          description: Unique identifier of the metric integration configuration.
                           computed_optional_required: computed
                           tf_schema_name: metric_integration_id
                           tf_model_name: MetricIntegrationId

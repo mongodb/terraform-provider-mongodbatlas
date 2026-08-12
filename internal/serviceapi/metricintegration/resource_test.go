@@ -65,7 +65,7 @@ func TestAccMetricIntegration_basic(t *testing.T) {
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "metric_integration_id",
-				ImportStateVerifyIgnore:              []string{"headers"}, // header values are redacted on GET
+				ImportStateVerifyIgnore:              []string{"headers"}, // headers is write-only and not returned on GET (only headers_redacted is)
 			},
 		},
 	})
@@ -97,6 +97,7 @@ func configBasic(projectID, integrationType, providerType, aggregation, endpoint
 			project_id              = %[1]q
 			integration_type        = %[2]q
 			provider_type           = %[3]q
+			auth_type               = "HEADER"
 			aggregation_temporality = %[4]q
 			endpoint                = %[5]q
 			metric_selection        = %[6]s
@@ -122,12 +123,14 @@ func checkBasic(integrationType, providerType, aggregation, endpoint string, met
 	mapChecks := map[string]string{
 		"integration_type":        integrationType,
 		"provider_type":           providerType,
+		"auth_type":               "HEADER",
 		"aggregation_temporality": aggregation,
 		"endpoint":                endpoint,
 		"metric_selection.#":      strconv.Itoa(len(metricSelection)),
-		"headers.#":               headerCount,
+		"headers_redacted.#":      headerCount,
 	}
-	var checks []resource.TestCheckFunc
+	// headers is a write-only request field, so it exists only on the resource, not the data sources.
+	checks := []resource.TestCheckFunc{resource.TestCheckResourceAttr(resourceName, "headers.#", headerCount)}
 	var dsName *string
 	if withDS {
 		dsName = new(dataSourceName)

@@ -20,6 +20,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:            true,
 				MarkdownDescription: "The temporality to send to the metric integration.",
 			},
+			"auth_type": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Authentication method the integration uses when exporting metrics to the endpoint. `HEADER` authenticates with the static HTTP headers provided in the `headers` field, which must be set when this value is used.",
+			},
 			"endpoint": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "OpenTelemetry collector endpoint URL. Must use HTTPS.",
@@ -30,8 +34,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"headers": schema.ListNestedAttribute{
-				Required:            true,
-				MarkdownDescription: "HTTP headers for authentication and configuration. Total size limit 2KB.",
+				Optional:            true,
+				MarkdownDescription: "Required for auth_type: HEADER. HTTP headers for authentication and configuration. Total size limit 2KB.",
 				CustomType:          customtypes.NewNestedListType[TFHeadersModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -47,13 +51,30 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+			"headers_redacted": schema.ListNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "HTTP headers for authentication and configuration. Values are redacted and never returned in plaintext.",
+				CustomType:          customtypes.NewNestedListType[TFHeadersRedactedModel](ctx),
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Header name.",
+						},
+						"value": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Redacted header value.",
+						},
+					},
+				},
+			},
 			"integration_type": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Type of metric integration. Identifies which protocol will be used for the integration. This value cannot be modified after the integration is created.",
 			},
 			"metric_integration_id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Unique hexadecimal digit string that identifies the metric integration configuration.",
+				MarkdownDescription: "Unique identifier of the metric integration configuration.",
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"metric_selection": schema.SetAttribute{
@@ -71,16 +92,22 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	AggregationTemporality types.String                                `tfsdk:"aggregation_temporality"`
-	Endpoint               types.String                                `tfsdk:"endpoint"`
-	ProjectId              types.String                                `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Headers                customtypes.NestedListValue[TFHeadersModel] `tfsdk:"headers"`
-	IntegrationType        types.String                                `tfsdk:"integration_type"`
-	MetricIntegrationId    types.String                                `tfsdk:"metric_integration_id" autogen:"omitjson"`
-	MetricSelection        customtypes.SetValue[types.String]          `tfsdk:"metric_selection"`
-	ProviderType           types.String                                `tfsdk:"provider_type"`
+	AggregationTemporality types.String                                        `tfsdk:"aggregation_temporality"`
+	AuthType               types.String                                        `tfsdk:"auth_type"`
+	Endpoint               types.String                                        `tfsdk:"endpoint"`
+	ProjectId              types.String                                        `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	Headers                customtypes.NestedListValue[TFHeadersModel]         `tfsdk:"headers"`
+	HeadersRedacted        customtypes.NestedListValue[TFHeadersRedactedModel] `tfsdk:"headers_redacted" autogen:"omitjson"`
+	IntegrationType        types.String                                        `tfsdk:"integration_type"`
+	MetricIntegrationId    types.String                                        `tfsdk:"metric_integration_id" autogen:"omitjson"`
+	MetricSelection        customtypes.SetValue[types.String]                  `tfsdk:"metric_selection"`
+	ProviderType           types.String                                        `tfsdk:"provider_type"`
 }
 type TFHeadersModel struct {
 	Name  types.String `tfsdk:"name"`
 	Value types.String `tfsdk:"value" autogen:"sensitive"`
+}
+type TFHeadersRedactedModel struct {
+	Name  types.String `tfsdk:"name" autogen:"omitjson"`
+	Value types.String `tfsdk:"value" autogen:"omitjson"`
 }

@@ -6,6 +6,7 @@ resource "mongodbatlas_metric_integration" "example" {
   project_id              = mongodbatlas_project.project.id
   integration_type        = "OTEL"
   provider_type           = "CUSTOM"
+  auth_type               = "HEADER"
   aggregation_temporality = "DELTA"
   endpoint                = var.datadog_endpoint
   metric_selection        = ["ATLAS_STREAM_PROCESSING"]
