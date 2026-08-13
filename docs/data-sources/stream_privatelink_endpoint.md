@@ -405,7 +405,6 @@ output "privatelink_endpoint_id" {
 
 	This attribute can be updated in place for AWS Confluent Enterprise Kafka Cluster. Updating it is only allowed when no domain is currently set, or when the connection is in the `IDLE` state.
 - `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones. Required for AWS Provider and CONFLUENT vendor. If your AWS CONFLUENT cluster doesn't use subdomains, you must set this to the empty array [].
-- `effective_authentication_scheme` (String) Authentication mechanism used by this private link connection. For MSK connections where `authentication_scheme` is not specified, Atlas defaults to `SASL_SCRAM`.
 - `error_message` (String) Error message if the connection is in a failed state.
 - `interface_endpoint_id` (String) Interface endpoint ID that is created from the specified service endpoint ID.
 - `interface_endpoint_name` (String) Name of interface endpoint that is created from the specified service endpoint ID.

@@ -431,7 +431,6 @@ output "privatelink_endpoint_id" {
 
 ### Read-Only
 
-- `effective_authentication_scheme` (String) Authentication mechanism used by this private link connection. For MSK connections where `authentication_scheme` is not specified, Atlas defaults to `SASL_SCRAM`.
 - `error_message` (String) Error message if the connection is in a failed state.
 - `id` (String) The ID of the Private Link connection.
 - `interface_endpoint_id` (String) Interface endpoint ID that is created from the specified service endpoint ID.
