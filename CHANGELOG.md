@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.16.0 (August 13, 2026)
+
 FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_ai_model_api_key` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
