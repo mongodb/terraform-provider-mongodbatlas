@@ -112,9 +112,6 @@ func checkBasicOTel(endpoint string, withDS bool) resource.TestCheckFunc {
 	headerChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrWith(resourceName, "otel_supplied_headers.#", acc.IntGreatThan(0)),
 	}
-	if withDS {
-		headerChecks = append(headerChecks, resource.TestCheckResourceAttrWith(dataSourceName, "otel_supplied_headers.#", acc.IntGreatThan(0)))
-	}
 	checks := []resource.TestCheckFunc{
 		acc.CheckRSAndDS(resourceName, dsName, nil, setChecks, mapChecks, checkExists(resourceName)),
 	}

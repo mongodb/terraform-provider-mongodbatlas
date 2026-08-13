@@ -32,25 +32,6 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				Computed:            true,
 				MarkdownDescription: "OpenTelemetry collector endpoint URL.",
 			},
-			"otel_supplied_headers": dsschema.ListNestedAttribute{
-				Computed:            true,
-				MarkdownDescription: "HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB. Values are redacted.",
-				Sensitive:           true,
-				CustomType:          customtypes.NewNestedListType[TFDSOtelSuppliedHeadersModel](ctx),
-				NestedObject: dsschema.NestedAttributeObject{
-					Attributes: map[string]dsschema.Attribute{
-						"name": dsschema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Header name.",
-						},
-						"value": dsschema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Header value. Redacted in responses.",
-							Sensitive:           true,
-						},
-					},
-				},
-			},
 			"type": dsschema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.",
@@ -60,14 +41,9 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
-	IntegrationId       types.String                                              `tfsdk:"integration_id" apiname:"logIntegrationId" autogen:"omitjson"`
-	LogTypes            customtypes.SetValue[types.String]                        `tfsdk:"log_types" autogen:"omitjson"`
-	OrgId               types.String                                              `tfsdk:"org_id" autogen:"omitjson"`
-	OtelEndpoint        types.String                                              `tfsdk:"otel_endpoint" autogen:"omitjson"`
-	OtelSuppliedHeaders customtypes.NestedListValue[TFDSOtelSuppliedHeadersModel] `tfsdk:"otel_supplied_headers" autogen:"sensitive,omitjson"`
-	Type                types.String                                              `tfsdk:"type" autogen:"omitjson"`
-}
-type TFDSOtelSuppliedHeadersModel struct {
-	Name  types.String `tfsdk:"name" autogen:"omitjson"`
-	Value types.String `tfsdk:"value" autogen:"sensitive,omitjson"`
+	IntegrationId types.String                       `tfsdk:"integration_id" apiname:"logIntegrationId" autogen:"omitjson"`
+	LogTypes      customtypes.SetValue[types.String] `tfsdk:"log_types" autogen:"omitjson"`
+	OrgId         types.String                       `tfsdk:"org_id" autogen:"omitjson"`
+	OtelEndpoint  types.String                       `tfsdk:"otel_endpoint" autogen:"omitjson"`
+	Type          types.String                       `tfsdk:"type" autogen:"omitjson"`
 }

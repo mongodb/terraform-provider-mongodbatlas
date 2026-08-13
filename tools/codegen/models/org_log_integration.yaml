@@ -169,46 +169,6 @@ data_sources:
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
-            - list_nested:
-                nested_object:
-                    attributes:
-                        - string: {}
-                          description: Header name.
-                          computed_optional_required: computed
-                          tf_schema_name: name
-                          tf_model_name: Name
-                          api_name: name
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - string: {}
-                          description: Header value. Redacted in responses.
-                          computed_optional_required: computed
-                          tf_schema_name: value
-                          tf_model_name: Value
-                          api_name: value
-                          req_body_usage: omit_always
-                          sensitive: true
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-              description: HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB. Values are redacted.
-              custom_type:
-                package: customtypes
-                name: OtelSuppliedHeaders
-                model: customtypes.NestedListValue[TFOtelSuppliedHeadersModel]
-                schema: customtypes.NewNestedListType[TFOtelSuppliedHeadersModel](ctx)
-              computed_optional_required: computed
-              tf_schema_name: otel_supplied_headers
-              tf_model_name: OtelSuppliedHeaders
-              api_name: otelSuppliedHeaders
-              req_body_usage: omit_always
-              sensitive: true
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
             - string: {}
               description: Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.
               computed_optional_required: computed
@@ -272,46 +232,6 @@ data_sources:
                           api_name: otelEndpoint
                           req_body_usage: omit_always
                           sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - list_nested:
-                            nested_object:
-                                attributes:
-                                    - string: {}
-                                      description: Header name.
-                                      computed_optional_required: computed
-                                      tf_schema_name: name
-                                      tf_model_name: Name
-                                      api_name: name
-                                      req_body_usage: omit_always
-                                      sensitive: false
-                                      create_only: false
-                                      present_in_any_response: false
-                                      request_only_required_on_create: false
-                                    - string: {}
-                                      description: Header value. Redacted in responses.
-                                      computed_optional_required: computed
-                                      tf_schema_name: value
-                                      tf_model_name: Value
-                                      api_name: value
-                                      req_body_usage: omit_always
-                                      sensitive: true
-                                      create_only: false
-                                      present_in_any_response: false
-                                      request_only_required_on_create: false
-                          description: HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB. Values are redacted.
-                          custom_type:
-                            package: customtypes
-                            name: ResultsOtelSuppliedHeaders
-                            model: customtypes.NestedListValue[TFResultsOtelSuppliedHeadersModel]
-                            schema: customtypes.NewNestedListType[TFResultsOtelSuppliedHeadersModel](ctx)
-                          computed_optional_required: computed
-                          tf_schema_name: otel_supplied_headers
-                          tf_model_name: OtelSuppliedHeaders
-                          api_name: otelSuppliedHeaders
-                          req_body_usage: omit_always
-                          sensitive: true
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false

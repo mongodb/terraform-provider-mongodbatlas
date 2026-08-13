@@ -33,15 +33,6 @@ output "org_log_integration_type" {
 
 - `log_types` (Set of String) Array of log types exported by this integration.
 - `otel_endpoint` (String) OpenTelemetry collector endpoint URL.
-- `otel_supplied_headers` (Attributes List, Sensitive) HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB. Values are redacted. (see [below for nested schema](#nestedatt--otel_supplied_headers))
 - `type` (String) Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.
-
-<a id="nestedatt--otel_supplied_headers"></a>
-### Nested Schema for `otel_supplied_headers`
-
-Read-Only:
-
-- `name` (String) Header name.
-- `value` (String, Sensitive) Header value. Redacted in responses.
 
 For more information see: [MongoDB Atlas API - Organization Log Integration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-push-based-log-export) Documentation.

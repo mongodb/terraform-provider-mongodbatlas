@@ -1669,5 +1669,4 @@ resources:
         overrides:
           org_id:
             description: *org_id_description
-          otel_supplied_headers:
-            sensitive: true
+        ignores: ["otel_supplied_headers", "results.otel_supplied_headers"] # `otel_supplied_headers` values are redacted on read responses, no value in adding for data sources
