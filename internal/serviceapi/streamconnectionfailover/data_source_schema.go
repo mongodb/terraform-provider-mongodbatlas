@@ -34,7 +34,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 					},
 					"method": dsschema.StringAttribute{
 						Computed:            true,
-						MarkdownDescription: "SASL OAUTHBEARER authentication method. Can only be OIDC currently.",
+						MarkdownDescription: "SASL OAUTHBEARER authentication method. Currently, only OIDC is supported.",
 					},
 					"password": dsschema.StringAttribute{
 						Computed:            true,
@@ -56,10 +56,12 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 					"ssl_key": dsschema.StringAttribute{
 						Computed:            true,
 						MarkdownDescription: "SSL key for client authentication to Kafka.",
+						Sensitive:           true,
 					},
 					"ssl_key_password": dsschema.StringAttribute{
 						Computed:            true,
 						MarkdownDescription: "Password for the SSL key, if it is password protected.",
+						Sensitive:           true,
 					},
 					"token_endpoint_url": dsschema.StringAttribute{
 						Computed:            true,
@@ -85,7 +87,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"config": dsschema.MapAttribute{
 				Computed:            true,
-				MarkdownDescription: "Applies to type: Kafka. A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.",
+				MarkdownDescription: "Applies to type: Kafka. Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters.",
 				CustomType:          customtypes.NewMapType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
@@ -95,7 +97,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"db_role_to_execute": dsschema.SingleNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "Applies to type: Cluster. The name of a Built in or Custom DB Role to connect to an Atlas Cluster.",
+				MarkdownDescription: "Applies to type: Cluster. Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster.",
 				CustomType:          customtypes.NewObjectType[TFDSDbRoleToExecuteModel](ctx),
 				Attributes: map[string]dsschema.Attribute{
 					"role": dsschema.StringAttribute{
@@ -148,7 +150,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"region": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The connection's region.",
+				MarkdownDescription: "Connection region.",
 			},
 			"security": dsschema.SingleNestedAttribute{
 				Computed:            true,
@@ -167,11 +169,11 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"state": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The state of the connection.",
+				MarkdownDescription: "Connection state.",
 			},
 			"type": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Type of the connection.",
+				MarkdownDescription: "Connection type.",
 			},
 			"workspace_name": dsschema.StringAttribute{
 				Required:            true,
@@ -207,8 +209,8 @@ type TFDSAuthenticationModel struct {
 	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions" autogen:"omitjson"`
 	Scope                     types.String `tfsdk:"scope" autogen:"omitjson"`
 	SslCertificate            types.String `tfsdk:"ssl_certificate" autogen:"omitjson"`
-	SslKey                    types.String `tfsdk:"ssl_key" autogen:"omitjson"`
-	SslKeyPassword            types.String `tfsdk:"ssl_key_password" autogen:"omitjson"`
+	SslKey                    types.String `tfsdk:"ssl_key" autogen:"sensitive,omitjson"`
+	SslKeyPassword            types.String `tfsdk:"ssl_key_password" autogen:"sensitive,omitjson"`
 	TokenEndpointUrl          types.String `tfsdk:"token_endpoint_url" autogen:"omitjson"`
 	Username                  types.String `tfsdk:"username" autogen:"omitjson"`
 }

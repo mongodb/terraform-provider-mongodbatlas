@@ -202,6 +202,14 @@ func TestAccStreamPrivatelinkEndpointS3_basic(t *testing.T) {
 	resource.Test(t, *tc)
 }
 
+func TestAccStreamPrivatelinkEndpointLambda_basic(t *testing.T) {
+	acc.SkipTestForCI(t) // skip for CI because provisioning the streams private networking infrastructure is slow and expensive
+
+	tc := basicLambdaTestCase(t)
+	// Tests include testing of plural data source and so cannot be run in parallel
+	resource.Test(t, *tc)
+}
+
 func TestAccStreamPrivatelinkEndpointAzureBlobStorage_basic(t *testing.T) {
 	acc.SkipTestForCI(t) // skip for CI because provisioning the streams private networking infrastructure is slow and expensive
 
@@ -484,6 +492,55 @@ func basicS3TestCase(t *testing.T) *resource.TestCase {
 			},
 		},
 	}
+}
+
+func basicLambdaTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		provider  = "AWS"
+		vendor    = "LAMBDA"
+		region    = "us-east-1"
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.GetCompleteLambdaConfig(projectID, region),
+				Check:  checksStreamPrivatelinkEndpointLambda(projectID, provider, vendor, region),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func checksStreamPrivatelinkEndpointLambda(projectID, provider, vendor, region string) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{checkExists()}
+	attrMap := map[string]string{
+		"project_id":    projectID,
+		"provider_name": provider,
+		"vendor":        vendor,
+		"region":        region,
+	}
+	pluralMap := map[string]string{
+		"project_id": projectID,
+		"results.#":  "1",
+	}
+	attrSet := []string{
+		"id",
+		"state",
+	}
+	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
+	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
 }
 
 func basicPubSubTestCase(t *testing.T) *resource.TestCase {

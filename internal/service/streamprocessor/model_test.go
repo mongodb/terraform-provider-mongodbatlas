@@ -556,3 +556,35 @@ func TestGetWorkspaceOrInstanceName(t *testing.T) {
 		})
 	}
 }
+
+func TestPipelineFieldOrderPreserved(t *testing.T) {
+	// MongoDB documents are ordered, so the pipeline Atlas receives must carry the fields in the
+	// order the practitioner authored them. Byte equality is asserted on purpose: assert.JSONEq
+	// is order-blind and would pass against an alphabetized pipeline.
+	const pipeline = `[{"$addFields":{"location":{"region":"$region","city":"$city"}}},` +
+		`{"$merge":{"into":{"connectionName":"ClusterConnection","db":"demo","coll":"out"}}}]`
+
+	model := &streamprocessor.TFStreamProcessorRSModel{
+		ProjectID:     types.StringValue(projectID),
+		WorkspaceName: types.StringValue(workspaceName),
+		ProcessorName: types.StringValue(processorName),
+		Pipeline:      jsontypes.NewNormalizedValue(pipeline),
+	}
+
+	// The whole request body is marshaled, not just the pipeline, so the assertion covers the
+	// final SDK serialization, including the structs' own MarshalJSON, which the client invokes
+	// via json.Encoder and which delegates to encoding/json when no fields are explicitly null.
+	wantBody := `{"name":"` + processorName + `","pipeline":` + pipeline + `}`
+
+	createReq, diags := streamprocessor.NewStreamProcessorReq(t.Context(), model)
+	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
+	createBody, err := json.Marshal(createReq)
+	require.NoError(t, err)
+	assert.Equal(t, wantBody, string(createBody))
+
+	updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), model)
+	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
+	updateBody, err := json.Marshal(updateReq.StreamsModifyStreamProcessor)
+	require.NoError(t, err)
+	assert.Equal(t, wantBody, string(updateBody))
+}
