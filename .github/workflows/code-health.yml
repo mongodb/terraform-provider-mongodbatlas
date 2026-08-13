@@ -14,6 +14,28 @@ on:
   workflow_dispatch:
 
 jobs:
+  # TEMPORARY: validates ECR access for SilkBomb, remove before merge.
+  silkbomb-ecr-access:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    env:
+      ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
+      ECR_ROLE_ARN: ${{ vars.ECR_ROLE_ARN }}
+      SILKBOMB_IMG: ${{ vars.SILKBOMB_IMG }}
+    steps:
+      - name: Configure AWS credentials for DevProd Platforms ECR
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
+        with:
+          role-to-assume: ${{ env.ECR_ROLE_ARN }}
+          aws-region: us-east-1
+      - name: Authenticate Docker to DevProd Platforms ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 |
+            docker login --username AWS --password-stdin "${ECR_REGISTRY}"
+          docker pull "${SILKBOMB_IMG}"
+      - name: Verify SilkBomb image is executable
+        run: docker run --rm "${SILKBOMB_IMG}" --help
   build:
     runs-on: ubuntu-latest
     permissions: {}
