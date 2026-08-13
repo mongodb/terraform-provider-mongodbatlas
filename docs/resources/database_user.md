@@ -8,7 +8,7 @@ subcategory: "Database Users"
 
 Each user has a set of roles that provide access to the project’s databases. User's roles apply to all the clusters in the project: if two clusters have a `products` database and a user has a role granting `read` access on the products database, the user has that access on both clusters.
 
-~> **IMPORTANT WARNING:** Managing passwords with Terraform exposes sensitive organizational secrets in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
+~> **IMPORTANT WARNING:** The `password` argument is stored in Terraform state in plain text. To avoid this issue, you can use `password_wo` instead, which is a [write-only argument](https://developer.hashicorp.com/terraform/language/resources/ephemeral/write-only) and is never written to state or plan files. It requires Terraform 1.11 or later. See [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data) for handling sensitive data in state.
 
 ## Example Usages
 
@@ -115,6 +115,30 @@ resource "mongodbatlas_database_user" "test" {
 Note: OIDC support is only avalible starting in [MongoDB 7.0](https://www.mongodb.com/evolved#mdbsevenzero) or later. To learn more, see the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/security-oidc/).
 
 
+## Example of how to create a user with a write-only password
+
+`password_wo` is never written to state or plan files. Here an [ephemeral resource](https://developer.hashicorp.com/terraform/language/manage-sensitive-data/ephemeral) generates the password.
+
+```terraform
+ephemeral "random_password" "user" {
+  length = 32
+}
+
+resource "mongodbatlas_database_user" "test" {
+  username            = "test-acc-username"
+  password_wo         = ephemeral.random_password.user.result
+  password_wo_version = 1
+  project_id          = "<PROJECT-ID>"
+  auth_database_name  = "admin"
+
+  roles {
+    role_name     = "readWrite"
+    database_name = "dbforApp"
+  }
+}
+```
+
+
 ### Further Examples
 - [Database User](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_database_user)
 
@@ -128,7 +152,9 @@ Accepted values include:
 * `project_id` - (Required) The unique ID for the project to create the database user, also known as `groupId` in the official documentation.
 * `roles` - (Required) 	List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
 * `username` - (Required) Username for authenticating to MongoDB. USER_ARN or ROLE_ARN if `aws_iam_type` is USER or ROLE.
-* `password` - (Optional) User's initial password. Only applicable for password-based authentication. You can remove this argument from your Terraform configuration after user creation without impacting the user, password, or Terraform management. If you change your password management to outside of Terraform, we advise removing the argument from the Terraform configuration. **IMPORTANT:** The Terraform state file stores passwords as plain text.
+* `password` - (Optional) User's initial password. Only applicable for password-based authentication. Conflicts with `password_wo`. You can remove this argument from your Terraform configuration after user creation without impacting the user, password, or Terraform management. If you change your password management to outside of Terraform, we advise removing the argument from the Terraform configuration. **IMPORTANT:** The Terraform state file stores passwords as plain text, we recommend using `password_wo` instead.
+* `password_wo` - (Optional) User's password, passed as a [write-only argument](https://developer.hashicorp.com/terraform/language/resources/ephemeral/write-only) so it is never written to Terraform state or plan files. Write-only arguments can accept ephemeral and non-ephemeral values. Only applicable for password-based authentication, and conflicts with `password`. Requires Terraform 1.11 or later, and must be set together with `password_wo_version`.
+* `password_wo_version` - (Optional) Integer that triggers an update of `password_wo`. To rotate the password, change `password_wo` and increment this value in the same edit. Changing `password_wo` on its own has no effect, since Terraform cannot detect changes to a value that is not in state.
 * `description` - (Optional) Description of this database user.
 
 * `x509_type` - (Optional) X.509 method by which the provided username is authenticated. If no value is given, Atlas uses the default value of NONE. The accepted types are:
@@ -193,4 +219,4 @@ terraform import mongodbatlas_database_user.my_user 1112222b3bf99403840e8934-my_
 terraform import mongodbatlas_database_user.my_user 1112222b3bf99403840e8934/my-username-dash/my-db-name # (2)
 ```
 
-~> **NOTE:** Terraform will want to change the password after importing the user if a `password` argument is specified.
+~> **NOTE:** Terraform will want to change the password after importing the user if a `password` or `password_wo` argument is specified.

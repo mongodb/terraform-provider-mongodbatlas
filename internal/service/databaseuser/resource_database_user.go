@@ -5,6 +5,7 @@ import (
 	"errors"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -43,19 +44,21 @@ func Resource() resource.Resource {
 }
 
 type TfDatabaseUserModel struct {
-	ID               types.String `tfsdk:"id"`
-	ProjectID        types.String `tfsdk:"project_id"`
-	AuthDatabaseName types.String `tfsdk:"auth_database_name"`
-	Username         types.String `tfsdk:"username"`
-	Password         types.String `tfsdk:"password"`
-	X509Type         types.String `tfsdk:"x509_type"`
-	OIDCAuthType     types.String `tfsdk:"oidc_auth_type"`
-	LDAPAuthType     types.String `tfsdk:"ldap_auth_type"`
-	AWSIAMType       types.String `tfsdk:"aws_iam_type"`
-	Description      types.String `tfsdk:"description"`
-	Roles            types.Set    `tfsdk:"roles"`
-	Labels           types.Set    `tfsdk:"labels"`
-	Scopes           types.Set    `tfsdk:"scopes"`
+	ID                types.String `tfsdk:"id"`
+	ProjectID         types.String `tfsdk:"project_id"`
+	AuthDatabaseName  types.String `tfsdk:"auth_database_name"`
+	Username          types.String `tfsdk:"username"`
+	Password          types.String `tfsdk:"password"`
+	PasswordWo        types.String `tfsdk:"password_wo"`
+	X509Type          types.String `tfsdk:"x509_type"`
+	OIDCAuthType      types.String `tfsdk:"oidc_auth_type"`
+	LDAPAuthType      types.String `tfsdk:"ldap_auth_type"`
+	AWSIAMType        types.String `tfsdk:"aws_iam_type"`
+	Description       types.String `tfsdk:"description"`
+	Roles             types.Set    `tfsdk:"roles"`
+	Labels            types.Set    `tfsdk:"labels"`
+	Scopes            types.Set    `tfsdk:"scopes"`
+	PasswordWoVersion types.Int64  `tfsdk:"password_wo_version"`
 }
 
 type TfRoleModel struct {
@@ -123,6 +126,30 @@ func (r *databaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 						path.MatchRelative().AtParent().AtName("ldap_auth_type"),
 						path.MatchRelative().AtParent().AtName("aws_iam_type"),
 					}...),
+				},
+			},
+			"password_wo": schema.StringAttribute{
+				Optional:  true,
+				Sensitive: true,
+				WriteOnly: true,
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.Expressions{
+						path.MatchRelative().AtParent().AtName("password"),
+						path.MatchRelative().AtParent().AtName("x509_type"),
+						path.MatchRelative().AtParent().AtName("ldap_auth_type"),
+						path.MatchRelative().AtParent().AtName("aws_iam_type"),
+					}...),
+					stringvalidator.AlsoRequires(
+						path.MatchRelative().AtParent().AtName("password_wo_version"),
+					),
+				},
+			},
+			"password_wo_version": schema.Int64Attribute{
+				Optional: true,
+				Validators: []validator.Int64{
+					int64validator.AlsoRequires(
+						path.MatchRelative().AtParent().AtName("password_wo"),
+					),
 				},
 			},
 			"description": schema.StringAttribute{
@@ -209,6 +236,7 @@ func (r *databaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 
 func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan *TfDatabaseUserModel
+	var configModel *TfDatabaseUserModel
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -216,7 +244,16 @@ func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	dbUserReq, localDiags := NewMongoDBDatabaseUser(ctx, types.StringNull(), types.StringNull(), plan)
+	diagsConfig := req.Config.Get(ctx, &configModel)
+	resp.Diagnostics.Append(diagsConfig...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Write-only values are nullified in the plan, so password_wo must be read from config.
+	plan.PasswordWo = configModel.PasswordWo
+
+	dbUserReq, localDiags := NewMongoDBDatabaseUser(ctx, types.StringNull(), types.StringNull(), types.Int64Null(), plan)
 	resp.Diagnostics.Append(localDiags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -278,15 +315,19 @@ func (r *databaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 }
 
 func (r *databaseUserRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state *TfDatabaseUserModel
+	var plan, state, configModel *TfDatabaseUserModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &configModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	dbUserReq, localDiags := NewMongoDBDatabaseUser(ctx, state.Password, state.Description, plan)
+	// Write-only values are nullified in the plan, so password_wo must be read from config.
+	plan.PasswordWo = configModel.PasswordWo
+
+	dbUserReq, localDiags := NewMongoDBDatabaseUser(ctx, state.Password, state.Description, state.PasswordWoVersion, plan)
 	resp.Diagnostics.Append(localDiags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -298,7 +339,7 @@ func (r *databaseUserRS) Update(ctx context.Context, req resource.UpdateRequest,
 		plan.AuthDatabaseName.ValueString(),
 		plan.Username.ValueString(), dbUserReq).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("error during database user creation", err.Error())
+		resp.Diagnostics.AddError("error during database user update", err.Error())
 		return
 	}
 

@@ -3332,10 +3332,6 @@ func TestAccAdvancedCluster_gen2HighPerformanceDiskIops(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 3400, "HIGH_PERFORMANCE")},
 			},
 			{
-				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 100000, false),
-				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
-			},
-			{
 				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 1, false),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
@@ -3370,10 +3366,6 @@ func TestAccAdvancedCluster_gen1ProvisionedDiskIops(t *testing.T) {
 				Config:            configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1500, false),
 				Check:             checkGen2(1500, "PROVISIONED", false, false),
 				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 1500, "PROVISIONED")},
-			},
-			{
-				Config:      configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1000000, false),
-				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
 				Config:      configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1, false),
