@@ -1628,3 +1628,43 @@ resources:
             description: *project_id_description
           otel_supplied_headers:
             sensitive: true
+
+  metric_integration:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: PUT
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        groupId: projectId
+      ignores: ["links"]
+      overrides:
+        project_id:
+          description: *project_id_description
+        headers.value:
+          sensitive: true
+        headers:
+          description: "Required for auth_type: HEADER. HTTP headers for authentication and configuration. Total size limit 2KB."
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+        ignores: ["links", "results.links"]
+        overrides:
+          project_id:
+            description: *project_id_description

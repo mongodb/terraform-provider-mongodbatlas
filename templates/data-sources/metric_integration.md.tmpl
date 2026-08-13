@@ -1,0 +1,22 @@
+---
+subcategory: "Metric Integration"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes the configuration of a metric integration at the project level.
+
+To use this data source, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+
+## Example Usage
+
+The following example creates a `mongodbatlas_metric_integration` resource that exports Atlas metrics to an OpenTelemetry-compatible endpoint, then uses this data source to read back a single integration by its metric integration ID and output its integration type.
+
+{{ tffile "examples/mongodbatlas_metric_integration/main.tf" }}
+
+### Further Examples
+- [Metric Integration Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_metric_integration)
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas - OTel Integration](https://www.mongodb.com/docs/atlas/tutorial/otel-integration/) Documentation.

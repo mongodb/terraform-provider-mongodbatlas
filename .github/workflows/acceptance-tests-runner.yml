@@ -216,6 +216,10 @@ on:
         required: true
       gcp_service_account_email:
         required: true
+      mongodb_atlas_metric_integration_endpoint:
+        required: true
+      mongodb_atlas_metric_integration_api_key:
+        required: true
 
 env:
   TF_ACC: 1
@@ -328,6 +332,7 @@ jobs:
             - 'internal/serviceapi/streamconnectionapi/*.go'
             - 'internal/serviceapi/streamconnectionfailover/*.go'
             - 'internal/serviceapi/logintegration/*.go'
+            - 'internal/serviceapi/metricintegration/*.go'
           autogen_slow:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/clusterapi/*.go'
@@ -692,6 +697,8 @@ jobs:
           AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
           AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
           GCP_PROJECT_ID: ${{ secrets.gcp_project_id }}
+          MONGODB_ATLAS_METRIC_INTEGRATION_ENDPOINT: ${{ secrets.mongodb_atlas_metric_integration_endpoint }}
+          MONGODB_ATLAS_METRIC_INTEGRATION_API_KEY: ${{ secrets.mongodb_atlas_metric_integration_api_key }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           # No need to include aimodelorgapikey/aimodelorgratelimit as their tests are in aimodelapikey/aimodelratelimit.
           ACCTEST_PACKAGES: |
@@ -702,6 +709,7 @@ jobs:
             ./internal/serviceapi/customdbroleapi
             ./internal/serviceapi/databaseuserapi
             ./internal/serviceapi/logintegration
+            ./internal/serviceapi/metricintegration
             ./internal/serviceapi/maintenancewindowapi
             ./internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive
             ./internal/serviceapi/projectapi
