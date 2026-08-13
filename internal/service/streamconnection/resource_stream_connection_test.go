@@ -120,10 +120,15 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 			{
 				Config: dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr(resourceName, "authentication.aws"),
 					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
 					checkKafkaAttributesAcceptance(dataSourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
 					streamConnectionsAttributeChecksAcceptance(pluralDataSourceName, nil, nil),
 				),
+			},
+			{
+				Config:   dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
+				PlanOnly: true,
 			},
 			{
 				Config: dataSourcesWithPagination + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user2", "otherpassword", "", "", "", "", "", ""), "localhost:9093", "latest", kafkaNetworkingPublic, false),
@@ -768,6 +773,8 @@ func checkSchemaRegistrySASLInheritAttributes(resourceName, workspaceName, conne
 }
 
 func TestAccStreamRSStreamConnection_kafkaIAM(t *testing.T) {
+	acc.SkipTestForCI(t) // needs AWS IAM role and MSK bootstrap-server configuration
+
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = "kafka-conn-iam"
@@ -796,34 +803,6 @@ func TestAccStreamRSStreamConnection_kafkaIAM(t *testing.T) {
 				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-// TestAccStreamRSStreamConnection_kafkaNoAWSNoDrift is the real-provider regression
-// guard for the typed-null authentication.aws handling (Task 11b): a PLAIN auth
-// config with no aws block must produce an empty follow-up plan and null aws.
-func TestAccStreamRSStreamConnection_kafkaNoAWSNoDrift(t *testing.T) {
-	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		connectionName          = "kafka-conn-no-aws"
-		cfg                     = configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", "", false)
-	)
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             CheckDestroyStreamConnection,
-		Steps: []resource.TestStep{
-			{
-				Config: cfg,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckNoResourceAttr(resourceName, "authentication.aws"),
-				),
-			},
-			{
-				Config:   cfg,
-				PlanOnly: true,
 			},
 		},
 	})

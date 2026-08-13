@@ -1422,29 +1422,6 @@ func TestStreamConnectionKafkaIAMAuth(t *testing.T) {
 // TestStreamConnectionKafkaAuthAWSTypedNull is the regression guard (Task 8b): when
 // no aws block is configured, the authentication.aws attr must be a typed null and
 // never produce diagnostics, across all construction paths.
-func TestStreamConnectionKafkaIAMAuthValidation(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]types.Object{
-		"AWS block requires IAM mechanism": tfKafkaIAMAuthObject(t, "PLAIN", sampleRoleArn),
-		"IAM mechanism requires AWS block": tfAuthenticationObject(t, "AWS_MSK_IAM", authUsername, "raw password"),
-	}
-
-	for name, authentication := range testCases {
-		t.Run(name, func(t *testing.T) {
-			tfModel := &streamconnection.TFStreamConnectionModel{
-				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
-					Type:           types.StringValue("Kafka"),
-					Authentication: authentication,
-				},
-			}
-
-			_, diags := streamconnection.NewStreamConnectionReq(t.Context(), tfModel)
-			require.True(t, diags.HasError())
-		})
-	}
-}
-
 func TestStreamConnectionKafkaAuthAWSTypedNull(t *testing.T) {
 	// Object-type parity guard: ensure "aws" attr exists and maps to AWSObjectType.
 	awsAttrType, ok := streamconnection.ConnectionAuthenticationObjectType.AttrTypes["aws"]

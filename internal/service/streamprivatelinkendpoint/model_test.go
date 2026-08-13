@@ -152,17 +152,16 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 			},
 			projectID: projectID,
 			expectedTFModel: &streamprivatelinkendpoint.TFModel{
-				Id:                            types.StringValue(id),
-				Arn:                           types.StringValue(mskArn),
-				Provider:                      types.StringValue(constant.AWS),
-				Vendor:                        types.StringValue(vendorMSK),
-				Region:                        types.StringValue(region),
-				State:                         types.StringValue(state),
-				AuthenticationScheme:          types.StringValue(authSchemeIAM),
-				EffectiveAuthenticationScheme: types.StringValue(authSchemeIAM),
-				ProjectId:                     types.StringValue(projectID),
-				DnsSubDomain:                  types.ListNull(types.StringType),
-				ServiceAttachmentUris:         types.ListNull(types.StringType),
+				Id:                    types.StringValue(id),
+				Arn:                   types.StringValue(mskArn),
+				Provider:              types.StringValue(constant.AWS),
+				Vendor:                types.StringValue(vendorMSK),
+				Region:                types.StringValue(region),
+				State:                 types.StringValue(state),
+				AuthenticationScheme:  types.StringValue(authSchemeIAM),
+				ProjectId:             types.StringValue(projectID),
+				DnsSubDomain:          types.ListNull(types.StringType),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
 			},
 		},
 		"SDK response with vendor S3": {
@@ -388,7 +387,7 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 				AuthenticationScheme: &authSchemeTLS,
 			},
 		},
-		"TF state with MSK vendor and no authentication scheme defaults to SASL_SCRAM": {
+		"TF state with MSK vendor and no authentication scheme omits authentication scheme": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Id:                    types.StringValue(id),
 				Arn:                   types.StringValue(mskArn),
@@ -397,10 +396,9 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 				ServiceAttachmentUris: types.ListNull(types.StringType),
 			},
 			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
-				Arn:                  &mskArn,
-				Provider:             constant.AWS,
-				Vendor:               &vendorMSK,
-				AuthenticationScheme: admin.PtrString(streamprivatelinkendpoint.AuthenticationSchemeSaslScram),
+				Arn:      &mskArn,
+				Provider: constant.AWS,
+				Vendor:   &vendorMSK,
 			},
 		},
 		"TF state with s3 vendor": {
@@ -621,7 +619,7 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 			expectError: true,
 			errorCount:  1,
 		},
-		"AWS MSK missing authentication_scheme defaults to SASL_SCRAM": {
+		"AWS MSK without authentication_scheme is valid": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Provider: types.StringValue(constant.AWS),
 				Vendor:   types.StringValue(streamprivatelinkendpoint.VendorMSK),

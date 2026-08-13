@@ -39,23 +39,7 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 			Scope:                     authenticationModel.Scope.ValueStringPointer(),
 			SaslOauthbearerExtensions: authenticationModel.SaslOauthbearerExtensions.ValueStringPointer(),
 		}
-		// authentication.aws is a nested block used for AWS_MSK_IAM authentication,
-		// distinct from the top-level aws block used by other connection types.
-		isIAMAuthentication := authenticationModel.Mechanism.ValueString() == "AWS_MSK_IAM"
-		hasAWSAuthentication := !authenticationModel.AWS.IsNull() && !authenticationModel.AWS.IsUnknown()
-		if isIAMAuthentication && !hasAWSAuthentication {
-			return nil, diag.Diagnostics{diag.NewErrorDiagnostic(
-				"authentication.aws is required for AWS_MSK_IAM authentication",
-				"Set authentication.aws.role_arn when authentication.mechanism is AWS_MSK_IAM.",
-			)}
-		}
-		if !isIAMAuthentication && hasAWSAuthentication {
-			return nil, diag.Diagnostics{diag.NewErrorDiagnostic(
-				"authentication.aws is only supported for AWS_MSK_IAM authentication",
-				"Set authentication.mechanism to AWS_MSK_IAM when configuring authentication.aws.",
-			)}
-		}
-		if hasAWSAuthentication {
+		if !authenticationModel.AWS.IsNull() && !authenticationModel.AWS.IsUnknown() {
 			awsModel := &TFAWSModel{}
 			if diags := authenticationModel.AWS.As(ctx, awsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 				return nil, diags
