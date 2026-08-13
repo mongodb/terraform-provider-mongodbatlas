@@ -10,6 +10,8 @@ To use this data source, the requesting Service Account or API Key must have the
 
 ## Example Usage
 
+The following example creates a `mongodbatlas_metric_integration` resource that exports Atlas metrics to an OpenTelemetry-compatible endpoint, then uses this data source to read back a single integration by its metric integration ID and output its integration type.
+
 {{ tffile "examples/mongodbatlas_metric_integration/main.tf" }}
 
 ### Further Examples

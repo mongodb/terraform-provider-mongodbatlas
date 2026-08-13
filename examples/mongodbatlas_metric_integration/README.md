@@ -7,7 +7,7 @@ This example is specific to Datadog. To export to another provider, update `prov
 ## Prerequisites
 
 - MongoDB Atlas Service Account with Organization Owner or Project Owner role.
-- An OTLP-compatible endpoint URL and authentication credentials. This example uses Datadog and creates the Datadog API key with the `datadog` provider.
+- An OTLP-compatible endpoint URL and authentication credentials. This example uses Datadog and creates the Datadog API key with the `datadog` provider. For more information on OTLP providers, see: [MongoDB Atlas - OTel Integration](https://www.mongodb.com/docs/atlas/tutorial/otel-integration/) Documentation.
 
 ## Resources Created
 
@@ -30,7 +30,7 @@ export DD_API_KEY="<DATADOG_API_KEY>"
 export DD_APP_KEY="<DATADOG_APP_KEY>"
 ```
 
-... or follow as in the `variables.tf` file and create a **terraform.tfvars** file with all the variable values:
+Alternatively, follow as in the `variables.tf` file and create a **terraform.tfvars** file with all the variable values:
 
 ```hcl
 atlas_org_id        = "your-org-id"
@@ -51,7 +51,7 @@ terraform plan
 
 **3\. Execute the Terraform apply.**
 
-Now execute the plan to provision the resources.
+Execute the plan to provision the resources.
 
 ```bash
 terraform apply
