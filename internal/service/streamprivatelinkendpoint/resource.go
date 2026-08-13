@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/atlas-sdk-go/admin"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
@@ -58,7 +58,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	projectID := plan.ProjectId.ValueString()
 
-	connV2 := r.Client.AtlasPreview
+	connV2 := r.Client.AtlasV2
 	streamsPrivateLinkConnection, _, err := connV2.StreamsAPI.CreatePrivateLinkConnection(ctx, projectID, streamPrivatelinkEndpointReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
@@ -106,7 +106,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	projectID := state.ProjectId.ValueString()
 	connectionID := state.Id.ValueString()
 
-	connV2 := r.Client.AtlasPreview
+	connV2 := r.Client.AtlasV2
 	streamsPrivateLinkConnection, apiResp, err := connV2.StreamsAPI.GetPrivateLinkConnection(ctx, projectID, connectionID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
@@ -151,7 +151,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		DnsDomain: conversion.StringPtr(plan.DnsDomain.ValueString()),
 	}
 
-	connV2 := r.Client.AtlasPreview
+	connV2 := r.Client.AtlasV2
 	if _, _, err := connV2.StreamsAPI.UpdatePrivateLinkConnection(ctx, projectID, connectionID, updateReq).Execute(); err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
 		return
@@ -187,7 +187,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	projectID := state.ProjectId.ValueString()
 	connectionID := state.Id.ValueString()
 
-	connV2 := r.Client.AtlasPreview
+	connV2 := r.Client.AtlasV2
 	if _, err := connV2.StreamsAPI.DeletePrivateLinkConnection(ctx, projectID, connectionID).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return

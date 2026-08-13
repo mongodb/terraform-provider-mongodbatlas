@@ -10,10 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 )
 
 var _ datasource.DataSource = &streamConnectionsDS{}
@@ -73,7 +73,7 @@ func (d *streamConnectionsDS) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	connV2 := d.Client.AtlasPreview
+	connV2 := d.Client.AtlasV2
 	projectID := streamConnectionsConfig.ProjectID.ValueString()
 	workspaceOrInstanceName := getWorkspaceOrInstanceNameForDS(&streamConnectionsConfig)
 	if workspaceOrInstanceName == "" {
