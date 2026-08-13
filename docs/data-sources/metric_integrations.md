@@ -12,6 +12,8 @@ To use this data source, the requesting Service Account or API Key must have the
 
 ## Example Usage
 
+The following example creates a `mongodbatlas_metric_integration` resource that exports Atlas metrics to an OpenTelemetry-compatible endpoint, then uses this data source to retrieve all metric integrations configured in the project and output their `metric_integration_id` values.
+
 ```terraform
 resource "datadog_api_key" "atlas_metrics" {
   name = "mongodb-atlas-metrics"
