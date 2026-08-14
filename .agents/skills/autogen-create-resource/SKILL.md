@@ -67,7 +67,10 @@ examples, and changelog conventions in `pr-and-documentation-standards`.
      import section, any behavioral notes codegen can't produce), then
      `make generate-doc resource_name=<name>`.
    - **Changelog** — `.changelog/<PR number>.txt`: one `release-note:new-resource`
-     block plus one `release-note:new-datasource` block per data source.
+     block plus one `release-note:new-datasource` block per data source. Predict the
+     number from the latest issue/PR number when reachable, otherwise from the
+     highest existing `.changelog/` entry, and flag it for verification once the PR
+     exists.
 8. **Run summary** — see below.
 
 ## Structured run summary
