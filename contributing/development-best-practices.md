@@ -20,7 +20,7 @@ This document is the single source of truth for Terraform provider development b
 - [State and Lifecycle](#state-and-lifecycle)
   - [Usage of `id`](#usage-of-id)
   - [Resources Deleted Outside Terraform](#resources-deleted-outside-terraform)
-  - [Computed Attribute Defaults: `null` vs `""`](#computed-attribute-defaults-null-vs-)
+  - [Computed Attribute Defaults: `null` vs empty string](#computed-attribute-defaults-null-vs-empty-string)
 - [Avoiding Breaking Changes](#avoiding-breaking-changes)
 - [Diagnostics](#diagnostics)
 - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
@@ -107,7 +107,7 @@ A resource needs to be removed from the state when it has been deleted outside o
 - SDKv2: `d.SetId("")`
 - TPF: `resp.State.RemoveResource(ctx)`
 
-### Computed Attribute Defaults: `null` vs `""`
+### Computed Attribute Defaults: `null` vs empty string
 
 When an attribute has been removed from the API but we want to avoid breaking clients, we must understand the "empty value":
 
