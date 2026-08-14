@@ -96,11 +96,16 @@ wrong:
 
 Then consider:
 
-- **Collection `type`**: decide list vs set from the API's runtime behavior — if the
-  API does not respect or preserve element order, the attribute is set-like and needs
-  `type: set`. Also align the same field across surfaces: the resource, singular data
-  source, and plural data source are generated from *different endpoints*, so a field
-  can come out as List on one and Set on another (see `roles: type: set` under
+- **Collection `type`**: decide list vs set from the array's semantics, per
+  [IPA-124 List vs Set](https://mongodb.github.io/ipa/124#list-vs-set). A list means
+  order is meaningful and elements may repeat: the server returns a stable order and
+  preserves the order the client provided (e.g. `environments`). A set means order is
+  not meaningful and elements are unique: the server may return elements in any order
+  and never returns duplicates (e.g. `roles`) — that needs `type: set`, since codegen
+  defaults arrays to List absent an `x-xgen-array-semantic: set` declaration. Also
+  align the same field across surfaces: the resource, singular data source, and
+  plural data source are generated from *different endpoints*, so a field can come
+  out as List on one and Set on another (see `roles: type: set` under
   `service_account_project_assignment`).
 - **`immutable_computed`** (generates `UseStateForUnknown`; resource schemas only):
   apply to server-generated fields that are stable after creation — IDs,
