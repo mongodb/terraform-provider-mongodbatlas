@@ -92,15 +92,15 @@ wrong:
   ```
 
 - **`sensitive`**: if the field carries a secret (token, password, key, credential,
-  connection string), mark it sensitive. Specs rarely flag this. Nested fields use
-  dotted paths (`headers.value: { sensitive: true }` under `metric_integration`).
+  connection string), mark it sensitive.
 
 Then consider:
 
-- **Collection `type`**: the resource, singular data source, and plural data source
-  are generated from *different endpoints*, so the same field can come out as List on
-  one surface and Set on another (Set requires `uniqueItems: true` in the spec).
-  Align with a `type` override (see `roles: type: set` under
+- **Collection `type`**: decide list vs set from the API's runtime behavior — if the
+  API does not respect or preserve element order, the attribute is set-like and needs
+  `type: set`. Also align the same field across surfaces: the resource, singular data
+  source, and plural data source are generated from *different endpoints*, so a field
+  can come out as List on one and Set on another (see `roles: type: set` under
   `service_account_project_assignment`).
 - **`immutable_computed`** (generates `UseStateForUnknown`; resource schemas only):
   apply to server-generated fields that are stable after creation — IDs,
@@ -127,7 +127,7 @@ spec is fixed, the override should be dropped on the next regeneration.
 
 | Local override | Spec annotation to request | Reference |
 |---|---|---|
-| `type: set` | `x-xgen-array-semantic: set` (also implied by `uniqueItems: true`) | [IPA-131](https://mongodb.github.io/ipa/131) |
+| `type: set` | `x-xgen-array-semantic: set` | [IPA-131](https://mongodb.github.io/ipa/131) |
 | `computability` optional+computed | `x-xgen-server-computed-when-client-omitted: true` (escape hatch for legacy APIs; not allowed on booleans) | [IPA-131](https://mongodb.github.io/ipa/131) |
 | `immutable_computed` | `x-xgen-server-computed-immutable: true` | [IPA-131](https://mongodb.github.io/ipa/131) |
 | `sensitive: true` | `format: password` | [IPA-117](https://mongodb.github.io/ipa/117#sensitive-field-markings) |
