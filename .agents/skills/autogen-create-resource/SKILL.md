@@ -15,9 +15,7 @@ examples, and changelog conventions in `pr-and-documentation-standards`.
 1. **Resource name** — the future `tools/codegen/config.yml` key (strip any
    `mongodbatlas_` prefix; no `_api` suffix, that tier is internal-only).
 2. **Spec source** — default is the prod spec. Otherwise the caller supplies a URL or
-   an already-fetched local file passed as `spec_source`. Do not fetch specs from
-   private repos yourself; for in-flight (mms) APIs the caller provides the fetched
-   spec file.
+   an already-fetched local file passed as `spec_source`.
 3. **Artifact selection** — which complementary artifacts to produce (a dispatch may
    deselect e.g. acceptance tests). Default: all.
 
@@ -75,10 +73,8 @@ examples, and changelog conventions in `pr-and-documentation-standards`.
 
 ## Structured run summary
 
-End every run by producing a summary shaped so a caller can use it directly as the PR
-description body per `.github/PULL_REQUEST_TEMPLATE.md`. Write it to the output file
-path if the caller supplied one; otherwise present it in the session. Inside the
-template's Description section add two subheadings:
+End every run by producing a summary with two sections. Write it to the output file
+path if the caller supplied one; otherwise present it in the session.
 
 - **Reasoning** — the notable judgment calls: override choices and their upstream
   spec reports, aliases/ignores/wait decisions, acceptance-test scenarios covered,
@@ -88,10 +84,8 @@ template's Description section add two subheadings:
   attempt), possible breaking changes, upstream module impact. Omit empty
   categories; state "None identified" if the list is empty.
 
-Never tick the template's Required Checklist — those are personal attestations of the
-engineer completing the draft. When the spec source is not prod, state DO NOT MERGE
-prominently at the top of the summary. Do not create the PR; the caller (CI workflow
-or engineer) owns that.
+When the spec source is not prod, state DO NOT MERGE prominently at the top of the
+summary. Do not create the PR; the caller (CI workflow or engineer) owns that.
 
 ## Error handling
 

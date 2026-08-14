@@ -15,7 +15,7 @@ conventions in `pr-and-documentation-standards`.
 
 1. **Resource name** — the `tools/codegen/config.yml` key.
 2. **Spec source** — default prod; otherwise a URL or already-fetched local file
-   passed as `spec_source` (for in-flight mms APIs the caller provides the file).
+   passed as `spec_source`.
 3. **Artifact selection** — which complementary artifacts to produce. Default: all.
 
 ## Flow
@@ -53,14 +53,13 @@ conventions in `pr-and-documentation-standards`.
      block per affected resource/data source (a field landing on all three surfaces
      means three blocks). The filename must match the PR number — predict it from the
      latest issue/PR number and verify right after the PR exists.
-5. **Run summary** — same contract as `autogen-create-resource`: a summary usable
-   directly as the PR description body per `.github/PULL_REQUEST_TEMPLATE.md`, with
-   **Reasoning** and **Needs human attention** subheadings inside Description
-   (override choices with their upstream spec reports, test scenarios covered,
-   skipped artifacts, possible breaking changes noticed in the diff, upstream module
-   impact, likely `resource_custom_hooks.go` work — flag, never attempt). If the
-   resource starts consuming a new API version, produce no complementary artifacts
-   for it and flag it: surfacing that breaking change needs product and engineering
-   input. Never tick the template's Required Checklist; state DO NOT MERGE
-   prominently when the spec source is not prod; write to the caller-supplied output
-   file when given, otherwise present in the session; never create the PR yourself.
+5. **Run summary** — same contract as `autogen-create-resource`: a structured
+   summary with **Reasoning** and **Needs human attention** sections (override
+   choices with their upstream spec reports, test scenarios covered, skipped
+   artifacts, possible breaking changes noticed in the diff, upstream module impact,
+   likely `resource_custom_hooks.go` work — flag, never attempt). If the resource
+   starts consuming a new API version, produce no complementary artifacts for it and
+   flag it: surfacing that breaking change needs product and engineering input.
+   State DO NOT MERGE prominently when the spec source is not prod; write to the
+   caller-supplied output file when given, otherwise present in the session; never
+   create the PR yourself.
