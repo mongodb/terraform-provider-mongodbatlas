@@ -260,10 +260,19 @@ func NewTFStreamProcessors(ctx context.Context,
 }
 
 func convertPipelineToSdk(pipeline string) ([]any, diag.Diagnostics) {
-	var pipelineSliceOfMaps []any
-	err := json.Unmarshal([]byte(pipeline), &pipelineSliceOfMaps)
-	if err != nil {
+	// Each stage is kept as raw JSON instead of being decoded into map[string]any: Go maps are
+	// unordered and encoding/json sorts their keys on marshal, which would send Atlas a pipeline
+	// whose subdocument fields are alphabetized rather than in the order the practitioner wrote.
+	// MongoDB documents are ordered, so that silently changes the meaning of sort specifications
+	// and of equality comparisons against document literals. json.Marshal emits json.RawMessage
+	// verbatim, including when boxed in []any, so the authored order is preserved end to end.
+	var stages []json.RawMessage
+	if err := json.Unmarshal([]byte(pipeline), &stages); err != nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("failed to unmarshal pipeline", err.Error())}
 	}
-	return pipelineSliceOfMaps, nil
+	rawStages := make([]any, len(stages))
+	for i := range stages {
+		rawStages[i] = stages[i]
+	}
+	return rawStages, nil
 }

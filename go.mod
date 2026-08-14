@@ -22,7 +22,7 @@ require (
 	github.com/jarcoal/httpmock v1.4.2
 	github.com/mongodb-forks/digest v1.1.0
 	// TODO(CLOUDP-433802): pinned to preview SDK (dev-latest branch of mongodb/atlas-sdk-go#813), switch to prod SDK release once Org Log Integrations API is GA
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20260811075414-34bb9c5a2aae
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20260812085251-8093776e0ba0
 	github.com/pb33f/libopenapi v0.38.7
 	github.com/sebdah/goldie/v2 v2.8.0
 	github.com/spf13/cast v1.10.0
@@ -45,7 +45,7 @@ require (
 	github.com/hashicorp/terraform-json v0.28.0
 	github.com/hashicorp/terraform-plugin-framework-jsontypes v0.2.0
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
-	go.mongodb.org/atlas-sdk/v20250312023 v20250312023.0.0
+	go.mongodb.org/atlas-sdk/v20250312023 v20250312023.1.0
 	golang.org/x/oauth2 v0.36.0
 )
 

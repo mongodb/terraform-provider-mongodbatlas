@@ -51,6 +51,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelapikey"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgapikey"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgratelimit"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelratelimit"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orglogintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive"
@@ -337,6 +341,14 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		logintegration.PluralDataSource,
 		privatelinkendpointservicedatafederationonlinearchive.DataSource,
 		privatelinkendpointservicedatafederationonlinearchive.PluralDataSource,
+		aimodelapikey.DataSource,
+		aimodelapikey.PluralDataSource,
+		aimodelorgapikey.DataSource,
+		aimodelorgapikey.PluralDataSource,
+		aimodelorgratelimit.DataSource,
+		aimodelorgratelimit.PluralDataSource,
+		aimodelratelimit.DataSource,
+		aimodelratelimit.PluralDataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
@@ -380,6 +392,8 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		projectserviceaccountsecret.Resource,
 		projectserviceaccountaccesslistentry.Resource,
 		privatelinkendpointservicedatafederationonlinearchive.Resource,
+		aimodelapikey.Resource,
+		aimodelratelimit.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {

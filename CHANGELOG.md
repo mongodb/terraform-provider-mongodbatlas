@@ -1,5 +1,18 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_ai_model_api_key` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_api_keys` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_org_api_key` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_org_api_keys` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_org_rate_limit` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_org_rate_limits` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_rate_limit` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_rate_limits` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Resource:** `resource/mongodbatlas_ai_model_api_key` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Resource:** `resource/mongodbatlas_ai_model_rate_limit` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_stream_connection: Supports `networking` for `AWSLambda` connections. ([#4619](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4619))
@@ -11,6 +24,7 @@ BUG FIXES:
 
 * data-source/mongodbatlas_stream_connection_failover: Marks `authentication.ssl_key` and `authentication.ssl_key_password` as sensitive ([#4617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4617))
 * data-source/mongodbatlas_stream_connection_failovers: Marks `results.authentication.ssl_key` and `results.authentication.ssl_key_password` as sensitive ([#4617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4617))
+* resource/mongodbatlas_stream_processor: Preserves the field order of pipeline stage subdocuments instead of sending them alphabetized. ([#4631](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4631))
 
 ## 2.15.0 (July 29, 2026)
 

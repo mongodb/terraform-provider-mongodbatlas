@@ -59,38 +59,46 @@ resource "mongodbatlas_stream_processor" "stream-processor-sample-example" {
   project_id     = var.project_id
   workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "sampleProcessorName"
-  pipeline = jsonencode([
-    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-sample.connection_name } },
-    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "sample", "coll" : "solar", "timeseries" : { "timeField" : "_ts" } } }
-  ])
-  state = "STARTED"
-  tier  = "SP30"
+  # Authored as a raw JSON string so the field order is preserved exactly. Do not use jsonencode,
+  # which emits object keys in lexicographic order.
+  pipeline = <<-JSON
+    [
+      {"$source": {"connectionName": "${mongodbatlas_stream_connection.example-sample.connection_name}"}},
+      {"$emit": {"connectionName": "${mongodbatlas_stream_connection.example-cluster.connection_name}", "db": "sample", "coll": "solar", "timeseries": {"timeField": "_ts"}}}
+    ]
+  JSON
+  state    = "STARTED"
+  tier     = "SP30"
 }
 
 resource "mongodbatlas_stream_processor" "stream-processor-cluster-to-kafka-example" {
   project_id     = var.project_id
   workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "clusterProcessorName"
-  pipeline = jsonencode([
-    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name } },
-    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_from_cluster" } }
-  ])
-  state = "CREATED"
+  pipeline       = <<-JSON
+    [
+      {"$source": {"connectionName": "${mongodbatlas_stream_connection.example-cluster.connection_name}"}},
+      {"$emit": {"connectionName": "${mongodbatlas_stream_connection.example-kafka.connection_name}", "topic": "topic_from_cluster"}}
+    ]
+  JSON
+  state          = "CREATED"
 }
 
 resource "mongodbatlas_stream_processor" "stream-processor-kafka-to-cluster-example" {
   project_id     = var.project_id
   workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "kafkaProcessorName"
-  pipeline = jsonencode([
-    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_source" } },
-    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "kafka", "coll" : "topic_source", "timeseries" : { "timeField" : "ts" } }
-  }])
-  state = "CREATED"
+  pipeline       = <<-JSON
+    [
+      {"$source": {"connectionName": "${mongodbatlas_stream_connection.example-kafka.connection_name}", "topic": "topic_source"}},
+      {"$emit": {"connectionName": "${mongodbatlas_stream_connection.example-cluster.connection_name}", "db": "kafka", "coll": "topic_source", "timeseries": {"timeField": "ts"}}}
+    ]
+  JSON
+  state          = "CREATED"
   options = {
     dlq = {
       coll            = "exampleColumn"
-      connection_name = resource.mongodbatlas_stream_connection.example-cluster.connection_name
+      connection_name = mongodbatlas_stream_connection.example-cluster.connection_name
       db              = "exampleDb"
     }
   }
@@ -135,7 +143,7 @@ output "stream_processors_results" {
 - `failover_enabled` (Boolean) Indicates whether this stream processor is eligible for failover. When `true`, an operator can trigger a failover event to migrate the stream processor to a secondary region configured in the workspace's `failover_regions`. Requires an Atlas-to-Atlas or Atlas-to-Kafka pipeline with `failover_regions` configured on the workspace.
 - `id` (String) Unique 24-hexadecimal character string that identifies the stream processor.
 - `options` (Attributes) Optional configuration for the stream processor. (see [below for nested schema](#nestedatt--options))
-- `pipeline` (String) Stream aggregation pipeline you want to apply to your streaming data. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation) contain more information. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when setting this attribute. For more details see the [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)
+- `pipeline` (String) Stream aggregation pipeline you want to apply to your streaming data, as a JSON string. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation) contain more information. For more details see the [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/). **Field order matters:** author this as a raw JSON string (heredoc or `file("pipeline.json")`) and do not use [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode), which sorts object keys lexicographically, changing sort precedence, document-literal equality matches, and `$addFields`/`$project` output field order.
 - `state` (String) The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`. When a Stream Processor is created without specifying the state, it will default to `CREATED` state. When a Stream Processor is updated without specifying the state, it will default to the Previous state. 
 
 **NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.
