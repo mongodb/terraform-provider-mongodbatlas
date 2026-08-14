@@ -39,6 +39,9 @@ REPO = "mongodb/terraform-provider-mongodbatlas"
 WORKFLOW = "test-suite.yml"
 CACHE_ROOT = os.path.join(tempfile.gettempdir(), "monthly-test-suite-summary")
 
+# Format coupling: these regexes parse the output format owned by the daily
+# summarize-test-suite skill (.agents/skills/summarize-test-suite/SKILL.md).
+# Reflect any template change there here.
 # The leading emoji is the daily verdict; first occurrence wins.
 VERDICT_RE = re.compile(r":(red|yellow|green)_circle:")
 
