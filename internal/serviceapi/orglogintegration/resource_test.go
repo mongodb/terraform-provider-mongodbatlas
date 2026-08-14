@@ -8,11 +8,28 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-const resourceName = "mongodbatlas_org_log_integration.test"
+const (
+	resourceName         = "mongodbatlas_org_log_integration.test"
+	dataSourceName       = "data.mongodbatlas_org_log_integration.test"
+	pluralDataSourceName = "data.mongodbatlas_org_log_integrations.test"
+	datasourcesConfig    = `
+		data "mongodbatlas_org_log_integration" "test" {
+			org_id         = mongodbatlas_org_log_integration.test.org_id
+			integration_id = mongodbatlas_org_log_integration.test.integration_id
+		}
+
+		data "mongodbatlas_org_log_integrations" "test" {
+			org_id     = mongodbatlas_org_log_integration.test.org_id
+			depends_on = [mongodbatlas_org_log_integration.test]
+		}
+	`
+)
 
 var logTypesEvents = []string{"EVENTS"}
 
@@ -32,15 +49,25 @@ func TestAccOrgLogIntegration_basicOTel(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasicOTel(orgID, endpoint0, headersHCL0),
-				Check:  checkBasicOTel(endpoint0),
+				Config: configBasicOTel(orgID, endpoint0, headersHCL0, true),
+				Check:  checkBasicOTel(endpoint0, true),
+				ConfigStateChecks: []statecheck.StateCheck{
+					acc.PluralResultCheck(
+						pluralDataSourceName,
+						"otel_endpoint",
+						knownvalue.StringExact(endpoint0),
+						map[string]knownvalue.Check{
+							"type": knownvalue.StringExact("OTEL_LOG_EXPORT"),
+						},
+					),
+				},
 			},
 			{
-				Config: configBasicOTel(orgID, endpoint1, headersHCL1),
-				Check:  checkBasicOTel(endpoint1),
+				Config: configBasicOTel(orgID, endpoint1, headersHCL1, false),
+				Check:  checkBasicOTel(endpoint1, false),
 			},
 			{
-				Config:                               configBasicOTel(orgID, endpoint1, headersHCL1),
+				Config:                               configBasicOTel(orgID, endpoint1, headersHCL1, false),
 				ResourceName:                         resourceName,
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportState:                          true,
@@ -52,7 +79,11 @@ func TestAccOrgLogIntegration_basicOTel(t *testing.T) {
 	})
 }
 
-func configBasicOTel(orgID, endpoint, headersHCL string) string {
+func configBasicOTel(orgID, endpoint, headersHCL string, withDS bool) string {
+	dsConfig := ""
+	if withDS {
+		dsConfig = datasourcesConfig
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_org_log_integration" "test" {
 			org_id        = %[1]q
@@ -61,10 +92,12 @@ func configBasicOTel(orgID, endpoint, headersHCL string) string {
 			otel_endpoint = %[2]q
 			%[3]s
 		}
-	`, orgID, endpoint, headersHCL)
+
+		%[4]s
+	`, orgID, endpoint, headersHCL, dsConfig)
 }
 
-func checkBasicOTel(endpoint string) resource.TestCheckFunc {
+func checkBasicOTel(endpoint string, withDS bool) resource.TestCheckFunc {
 	setChecks := []string{"integration_id"}
 	mapChecks := map[string]string{
 		"type":          "OTEL_LOG_EXPORT",
@@ -72,11 +105,15 @@ func checkBasicOTel(endpoint string) resource.TestCheckFunc {
 		"log_types.#":   strconv.Itoa(len(logTypesEvents)),
 		"log_types.0":   logTypesEvents[0],
 	}
+	var dsName *string
+	if withDS {
+		dsName = new(dataSourceName)
+	}
 	headerChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrWith(resourceName, "otel_supplied_headers.#", acc.IntGreatThan(0)),
 	}
 	checks := []resource.TestCheckFunc{
-		acc.CheckRSAndDS(resourceName, nil, nil, setChecks, mapChecks, checkExists(resourceName)),
+		acc.CheckRSAndDS(resourceName, dsName, nil, setChecks, mapChecks, checkExists(resourceName)),
 	}
 	checks = append(checks, headerChecks...)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
