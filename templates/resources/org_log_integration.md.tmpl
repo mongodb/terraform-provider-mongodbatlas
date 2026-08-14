@@ -1,0 +1,28 @@
+---
+subcategory: "Log Integration"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a resource for managing log integration configurations at the organization level. This resource allows you to export organization events to an external service. Currently, OpenTelemetry is the only supported integration type.
+
+To use this resource, the requesting Service Account or API Key must have the Organization Owner role.
+
+## Example Usages
+
+### OpenTelemetry
+
+{{ tffile "examples/mongodbatlas_org_log_integration/main.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import 
+Organization Log Integration resource can be imported using the organization ID and log integration ID, separated by a slash, e.g.
+
+```
+$ terraform import mongodbatlas_org_log_integration.test 650972848269185c55f40ca1/6789abcd1234ef5678901234
+```
+
+~> **NOTE:** After importing a `mongodbatlas_org_log_integration` resource with a configuration that sets non-empty header values, the first `terraform plan` shows a diff on `otel_supplied_headers` because the Atlas API redacts these values in GET responses. The diff is expected and resolves after running `terraform apply` once.
+
+For more information see: [MongoDB Atlas API - Organization Log Integration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-push-based-log-export) Documentation.

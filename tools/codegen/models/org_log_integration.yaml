@@ -1,0 +1,120 @@
+schema:
+    description: Creates a new organization-level log integration configuration identified by a unique ID.
+    attributes:
+        - string: {}
+          description: Unique 24-character hexadecimal digit string that identifies the log integration configuration.
+          computed_optional_required: computed
+          tf_schema_name: integration_id
+          tf_model_name: IntegrationId
+          api_name: id
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - set:
+            element_type: 4
+          description: Array of log types exported by this integration.
+          custom_type:
+            package: customtypes
+            model: customtypes.SetValue[types.String]
+            schema: customtypes.NewSetType[types.String](ctx)
+          computed_optional_required: required
+          tf_schema_name: log_types
+          tf_model_name: LogTypes
+          api_name: logTypes
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+          computed_optional_required: required
+          tf_schema_name: org_id
+          tf_model_name: OrgId
+          api_name: orgId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - string: {}
+          description: OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.
+          computed_optional_required: optional
+          tf_schema_name: otel_endpoint
+          tf_model_name: OtelEndpoint
+          api_name: otelEndpoint
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Header name.
+                      computed_optional_required: required
+                      tf_schema_name: name
+                      tf_model_name: Name
+                      api_name: name
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Header value. Redacted in responses.
+                      computed_optional_required: required
+                      tf_schema_name: value
+                      tf_model_name: Value
+                      api_name: value
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.
+          custom_type:
+            package: customtypes
+            name: OtelSuppliedHeaders
+            model: customtypes.NestedListValue[TFOtelSuppliedHeadersModel]
+            schema: customtypes.NewNestedListType[TFOtelSuppliedHeadersModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: otel_supplied_headers
+          tf_model_name: OtelSuppliedHeaders
+          api_name: otelSuppliedHeaders
+          req_body_usage: all_request_bodies
+          sensitive: true
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.
+          computed_optional_required: required
+          tf_schema_name: type
+          tf_model_name: Type
+          api_name: type
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/orgs/{orgId}/logIntegrations/{integrationId}
+    create:
+        http_method: POST
+        path: /api/atlas/v2/orgs/{orgId}/logIntegrations
+    read:
+        http_method: GET
+        path: /api/atlas/v2/orgs/{orgId}/logIntegrations/{integrationId}
+    update:
+        http_method: PUT
+        path: /api/atlas/v2/orgs/{orgId}/logIntegrations/{integrationId}
+    version_header: application/vnd.atlas.preview+json
+name: org_log_integration
+packageName: orglogintegration
