@@ -73,7 +73,9 @@ Typical shape for a project-scoped resource (see `log_integration` or
   API bug — report it to the owning API team, and alias to the more descriptive name
   (`id: myResourceId`) as a stopgap.
 - Aliases match on the full camelCase API path, so the plural surface may need its own
-  nested entries (e.g. `results.id: integrationId` — see `log_integration`).
+  nested entries (e.g. `results.id: integrationId` — see `log_integration`). When the
+  list results embed the scope field, keep it and alias it
+  (`results.groupId: projectId` — see `ai_model_api_key`) rather than ignoring it.
 
 ### ignores
 
@@ -83,6 +85,12 @@ everywhere — see `commonIgnoredAttributes` in `tools/codegen/codespec/config.g
 Do not re-list them. Ignore matching is exact-path, so the nested `results.links` on
 list data sources still needs an explicit entry, plus any other field that doesn't
 belong in the Terraform schema.
+
+Secrets returned only in the create response (never populated on read or list) should
+be ignored on data sources, where the attribute would always be null
+(`ignores: ["secret", "results.secret"]` with a rationale comment — see
+`service_account_secret` or `ai_model_api_key`). On the resource itself the field
+stays, marked sensitive.
 
 ### wait
 
@@ -129,14 +137,18 @@ Then consider:
   one surface and Set on another (Set requires `uniqueItems: true` in the spec).
   Align with a `type` override (see `roles: type: set` under
   `service_account_project_assignment`).
+- **`immutable_computed`** (generates `UseStateForUnknown`; resource schemas only):
+  apply to server-generated fields that are stable after creation — IDs,
+  `created_at`/`created_by`, masked secret variants — to reduce plan verbosity. On a
+  one-time-returned secret it also preserves the stored value across updates (see
+  `ai_model_api_key`, where `secret` carries it for exactly that reason).
 - **`description`**: each surface inherits wording from its own endpoint schema.
   Use the shared YAML anchors for standard fields (`*project_id_description`);
   otherwise prefer reporting wording inconsistencies upstream over local overrides.
 
 Remaining override fields, one line each — read the struct comments in
 `config_model.go` before using them: `request_body_usage` (when a field must be sent
-or omitted differently on update), `skip_state_list_merge`, `immutable_computed`
-(generates `UseStateForUnknown`; resource schemas only), `plan_modifiers`,
+or omitted differently on update), `skip_state_list_merge`, `plan_modifiers`,
 `validators`, `ignore_validators`. `SchemaOptions.discriminator_types` is a
 documented stopgap for oneOf/anyOf variants.
 
