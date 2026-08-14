@@ -1,10 +1,139 @@
 
 # Development Best Practices
 
+This document is the single source of truth for Terraform provider development best practices in this repository. Agent skills and agent configuration files (e.g. `AGENTS.md`, `CLAUDE.md`) should point to this document instead of duplicating its content.
+
 ## Table of Contents
+- [Framework Choice](#framework-choice)
+- [Schema Design](#schema-design)
+  - [Optional vs Optional+Computed](#optional-vs-optionalcomputed)
+  - [Keeping Computed-Only Fields on Resources](#keeping-computed-only-fields-on-resources)
+  - [`UseStateForUnknown` Plan Modifier](#usestateforunknown-plan-modifier)
+  - [`CreateOnly` Plan Modifier for Non-Updatable Attributes](#createonly-plan-modifier-for-non-updatable-attributes)
+  - [Collections: Sets vs Lists](#collections-sets-vs-lists)
+  - [Validation](#validation)
+  - [SDK Getters](#sdk-getters)
+- [Resource and Data Source Design](#resource-and-data-source-design)
+  - [Pagination in Plural Data Sources](#pagination-in-plural-data-sources)
+  - [Auto-Generated Data Source Schemas](#auto-generated-data-source-schemas)
+  - [Configurable Timeouts](#configurable-timeouts)
+- [State and Lifecycle](#state-and-lifecycle)
+  - [Usage of `id`](#usage-of-id)
+  - [Resources Deleted Outside Terraform](#resources-deleted-outside-terraform)
+  - [Computed Attribute Defaults: `null` vs `""`](#computed-attribute-defaults-null-vs)
+- [Avoiding Breaking Changes](#avoiding-breaking-changes)
+- [Diagnostics](#diagnostics)
 - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
 - [Auto-Generating Resources \& Data Sources (Internal tool)](#auto-generating-resources--data-sources-internal-tool)
   - [Customizing Generated Resources \& Data Sources](#customizing-generated-resources--data-sources)
+
+## Framework Choice
+
+Always use the [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework) (TPF) for new resources and data sources. Never use the legacy SDKv2 for new code.
+
+## Schema Design
+
+### Optional vs Optional+Computed
+
+- Use Optional+Computed for API properties that return a computed or default value when no value is provided in the request. If the API does not return a computed/default value, do not define the attribute as computed: this keeps the config as the source of truth (if the attribute is not present, the value is not set) and gives users awareness, through a non-empty plan, if the value is managed or modified externally.
+- Be aware of the tradeoff: with Optional+Computed, when a user removes an attribute from their config Terraform does not generate a plan diff because it treats the server-side value as authoritative, so removals go undetected and the previous value silently persists. Only use Optional+Computed when the API genuinely returns a server-computed default for a field the user did not set.
+- [IPA-111](https://mongodb.github.io/ipa/111) states that API properties should define a clear owner (client or server), which avoids Optional+Computed attributes altogether: attributes are either Required/Optional (client-owned) or Computed (server-owned).
+- If a nested attribute is Optional+Computed, all its optional child attributes must also be defined as Optional+Computed to avoid infinite non-empty plans.
+
+### Keeping Computed-Only Fields on Resources
+
+- Default: keep all computed-only (server-owned) fields on resources. The autogen tooling supports this by default, and it matches other major provider conventions (AWS, GCP, Azure).
+- Exclusion of attributes should be considered on a case-by-case basis and requires prior team alignment:
+  - `advanced_cluster` is an explicit exception, driven by its specific context.
+  - Effective fields are another exception: per team agreement they are exposed only through data sources to reduce plan verbosity.
+- Where possible, push the upstream team to mark server-owned outputs in the API spec via the `x-xgen-server-computed-immutable` extension ([IPA-131](https://mongodb.github.io/ipa/131/#x-xgen-server-computed-immutable)) instead of relying on manual `immutable_computed` overrides in [`tools/codegen/config.yml`](../tools/codegen/config.yml).
+- If the concern is plan verbosity, it can be reduced with `UseStateForUnknown` (see below), but only for computed values that do not change after creation.
+
+### `UseStateForUnknown` Plan Modifier
+
+As mentioned in the [Terraform documentation](https://developer.hashicorp.com/terraform/plugin/framework/resources/plan-modification#usestateforunknown), this plan modifier reduces the amount of `(known after apply)` messages for computed attributes that will not change their value, showing the value stored in the state instead.
+
+- Use it only for genuinely immutable server-computed values, e.g. `created_at`, where showing `(known after apply)` would be misleading once the value is present in the state after the initial creation.
+- Be cautious with `UseStateForUnknown` on Optional+Computed attributes: it can cause "inconsistent result after apply" errors when the API returns a value that differs from the prior state. If you are not certain the value never changes server-side when not defined by the user, omit it; showing `(known after apply)` during plan is safe.
+
+### `CreateOnly` Plan Modifier for Non-Updatable Attributes
+
+Use `customplanmodifier.CreateOnly()` ([`internal/common/customplanmodifier/create_only.go`](../internal/common/customplanmodifier/create_only.go)) on attributes that can only be set at creation time and cannot be updated. This generates a clear error during plan if a user tries to change the value, instead of silently failing or producing confusing API errors.
+
+### Collections: Sets vs Lists
+
+When a collection is needed, do not default to lists (indexable, ordered, can have repeated elements): sometimes sets (non-indexable, no order expectation, no repeated elements) make more sense. For example, if roles are unordered and cannot be repeated, a set is better than a list. Users can always write `tolist(roles)[0]` if needed, and this way they are explicit about their intentions and know they cannot rely on order.
+
+### Validation
+
+In general, prefer to skip validation in the Terraform provider and keep validation on the server side.
+
+### SDK Getters
+
+In general, prefer SDK getters over direct field access, e.g. `project.GetTags()` (see [PR #2135 discussion](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2135/files#r1560682050)).
+
+## Resource and Data Source Design
+
+- When creating a new resource or data source, consider the design principle of [representing a single API object](https://developer.hashicorp.com/terraform/plugin/best-practices/hashicorp-provider-design-principles#resources-should-represent-a-single-api-object): a new resource should correspond to a single set of create, read, delete, and optionally update methods.
+- For the attribute schema of a resource or data source, consider the design principle of [aligning closely with the underlying API](https://developer.hashicorp.com/terraform/plugin/best-practices/hashicorp-provider-design-principles#resource-and-attribute-schema-should-closely-match-the-underlying-api).
+- As a consequence of the two previous statements, when supporting a new isolated GET operation, favor defining a new data source over expanding an existing resource or data source. This ensures existing resources and data sources do not gain attributes unrelated to the main API object. Example: [`mongodbatlas_control_plane_ip_addresses`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/control_plane_ip_addresses).
+
+### Pagination in Plural Data Sources
+
+Pagination should not be supported in plural data sources (`items_per_page`, `page_num`, `include_count` and `total_count` may be ignored). Instead, the data source Read handler should iterate through all available data. Exceptions may apply if the corresponding Atlas resource could result in a huge number of records; in such cases pagination may be supported to avoid numerous calls to the API.
+
+### Auto-Generated Data Source Schemas
+
+Favor auto-generated singular and plural data source schemas from the resource schema using `DataSourceSchemaFromResource` and `PluralDataSourceSchemaFromResource` ([`internal/common/conversion/schema_generation.go`](../internal/common/conversion/schema_generation.go)).
+
+### Configurable Timeouts
+
+For resources where operations take some time before they transition to a desirable state, expose configurable [timeout arguments](https://developer.hashicorp.com/terraform/plugin/framework/resources/timeouts) (example: [`internal/serviceapi/searchdeploymentapi/resource_schema.go`](../internal/serviceapi/searchdeploymentapi/resource_schema.go)). These must be included if there can be variation in the amount of time an operation takes, such as for the cluster resource where a creation can take 30 seconds or 1 hour depending on the provided `instance_size`. If a resource is consistent in the amount of time needed for an operation, configurable timeouts do not need to be defined given a proper default timeout is in place.
+
+## State and Lifecycle
+
+### Usage of `id`
+
+The `id` concept appears in different usage contexts (see the [resource lifecycle](https://github.com/hashicorp/terraform/blob/main/docs/resource-instance-change-lifecycle.md) for background):
+
+1. **Import ID**: usually a string with `-` separating the id parts, e.g. `{project_id}-{instance_name}` for `mongodbatlas_stream_instance` ([`internal/service/streaminstance/resource_stream_instance.go`](../internal/service/streaminstance/resource_stream_instance.go)).
+2. **Internal resource identification in SDKv2**: [`SetId()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema#ResourceData.SetId) sets the current resource id (we usually use `EncodeStateID` to base64-encode a map of attributes) and [`Id()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema#ResourceData.Id) reads it back (`DecodeStateID` parses the map back, see [`internal/common/conversion/encode_state.go`](../internal/common/conversion/encode_state.go)). Recommendation: do not expose this field to users.
+3. **Attribute `id`**: in TPF it is OK to use `id` as an attribute, e.g. [`stream_connection`](../internal/service/streamconnection/resource_stream_connection.go) and [`stream_instance`](../internal/service/streaminstance/resource_stream_instance.go). In SDKv2, do not use it as an attribute: it is confusing to have both an attribute named `id` and the internal id field, e.g. `d.Id()` reads the internal id while `d.Get("id").(string)` reads the attribute set by the user.
+
+### Resources Deleted Outside Terraform
+
+A resource needs to be removed from the state when it has been deleted outside of Terraform (see [PR #2268](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2268)):
+
+- SDKv2: `d.SetId("")`
+- TPF: `resp.State.RemoveResource(ctx)`
+
+### Computed Attribute Defaults: `null` vs `""`
+
+When an attribute has been removed from the API but we want to avoid breaking clients, we must understand the "empty value":
+
+1. The attribute has been set to `""` (empty string), usually the case if we use the auto-generated SDK with `GetXXX()` getters. In this case, we must explicitly set it to `""` in the provider to avoid changes to the state:
+   - SDKv2: `d.Set("attr", "")` ([example for `err_msg`](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2255/commits/5d2ce594aa91e730063ff18b4f7fac9ce0065ca1))
+   - TPF: set `Attr: ""` when creating the model from the API payload
+2. The attribute does not exist in the state, aka `null`. No need to set anything in the state, both SDKv2 and TPF will use `null` as the default.
+
+## Avoiding Breaking Changes
+
+Any change to a resource or data source must be **backward-compatible by default**. Treat the following as breaking unless the intent is explicitly documented and acknowledged:
+
+- **Schema changes**: renaming, removing, or changing the type of an existing attribute; converting between Optional, Required, and Computed; tightening or removing valid values from a validation.
+- **State representation**: altering how a value is stored in or read from state (e.g. changing casing, encoding, flattening/nesting structure). Even if the API value is the same, a different state representation triggers unexpected diffs or "inconsistent result after apply" errors.
+- **Default value changes**: adding, removing, or modifying a `Default` or plan modifier that changes what gets written to state when the user omits a field.
+- **Import behavior**: changing the format of the import ID or what is read during import.
+
+When a breaking change is genuinely required (e.g. aligning with an API deprecation), call it out explicitly in the PR description.
+
+## Diagnostics
+
+Per the [HashiCorp diagnostics guidance](https://developer.hashicorp.com/terraform/plugin/framework/diagnostics):
+
+- `Summary` should be a real sentence, static, and unique within the resource. Unique and static makes it easy to debug by searching for the text and going directly to the code line.
+- `Detail` can be more sentences with parameters. Tell the practitioner exactly what they need to fix and how.
+- Use `Warning` to inform practitioners about suboptimal situations they should resolve to ensure stable functioning (e.g. deprecations), or to inform them about possible unexpected behaviors.
 
 ## Scaffolding Initial Code and File Structure
 
