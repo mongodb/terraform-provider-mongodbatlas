@@ -23,10 +23,55 @@ to the relevant specialized skill where one exists.
 ## 2. Check schema consistency and apply overrides before regenerating
 
 The generated schema reflects the spec verbatim, but the spec often does not capture
-how an attribute should behave in Terraform. Before regenerating, review whether the
-new field needs a config override — `computability` and `sensitive` first, then
-collection `type` and descriptions — and pair any override with the corresponding
-upstream spec report. Follow the `autogen-config` skill for all of this judgment.
+how an attribute should behave in Terraform. Before regenerating, **review the full set
+of available overrides** — the `Override` struct in
+`tools/codegen/config/config_model.go` is the source of truth, and
+`tools/codegen/config.yml` has real examples of each — and decide which apply to the new
+field. Overrides go under `schema.overrides` for the resource and
+`datasources.schema.overrides` for data sources.
+
+Always evaluate these two first, since they are the easiest to miss and the most
+impactful when wrong:
+
+- **`computability` → optional + computed**: if the API returns a default value when the
+  attribute is omitted, mark it optional + computed so an absent config value does not
+  produce a perpetual non-empty plan. This is exactly the override the "omitting the
+  value" acceptance test in step 4 verifies.
+
+  ```yaml
+  resources:
+    <resource_name>:
+      schema:
+        overrides:
+          <attr>:
+            computability:
+              optional: true
+              computed: true
+  ```
+
+- **`sensitive`**: if the field carries a secret (token, password, key, connection
+  string), mark it sensitive. The spec rarely flags this, so it is easy to leak into
+  plan output and state diffs if not set explicitly.
+
+Other overrides to consider for the specific field:
+
+- **Collection type (`type`)**: if the field exists on another surface as a Set but the
+  new schema lacks `uniqueItems: true`, codegen emits a List. Align with a type override:
+
+  ```yaml
+  resources:
+    <resource_name>:
+      datasources:
+        schema:
+          overrides:
+            roles:
+              type: set # Align with the roles attribute in the resource
+  ```
+
+- **Descriptions**: each surface inherits wording from its own endpoint schema, so the
+  same field can carry different descriptions. Prefer reporting wording inconsistencies
+  (and missing `uniqueItems`) to the owning API team over papering them with local
+  description overrides — the provider then picks up the fix on a future regen.
 
 ## 3. Regenerate
 
@@ -49,9 +94,15 @@ that gained it: resource and singular data source checks for top-level attribute
 and the plural `results` checks where the field appears per result. Follow the
 `acceptance-test-patterns` skill for conventions.
 
-For a new *optional* attribute on a resource, also cover the configuration lifecycle
-(omitting the value, and unsetting it after it was set) per the "Optional Attribute
-Lifecycle Coverage" section of `acceptance-test-patterns`.
+For a new *optional* attribute on a resource, also cover the configuration
+lifecycle, not just the happy path with a value set:
+
+- **Omitting the value**: a config that never sets the attribute must apply cleanly
+  and produce no non-empty plan afterwards (catches unexpected API defaults that
+  require `computed` or a computability override).
+- **Unsetting the value**: an update step that removes the attribute from a config
+  that previously set it — verify the intended behavior (value cleared vs. kept by
+  the API) and that the plan converges.
 
 ## 5. Docs and changelog
 

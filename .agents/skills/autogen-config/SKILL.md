@@ -23,45 +23,10 @@ resource's path segment and map:
   internal-only resources that are never registered in the provider. A user-facing
   `mongodbatlas_<name>` resource uses the plain name (e.g. `metric_integration`).
 
-Typical shape for a project-scoped resource (see `log_integration` or
-`metric_integration` in config.yml for real entries):
-
-```yaml
-  my_resource:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/myResources/{myResourceId}
-      method: GET
-    create:
-      path: /api/atlas/v2/groups/{groupId}/myResources
-      method: POST
-    update:
-      path: /api/atlas/v2/groups/{groupId}/myResources/{myResourceId}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/groups/{groupId}/myResources/{myResourceId}
-      method: DELETE
-    version_header: application/vnd.atlas.2025-01-01+json
-    schema:
-      aliases:
-        groupId: projectId
-      overrides:
-        project_id:
-          description: *project_id_description
-    datasources:
-      read:
-        path: /api/atlas/v2/groups/{groupId}/myResources/{myResourceId}
-        method: GET
-      list:
-        path: /api/atlas/v2/groups/{groupId}/myResources
-        method: GET
-      schema:
-        ignores: ["results.links"]
-        aliases:
-          groupId: projectId
-        overrides:
-          project_id:
-            description: *project_id_description
-```
+For the typical shape of a project-scoped entry — CRUD operations plus a
+`datasources` block with its own `read`/`list` and schema options — read a real
+entry such as `log_integration` or `metric_integration` in config.yml rather than
+working from a template.
 
 ### aliases
 
