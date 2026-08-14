@@ -20,7 +20,7 @@ This document is the single source of truth for Terraform provider development b
 - [State and Lifecycle](#state-and-lifecycle)
   - [Usage of `id`](#usage-of-id)
   - [Resources Deleted Outside Terraform](#resources-deleted-outside-terraform)
-  - [Computed Attribute Defaults: `null` vs `""`](#computed-attribute-defaults-null-vs)
+  - [Computed Attribute Defaults: `null` vs `""`](#computed-attribute-defaults-null-vs-)
 - [Avoiding Breaking Changes](#avoiding-breaking-changes)
 - [Diagnostics](#diagnostics)
 - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
