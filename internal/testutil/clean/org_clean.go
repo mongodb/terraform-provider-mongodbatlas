@@ -26,18 +26,12 @@ func SkipUnauthorizedErr(resp *http.Response, err error) error {
 	return err
 }
 
-// PendingOrgUser is a PENDING org membership that RemovePendingOrgUsers considers stale.
 type PendingOrgUser struct {
 	InvitedAt time.Time
 	ID        string
 	Username  string
 }
 
-// ListStalePendingOrgUsers returns PENDING org memberships whose username matches one of the
-// prefixes and whose invitation predates invitedBefore. Acceptance tests that assign a not-yet
-// existing username to a project or team leave the org membership behind on destroy, and those
-// pile up until the org hits MAX_USERS_PER_ORG_EXCEEDED. Both guards matter: the status filter
-// keeps active members out, and the prefix keeps a real person's open invitation out.
 func ListStalePendingOrgUsers(ctx context.Context, client *admin.APIClient, orgID string, prefixes []string, invitedBefore time.Time) ([]PendingOrgUser, error) {
 	users, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.OrgUserResponse], *http.Response, error) {
 		return client.MongoDBCloudUsersAPI.ListOrgUsers(ctx, orgID).
@@ -49,31 +43,24 @@ func ListStalePendingOrgUsers(ctx context.Context, client *admin.APIClient, orgI
 	stale := []PendingOrgUser{}
 	for i := range users {
 		user := &users[i]
-		if !hasAnyPrefix(user.Username, prefixes) {
+		if !hasAnyPrefix(user.GetUsername(), prefixes) {
 			continue
 		}
-		// A membership without invitationCreatedAt has no age to judge, treat it as stale.
 		if invitedAt := user.GetInvitationCreatedAt(); !invitedAt.IsZero() && invitedAt.After(invitedBefore) {
 			continue
 		}
-		stale = append(stale, PendingOrgUser{ID: user.GetId(), Username: user.Username, InvitedAt: user.GetInvitationCreatedAt()})
+		stale = append(stale, PendingOrgUser{ID: user.GetId(), Username: user.GetUsername(), InvitedAt: user.GetInvitationCreatedAt()})
 	}
 	return stale, nil
 }
 
-// RemovePendingOrgUsers deletes the stale PENDING org memberships found by ListStalePendingOrgUsers
-// and returns how many were removed.
-func RemovePendingOrgUsers(ctx context.Context, dryRun bool, client *admin.APIClient, orgID string, prefixes []string, invitedBefore time.Time) (int, error) {
-	stale, err := ListStalePendingOrgUsers(ctx, client, orgID, prefixes, invitedBefore)
-	if err != nil {
-		return 0, err
-	}
+func RemovePendingOrgUsers(ctx context.Context, dryRun bool, client *admin.APIClient, orgID string, users []PendingOrgUser) (int, error) {
 	if dryRun {
-		return len(stale), nil
+		return len(users), nil
 	}
 	removed := 0
-	for i := range stale {
-		if _, err := client.MongoDBCloudUsersAPI.RemoveOrgUser(ctx, orgID, stale[i].ID).Execute(); err != nil {
+	for i := range users {
+		if _, err := client.MongoDBCloudUsersAPI.RemoveOrgUser(ctx, orgID, users[i].ID).Execute(); err != nil {
 			return removed, err
 		}
 		removed++
