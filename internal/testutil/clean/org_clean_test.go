@@ -25,6 +25,9 @@ import (
 const (
 	itemsPerPage                   = 100
 	keepProjectsCreatedWithinHours = 5
+	// Pending org memberships are created by tests still running in the same Test Suite workflow,
+	// give them time to finish before revoking the invitation.
+	keepPendingUsersInvitedWithinHours = 5
 	// Resource cleanup for a project can be slow, especially when there are active clusters, that can take more than 10 minutes to delete
 	// Once 5 minutes are passed, we give up deleting and hope for the project to be deleted within the next run
 	retryInterval = 60 * time.Second
@@ -37,6 +40,11 @@ var (
 		"ct-",  // CFN contract tests
 		"test-acc-tf-p-",
 		"atlas-examples-e2e-", // terraform-mongodbatlas-modules/atlas-examples e2e tests
+	}
+	// pendingUserPrefixes has the username prefixes of the pending org memberships created by tests,
+	// see acc.RandomEmail. Deliberately narrow so a real person's open invitation is never revoked.
+	pendingUserPrefixes = []string{
+		"test-acc-tf-",
 	}
 	// keptPrefixes has the prefix of the projects that we want to delete their resources but keep the projects themselves.
 	// Useful when a feature flag or cloud provider is configured outside of the test
@@ -68,6 +76,35 @@ func TestSingleProjectRemoval(t *testing.T) {
 	if !dryRun {
 		require.NoError(t, deleteProject(t.Context(), client, projectToClean))
 	}
+}
+
+// TestCleanOrgPendingUsers removes PENDING org memberships left behind by cloud user tests, they
+// count towards the org user limit and eventually fail tests with MAX_USERS_PER_ORG_EXCEEDED.
+func TestCleanOrgPendingUsers(t *testing.T) {
+	cleanOrg, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_CLEAN_ORG"))
+	if !cleanOrg {
+		t.Skip("skipping test; set MONGODB_ATLAS_CLEAN_ORG=true to run")
+	}
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	require.NotEmpty(t, orgID, "MONGODB_ATLAS_ORG_ID must be set")
+	client := acc.ConnV2()
+	dryRun, _ := strconv.ParseBool(os.Getenv("DRY_RUN"))
+	invitedBefore := time.Now().Add(-keepPendingUsersInvitedWithinHours * time.Hour)
+	if skipGracePeriod, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_CLEAN_SKIP_GRACE_PERIOD")); skipGracePeriod {
+		invitedBefore = time.Now()
+	}
+	stale, err := clean.ListStalePendingOrgUsers(t.Context(), client, orgID, pendingUserPrefixes, invitedBefore)
+	require.NoError(t, err)
+	userInfos := []string{}
+	for i := range stale {
+		userInfos = append(userInfos, fmt.Sprintf("Pending user invited at %s %s (%s)", stale[i].InvitedAt.Format(time.RFC3339), stale[i].Username, stale[i].ID))
+	}
+	slices.Sort(userInfos)
+	t.Logf("found %d stale pending users invited before %s (DRY_RUN=%t)\n%s",
+		len(stale), invitedBefore.Format(time.RFC3339), dryRun, strings.Join(userInfos, "\n"))
+	removed, err := clean.RemovePendingOrgUsers(t.Context(), dryRun, client, orgID, pendingUserPrefixes, invitedBefore)
+	t.Logf("SUMMARY\npending users removed=%d\nDRY_RUN=%t", removed, dryRun)
+	require.NoError(t, err)
 }
 
 // Using a test to simplify logging and parallelization
