@@ -1,53 +1,6 @@
 operations:
     version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
-    singular:
-        description: Returns one database that exists in the specified snapshot. Use this to confirm a known database exists before referencing it in a collection restore job.
-        attributes:
-            - string: {}
-              description: Human-readable label that identifies the cluster.
-              computed_optional_required: required
-              tf_schema_name: cluster_name
-              tf_model_name: ClusterName
-              api_name: clusterName
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
-              description: Human-readable label that identifies the database.
-              computed_optional_required: required
-              tf_schema_name: database_name
-              tf_model_name: DatabaseName
-              api_name: databaseName
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
-              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
-              computed_optional_required: required
-              tf_schema_name: project_id
-              tf_model_name: ProjectId
-              api_name: groupId
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
-              description: Unique 24-hexadecimal digit string that identifies the desired snapshot.
-              computed_optional_required: required
-              tf_schema_name: snapshot_id
-              tf_model_name: SnapshotId
-              api_name: snapshotId
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
     plural:
         description: Returns the list of databases that exist in the specified snapshot. Use this to discover namespaces before creating a collection restore job.
         attributes:
@@ -114,12 +67,9 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
     operations:
-        read:
-            http_method: GET
-            path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}
         list:
             http_method: GET
             path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases
         version_header: application/vnd.atlas.2025-03-12+json
-name: cloud_backup_snapshot_databases
-packageName: cloudbackupsnapshotdatabases
+name: cloud_backup_snapshot_database
+packageName: cloudbackupsnapshotdatabase

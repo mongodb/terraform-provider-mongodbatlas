@@ -1768,40 +1768,31 @@ resources:
             description: *project_id_description
 
   # Snapshot namespace discovery for collection restore. PIT has no snapshot id; these DS are snapshot-only.
-  cloud_backup_snapshot_databases:
+  # List-only: singular GET body is just `name`, a duplicate of the path param.
+  cloud_backup_snapshot_database:
     version_header: application/vnd.atlas.2025-03-12+json
     datasources:
-      read:
-        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}
-        method: GET
       list:
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases
         method: GET
       schema:
         aliases:
           groupId: projectId
-        ignores:
-          - results.links
-          - name # Body echo of path database_name; plural still exposes results.name.
+        ignores: [results.links]
         overrides:
           project_id:
             description: *project_id_description
 
-  cloud_backup_snapshot_database_collections:
+  cloud_backup_snapshot_database_collection:
     version_header: application/vnd.atlas.2025-03-12+json
     datasources:
-      read:
-        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}/collections/{collectionName}
-        method: GET
       list:
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}/collections
         method: GET
       schema:
         aliases:
           groupId: projectId
-        ignores:
-          - results.links
-          - name # Body echo of path collection_name; plural still exposes results.name.
+        ignores: [results.links]
         overrides:
           project_id:
             description: *project_id_description
