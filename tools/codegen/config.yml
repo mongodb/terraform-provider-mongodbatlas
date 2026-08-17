@@ -1668,3 +1668,140 @@ resources:
         overrides:
           project_id:
             description: *project_id_description
+
+  # Collection-level restore (GA 2025-03-12). Jobs are immutable and have no public DELETE/cancel.
+  cloud_backup_collection_restore_job:
+    read: &cloud-backup-collection-restore-job-read
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs
+      method: POST
+      wait: &collection-restore-create-wait
+        state_property: state
+        pending_states: [INITIALIZING, IN_PROGRESS, FINALIZING]
+        target_states: [SUCCESSFUL]
+        timeout_seconds: 10800 # 3 hours
+        min_timeout_seconds: 60
+        delay_seconds: 30
+    version_header: application/vnd.atlas.2025-03-12+json
+    id_attributes: [project_id, cluster_name, job_id]
+    schema:
+      aliases:
+        groupId: projectId
+        id: jobId
+        targetGroupId: targetProjectId
+      overrides:
+        project_id:
+          description: *project_id_description
+        target_project_id:
+          description: *project_id_description
+        job_id:
+          immutable_computed: true # Reduces plan verbosity.
+        created_at:
+          immutable_computed: true # Reduces plan verbosity.
+        collection_suffix:
+          # Atlas returns "" when the suffix is omitted.
+          computability:
+            optional: true
+            computed: true
+        database_suffix:
+          # Atlas returns "" when the suffix is omitted.
+          computability:
+            optional: true
+            computed: true
+        collections:
+          # Atlas returns [] when the list is omitted.
+          computability:
+            optional: true
+            computed: true
+        databases:
+          # Atlas returns [] when the list is omitted.
+          computability:
+            optional: true
+            computed: true
+        collections.target_namespace:
+          # Nested optional child of optional+computed list; Atlas echoes "" when unused.
+          computability:
+            optional: true
+            computed: true
+        databases.target_namespace:
+          # Nested optional child of optional+computed list; Atlas echoes "" when unused.
+          computability:
+            optional: true
+            computed: true
+    datasources:
+      read: *cloud-backup-collection-restore-job-read
+      list:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+          id: jobId
+          targetGroupId: targetProjectId
+          results.id: jobId
+          results.targetGroupId: targetProjectId
+        ignores: [results.links]
+        overrides:
+          project_id:
+            description: *project_id_description
+          target_project_id:
+            description: *project_id_description
+
+  cloud_backup_collection_restore_job_collections:
+    version_header: application/vnd.atlas.2025-03-12+json
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}/collections/{sourceNamespace}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}/collections
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+          id: jobId
+        ignores: [results.links]
+        overrides:
+          project_id:
+            description: *project_id_description
+
+  # Snapshot namespace discovery for collection restore. PIT has no snapshot id; these DS are snapshot-only.
+  cloud_backup_snapshot_databases:
+    version_header: application/vnd.atlas.2025-03-12+json
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+        ignores:
+          - results.links
+          - name # Body echo of path database_name; plural still exposes results.name.
+        overrides:
+          project_id:
+            description: *project_id_description
+
+  cloud_backup_snapshot_database_collections:
+    version_header: application/vnd.atlas.2025-03-12+json
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}/collections/{collectionName}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}/collections
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+        ignores:
+          - results.links
+          - name # Body echo of path collection_name; plural still exposes results.name.
+        overrides:
+          project_id:
+            description: *project_id_description
