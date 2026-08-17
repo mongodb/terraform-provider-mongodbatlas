@@ -4,6 +4,7 @@
 This document is the single source of truth for Terraform provider development best practices in this repository. Agent skills and agent configuration files (e.g. `AGENTS.md`, `CLAUDE.md`) should point to this document instead of duplicating its content.
 
 ## Table of Contents
+- [New Development: Autogen First](#new-development-autogen-first)
 - [Framework Choice](#framework-choice)
 - [Schema Design](#schema-design)
   - [Optional vs Optional+Computed](#optional-vs-optionalcomputed)
@@ -26,6 +27,10 @@ This document is the single source of truth for Terraform provider development b
 - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
 - [Auto-Generating Resources \& Data Sources (Internal tool)](#auto-generating-resources--data-sources-internal-tool)
   - [Customizing Generated Resources \& Data Sources](#customizing-generated-resources--data-sources)
+
+## New Development: Autogen First
+
+For new resources and data sources, favour the [autogeneration tooling](#auto-generating-resources--data-sources-internal-tool) over manual implementations. Manual development (starting from `make scaffold`) is the exception, used when the API spec or desired behavior cannot be expressed through the codegen configuration options or custom hooks.
 
 ## Framework Choice
 

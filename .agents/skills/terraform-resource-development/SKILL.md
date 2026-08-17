@@ -6,3 +6,5 @@ description: Best practices for developing Terraform resources and data sources 
 # Terraform Resource Development Best Practices
 
 The single source of truth for resource and data source development best practices is [contributing/development-best-practices.md](../../../contributing/development-best-practices.md). Read it before creating or modifying resources, data sources, schema definitions, CRUD operations, or state handling, and follow its guidance.
+
+For new development, favour the autogeneration tooling over manual implementations, as described in the doc.
