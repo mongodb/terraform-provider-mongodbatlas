@@ -125,6 +125,56 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "ds-custom-types-attributes",
 		},
+		// Nested list of JSON with no sibling scalar jsontypes.NormalizedType (failed_indexes
+		// on mongodbatlas_cloud_backup_collection_restore_job_collection).
+		"JSON collection element types": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				DataSources: &codespec.DataSources{
+					Singular: &codespec.Schema{
+						Attributes: codespec.Attributes{
+							{
+								TFSchemaName:             "cluster_name",
+								TFModelName:              "ClusterName",
+								String:                   &codespec.StringAttribute{},
+								Description:              new("cluster name"),
+								ComputedOptionalRequired: codespec.Required,
+							},
+							{
+								TFSchemaName:             "index_status",
+								TFModelName:              "IndexStatus",
+								Description:              new("index build status"),
+								ComputedOptionalRequired: codespec.Computed,
+								CustomType:               codespec.NewCustomObjectType("IndexStatus"),
+								SingleNested: &codespec.SingleNestedAttribute{
+									NestedObject: codespec.NestedAttributeObject{
+										Attributes: []codespec.Attribute{
+											{
+												TFSchemaName:             "failed_indexes",
+												TFModelName:              "FailedIndexes",
+												Description:              new("list of index specifications that failed to build"),
+												ComputedOptionalRequired: codespec.Computed,
+												CustomType:               codespec.NewCustomListType(codespec.CustomTypeJSON),
+												List:                     &codespec.ListAttribute{ElementType: codespec.CustomTypeJSON},
+											},
+											{
+												TFSchemaName:             "state",
+												TFModelName:              "State",
+												String:                   &codespec.StringAttribute{},
+												Description:              new("index build state"),
+												ComputedOptionalRequired: codespec.Computed,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			goldenFileName: "ds-json-collection-element-types",
+		},
 		"Deprecation message": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
