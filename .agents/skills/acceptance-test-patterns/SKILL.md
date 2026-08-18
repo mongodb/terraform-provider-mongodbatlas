@@ -17,17 +17,10 @@ Before adding a test, verify no existing test already covers the same configurat
 
 ## Optional Attribute Lifecycle Coverage
 
-For an optional attribute on a resource, cover the configuration lifecycle, not just
-the happy path with a value set:
+For an optional attribute on a resource, cover the configuration lifecycle, not just the happy path with a value set:
 
-- **Omitting the value**: a config that never sets the attribute must apply cleanly
-  and produce no non-empty plan afterwards. This catches attributes where the API
-  returns a default for an omitted value, which requires marking the attribute
-  computed (for autogen resources, a `computability` override — see the
-  `autogen-config` skill).
-- **Unsetting the value**: an update step that removes the attribute from a config
-  that previously set it — verify the intended behavior (value cleared vs. kept by
-  the API) and that the plan converges.
+- **Omitting the value**: a config that never sets the attribute must apply cleanly and produce an empty plan afterwards. This catches attributes where the API returns a default for an omitted value, which requires marking the attribute computed (for autogen resources, a `computability` override — see the `autogen-config` skill).
+- **Unsetting the value**: an update step that removes the attribute from a config that previously set it — verify the intended behavior (value cleared vs. kept by the API) and that the plan converges.
 
 ## CheckExists / CheckDestroy for Autogen Resources
 
