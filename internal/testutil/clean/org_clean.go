@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strings"
+	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
@@ -21,6 +24,57 @@ func SkipUnauthorizedErr(resp *http.Response, err error) error {
 		return ErrUnauthorized
 	}
 	return err
+}
+
+type PendingOrgUser struct {
+	InvitedAt time.Time
+	ID        string
+	Username  string
+}
+
+func ListStalePendingOrgUsers(ctx context.Context, client *admin.APIClient, orgID string, prefixes []string, invitedBefore time.Time) ([]PendingOrgUser, error) {
+	users, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.OrgUserResponse], *http.Response, error) {
+		return client.MongoDBCloudUsersAPI.ListOrgUsers(ctx, orgID).
+			OrgMembershipStatus("PENDING").ItemsPerPage(500).PageNum(pageNum).IncludeCount(true).Execute()
+	})
+	if err != nil {
+		return nil, err
+	}
+	stale := []PendingOrgUser{}
+	for i := range users {
+		user := &users[i]
+		if !hasAnyPrefix(user.GetUsername(), prefixes) {
+			continue
+		}
+		if invitedAt := user.GetInvitationCreatedAt(); !invitedAt.IsZero() && invitedAt.After(invitedBefore) {
+			continue
+		}
+		stale = append(stale, PendingOrgUser{ID: user.GetId(), Username: user.GetUsername(), InvitedAt: user.GetInvitationCreatedAt()})
+	}
+	return stale, nil
+}
+
+func RemovePendingOrgUsers(ctx context.Context, dryRun bool, client *admin.APIClient, orgID string, users []PendingOrgUser) (int, error) {
+	if dryRun {
+		return len(users), nil
+	}
+	removed := 0
+	for i := range users {
+		if _, err := client.MongoDBCloudUsersAPI.RemoveOrgUser(ctx, orgID, users[i].ID).Execute(); err != nil {
+			return removed, err
+		}
+		removed++
+	}
+	return removed, nil
+}
+
+func hasAnyPrefix(name string, prefixes []string) bool {
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(name, prefix) {
+			return true
+		}
+	}
+	return false
 }
 
 // RemoveStreamInstances deletes all stream instances in the project.
