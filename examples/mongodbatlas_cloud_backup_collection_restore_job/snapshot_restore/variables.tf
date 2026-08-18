@@ -9,15 +9,8 @@ variable "cluster_name" {
 }
 
 variable "snapshot_id" {
-  description = "Snapshot ID to restore from. Defaults to the latest completed snapshot when unset."
+  description = "Snapshot ID to restore from"
   type        = string
-  default     = null
-}
-
-variable "discovery_database_names" {
-  description = "Database names to list collections from during snapshot discovery. Leave empty to list only databases."
-  type        = list(string)
-  default     = []
 }
 
 variable "restore_databases" {

@@ -22,12 +22,14 @@ Atlas product limits apply. See [Restore from Selected Databases and Collections
 
 ## Example Usage
 
-The following example restores selected databases and collections from a snapshot into the same cluster, using snapshot namespace discovery data sources and reading back job and per-collection state.
+The following example restores selected databases and collections from a snapshot into the same cluster, then reads back job and per-collection state.
 
-{{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/main.tf" }}
+{{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_restore/main.tf" }}
 
 ### Further Examples
-- [Collection Restore Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job)
+- [Snapshot restore](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_restore)
+- [Point-in-time restore](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/pit_restore)
+- [Snapshot discovery](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_discovery)
 
 {{ .SchemaMarkdown | trimspace }}
 
@@ -36,7 +38,7 @@ The following example restores selected databases and collections from a snapsho
 Collection restore job resource can be imported using the source project ID, source cluster name, and job ID, separated by slashes, for example:
 
 ```
-$ terraform import mongodbatlas_cloud_backup_collection_restore_job.example 650972848269185c55f40ca1/MyCluster/6789abcd1234ef5678901234
+$ terraform import mongodbatlas_cloud_backup_collection_restore_job.this 650972848269185c55f40ca1/MyCluster/6789abcd1234ef5678901234
 ```
 
 Import hydrates the current GET state. It does not wait for a running job to finish.

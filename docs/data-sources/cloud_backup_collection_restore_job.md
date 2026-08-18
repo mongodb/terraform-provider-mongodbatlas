@@ -13,49 +13,16 @@ To use this data source, the requesting Service Account or API Key must have the
 The following example creates a collection restore job, then uses this data source to read the job by `job_id`.
 
 ```terraform
+# Default destination is the source cluster when target_project_id and target_cluster_name are unset.
 locals {
   target_project_id   = coalesce(var.target_project_id, var.project_id)
   target_cluster_name = coalesce(var.target_cluster_name, var.cluster_name)
-
-  completed_snapshots = [
-    for snapshot in data.mongodbatlas_cloud_backup_snapshots.source.results :
-    snapshot if snapshot.status == "completed"
-  ]
-  latest_snapshot_created_at = length(local.completed_snapshots) > 0 ? max([
-    for snapshot in local.completed_snapshots : snapshot.created_at
-  ]) : null
-  latest_snapshot_id = length(local.completed_snapshots) > 0 ? one([
-    for snapshot in local.completed_snapshots :
-    snapshot.id if snapshot.created_at == local.latest_snapshot_created_at
-  ]) : null
-  snapshot_id = coalesce(var.snapshot_id, local.latest_snapshot_id)
 }
 
-data "mongodbatlas_cloud_backup_snapshots" "source" {
-  project_id     = var.project_id
-  cluster_name   = var.cluster_name
-  items_per_page = 100
-}
-
-data "mongodbatlas_cloud_backup_snapshot_databases" "source" {
-  project_id   = var.project_id
-  cluster_name = var.cluster_name
-  snapshot_id  = local.snapshot_id
-}
-
-data "mongodbatlas_cloud_backup_snapshot_database_collections" "source" {
-  for_each = toset(var.discovery_database_names)
-
-  project_id    = var.project_id
-  cluster_name  = var.cluster_name
-  snapshot_id   = local.snapshot_id
-  database_name = each.value
-}
-
-resource "mongodbatlas_cloud_backup_collection_restore_job" "example" {
+resource "mongodbatlas_cloud_backup_collection_restore_job" "this" {
   project_id          = var.project_id
   cluster_name        = var.cluster_name
-  snapshot_id         = local.snapshot_id
+  snapshot_id         = var.snapshot_id
   target_project_id   = local.target_project_id
   target_cluster_name = local.target_cluster_name
   write_strategy      = var.write_strategy
@@ -74,70 +41,29 @@ resource "mongodbatlas_cloud_backup_collection_restore_job" "example" {
   }
 }
 
-# Point-in-time restore instead of snapshot_id:
-# resource "mongodbatlas_cloud_backup_collection_restore_job" "pit" {
-#   project_id                = var.project_id
-#   cluster_name              = var.cluster_name
-#   point_in_time_utc_seconds = 1710000000
-#   target_project_id         = local.target_project_id
-#   target_cluster_name       = local.target_cluster_name
-#   write_strategy            = var.write_strategy
-#   index_strategy            = var.index_strategy
-#   databases = [for db in var.restore_databases : {
-#     source_namespace = db
-#   }]
-#   collections = [for ns in var.restore_collections : {
-#     source_namespace = ns
-#   }]
-# }
-
-data "mongodbatlas_cloud_backup_collection_restore_job" "example" {
-  project_id   = mongodbatlas_cloud_backup_collection_restore_job.example.project_id
-  cluster_name = mongodbatlas_cloud_backup_collection_restore_job.example.cluster_name
-  job_id       = mongodbatlas_cloud_backup_collection_restore_job.example.job_id
+data "mongodbatlas_cloud_backup_collection_restore_job" "this" {
+  project_id   = mongodbatlas_cloud_backup_collection_restore_job.this.project_id
+  cluster_name = mongodbatlas_cloud_backup_collection_restore_job.this.cluster_name
+  job_id       = mongodbatlas_cloud_backup_collection_restore_job.this.job_id
 }
 
-data "mongodbatlas_cloud_backup_collection_restore_jobs" "example" {
-  project_id   = mongodbatlas_cloud_backup_collection_restore_job.example.project_id
-  cluster_name = mongodbatlas_cloud_backup_collection_restore_job.example.cluster_name
+data "mongodbatlas_cloud_backup_collection_restore_jobs" "this" {
+  project_id   = mongodbatlas_cloud_backup_collection_restore_job.this.project_id
+  cluster_name = mongodbatlas_cloud_backup_collection_restore_job.this.cluster_name
 }
 
-data "mongodbatlas_cloud_backup_collection_restore_job_collections" "example" {
-  project_id   = mongodbatlas_cloud_backup_collection_restore_job.example.project_id
-  cluster_name = mongodbatlas_cloud_backup_collection_restore_job.example.cluster_name
-  job_id       = mongodbatlas_cloud_backup_collection_restore_job.example.job_id
-}
-
-output "available_snapshots" {
-  value = [for snapshot in data.mongodbatlas_cloud_backup_snapshots.source.results : {
-    id           = snapshot.id
-    created_at   = snapshot.created_at
-    status       = snapshot.status
-    snapshot_type = snapshot.snapshot_type
-  }]
-}
-
-output "snapshot_id" {
-  value = local.snapshot_id
-}
-
-output "snapshot_databases" {
-  value = [for db in data.mongodbatlas_cloud_backup_snapshot_databases.source.results : db.name]
-}
-
-output "snapshot_collections" {
-  value = {
-    for db, ds in data.mongodbatlas_cloud_backup_snapshot_database_collections.source :
-    db => [for coll in ds.results : coll.name]
-  }
+data "mongodbatlas_cloud_backup_collection_restore_job_collections" "this" {
+  project_id   = mongodbatlas_cloud_backup_collection_restore_job.this.project_id
+  cluster_name = mongodbatlas_cloud_backup_collection_restore_job.this.cluster_name
+  job_id       = mongodbatlas_cloud_backup_collection_restore_job.this.job_id
 }
 
 output "job_state" {
-  value = data.mongodbatlas_cloud_backup_collection_restore_job.example.state
+  value = data.mongodbatlas_cloud_backup_collection_restore_job.this.state
 }
 
 output "collection_states" {
-  value = [for c in data.mongodbatlas_cloud_backup_collection_restore_job_collections.example.results : {
+  value = [for c in data.mongodbatlas_cloud_backup_collection_restore_job_collections.this.results : {
     source_namespace = c.source_namespace
     state            = c.state
   }]
@@ -145,7 +71,9 @@ output "collection_states" {
 ```
 
 ### Further Examples
-- [Collection Restore Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job)
+- [Snapshot restore](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_restore)
+- [Point-in-time restore](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/pit_restore)
+- [Snapshot discovery](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_discovery)
 
 <!-- schema generated by tfplugindocs -->
 ## Schema
@@ -183,8 +111,8 @@ output "collection_states" {
 
 Read-Only:
 
-- `source_namespace` (String) Namespace requested to restore (e.g. database name or `database.collection`).
-- `target_namespace` (String) Requested target namespace for the restored data; if empty, source namespace is used.
+- `source_namespace` (String) Collection requested to restore, as `database.collection`.
+- `target_namespace` (String) Requested target collection as `database.collection`; if empty, source namespace is used.
 
 
 <a id="nestedatt--databases"></a>
@@ -192,8 +120,8 @@ Read-Only:
 
 Read-Only:
 
-- `source_namespace` (String) Namespace requested to restore (e.g. database name or `database.collection`).
-- `target_namespace` (String) Requested target namespace for the restored data; if empty, source namespace is used.
+- `source_namespace` (String) Database name requested to restore.
+- `target_namespace` (String) Requested target database name; if empty, source database name is used.
 
 
 <a id="nestedatt--index_status"></a>

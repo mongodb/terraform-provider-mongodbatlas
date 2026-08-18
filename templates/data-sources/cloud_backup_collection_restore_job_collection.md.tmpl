@@ -14,10 +14,12 @@ To use this data source, the requesting Service Account or API Key must have the
 
 The following example creates a collection restore job, then reads per-collection restore state.
 
-{{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/main.tf" }}
+{{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_restore/main.tf" }}
 
 ### Further Examples
-- [Collection Restore Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job)
+- [Snapshot restore](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_restore)
+- [Point-in-time restore](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/pit_restore)
+- [Snapshot discovery](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_discovery)
 
 {{ .SchemaMarkdown | trimspace }}
 

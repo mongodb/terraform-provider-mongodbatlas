@@ -27,7 +27,7 @@ schema:
             nested_object:
                 attributes:
                     - string: {}
-                      description: Namespace requested to restore (e.g. database name or `database.collection`).
+                      description: Collection requested to restore, as `database.collection`.
                       computed_optional_required: required
                       tf_schema_name: source_namespace
                       tf_model_name: SourceNamespace
@@ -38,7 +38,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: Requested target namespace for the restored data; if empty, source namespace is used.
+                      description: Requested target collection as `database.collection`; if empty, source namespace is used.
                       computed_optional_required: computed_optional
                       tf_schema_name: target_namespace
                       tf_model_name: TargetNamespace
@@ -90,7 +90,7 @@ schema:
             nested_object:
                 attributes:
                     - string: {}
-                      description: Namespace requested to restore (e.g. database name or `database.collection`).
+                      description: Database name requested to restore.
                       computed_optional_required: required
                       tf_schema_name: source_namespace
                       tf_model_name: SourceNamespace
@@ -101,7 +101,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: Requested target namespace for the restored data; if empty, source namespace is used.
+                      description: Requested target database name; if empty, source database name is used.
                       computed_optional_required: computed_optional
                       tf_schema_name: target_namespace
                       tf_model_name: TargetNamespace
@@ -392,7 +392,7 @@ data_sources:
                 nested_object:
                     attributes:
                         - string: {}
-                          description: Namespace requested to restore (e.g. database name or `database.collection`).
+                          description: Collection requested to restore, as `database.collection`.
                           computed_optional_required: computed
                           tf_schema_name: source_namespace
                           tf_model_name: SourceNamespace
@@ -403,7 +403,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Requested target namespace for the restored data; if empty, source namespace is used.
+                          description: Requested target collection as `database.collection`; if empty, source namespace is used.
                           computed_optional_required: computed
                           tf_schema_name: target_namespace
                           tf_model_name: TargetNamespace
@@ -454,7 +454,7 @@ data_sources:
                 nested_object:
                     attributes:
                         - string: {}
-                          description: Namespace requested to restore (e.g. database name or `database.collection`).
+                          description: Database name requested to restore.
                           computed_optional_required: computed
                           tf_schema_name: source_namespace
                           tf_model_name: SourceNamespace
@@ -465,7 +465,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Requested target namespace for the restored data; if empty, source namespace is used.
+                          description: Requested target database name; if empty, source database name is used.
                           computed_optional_required: computed
                           tf_schema_name: target_namespace
                           tf_model_name: TargetNamespace
@@ -738,7 +738,7 @@ data_sources:
                             nested_object:
                                 attributes:
                                     - string: {}
-                                      description: Namespace requested to restore (e.g. database name or `database.collection`).
+                                      description: Collection requested to restore, as `database.collection`.
                                       computed_optional_required: computed
                                       tf_schema_name: source_namespace
                                       tf_model_name: SourceNamespace
@@ -749,7 +749,7 @@ data_sources:
                                       present_in_any_response: false
                                       request_only_required_on_create: false
                                     - string: {}
-                                      description: Requested target namespace for the restored data; if empty, source namespace is used.
+                                      description: Requested target collection as `database.collection`; if empty, source namespace is used.
                                       computed_optional_required: computed
                                       tf_schema_name: target_namespace
                                       tf_model_name: TargetNamespace
@@ -800,7 +800,7 @@ data_sources:
                             nested_object:
                                 attributes:
                                     - string: {}
-                                      description: Namespace requested to restore (e.g. database name or `database.collection`).
+                                      description: Database name requested to restore.
                                       computed_optional_required: computed
                                       tf_schema_name: source_namespace
                                       tf_model_name: SourceNamespace
@@ -811,7 +811,7 @@ data_sources:
                                       present_in_any_response: false
                                       request_only_required_on_create: false
                                     - string: {}
-                                      description: Requested target namespace for the restored data; if empty, source namespace is used.
+                                      description: Requested target database name; if empty, source database name is used.
                                       computed_optional_required: computed
                                       tf_schema_name: target_namespace
                                       tf_model_name: TargetNamespace

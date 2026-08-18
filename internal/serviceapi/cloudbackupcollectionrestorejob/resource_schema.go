@@ -36,12 +36,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					Attributes: map[string]schema.Attribute{
 						"source_namespace": schema.StringAttribute{
 							Required:            true,
-							MarkdownDescription: "Namespace requested to restore (e.g. database name or `database.collection`).",
+							MarkdownDescription: "Collection requested to restore, as `database.collection`.",
 						},
 						"target_namespace": schema.StringAttribute{
 							Computed:            true,
 							Optional:            true,
-							MarkdownDescription: "Requested target namespace for the restored data; if empty, source namespace is used.",
+							MarkdownDescription: "Requested target collection as `database.collection`; if empty, source namespace is used.",
 						},
 					},
 				},
@@ -65,12 +65,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					Attributes: map[string]schema.Attribute{
 						"source_namespace": schema.StringAttribute{
 							Required:            true,
-							MarkdownDescription: "Namespace requested to restore (e.g. database name or `database.collection`).",
+							MarkdownDescription: "Database name requested to restore.",
 						},
 						"target_namespace": schema.StringAttribute{
 							Computed:            true,
 							Optional:            true,
-							MarkdownDescription: "Requested target namespace for the restored data; if empty, source namespace is used.",
+							MarkdownDescription: "Requested target database name; if empty, source database name is used.",
 						},
 					},
 				},

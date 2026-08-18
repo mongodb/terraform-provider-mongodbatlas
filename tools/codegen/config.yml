@@ -16,6 +16,14 @@ variables:
   connection_type_description: &connection_type_description "Connection type."
   db_role_to_execute_description: &db_role_to_execute_description "Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster."
   kafka_config_description: &kafka_config_description "Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters."
+  # ApiAtlasRestoreNamespaceView is shared by databases and collections, so the spec
+  # description ("database name or database.collection") is stamped onto both lists.
+  # MMS validates them differently: database name vs `database.collection`.
+  # TODO: request sibling descriptions on the two parent properties in OpenAPI, then drop these overrides.
+  collections_source_namespace_description: &collections_source_namespace_description "Collection requested to restore, as `database.collection`."
+  collections_target_namespace_description: &collections_target_namespace_description "Requested target collection as `database.collection`; if empty, source namespace is used."
+  databases_source_namespace_description: &databases_source_namespace_description "Database name requested to restore."
+  databases_target_namespace_description: &databases_target_namespace_description "Requested target database name; if empty, source database name is used."
 
 resources:
   ai_model_api_key:
@@ -1720,16 +1728,22 @@ resources:
           computability:
             optional: true
             computed: true
+        collections.source_namespace:
+          description: *collections_source_namespace_description
         collections.target_namespace:
           # Nested optional child of optional+computed list; Atlas echoes "" when unused.
           computability:
             optional: true
             computed: true
+          description: *collections_target_namespace_description
+        databases.source_namespace:
+          description: *databases_source_namespace_description
         databases.target_namespace:
           # Nested optional child of optional+computed list; Atlas echoes "" when unused.
           computability:
             optional: true
             computed: true
+          description: *databases_target_namespace_description
     datasources:
       read: *cloud-backup-collection-restore-job-read
       list:
@@ -1748,6 +1762,14 @@ resources:
             description: *project_id_description
           target_project_id:
             description: *project_id_description
+          collections.source_namespace:
+            description: *collections_source_namespace_description
+          collections.target_namespace:
+            description: *collections_target_namespace_description
+          databases.source_namespace:
+            description: *databases_source_namespace_description
+          databases.target_namespace:
+            description: *databases_target_namespace_description
 
   cloud_backup_collection_restore_job_collection:
     version_header: application/vnd.atlas.2025-03-12+json

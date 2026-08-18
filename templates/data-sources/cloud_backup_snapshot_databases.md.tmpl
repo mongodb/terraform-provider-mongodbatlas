@@ -10,12 +10,14 @@ To use this data source, the requesting Service Account or API Key must have the
 
 ## Example Usage
 
-The following example lists databases in a snapshot, then restores selected databases and collections from that snapshot.
+The following example lists snapshots and namespaces in a Cloud Backup snapshot.
 
-{{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/main.tf" }}
+{{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_discovery/main.tf" }}
 
 ### Further Examples
-- [Collection Restore Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job)
+- [Snapshot discovery](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_discovery)
+- [Snapshot restore](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_restore)
+- [Point-in-time restore](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/pit_restore)
 
 {{ .SchemaMarkdown | trimspace }}
 
