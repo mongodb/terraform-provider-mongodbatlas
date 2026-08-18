@@ -2,7 +2,7 @@
 
 Restore selected databases and collections from Cloud Backup into an existing cluster without wiping everything else.
 
-Restore examples default to `write_strategy = "CREATE_NEW"` and `index_strategy = "ALL"` in `variables.tf` when those variables are omitted.
+Restore examples default to `write_strategy = "CREATE_NEW"` and `index_strategy = "ALL"` in `variables.tf` when those variables are omitted. Optional `database_renames`, `collection_renames`, `database_suffix`, and `collection_suffix` control target namespace naming. With `OVERWRITE_EXISTING`, Atlas drops and replaces matching namespaces on the target; stop writers to those namespaces before apply to avoid losing writes made during the restore.
 
 The example does not create a cluster. Point it at a cluster that already has Cloud Backup enabled.
 

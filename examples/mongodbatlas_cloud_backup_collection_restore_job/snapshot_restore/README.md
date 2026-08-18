@@ -17,11 +17,17 @@ Credentials come from the environment (`MONGODB_ATLAS_CLIENT_ID` and `MONGODB_AT
 Omit optional variables to use these values from `variables.tf`:
 
 - `write_strategy`: `CREATE_NEW` — append restored data; Atlas renames matching namespaces on conflict instead of replacing live data
-- `index_strategy`: `ALL`
+- `index_strategy`: `ALL` — restore all indexes; `NONE` skips indexes; `ALL_EXCEPT_TTL` restores non-TTL indexes only
 - `target_project_id` / `target_cluster_name`: unset — restore to the same project and cluster as the snapshot source
 - `restore_databases` / `restore_collections`: `[]` — set at least one list with namespaces to restore
 
 To drop and replace matching namespaces on the target, set `write_strategy = "OVERWRITE_EXISTING"` and stop writers before apply.
+
+## Namespace targets
+
+- Default: restore under source names. Use per-key maps (`database_renames`, `collection_renames`) or global suffixes (`database_suffix`, `collection_suffix`) to rename; see commented tfvars below.
+- Do not combine maps and suffixes without checking [product docs](https://www.mongodb.com/docs/atlas/backup/cloud-backup/restore-from-db-coll/) for precedence.
+- Check `effective_target_namespace` in outputs when Atlas adjusts names on conflict.
 
 ## Usage
 
@@ -48,6 +54,24 @@ restore_collections = ["sample_mflix.movies", "sample_mflix.comments"]
 # target_project_id   = "your-staging-project-id"  # default: same as project_id
 # target_cluster_name = "staging-app"              # default: same as cluster_name
 # write_strategy      = "OVERWRITE_EXISTING"    # optional: replace matching namespaces
+```
+
+Per-key rename example (commented):
+
+```hcl
+# database_renames = {
+#   inventory = "inventory_staging"
+# }
+# collection_renames = {
+#   "sample_mflix.movies" = "sample_mflix.movies_restored"
+# }
+```
+
+Global suffix example (commented):
+
+```hcl
+# database_suffix   = "_staging"
+# collection_suffix = "_restored"
 ```
 
 If you do not know `snapshot_id` or namespace names yet, run [`snapshot_discovery/`](../snapshot_discovery/README.md) first.

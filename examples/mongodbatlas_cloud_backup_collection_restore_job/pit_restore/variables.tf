@@ -60,3 +60,41 @@ variable "index_strategy" {
   type        = string
   default     = "ALL"
 }
+
+variable "database_renames" {
+  description = "Optional map from source database name to target database name. Keys must match entries in restore_databases."
+  type        = map(string)
+  default     = {}
+
+  validation {
+    condition = alltrue([
+      for key in keys(var.database_renames) : contains(var.restore_databases, key)
+    ])
+    error_message = "database_renames keys must match entries in restore_databases."
+  }
+}
+
+variable "collection_renames" {
+  description = "Optional map from source collection namespace (database.collection) to target namespace (database.collection). Keys must match entries in restore_collections."
+  type        = map(string)
+  default     = {}
+
+  validation {
+    condition = alltrue([
+      for key in keys(var.collection_renames) : contains(var.restore_collections, key)
+    ])
+    error_message = "collection_renames keys must match entries in restore_collections."
+  }
+}
+
+variable "database_suffix" {
+  description = "Optional suffix applied to all restored database names."
+  type        = string
+  default     = null
+}
+
+variable "collection_suffix" {
+  description = "Optional suffix applied to all restored collection names."
+  type        = string
+  default     = null
+}
