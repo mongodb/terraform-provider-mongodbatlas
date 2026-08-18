@@ -15,6 +15,13 @@ Merge basic tests for a resource, its singular data source, and its plural data 
 
 Before adding a test, verify no existing test already covers the same configuration and assertions. Tests with identical configs and checks waste CI time.
 
+## Optional Attribute Lifecycle Coverage
+
+For an optional attribute on a resource, cover the configuration lifecycle, not just the happy path with a value set:
+
+- **Omitting the value**: a config that never sets the attribute must apply cleanly and produce an empty plan afterwards. This catches attributes where the API returns a default for an omitted value, which requires marking the attribute computed (for autogen resources, a `computability` override — see the `autogen-config` skill).
+- **Unsetting the value**: an update step that removes the attribute from a config that previously set it — verify the intended behavior (value cleared vs. kept by the API) and that the plan converges.
+
 ## CheckExists / CheckDestroy for Autogen Resources
 
 Autogen resources map directly from the OpenAPI spec and avoid typed Atlas SDK methods, calling the API through the SDK's untyped client instead. Their `checkExists` / `checkDestroy` should follow the same approach: verify against Atlas with an untyped client rather than a typed SDK method. Keep these check functions in the resource's own `resource_test.go`, since they are resource-specific. Issue the untyped request with the resource's version header (see the `apiVersionHeader` const in the resource’s `resource.go`). Promoting a preview API to stable then only requires bumping the version header, not a rewrite.
