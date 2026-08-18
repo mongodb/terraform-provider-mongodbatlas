@@ -159,6 +159,22 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 												List:                     &codespec.ListAttribute{ElementType: codespec.CustomTypeJSON},
 											},
 											{
+												TFSchemaName:             "index_options",
+												TFModelName:              "IndexOptions",
+												Description:              new("map of index options"),
+												ComputedOptionalRequired: codespec.Computed,
+												CustomType:               codespec.NewCustomMapType(codespec.CustomTypeJSON),
+												Map:                      &codespec.MapAttribute{ElementType: codespec.CustomTypeJSON},
+											},
+											{
+												TFSchemaName:             "index_tags",
+												TFModelName:              "IndexTags",
+												Description:              new("set of index tags"),
+												ComputedOptionalRequired: codespec.Computed,
+												CustomType:               codespec.NewCustomSetType(codespec.CustomTypeJSON),
+												Set:                      &codespec.SetAttribute{ElementType: codespec.CustomTypeJSON},
+											},
+											{
 												TFSchemaName:             "state",
 												TFModelName:              "State",
 												String:                   &codespec.StringAttribute{},

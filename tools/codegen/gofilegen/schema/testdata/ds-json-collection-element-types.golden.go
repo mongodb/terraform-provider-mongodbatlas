@@ -30,6 +30,18 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 						CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 						ElementType:         jsontypes.NormalizedType{},
 					},
+					"index_options": dsschema.MapAttribute{
+						Computed:            true,
+						MarkdownDescription: "map of index options",
+						CustomType:          customtypes.NewMapType[jsontypes.Normalized](ctx),
+						ElementType:         jsontypes.NormalizedType{},
+					},
+					"index_tags": dsschema.SetAttribute{
+						Computed:            true,
+						MarkdownDescription: "set of index tags",
+						CustomType:          customtypes.NewSetType[jsontypes.Normalized](ctx),
+						ElementType:         jsontypes.NormalizedType{},
+					},
 					"state": dsschema.StringAttribute{
 						Computed:            true,
 						MarkdownDescription: "index build state",
@@ -46,5 +58,7 @@ type TFDSModel struct {
 }
 type TFDSIndexStatusModel struct {
 	FailedIndexes customtypes.ListValue[jsontypes.Normalized] `tfsdk:"failed_indexes"`
+	IndexOptions  customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"index_options"`
+	IndexTags     customtypes.SetValue[jsontypes.Normalized]  `tfsdk:"index_tags"`
 	State         types.String                                `tfsdk:"state"`
 }
