@@ -90,8 +90,6 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		if plan.Region.ValueString() != "" {
 			diags.AddError(fmt.Sprintf("region cannot be set for vendor %s", VendorMSK), "")
 		}
-	} else if !plan.AuthenticationScheme.IsNull() && !plan.AuthenticationScheme.IsUnknown() {
-		diags.AddError("authentication_scheme is only supported for vendor MSK", "")
 	}
 
 	if plan.Vendor.ValueString() == VendorS3 {
@@ -127,14 +125,16 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 	}
 
 	result := &admin.StreamsPrivateLinkConnection{
-		DnsDomain:            conversion.StringPtr(plan.DnsDomain.ValueString()),
-		Provider:             plan.Provider.ValueString(),
-		Region:               plan.Region.ValueStringPointer(),
-		ServiceEndpointId:    plan.ServiceEndpointId.ValueStringPointer(),
-		State:                plan.State.ValueStringPointer(),
-		Vendor:               plan.Vendor.ValueStringPointer(),
-		Arn:                  plan.Arn.ValueStringPointer(),
-		AuthenticationScheme: plan.AuthenticationScheme.ValueStringPointer(),
+		DnsDomain:         conversion.StringPtr(plan.DnsDomain.ValueString()),
+		Provider:          plan.Provider.ValueString(),
+		Region:            plan.Region.ValueStringPointer(),
+		ServiceEndpointId: plan.ServiceEndpointId.ValueStringPointer(),
+		State:             plan.State.ValueStringPointer(),
+		Vendor:            plan.Vendor.ValueStringPointer(),
+		Arn:               plan.Arn.ValueStringPointer(),
+	}
+	if !plan.AuthenticationScheme.IsNull() && !plan.AuthenticationScheme.IsUnknown() {
+		result.AuthenticationScheme = plan.AuthenticationScheme.ValueStringPointer()
 	}
 
 	if !plan.DnsSubDomain.IsNull() {

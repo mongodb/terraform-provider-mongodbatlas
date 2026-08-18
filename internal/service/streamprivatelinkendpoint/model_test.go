@@ -401,6 +401,21 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 				Vendor:   &vendorMSK,
 			},
 		},
+		"TF plan with unknown authentication scheme omits authentication scheme": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Id:                    types.StringValue(id),
+				Arn:                   types.StringValue(mskArn),
+				Provider:              types.StringValue(constant.AWS),
+				Vendor:                types.StringValue(vendorMSK),
+				AuthenticationScheme:  types.StringUnknown(),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+			},
+			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
+				Arn:      &mskArn,
+				Provider: constant.AWS,
+				Vendor:   &vendorMSK,
+			},
+		},
 		"TF state with s3 vendor": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Id:                    types.StringValue(id),
@@ -608,7 +623,7 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 			expectError: false,
 			errorCount:  0,
 		},
-		"non-MSK vendor with authentication_scheme errors": {
+		"non-MSK vendor with authentication_scheme is delegated to the API": {
 			tfModel: &streamprivatelinkendpoint.TFModel{
 				Provider:             types.StringValue(constant.AWS),
 				Vendor:               types.StringValue(streamprivatelinkendpoint.VendorS3),
@@ -616,8 +631,8 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 				ServiceEndpointId:    types.StringValue(serviceEndpointIDS3),
 				AuthenticationScheme: types.StringValue(authSchemeIAM),
 			},
-			expectError: true,
-			errorCount:  1,
+			expectError: false,
+			errorCount:  0,
 		},
 		"AWS MSK without authentication_scheme is valid": {
 			tfModel: &streamprivatelinkendpoint.TFModel{

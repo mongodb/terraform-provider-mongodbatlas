@@ -87,7 +87,6 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	newStreamPrivatelinkEndpointModel.AuthenticationScheme = plan.AuthenticationScheme
 
 	if plan.DnsSubDomain.IsNull() && len(newStreamPrivatelinkEndpointModel.DnsSubDomain.Elements()) == 0 {
 		newStreamPrivatelinkEndpointModel.DnsSubDomain = types.ListNull(types.StringType)
@@ -122,7 +121,6 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	newStreamPrivatelinkEndpointModel.AuthenticationScheme = state.AuthenticationScheme
 
 	if state.DnsSubDomain.IsNull() && len(newStreamPrivatelinkEndpointModel.DnsSubDomain.Elements()) == 0 {
 		newStreamPrivatelinkEndpointModel.DnsSubDomain = types.ListNull(types.StringType)
@@ -168,7 +166,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	newStreamPrivatelinkEndpointModel.AuthenticationScheme = plan.AuthenticationScheme
 
 	if plan.DnsSubDomain.IsNull() && len(newStreamPrivatelinkEndpointModel.DnsSubDomain.Elements()) == 0 {
 		newStreamPrivatelinkEndpointModel.DnsSubDomain = types.ListNull(types.StringType)
