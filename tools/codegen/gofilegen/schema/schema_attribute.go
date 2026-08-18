@@ -228,9 +228,12 @@ func commonProperties(attr *codespec.Attribute, typeStatements *TypeSpecificStat
 		var imports []string
 		switch attr.CustomType.Package {
 		case codespec.JSONTypesPkg:
-			imports = append(imports, "github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes")
+			imports = append(imports, jsontypesImportStatement)
 		case codespec.CustomTypesPkg:
 			imports = append(imports, "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes")
+		}
+		if elemType, ok := collectionElemType(attr); ok && elemType == codespec.CustomTypeJSON {
+			imports = append(imports, jsontypesImportStatement)
 		}
 
 		result = append(result, CodeStatement{
