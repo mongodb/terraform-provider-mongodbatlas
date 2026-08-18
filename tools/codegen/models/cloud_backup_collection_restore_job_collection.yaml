@@ -376,5 +376,5 @@ data_sources:
             http_method: GET
             path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}/collections
         version_header: application/vnd.atlas.2025-03-12+json
-name: cloud_backup_collection_restore_job_collections
-packageName: cloudbackupcollectionrestorejobcollections
+name: cloud_backup_collection_restore_job_collection
+packageName: cloudbackupcollectionrestorejobcollection

@@ -1749,7 +1749,7 @@ resources:
           target_project_id:
             description: *project_id_description
 
-  cloud_backup_collection_restore_job_collections:
+  cloud_backup_collection_restore_job_collection:
     version_header: application/vnd.atlas.2025-03-12+json
     datasources:
       read:

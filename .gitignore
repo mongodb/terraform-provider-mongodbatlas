@@ -30,6 +30,7 @@ override.tf.json
 *.tfplan
 *.terraformrc
 terraform.rc
+dev.tfrc
 .terraform.tfstate.lock.info
 
 #used for schema code generation but is not commited to avoid constant updates

@@ -1,0 +1,34 @@
+---
+subcategory: "Cloud Backups"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a resource to restore selected databases or collections from a Cloud Backup snapshot or point in time into an existing Atlas cluster.
+
+To use this resource, the requesting Service Account or API Key must have the Backup Manager or Project Owner role on the source project and on the target project.
+
+~> **Note:** Create waits until the job `state` is `SUCCESSFUL`. Pending states are `INITIALIZING`, `IN_PROGRESS`, and `FINALIZING`. The default create timeout is 3 hours and is overridable with `timeouts.create`. The job cannot be updated. Destroy only removes the resource from state; Atlas has no public cancel API, so there is no `delete_on_create_timeout`. Provide either `snapshot_id` or point-in-time fields (`point_in_time_utc_seconds`, `oplog_ts`, `oplog_inc`), not both. Per-collection progress is empty while the job is `INITIALIZING`. Cross-organization restore is not available with programmatic credentials; restore across projects in the same organization by setting `target_project_id` and `target_cluster_name`.
+
+## Example Usage
+
+The following example restores one collection from a snapshot into the same cluster, using snapshot namespace discovery data sources and reading back job and per-collection state.
+
+{{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/main.tf" }}
+
+### Further Examples
+- [Collection Restore Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job)
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Collection restore job resource can be imported using the source project ID, source cluster name, and job ID, separated by slashes, for example:
+
+```
+$ terraform import mongodbatlas_cloud_backup_collection_restore_job.example 650972848269185c55f40ca1/MyCluster/6789abcd1234ef5678901234
+```
+
+Import hydrates the current GET state. It does not wait for a running job to finish.
+
+For more information see: [MongoDB Atlas - Restore from Selected Databases and Collections](https://www.mongodb.com/docs/atlas/backup/cloud-backup/restore-from-db-coll/) Documentation.

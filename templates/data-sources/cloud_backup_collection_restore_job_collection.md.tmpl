@@ -1,0 +1,24 @@
+---
+subcategory: "Cloud Backups"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes the restore state of one collection in a collection restore job.
+
+To use this data source, the requesting Service Account or API Key must have the Backup Manager or Project Owner role.
+
+~> **Note:** This data source returns no collection state while the job is `INITIALIZING`. Collection states exist after the job enters `IN_PROGRESS`.
+
+## Example Usage
+
+The following example creates a collection restore job, then reads per-collection restore state.
+
+{{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/main.tf" }}
+
+### Further Examples
+- [Collection Restore Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job)
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas - Restore from Selected Databases and Collections](https://www.mongodb.com/docs/atlas/backup/cloud-backup/restore-from-db-coll/) Documentation.
