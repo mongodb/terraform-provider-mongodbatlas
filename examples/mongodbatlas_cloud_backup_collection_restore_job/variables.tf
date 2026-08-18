@@ -9,18 +9,27 @@ variable "cluster_name" {
 }
 
 variable "snapshot_id" {
-  description = "Snapshot ID to restore from. Omit this and set point_in_time_utc_seconds for a PIT restore instead."
+  description = "Snapshot ID to restore from. Defaults to the latest completed snapshot when unset."
   type        = string
+  default     = null
 }
 
-variable "database_name" {
-  description = "Database name used to list collections in the snapshot"
-  type        = string
+variable "discovery_database_names" {
+  description = "Database names to list collections from during snapshot discovery. Leave empty to list only databases."
+  type        = list(string)
+  default     = []
 }
 
-variable "source_namespace" {
-  description = "Source namespace to restore, in database.collection form"
-  type        = string
+variable "restore_databases" {
+  description = "Database names to restore. Restores all collections under each database."
+  type        = list(string)
+  default     = []
+}
+
+variable "restore_collections" {
+  description = "Collection namespaces to restore, in database.collection form."
+  type        = list(string)
+  default     = []
 }
 
 variable "target_project_id" {

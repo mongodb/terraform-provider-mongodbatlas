@@ -10,40 +10,75 @@ To use this resource, the requesting Service Account or API Key must have the Ba
 
 ~> **Note:** Create waits until the job `state` is `SUCCESSFUL`. Pending states are `INITIALIZING`, `IN_PROGRESS`, and `FINALIZING`. The default create timeout is 3 hours and is overridable with `timeouts.create`. The job cannot be updated. Destroy only removes the resource from state; Atlas has no public cancel API, so there is no `delete_on_create_timeout`. Provide either `snapshot_id` or point-in-time fields (`point_in_time_utc_seconds`, `oplog_ts`, `oplog_inc`), not both. Per-collection progress is empty while the job is `INITIALIZING`. Cross-organization restore is not available with programmatic credentials; restore across projects in the same organization by setting `target_project_id` and `target_cluster_name`.
 
+## Limitations
+
+Atlas product limits apply. See [Restore from Selected Databases and Collections](https://www.mongodb.com/docs/atlas/backup/cloud-backup/restore-from-db-coll/#limitations) for the full list.
+
+- One collection-restore job per cluster at a time.
+- Does not restore Atlas Search indexes. Skips views, time-series, and queryable encryption collections.
+- Data transfer uses the public internet even when private endpoints exist.
+- NVMe clusters and fallback snapshots are unsupported.
+- Up to 100 databases and 100 explicitly listed collections per job.
+
 ## Example Usage
 
-The following example restores one collection from a snapshot into the same cluster, using snapshot namespace discovery data sources and reading back job and per-collection state.
+The following example restores selected databases and collections from a snapshot into the same cluster, using snapshot namespace discovery data sources and reading back job and per-collection state.
 
 ```terraform
 locals {
   target_project_id   = coalesce(var.target_project_id, var.project_id)
   target_cluster_name = coalesce(var.target_cluster_name, var.cluster_name)
+
+  completed_snapshots = [
+    for snapshot in data.mongodbatlas_cloud_backup_snapshots.source.results :
+    snapshot if snapshot.status == "completed"
+  ]
+  latest_snapshot_created_at = length(local.completed_snapshots) > 0 ? max([
+    for snapshot in local.completed_snapshots : snapshot.created_at
+  ]) : null
+  latest_snapshot_id = length(local.completed_snapshots) > 0 ? one([
+    for snapshot in local.completed_snapshots :
+    snapshot.id if snapshot.created_at == local.latest_snapshot_created_at
+  ]) : null
+  snapshot_id = coalesce(var.snapshot_id, local.latest_snapshot_id)
+}
+
+data "mongodbatlas_cloud_backup_snapshots" "source" {
+  project_id     = var.project_id
+  cluster_name   = var.cluster_name
+  items_per_page = 100
 }
 
 data "mongodbatlas_cloud_backup_snapshot_databases" "source" {
   project_id   = var.project_id
   cluster_name = var.cluster_name
-  snapshot_id  = var.snapshot_id
+  snapshot_id  = local.snapshot_id
 }
 
 data "mongodbatlas_cloud_backup_snapshot_database_collections" "source" {
+  for_each = toset(var.discovery_database_names)
+
   project_id    = var.project_id
   cluster_name  = var.cluster_name
-  snapshot_id   = var.snapshot_id
-  database_name = var.database_name
+  snapshot_id   = local.snapshot_id
+  database_name = each.value
 }
 
 resource "mongodbatlas_cloud_backup_collection_restore_job" "example" {
   project_id          = var.project_id
   cluster_name        = var.cluster_name
-  snapshot_id         = var.snapshot_id
+  snapshot_id         = local.snapshot_id
   target_project_id   = local.target_project_id
   target_cluster_name = local.target_cluster_name
   write_strategy      = var.write_strategy
   index_strategy      = var.index_strategy
 
-  collections = [{
-    source_namespace = var.source_namespace
+  databases = [for db in var.restore_databases : {
+    source_namespace = db
+  }]
+
+  collections = [for ns in var.restore_collections : {
+    source_namespace = ns
   }]
 
   timeouts = {
@@ -60,11 +95,13 @@ resource "mongodbatlas_cloud_backup_collection_restore_job" "example" {
 #   target_cluster_name       = local.target_cluster_name
 #   write_strategy            = var.write_strategy
 #   index_strategy            = var.index_strategy
-#   collections = [{
-#     source_namespace = var.source_namespace
+#   databases = [for db in var.restore_databases : {
+#     source_namespace = db
+#   }]
+#   collections = [for ns in var.restore_collections : {
+#     source_namespace = ns
 #   }]
 # }
-
 
 data "mongodbatlas_cloud_backup_collection_restore_job" "example" {
   project_id   = mongodbatlas_cloud_backup_collection_restore_job.example.project_id
@@ -83,12 +120,28 @@ data "mongodbatlas_cloud_backup_collection_restore_job_collections" "example" {
   job_id       = mongodbatlas_cloud_backup_collection_restore_job.example.job_id
 }
 
+output "available_snapshots" {
+  value = [for snapshot in data.mongodbatlas_cloud_backup_snapshots.source.results : {
+    id           = snapshot.id
+    created_at   = snapshot.created_at
+    status       = snapshot.status
+    snapshot_type = snapshot.snapshot_type
+  }]
+}
+
+output "snapshot_id" {
+  value = local.snapshot_id
+}
+
 output "snapshot_databases" {
   value = [for db in data.mongodbatlas_cloud_backup_snapshot_databases.source.results : db.name]
 }
 
 output "snapshot_collections" {
-  value = [for coll in data.mongodbatlas_cloud_backup_snapshot_database_collections.source.results : coll.name]
+  value = {
+    for db, ds in data.mongodbatlas_cloud_backup_snapshot_database_collections.source :
+    db => [for coll in ds.results : coll.name]
+  }
 }
 
 output "job_state" {

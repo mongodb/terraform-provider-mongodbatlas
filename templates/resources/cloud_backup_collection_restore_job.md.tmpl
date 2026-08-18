@@ -10,9 +10,19 @@ To use this resource, the requesting Service Account or API Key must have the Ba
 
 ~> **Note:** Create waits until the job `state` is `SUCCESSFUL`. Pending states are `INITIALIZING`, `IN_PROGRESS`, and `FINALIZING`. The default create timeout is 3 hours and is overridable with `timeouts.create`. The job cannot be updated. Destroy only removes the resource from state; Atlas has no public cancel API, so there is no `delete_on_create_timeout`. Provide either `snapshot_id` or point-in-time fields (`point_in_time_utc_seconds`, `oplog_ts`, `oplog_inc`), not both. Per-collection progress is empty while the job is `INITIALIZING`. Cross-organization restore is not available with programmatic credentials; restore across projects in the same organization by setting `target_project_id` and `target_cluster_name`.
 
+## Limitations
+
+Atlas product limits apply. See [Restore from Selected Databases and Collections](https://www.mongodb.com/docs/atlas/backup/cloud-backup/restore-from-db-coll/#limitations) for the full list.
+
+- One collection-restore job per cluster at a time.
+- Does not restore Atlas Search indexes. Skips views, time-series, and queryable encryption collections.
+- Data transfer uses the public internet even when private endpoints exist.
+- NVMe clusters and fallback snapshots are unsupported.
+- Up to 100 databases and 100 explicitly listed collections per job.
+
 ## Example Usage
 
-The following example restores one collection from a snapshot into the same cluster, using snapshot namespace discovery data sources and reading back job and per-collection state.
+The following example restores selected databases and collections from a snapshot into the same cluster, using snapshot namespace discovery data sources and reading back job and per-collection state.
 
 {{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/main.tf" }}
 
