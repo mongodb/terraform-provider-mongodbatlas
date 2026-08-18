@@ -22,16 +22,3 @@ func ElementTypeProperty(elementType codespec.ElemType) CodeStatement {
 		Imports: imports,
 	}
 }
-
-func collectionElemType(attr *codespec.Attribute) (codespec.ElemType, bool) {
-	switch {
-	case attr.List != nil:
-		return attr.List.ElementType, true
-	case attr.Map != nil:
-		return attr.Map.ElementType, true
-	case attr.Set != nil:
-		return attr.Set.ElementType, true
-	default:
-		return codespec.Unknown, false
-	}
-}

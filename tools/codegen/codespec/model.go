@@ -2,6 +2,8 @@ package codespec
 
 import (
 	"fmt"
+
+	"gopkg.in/yaml.v3"
 )
 
 type ElemType int
@@ -257,76 +259,106 @@ const (
 )
 
 type CustomType struct {
-	Package CustomTypePackage `yaml:"package"`
-	Name    string            `yaml:"name,omitempty"` // Nested object name without the "TF" & "Model" prefix and suffix. Used for type overrides.
-	Model   string            `yaml:"model"`
-	Schema  string            `yaml:"schema"`
+	Name     string              `yaml:"name,omitempty"` // Nested object name without the "TF" & "Model" prefix and suffix. Used for type overrides.
+	Model    string              `yaml:"model"`
+	Schema   string              `yaml:"schema"`
+	Packages []CustomTypePackage `yaml:"packages"`
+}
+
+func (c *CustomType) UnmarshalYAML(value *yaml.Node) error {
+	var raw struct {
+		Package  CustomTypePackage   `yaml:"package"`
+		Name     string              `yaml:"name"`
+		Model    string              `yaml:"model"`
+		Schema   string              `yaml:"schema"`
+		Packages []CustomTypePackage `yaml:"packages"`
+	}
+	if err := value.Decode(&raw); err != nil {
+		return err
+	}
+
+	c.Packages = raw.Packages
+	if len(c.Packages) == 0 && raw.Package != "" {
+		c.Packages = []CustomTypePackage{raw.Package}
+	}
+	c.Name = raw.Name
+	c.Model = raw.Model
+	c.Schema = raw.Schema
+	return nil
 }
 
 var CustomTypeJSONVar = CustomType{
-	Package: JSONTypesPkg,
-	Model:   "jsontypes.Normalized",
-	Schema:  "jsontypes.NormalizedType{}",
+	Packages: []CustomTypePackage{JSONTypesPkg},
+	Model:    "jsontypes.Normalized",
+	Schema:   "jsontypes.NormalizedType{}",
 }
 
 func NewCustomObjectType(name string) *CustomType {
 	return &CustomType{
-		Package: CustomTypesPkg,
-		Name:    name,
-		Model:   fmt.Sprintf("customtypes.ObjectValue[TF%sModel]", name),
-		Schema:  fmt.Sprintf("customtypes.NewObjectType[TF%sModel](ctx)", name),
+		Packages: []CustomTypePackage{CustomTypesPkg},
+		Name:     name,
+		Model:    fmt.Sprintf("customtypes.ObjectValue[TF%sModel]", name),
+		Schema:   fmt.Sprintf("customtypes.NewObjectType[TF%sModel](ctx)", name),
 	}
+}
+
+func customCollectionPackages(elemType ElemType) []CustomTypePackage {
+	packages := []CustomTypePackage{CustomTypesPkg}
+	if elemType == CustomTypeJSON {
+		packages = append(packages, JSONTypesPkg)
+	}
+	return packages
 }
 
 func NewCustomListType(elemType ElemType) *CustomType {
 	elemTypeStr := ElementTypeToModelString[elemType]
 	return &CustomType{
-		Package: CustomTypesPkg,
-		Model:   fmt.Sprintf("customtypes.ListValue[%s]", elemTypeStr),
-		Schema:  fmt.Sprintf("customtypes.NewListType[%s](ctx)", elemTypeStr),
+		Packages: customCollectionPackages(elemType),
+		Model:    fmt.Sprintf("customtypes.ListValue[%s]", elemTypeStr),
+		Schema:   fmt.Sprintf("customtypes.NewListType[%s](ctx)", elemTypeStr),
 	}
 }
 
 func NewCustomNestedListType(name string) *CustomType {
 	return &CustomType{
-		Package: CustomTypesPkg,
-		Name:    name,
-		Model:   fmt.Sprintf("customtypes.NestedListValue[TF%sModel]", name),
-		Schema:  fmt.Sprintf("customtypes.NewNestedListType[TF%sModel](ctx)", name),
+		Packages: []CustomTypePackage{CustomTypesPkg},
+		Name:     name,
+		Model:    fmt.Sprintf("customtypes.NestedListValue[TF%sModel]", name),
+		Schema:   fmt.Sprintf("customtypes.NewNestedListType[TF%sModel](ctx)", name),
 	}
 }
 
 func NewCustomSetType(elemType ElemType) *CustomType {
 	elemTypeStr := ElementTypeToModelString[elemType]
 	return &CustomType{
-		Package: CustomTypesPkg,
-		Model:   fmt.Sprintf("customtypes.SetValue[%s]", elemTypeStr),
-		Schema:  fmt.Sprintf("customtypes.NewSetType[%s](ctx)", elemTypeStr),
+		Packages: customCollectionPackages(elemType),
+		Model:    fmt.Sprintf("customtypes.SetValue[%s]", elemTypeStr),
+		Schema:   fmt.Sprintf("customtypes.NewSetType[%s](ctx)", elemTypeStr),
 	}
 }
 
 func NewCustomNestedSetType(name string) *CustomType {
 	return &CustomType{
-		Package: CustomTypesPkg,
-		Name:    name,
-		Model:   fmt.Sprintf("customtypes.NestedSetValue[TF%sModel]", name),
-		Schema:  fmt.Sprintf("customtypes.NewNestedSetType[TF%sModel](ctx)", name),
+		Packages: []CustomTypePackage{CustomTypesPkg},
+		Name:     name,
+		Model:    fmt.Sprintf("customtypes.NestedSetValue[TF%sModel]", name),
+		Schema:   fmt.Sprintf("customtypes.NewNestedSetType[TF%sModel](ctx)", name),
 	}
 }
 
 func NewCustomMapType(elemType ElemType) *CustomType {
 	elemTypeStr := ElementTypeToModelString[elemType]
 	return &CustomType{
-		Package: CustomTypesPkg,
-		Model:   fmt.Sprintf("customtypes.MapValue[%s]", elemTypeStr),
-		Schema:  fmt.Sprintf("customtypes.NewMapType[%s](ctx)", elemTypeStr),
+		Packages: customCollectionPackages(elemType),
+		Model:    fmt.Sprintf("customtypes.MapValue[%s]", elemTypeStr),
+		Schema:   fmt.Sprintf("customtypes.NewMapType[%s](ctx)", elemTypeStr),
 	}
 }
 
 func NewCustomNestedMapType(name string) *CustomType {
 	return &CustomType{
-		Package: CustomTypesPkg,
-		Model:   fmt.Sprintf("customtypes.NestedMapValue[TF%sModel]", name),
-		Schema:  fmt.Sprintf("customtypes.NewNestedMapType[TF%sModel](ctx)", name),
+		Packages: []CustomTypePackage{CustomTypesPkg},
+		Model:    fmt.Sprintf("customtypes.NestedMapValue[TF%sModel]", name),
+		Schema:   fmt.Sprintf("customtypes.NewNestedMapType[TF%sModel](ctx)", name),
 	}
 }
