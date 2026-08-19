@@ -119,9 +119,6 @@ func configTwoSecrets(orgID, name string, secretExpiresAfterHours int) string {
 	`, orgID, name, secretExpiresAfterHours)
 }
 
-// masked_secret_value is only populated via a GET, not by the create response, so it's
-// checked on the data sources (which always call GET) but not on the resource itself
-// right after apply -- confirmed live that the create response omits this field entirely.
 func checkBasic(isCreate bool) resource.TestCheckFunc {
 	commonAttrsSet := []string{"secret_id", "created_at", "expires_at"}
 	checks := acc.CheckRSAndDS(resourceName, new(dataSourceName), nil, commonAttrsSet, nil, checkExists(resourceName))
