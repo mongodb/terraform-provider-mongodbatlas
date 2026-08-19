@@ -258,6 +258,13 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		vpcID                   = os.Getenv("AWS_VPC_ID")
+		vpcCIDRBlock            = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID            = os.Getenv("AWS_ACCOUNT_ID")
+		peerRegion              = os.Getenv("AWS_REGION")
+		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
+		providerName            = "AWS"
+		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -272,7 +279,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 				),
 			},
 			{
-				Config: configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
+				Config: networkPeeringConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectResourceAction(
