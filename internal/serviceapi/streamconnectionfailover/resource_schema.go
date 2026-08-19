@@ -23,6 +23,38 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Optional for type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.",
 				CustomType:          customtypes.NewObjectType[TFAuthenticationModel](ctx),
 				Attributes: map[string]schema.Attribute{
+					"aws": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "AWS configurations for AWS-based connection types.",
+						CustomType:          customtypes.NewObjectType[TFAuthenticationAwsModel](ctx),
+						Attributes: map[string]schema.Attribute{
+							"links": schema.ListNestedAttribute{
+								Computed:            true,
+								MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
+								CustomType:          customtypes.NewNestedListType[TFAuthenticationAwsLinksModel](ctx),
+								NestedObject: schema.NestedAttributeObject{
+									Attributes: map[string]schema.Attribute{
+										"href": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
+										},
+										"rel": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
+										},
+									},
+								},
+							},
+							"role_arn": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.",
+							},
+							"test_bucket": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.",
+							},
+						},
+					},
 					"client_id": schema.StringAttribute{
 						Optional:            true,
 						MarkdownDescription: "OIDC client identifier for authentication to the Kafka cluster.",
@@ -236,18 +268,28 @@ type TFModel struct {
 	Timeouts              timeouts.Value                                  `tfsdk:"timeouts" autogen:"omitjson"`
 }
 type TFAuthenticationModel struct {
-	ClientId                  types.String `tfsdk:"client_id"`
-	ClientSecret              types.String `tfsdk:"client_secret" autogen:"sensitive"`
-	Mechanism                 types.String `tfsdk:"mechanism"`
-	Method                    types.String `tfsdk:"method"`
-	Password                  types.String `tfsdk:"password" autogen:"sensitive"`
-	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions"`
-	Scope                     types.String `tfsdk:"scope"`
-	SslCertificate            types.String `tfsdk:"ssl_certificate"`
-	SslKey                    types.String `tfsdk:"ssl_key" autogen:"sensitive"`
-	SslKeyPassword            types.String `tfsdk:"ssl_key_password" autogen:"sensitive"`
-	TokenEndpointUrl          types.String `tfsdk:"token_endpoint_url"`
-	Username                  types.String `tfsdk:"username"`
+	Aws                       customtypes.ObjectValue[TFAuthenticationAwsModel] `tfsdk:"aws"`
+	ClientId                  types.String                                      `tfsdk:"client_id"`
+	ClientSecret              types.String                                      `tfsdk:"client_secret" autogen:"sensitive"`
+	Mechanism                 types.String                                      `tfsdk:"mechanism"`
+	Method                    types.String                                      `tfsdk:"method"`
+	Password                  types.String                                      `tfsdk:"password" autogen:"sensitive"`
+	SaslOauthbearerExtensions types.String                                      `tfsdk:"sasl_oauthbearer_extensions"`
+	Scope                     types.String                                      `tfsdk:"scope"`
+	SslCertificate            types.String                                      `tfsdk:"ssl_certificate"`
+	SslKey                    types.String                                      `tfsdk:"ssl_key" autogen:"sensitive"`
+	SslKeyPassword            types.String                                      `tfsdk:"ssl_key_password" autogen:"sensitive"`
+	TokenEndpointUrl          types.String                                      `tfsdk:"token_endpoint_url"`
+	Username                  types.String                                      `tfsdk:"username"`
+}
+type TFAuthenticationAwsModel struct {
+	Links      customtypes.NestedListValue[TFAuthenticationAwsLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	RoleArn    types.String                                               `tfsdk:"role_arn"`
+	TestBucket types.String                                               `tfsdk:"test_bucket"`
+}
+type TFAuthenticationAwsLinksModel struct {
+	Href types.String `tfsdk:"href" autogen:"omitjson"`
+	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
 }
 type TFDbRoleToExecuteModel struct {
 	Role types.String `tfsdk:"role"`
