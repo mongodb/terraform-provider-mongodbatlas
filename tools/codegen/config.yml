@@ -748,6 +748,53 @@ resources:
       aliases:
         resourcePolicyId: id # path param name does not match the API response property
 
+  mcp_config:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+      method: DELETE
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+        method: GET
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs
+        method: GET
+      schema:
+        overrides:
+          org_id:
+            description: *org_id_description
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      overrides:
+        org_id:
+          description: *org_id_description
+        # API always echoes back both cidr_block and ip_address regardless of which one
+        # was submitted, so both must be optional+computed
+        ip_access_list:
+          computability:
+            optional: true
+            computed: true
+        ip_access_list.cidr_block:
+          computability:
+            optional: true
+            computed: true
+        ip_access_list.ip_address:
+          computability:
+            optional: true
+            computed: true
+        # API spec lacks uniqueItems for this property. Role order is not meaningful.
+        roles:
+          type: set
+
   search_deployment_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
