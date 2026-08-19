@@ -3,9 +3,12 @@ locals {
     for snapshot in data.mongodbatlas_cloud_backup_snapshots.this.results :
     snapshot if snapshot.status == "completed"
   ]
-  latest_snapshot_created_at = length(local.completed_snapshots) > 0 ? max([
-    for snapshot in local.completed_snapshots : snapshot.created_at
-  ]) : null
+  completed_created_at = [for snapshot in local.completed_snapshots : snapshot.created_at]
+  /*
+    created_at is ISO-8601. max() only accepts numbers, and max([list]) passes a tuple instead of
+    spreading values. ISO-8601 sorts lexicographically, so sort(...)[last] is the latest snapshot.
+  */
+  latest_snapshot_created_at = length(local.completed_created_at) > 0 ? sort(local.completed_created_at)[length(local.completed_created_at) - 1] : null
   latest_snapshot_id = length(local.completed_snapshots) > 0 ? one([
     for snapshot in local.completed_snapshots :
     snapshot.id if snapshot.created_at == local.latest_snapshot_created_at
