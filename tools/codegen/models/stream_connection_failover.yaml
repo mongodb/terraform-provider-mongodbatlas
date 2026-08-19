@@ -163,10 +163,11 @@ schema:
                       request_only_required_on_create: false
           description: 'Optional for type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.'
           custom_type:
-            package: customtypes
             name: Authentication
             model: customtypes.ObjectValue[TFAuthenticationModel]
             schema: customtypes.NewObjectType[TFAuthenticationModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: authentication
           tf_model_name: Authentication
@@ -213,9 +214,10 @@ schema:
             element_type: 4
           description: 'Optional for type: Kafka. Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have ''.'' characters.'
           custom_type:
-            package: customtypes
             model: customtypes.MapValue[types.String]
             schema: customtypes.NewMapType[types.String](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: config
           tf_model_name: Config
@@ -263,10 +265,11 @@ schema:
                       request_only_required_on_create: false
           description: 'Optional for type: Cluster. Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster.'
           custom_type:
-            package: customtypes
             name: DbRoleToExecute
             model: customtypes.ObjectValue[TFDbRoleToExecuteModel]
             schema: customtypes.NewObjectType[TFDbRoleToExecuteModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: db_role_to_execute
           tf_model_name: DbRoleToExecute
@@ -350,10 +353,11 @@ schema:
                                   request_only_required_on_create: false
                       description: Information about networking access.
                       custom_type:
-                        package: customtypes
                         name: NetworkingAccess
                         model: customtypes.ObjectValue[TFNetworkingAccessModel]
                         schema: customtypes.NewObjectType[TFNetworkingAccessModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed_optional
                       tf_schema_name: access
                       tf_model_name: Access
@@ -365,10 +369,11 @@ schema:
                       request_only_required_on_create: false
           description: 'Optional for type: Kafka. Networking configuration for Streams connections.'
           custom_type:
-            package: customtypes
             name: Networking
             model: customtypes.ObjectValue[TFNetworkingModel]
             schema: customtypes.NewObjectType[TFNetworkingModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed_optional
           tf_schema_name: networking
           tf_model_name: Networking
@@ -416,10 +421,11 @@ schema:
                       request_only_required_on_create: false
           description: 'Optional for type: Kafka. Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.'
           custom_type:
-            package: customtypes
             name: Security
             model: customtypes.ObjectValue[TFSecurityModel]
             schema: customtypes.NewObjectType[TFSecurityModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: security
           tf_model_name: Security
@@ -697,10 +703,11 @@ data_sources:
                           request_only_required_on_create: false
               description: 'Applies to type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.'
               custom_type:
-                package: customtypes
                 name: Authentication
                 model: customtypes.ObjectValue[TFAuthenticationModel]
                 schema: customtypes.NewObjectType[TFAuthenticationModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: authentication
               tf_model_name: Authentication
@@ -747,9 +754,10 @@ data_sources:
                 element_type: 4
               description: 'Applies to type: Kafka. Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have ''.'' characters.'
               custom_type:
-                package: customtypes
                 model: customtypes.MapValue[types.String]
                 schema: customtypes.NewMapType[types.String](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: config
               tf_model_name: Config
@@ -797,10 +805,11 @@ data_sources:
                           request_only_required_on_create: false
               description: 'Applies to type: Cluster. Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster.'
               custom_type:
-                package: customtypes
                 name: DbRoleToExecute
                 model: customtypes.ObjectValue[TFDbRoleToExecuteModel]
                 schema: customtypes.NewObjectType[TFDbRoleToExecuteModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: db_role_to_execute
               tf_model_name: DbRoleToExecute
@@ -873,10 +882,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: Information about networking access.
                           custom_type:
-                            package: customtypes
                             name: NetworkingAccess
                             model: customtypes.ObjectValue[TFNetworkingAccessModel]
                             schema: customtypes.NewObjectType[TFNetworkingAccessModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: access
                           tf_model_name: Access
@@ -888,10 +898,11 @@ data_sources:
                           request_only_required_on_create: false
               description: 'Applies to type: Kafka. Networking configuration for Streams connections.'
               custom_type:
-                package: customtypes
                 name: Networking
                 model: customtypes.ObjectValue[TFNetworkingModel]
                 schema: customtypes.NewObjectType[TFNetworkingModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: networking
               tf_model_name: Networking
@@ -950,10 +961,11 @@ data_sources:
                           request_only_required_on_create: false
               description: 'Applies to type: Kafka. Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.'
               custom_type:
-                package: customtypes
                 name: Security
                 model: customtypes.ObjectValue[TFSecurityModel]
                 schema: customtypes.NewObjectType[TFSecurityModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: security
               tf_model_name: Security
@@ -1187,10 +1199,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: 'Applies to type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.'
                           custom_type:
-                            package: customtypes
                             name: ResultsAuthentication
                             model: customtypes.ObjectValue[TFResultsAuthenticationModel]
                             schema: customtypes.NewObjectType[TFResultsAuthenticationModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: authentication
                           tf_model_name: Authentication
@@ -1237,9 +1250,10 @@ data_sources:
                             element_type: 4
                           description: 'Applies to type: Kafka. Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have ''.'' characters.'
                           custom_type:
-                            package: customtypes
                             model: customtypes.MapValue[types.String]
                             schema: customtypes.NewMapType[types.String](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: config
                           tf_model_name: Config
@@ -1276,10 +1290,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: 'Applies to type: Cluster. Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster.'
                           custom_type:
-                            package: customtypes
                             name: ResultsDbRoleToExecute
                             model: customtypes.ObjectValue[TFResultsDbRoleToExecuteModel]
                             schema: customtypes.NewObjectType[TFResultsDbRoleToExecuteModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: db_role_to_execute
                           tf_model_name: DbRoleToExecute
@@ -1352,10 +1367,11 @@ data_sources:
                                                   request_only_required_on_create: false
                                       description: Information about networking access.
                                       custom_type:
-                                        package: customtypes
                                         name: ResultsNetworkingAccess
                                         model: customtypes.ObjectValue[TFResultsNetworkingAccessModel]
                                         schema: customtypes.NewObjectType[TFResultsNetworkingAccessModel](ctx)
+                                        packages:
+                                            - customtypes
                                       computed_optional_required: computed
                                       tf_schema_name: access
                                       tf_model_name: Access
@@ -1367,10 +1383,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: 'Applies to type: Kafka. Networking configuration for Streams connections.'
                           custom_type:
-                            package: customtypes
                             name: ResultsNetworking
                             model: customtypes.ObjectValue[TFResultsNetworkingModel]
                             schema: customtypes.NewObjectType[TFResultsNetworkingModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: networking
                           tf_model_name: Networking
@@ -1418,10 +1435,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: 'Applies to type: Kafka. Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.'
                           custom_type:
-                            package: customtypes
                             name: ResultsSecurity
                             model: customtypes.ObjectValue[TFResultsSecurityModel]
                             schema: customtypes.NewObjectType[TFResultsSecurityModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: security
                           tf_model_name: Security
@@ -1455,10 +1473,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List of returned documents that MongoDB Cloud provides when completing this request.
               custom_type:
-                package: customtypes
                 name: Results
                 model: customtypes.NestedListValue[TFResultsModel]
                 schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: results
               tf_model_name: Results

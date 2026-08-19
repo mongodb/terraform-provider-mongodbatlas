@@ -72,10 +72,11 @@ schema:
                       request_only_required_on_create: false
           description: 'Required for auth_type: HEADER. HTTP headers for authentication and configuration. Total size limit 2KB.'
           custom_type:
-            package: customtypes
             name: Headers
             model: customtypes.NestedListValue[TFHeadersModel]
             schema: customtypes.NewNestedListType[TFHeadersModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: headers
           tf_model_name: Headers
@@ -112,10 +113,11 @@ schema:
                       request_only_required_on_create: false
           description: HTTP headers for authentication and configuration. Values are redacted and never returned in plaintext.
           custom_type:
-            package: customtypes
             name: HeadersRedacted
             model: customtypes.NestedListValue[TFHeadersRedactedModel]
             schema: customtypes.NewNestedListType[TFHeadersRedactedModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed
           tf_schema_name: headers_redacted
           tf_model_name: HeadersRedacted
@@ -152,9 +154,10 @@ schema:
             element_type: 4
           description: Array of metric categories to export. Determines which types of metrics are sent to the integration.
           custom_type:
-            package: customtypes
             model: customtypes.SetValue[types.String]
             schema: customtypes.NewSetType[types.String](ctx)
+            packages:
+                - customtypes
           computed_optional_required: required
           tf_schema_name: metric_selection
           tf_model_name: MetricSelection
@@ -253,10 +256,11 @@ data_sources:
                           request_only_required_on_create: false
               description: HTTP headers for authentication and configuration. Values are redacted and never returned in plaintext.
               custom_type:
-                package: customtypes
                 name: HeadersRedacted
                 model: customtypes.NestedListValue[TFHeadersRedactedModel]
                 schema: customtypes.NewNestedListType[TFHeadersRedactedModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: headers_redacted
               tf_model_name: HeadersRedacted
@@ -292,9 +296,10 @@ data_sources:
                 element_type: 4
               description: Array of metric categories to export. Determines which types of metrics are sent to the integration.
               custom_type:
-                package: customtypes
                 model: customtypes.SetValue[types.String]
                 schema: customtypes.NewSetType[types.String](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: metric_selection
               tf_model_name: MetricSelection
@@ -425,10 +430,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: HTTP headers for authentication and configuration. Values are redacted and never returned in plaintext.
                           custom_type:
-                            package: customtypes
                             name: ResultsHeadersRedacted
                             model: customtypes.NestedListValue[TFResultsHeadersRedactedModel]
                             schema: customtypes.NewNestedListType[TFResultsHeadersRedactedModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: headers_redacted
                           tf_model_name: HeadersRedacted
@@ -464,9 +470,10 @@ data_sources:
                             element_type: 4
                           description: Array of metric categories to export. Determines which types of metrics are sent to the integration.
                           custom_type:
-                            package: customtypes
                             model: customtypes.SetValue[types.String]
                             schema: customtypes.NewSetType[types.String](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: metric_selection
                           tf_model_name: MetricSelection
@@ -489,10 +496,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List of returned documents that MongoDB Cloud provides when completing this request.
               custom_type:
-                package: customtypes
                 name: Results
                 model: customtypes.NestedListValue[TFResultsModel]
                 schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: results
               tf_model_name: Results

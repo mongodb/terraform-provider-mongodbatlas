@@ -60,9 +60,10 @@ schema:
             element_type: 4
           description: List of embedding model names included in this model group.
           custom_type:
-            package: customtypes
             model: customtypes.ListValue[types.String]
             schema: customtypes.NewListType[types.String](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed
           tf_schema_name: model_names
           tf_model_name: ModelNames
@@ -161,9 +162,10 @@ data_sources:
                 element_type: 4
               description: List of embedding model names included in this model group.
               custom_type:
-                package: customtypes
                 model: customtypes.ListValue[types.String]
                 schema: customtypes.NewListType[types.String](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: model_names
               tf_model_name: ModelNames
@@ -271,9 +273,10 @@ data_sources:
                             element_type: 4
                           description: List of embedding model names included in this model group.
                           custom_type:
-                            package: customtypes
                             model: customtypes.ListValue[types.String]
                             schema: customtypes.NewListType[types.String](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: model_names
                           tf_model_name: ModelNames
@@ -307,10 +310,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List of returned documents that MongoDB Cloud provides when completing this request.
               custom_type:
-                package: customtypes
                 name: Results
                 model: customtypes.NestedListValue[TFResultsModel]
                 schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: results
               tf_model_name: Results
