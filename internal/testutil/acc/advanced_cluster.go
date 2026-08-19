@@ -207,6 +207,9 @@ func ConfigBasicDedicated(projectID, name, zoneName string) string {
 	`, projectID, name, zoneNameLine, advancedClusterDataSources, DefaultRegion())
 }
 
+// ConfigDedicatedNVMeBackupEnabled keeps the region pinned to US_EAST_1: it is used by
+// TestAccMockableAdvancedCluster_tenantUpgrade, which needs a region supporting both TENANT
+// (M0) and M40_NVME instance sizes, and its config must match the captured mock traffic.
 func ConfigDedicatedNVMeBackupEnabled(projectID, name, zoneName string) string {
 	zoneNameLine := ""
 	if zoneName != "" {
@@ -222,7 +225,7 @@ func ConfigDedicatedNVMeBackupEnabled(projectID, name, zoneName string) string {
 			region_configs = [{
 				priority        = 7
 				provider_name = "AWS"
-				region_name     = %[5]q
+				region_name     = "US_EAST_1"
 				electable_specs = {
 					instance_size   = "M40_NVME"
         			ebs_volume_type = "PROVISIONED"
@@ -233,7 +236,7 @@ func ConfigDedicatedNVMeBackupEnabled(projectID, name, zoneName string) string {
 		}]
 	}
 	%[4]s
-	`, projectID, name, zoneNameLine, advancedClusterDataSources, DefaultRegion())
+	`, projectID, name, zoneNameLine, advancedClusterDataSources)
 }
 
 const advancedClusterDataSources = `
