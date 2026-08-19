@@ -1,0 +1,23 @@
+---
+subcategory: "Remote MCP"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a Project Remote MCP Configuration resource. The resource lets you create, update, delete, and import a Remote MCP configuration for the specified Project.
+
+~> **IMPORTANT:** This resource does not manage ingress secrets. Use [`mongodbatlas_project_mcp_config_secret`](project_mcp_config_secret.md) to create one.
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+Import the MCP Config resource by using the Project ID and MCP Config ID in the format `PROJECT_ID/MCP_CONFIG_ID`, e.g.
+```
+$ terraform import mongodbatlas_project_mcp_config.test 6117ac2fe2a3d04ed27a987v/8423867e-394c-4f1e-9d81-32d323a1dd81
+```
+
+For more information, see [Create One MCP Configuration for One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupmcpconfig) in the MongoDB Atlas API documentation.
