@@ -1,0 +1,524 @@
+schema:
+    description: Creates an MCP configuration for the specified organization. Returns the configuration ID and ingress credentials.
+    attributes:
+        - string: {}
+          description: Unique identifier for the Service Account client associated with this MCP configuration. Use this Service Account to connect to the Atlas Remote MCP.
+          computed_optional_required: computed
+          tf_schema_name: client_id
+          tf_model_name: ClientId
+          api_name: clientId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique identifier for the egress Service Account client associated with this MCP configuration. This Service Account is managed by MongoDB Atlas.
+          computed_optional_required: computed
+          tf_schema_name: egress_client_id
+          tf_model_name: EgressClientId
+          api_name: egressClientId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Range of network addresses in the access list for the Service Account. This parameter requires the range to be expressed in Classless Inter-Domain Routing (CIDR) notation of Internet Protocol version 4 or version 6 addresses. You can set a value for this parameter or `ipAddress`, but not for both in the same request.
+                      computed_optional_required: computed_optional
+                      tf_schema_name: cidr_block
+                      tf_model_name: CidrBlock
+                      api_name: cidrBlock
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Date MongoDB Cloud added the entry was added to the Access List. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                      computed_optional_required: computed
+                      tf_schema_name: created_at
+                      tf_model_name: CreatedAt
+                      api_name: createdAt
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Network address in the access list for the Service Account. This parameter requires the address to be expressed as one Internet Protocol version 4 or version 6 address. You can set a value for this parameter or `cidrBlock`, but not for both in the same request.
+                      computed_optional_required: computed_optional
+                      tf_schema_name: ip_address
+                      tf_model_name: IpAddress
+                      api_name: ipAddress
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Network address that issued the most recent request to the API. This parameter requires the address to be expressed as one Internet Protocol version 4 or version 6 address. The resource returns this parameter after this IP address makes at least one request.
+                      computed_optional_required: computed
+                      tf_schema_name: last_used_address
+                      tf_model_name: LastUsedAddress
+                      api_name: lastUsedAddress
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Date when MongoDB Cloud received the most recent request that originated from this Internet Protocol version 4 or version 6 address. The resource returns this parameter when at least one request originates from this IP address. MongoDB Cloud updates this parameter each time a client accesses the permitted resource, with a delay of up to 5 minutes. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                      computed_optional_required: computed
+                      tf_schema_name: last_used_at
+                      tf_model_name: LastUsedAt
+                      api_name: lastUsedAt
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - int64: {}
+                      description: The number of requests that has originated from this network address.
+                      computed_optional_required: computed
+                      tf_schema_name: request_count
+                      tf_model_name: RequestCount
+                      api_name: requestCount
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: List of IP access list entries that define allowed source addresses for this MCP configuration.
+          custom_type:
+            name: IpAccessList
+            model: customtypes.NestedListValue[TFIpAccessListModel]
+            schema: customtypes.NewNestedListType[TFIpAccessListModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: computed_optional
+          tf_schema_name: ip_access_list
+          tf_model_name: IpAccessList
+          api_name: ipAccessList
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique identifier that identifies this MCP configuration.
+          computed_optional_required: computed
+          tf_schema_name: mcp_config_id
+          tf_model_name: McpConfigId
+          api_name: mcpConfigId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Human-readable name that identifies this MCP configuration.
+          computed_optional_required: required
+          tf_schema_name: mcp_config_name
+          tf_model_name: McpConfigName
+          api_name: mcpConfigName
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+          computed_optional_required: required
+          tf_schema_name: org_id
+          tf_model_name: OrgId
+          api_name: orgId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - set:
+            element_type: 4
+          description: List of organization roles to assign to this MCP configuration.
+          custom_type:
+            model: customtypes.SetValue[types.String]
+            schema: customtypes.NewSetType[types.String](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: required
+          tf_schema_name: roles
+          tf_model_name: Roles
+          api_name: roles
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+    create:
+        http_method: POST
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs
+    read:
+        http_method: GET
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+    version_header: application/vnd.atlas.2025-03-12+json
+data_sources:
+    singular:
+        description: Returns the MCP configuration with the specified ID for the specified organization.
+        attributes:
+            - string: {}
+              description: Unique identifier for the Service Account client associated with this MCP configuration. Use this Service Account to connect to the Atlas Remote MCP.
+              computed_optional_required: computed
+              tf_schema_name: client_id
+              tf_model_name: ClientId
+              api_name: clientId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique identifier for the egress Service Account client associated with this MCP configuration. This Service Account is managed by MongoDB Atlas.
+              computed_optional_required: computed
+              tf_schema_name: egress_client_id
+              tf_model_name: EgressClientId
+              api_name: egressClientId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Range of network addresses in the access list for the Service Account. This parameter requires the range to be expressed in Classless Inter-Domain Routing (CIDR) notation of Internet Protocol version 4 or version 6 addresses. You can set a value for this parameter or `ipAddress`, but not for both in the same request.
+                          computed_optional_required: computed
+                          tf_schema_name: cidr_block
+                          tf_model_name: CidrBlock
+                          api_name: cidrBlock
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Date MongoDB Cloud added the entry was added to the Access List. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                          computed_optional_required: computed
+                          tf_schema_name: created_at
+                          tf_model_name: CreatedAt
+                          api_name: createdAt
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Network address in the access list for the Service Account. This parameter requires the address to be expressed as one Internet Protocol version 4 or version 6 address. You can set a value for this parameter or `cidrBlock`, but not for both in the same request.
+                          computed_optional_required: computed
+                          tf_schema_name: ip_address
+                          tf_model_name: IpAddress
+                          api_name: ipAddress
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Network address that issued the most recent request to the API. This parameter requires the address to be expressed as one Internet Protocol version 4 or version 6 address. The resource returns this parameter after this IP address makes at least one request.
+                          computed_optional_required: computed
+                          tf_schema_name: last_used_address
+                          tf_model_name: LastUsedAddress
+                          api_name: lastUsedAddress
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Date when MongoDB Cloud received the most recent request that originated from this Internet Protocol version 4 or version 6 address. The resource returns this parameter when at least one request originates from this IP address. MongoDB Cloud updates this parameter each time a client accesses the permitted resource, with a delay of up to 5 minutes. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                          computed_optional_required: computed
+                          tf_schema_name: last_used_at
+                          tf_model_name: LastUsedAt
+                          api_name: lastUsedAt
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - int64: {}
+                          description: The number of requests that has originated from this network address.
+                          computed_optional_required: computed
+                          tf_schema_name: request_count
+                          tf_model_name: RequestCount
+                          api_name: requestCount
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of IP access list entries that define allowed source addresses for this MCP configuration.
+              custom_type:
+                name: IpAccessList
+                model: customtypes.NestedListValue[TFIpAccessListModel]
+                schema: customtypes.NewNestedListType[TFIpAccessListModel](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: ip_access_list
+              tf_model_name: IpAccessList
+              api_name: ipAccessList
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique identifier of the MCP configuration.
+              computed_optional_required: required
+              tf_schema_name: mcp_config_id
+              tf_model_name: McpConfigId
+              api_name: mcpConfigId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Human-readable name that identifies this MCP configuration.
+              computed_optional_required: computed
+              tf_schema_name: mcp_config_name
+              tf_model_name: McpConfigName
+              api_name: mcpConfigName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+              computed_optional_required: required
+              tf_schema_name: org_id
+              tf_model_name: OrgId
+              api_name: orgId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list:
+                element_type: 4
+              description: List of organization roles associated with this MCP configuration.
+              custom_type:
+                model: customtypes.ListValue[types.String]
+                schema: customtypes.NewListType[types.String](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: roles
+              tf_model_name: Roles
+              api_name: roles
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    plural:
+        description: Returns all MCP configurations associated with the specified organization.
+        attributes:
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+              computed_optional_required: required
+              tf_schema_name: org_id
+              tf_model_name: OrgId
+              api_name: orgId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Unique identifier for the Service Account client associated with this MCP configuration. Use this Service Account to connect to the Atlas Remote MCP.
+                          computed_optional_required: computed
+                          tf_schema_name: client_id
+                          tf_model_name: ClientId
+                          api_name: clientId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique identifier for the egress Service Account client associated with this MCP configuration. This Service Account is managed by MongoDB Atlas.
+                          computed_optional_required: computed
+                          tf_schema_name: egress_client_id
+                          tf_model_name: EgressClientId
+                          api_name: egressClientId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - list_nested:
+                            nested_object:
+                                attributes:
+                                    - string: {}
+                                      description: Range of network addresses in the access list for the Service Account. This parameter requires the range to be expressed in Classless Inter-Domain Routing (CIDR) notation of Internet Protocol version 4 or version 6 addresses. You can set a value for this parameter or `ipAddress`, but not for both in the same request.
+                                      computed_optional_required: computed
+                                      tf_schema_name: cidr_block
+                                      tf_model_name: CidrBlock
+                                      api_name: cidrBlock
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Date MongoDB Cloud added the entry was added to the Access List. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                                      computed_optional_required: computed
+                                      tf_schema_name: created_at
+                                      tf_model_name: CreatedAt
+                                      api_name: createdAt
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Network address in the access list for the Service Account. This parameter requires the address to be expressed as one Internet Protocol version 4 or version 6 address. You can set a value for this parameter or `cidrBlock`, but not for both in the same request.
+                                      computed_optional_required: computed
+                                      tf_schema_name: ip_address
+                                      tf_model_name: IpAddress
+                                      api_name: ipAddress
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Network address that issued the most recent request to the API. This parameter requires the address to be expressed as one Internet Protocol version 4 or version 6 address. The resource returns this parameter after this IP address makes at least one request.
+                                      computed_optional_required: computed
+                                      tf_schema_name: last_used_address
+                                      tf_model_name: LastUsedAddress
+                                      api_name: lastUsedAddress
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Date when MongoDB Cloud received the most recent request that originated from this Internet Protocol version 4 or version 6 address. The resource returns this parameter when at least one request originates from this IP address. MongoDB Cloud updates this parameter each time a client accesses the permitted resource, with a delay of up to 5 minutes. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                                      computed_optional_required: computed
+                                      tf_schema_name: last_used_at
+                                      tf_model_name: LastUsedAt
+                                      api_name: lastUsedAt
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - int64: {}
+                                      description: The number of requests that has originated from this network address.
+                                      computed_optional_required: computed
+                                      tf_schema_name: request_count
+                                      tf_model_name: RequestCount
+                                      api_name: requestCount
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: List of IP access list entries that define allowed source addresses for this MCP configuration.
+                          custom_type:
+                            name: ResultsIpAccessList
+                            model: customtypes.NestedListValue[TFResultsIpAccessListModel]
+                            schema: customtypes.NewNestedListType[TFResultsIpAccessListModel](ctx)
+                            packages:
+                                - customtypes
+                          computed_optional_required: computed
+                          tf_schema_name: ip_access_list
+                          tf_model_name: IpAccessList
+                          api_name: ipAccessList
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique identifier that identifies this MCP configuration.
+                          computed_optional_required: computed
+                          tf_schema_name: mcp_config_id
+                          tf_model_name: McpConfigId
+                          api_name: mcpConfigId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Human-readable name that identifies this MCP configuration.
+                          computed_optional_required: computed
+                          tf_schema_name: mcp_config_name
+                          tf_model_name: McpConfigName
+                          api_name: mcpConfigName
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - list:
+                            element_type: 4
+                          description: List of organization roles associated with this MCP configuration.
+                          custom_type:
+                            model: customtypes.ListValue[types.String]
+                            schema: customtypes.NewListType[types.String](ctx)
+                            packages:
+                                - customtypes
+                          computed_optional_required: computed
+                          tf_schema_name: roles
+                          tf_model_name: Roles
+                          api_name: roles
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of returned documents that MongoDB Cloud provides when completing this request.
+              custom_type:
+                name: Results
+                model: customtypes.NestedListValue[TFResultsModel]
+                schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: results
+              tf_model_name: Results
+              api_name: results
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+        list:
+            http_method: GET
+            path: /api/atlas/v2/orgs/{orgId}/mcpConfigs
+        version_header: application/vnd.atlas.2025-03-12+json
+name: mcp_config
+packageName: mcpconfig
