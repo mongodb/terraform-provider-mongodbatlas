@@ -82,6 +82,86 @@ schema:
         - single_nested:
             nested_object:
                 attributes:
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - list_nested:
+                                    nested_object:
+                                        attributes:
+                                            - string: {}
+                                              description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                              computed_optional_required: computed
+                                              tf_schema_name: href
+                                              tf_model_name: Href
+                                              api_name: href
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                              computed_optional_required: computed
+                                              tf_schema_name: rel
+                                              tf_model_name: Rel
+                                              api_name: rel
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                  description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                                  custom_type:
+                                    package: customtypes
+                                    name: AuthenticationAwsLinks
+                                    model: customtypes.NestedListValue[TFAuthenticationAwsLinksModel]
+                                    schema: customtypes.NewNestedListType[TFAuthenticationAwsLinksModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: links
+                                  tf_model_name: Links
+                                  api_name: links
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+                                  computed_optional_required: optional
+                                  tf_schema_name: role_arn
+                                  tf_model_name: RoleArn
+                                  api_name: roleArn
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
+                                  computed_optional_required: optional
+                                  tf_schema_name: test_bucket
+                                  tf_model_name: TestBucket
+                                  api_name: testBucket
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: AWS configurations for AWS-based connection types.
+                      custom_type:
+                        package: customtypes
+                        name: AuthenticationAws
+                        model: customtypes.ObjectValue[TFAuthenticationAwsModel]
+                        schema: customtypes.NewObjectType[TFAuthenticationAwsModel](ctx)
+                      computed_optional_required: optional
+                      tf_schema_name: aws
+                      tf_model_name: Aws
+                      api_name: aws
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - string: {}
                       description: OIDC client identifier for authentication to the Kafka cluster.
                       computed_optional_required: optional

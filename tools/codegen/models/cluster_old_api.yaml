@@ -517,22 +517,22 @@ schema:
                 attributes:
                     - string: {}
                       description: Expiration date for the employee access grant. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-                      computed_optional_required: required
+                      computed_optional_required: computed
                       tf_schema_name: expiration_time
                       tf_model_name: ExpirationTime
                       api_name: expirationTime
-                      req_body_usage: all_request_bodies
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
                       description: Level of access to grant to MongoDB Employees.
-                      computed_optional_required: required
+                      computed_optional_required: computed
                       tf_schema_name: grant_type
                       tf_model_name: GrantType
                       api_name: grantType
-                      req_body_usage: all_request_bodies
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                       present_in_any_response: true
@@ -543,11 +543,11 @@ schema:
             name: MongoDBEmployeeAccessGrant
             model: customtypes.ObjectValue[TFMongoDBEmployeeAccessGrantModel]
             schema: customtypes.NewObjectType[TFMongoDBEmployeeAccessGrantModel](ctx)
-          computed_optional_required: optional
+          computed_optional_required: computed
           tf_schema_name: mongo_db_employee_access_grant
           tf_model_name: MongoDBEmployeeAccessGrant
           api_name: mongoDBEmployeeAccessGrant
-          req_body_usage: all_request_bodies
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
           present_in_any_response: true
