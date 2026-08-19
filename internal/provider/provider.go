@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/metricintegration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectmcpconfigsecret"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -352,6 +353,8 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		aimodelorgratelimit.PluralDataSource,
 		aimodelratelimit.DataSource,
 		aimodelratelimit.PluralDataSource,
+		projectmcpconfigsecret.DataSource,
+		projectmcpconfigsecret.PluralDataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
@@ -362,6 +365,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 
 func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Resource {
 	resources := []func() resource.Resource{
+		projectmcpconfigsecret.Resource,
 		metricintegration.Resource,
 		project.Resource,
 		logintegration.Resource,

@@ -748,6 +748,45 @@ resources:
       aliases:
         resourcePolicyId: id # path param name does not match the API response property
 
+  project_mcp_config_secret:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets
+      method: POST
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    id_attributes: ["project_id", "mcp_config_id", "secret_id"]
+    schema:
+      aliases:
+        id: secretId
+        groupId: projectId # Align with project_id naming used by other project-scoped resources (e.g. project_service_account).
+      overrides:
+        project_id:
+          description: *project_id_description
+        secret:
+          sensitive: true
+        secret_expires_after_hours:
+          description: "The expiration time of the new ingress Service Account secret, provided in hours. This attribute is required when creating the secret and cannot be updated later."
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets
+        method: GET
+      schema:
+        ignores: ["secret"] # `secret` is only ever populated in the create response
+        aliases:
+          id: secretId
+          groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description
+
   search_deployment_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
