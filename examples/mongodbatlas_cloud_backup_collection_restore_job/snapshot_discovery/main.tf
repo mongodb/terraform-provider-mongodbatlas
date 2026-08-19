@@ -14,6 +14,27 @@ locals {
     snapshot.id if snapshot.created_at == local.latest_snapshot_created_at
   ]) : null
   snapshot_id = coalesce(var.snapshot_id, local.latest_snapshot_id)
+  selected_snapshot_created_at = try(one([
+    for s in local.available_snapshots_all : s.created_at if s.id == local.snapshot_id
+  ]), null)
+  available_snapshots_limit = 5
+  available_snapshots_all = [
+    for snapshot in data.mongodbatlas_cloud_backup_snapshots.this.results : {
+      id            = snapshot.id
+      created_at    = snapshot.created_at
+      status        = snapshot.status
+      snapshot_type = snapshot.snapshot_type
+    }
+  ]
+  available_snapshots_newest = [
+    for created_at in slice(
+      reverse(sort([for s in local.available_snapshots_all : s.created_at])),
+      0,
+      min(local.available_snapshots_limit, length(local.available_snapshots_all)),
+      ) : [
+      for s in local.available_snapshots_all : s if s.created_at == created_at
+    ][0]
+  ]
 }
 
 data "mongodbatlas_cloud_backup_snapshots" "this" {
@@ -38,25 +59,22 @@ data "mongodbatlas_cloud_backup_snapshot_database_collections" "this" {
 }
 
 output "available_snapshots" {
-  value = [for snapshot in data.mongodbatlas_cloud_backup_snapshots.this.results : {
-    id            = snapshot.id
-    created_at    = snapshot.created_at
-    status        = snapshot.status
-    snapshot_type = snapshot.snapshot_type
-  }]
+  value = local.available_snapshots_newest
 }
 
 output "snapshot_id" {
   value = local.snapshot_id
 }
 
-output "snapshot_databases" {
-  value = [for db in data.mongodbatlas_cloud_backup_snapshot_databases.this.results : db.name]
-}
-
-output "snapshot_collections" {
+output "snapshot_details" {
   value = {
-    for db, ds in data.mongodbatlas_cloud_backup_snapshot_database_collections.this :
-    db => [for coll in ds.results : coll.name]
+    created_at = local.selected_snapshot_created_at
+    databases = [for db in data.mongodbatlas_cloud_backup_snapshot_databases.this.results : {
+      name = db.name
+      collections = [
+        for coll in try(data.mongodbatlas_cloud_backup_snapshot_database_collections.this[db.name].results, []) :
+        coll.name
+      ]
+    }]
   }
 }

@@ -38,9 +38,8 @@ discovery_database_names = ["sample_mflix", "inventory"]
 terraform apply
 ```
 
-- `available_snapshots` — all snapshots for the cluster
+- `available_snapshots` — newest 5 snapshots for the cluster
 - `snapshot_id` — snapshot used for database and collection listing
-- `snapshot_databases` — database names in that snapshot
-- `snapshot_collections` — collection names per database (when `discovery_database_names` is set)
+- `snapshot_details` — `created_at`, databases, and collections for that snapshot (`collections` is populated when `discovery_database_names` is set)
 
 Copy `snapshot_id`, `restore_databases`, and `restore_collections` into [`snapshot_restore/terraform.tfvars`](../snapshot_restore/README.md).
