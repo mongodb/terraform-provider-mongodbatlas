@@ -3,11 +3,8 @@ package codespec_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v3"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCustomCollectionPackages(t *testing.T) {
@@ -36,36 +33,6 @@ func TestCustomCollectionPackages(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			assert.Equal(t, test.packages, test.customType.Packages)
-		})
-	}
-}
-
-func TestCustomTypeUnmarshalYAML(t *testing.T) {
-	tests := map[string]struct {
-		yaml     string
-		packages []codespec.CustomTypePackage
-	}{
-		"Legacy package": {
-			yaml: `package: customtypes
-model: customtypes.ListValue[types.String]
-schema: customtypes.NewListType[types.String](ctx)`,
-			packages: []codespec.CustomTypePackage{codespec.CustomTypesPkg},
-		},
-		"Multiple packages": {
-			yaml: `packages:
-  - customtypes
-  - jsontypes
-model: customtypes.ListValue[jsontypes.Normalized]
-schema: customtypes.NewListType[jsontypes.Normalized](ctx)`,
-			packages: []codespec.CustomTypePackage{codespec.CustomTypesPkg, codespec.JSONTypesPkg},
-		},
-	}
-
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			var customType codespec.CustomType
-			require.NoError(t, yaml.Unmarshal([]byte(test.yaml), &customType))
-			assert.Equal(t, test.packages, customType.Packages)
 		})
 	}
 }

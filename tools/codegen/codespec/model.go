@@ -2,8 +2,6 @@ package codespec
 
 import (
 	"fmt"
-
-	"gopkg.in/yaml.v3"
 )
 
 type ElemType int
@@ -263,28 +261,6 @@ type CustomType struct {
 	Model    string              `yaml:"model"`
 	Schema   string              `yaml:"schema"`
 	Packages []CustomTypePackage `yaml:"packages"`
-}
-
-func (c *CustomType) UnmarshalYAML(value *yaml.Node) error {
-	var raw struct {
-		Package  CustomTypePackage   `yaml:"package"`
-		Name     string              `yaml:"name"`
-		Model    string              `yaml:"model"`
-		Schema   string              `yaml:"schema"`
-		Packages []CustomTypePackage `yaml:"packages"`
-	}
-	if err := value.Decode(&raw); err != nil {
-		return err
-	}
-
-	c.Packages = raw.Packages
-	if len(c.Packages) == 0 && raw.Package != "" {
-		c.Packages = []CustomTypePackage{raw.Package}
-	}
-	c.Name = raw.Name
-	c.Model = raw.Model
-	c.Schema = raw.Schema
-	return nil
 }
 
 var CustomTypeJSONVar = CustomType{
