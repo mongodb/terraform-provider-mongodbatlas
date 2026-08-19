@@ -194,7 +194,7 @@ func ConfigBasicDedicated(projectID, name, zoneName string) string {
 			region_configs = [{
 				priority        = 7
 				provider_name = "AWS"
-				region_name     = "US_EAST_1"
+				region_name     = %[5]q
 				electable_specs = {
 					node_count = 3
 					instance_size = "M10"
@@ -204,7 +204,7 @@ func ConfigBasicDedicated(projectID, name, zoneName string) string {
 		}]
 	}
 	%[4]s
-	`, projectID, name, zoneNameLine, advancedClusterDataSources)
+	`, projectID, name, zoneNameLine, advancedClusterDataSources, DefaultRegion())
 }
 
 func ConfigDedicatedNVMeBackupEnabled(projectID, name, zoneName string) string {
@@ -222,7 +222,7 @@ func ConfigDedicatedNVMeBackupEnabled(projectID, name, zoneName string) string {
 			region_configs = [{
 				priority        = 7
 				provider_name = "AWS"
-				region_name     = "US_EAST_1"
+				region_name     = %[5]q
 				electable_specs = {
 					instance_size   = "M40_NVME"
         			ebs_volume_type = "PROVISIONED"
@@ -233,7 +233,7 @@ func ConfigDedicatedNVMeBackupEnabled(projectID, name, zoneName string) string {
 		}]
 	}
 	%[4]s
-	`, projectID, name, zoneNameLine, advancedClusterDataSources)
+	`, projectID, name, zoneNameLine, advancedClusterDataSources, DefaultRegion())
 }
 
 const advancedClusterDataSources = `

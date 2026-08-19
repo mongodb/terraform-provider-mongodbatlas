@@ -55,6 +55,7 @@ Enviroment Variable | Description
 --- | ---
 `MONGODB_ATLAS_PROJECT_ID` | Re-use an existing project reducing test run duration for resources supporting this variable
 `MONGODB_ATLAS_CLUSTER_NAME` | Re-use an existing cluster reducing significantly test run duration for resources supporting this variable
+`MONGODB_ATLAS_TEST_REGIONS` | Comma-separated list of Atlas regions (default `US_WEST_2,US_EAST_1,US_EAST_2`) used by acceptance test helpers: the first region is the default (e.g. `acc.ClusterRequest` defaults, shared execution cluster) and the rest are fallback candidates retried on `OUT_OF_CAPACITY` errors. It is also settable in CI via the GitHub variable of the same name. The first region must have capacity for `M10` clusters, and be NVMe-capable for tests using NVMe instance sizes (e.g. `M40_NVME`)
 
 ## Shared resources
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -41,14 +42,34 @@ func deleteProject(id string) error {
 
 func createCluster(tb testing.TB, projectID, name string) string {
 	tb.Helper()
-	req := clusterReq(name, projectID)
-	_, _, err := ConnV2().ClustersAPI.CreateCluster(tb.Context(), projectID, &req).Execute()
-	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
-	stateConf := cluster.CreateStateChangeConfig(tb.Context(), ConnV2(), projectID, name, 1*time.Hour)
-	_, err = stateConf.WaitForStateContext(tb.Context())
-	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
-
+	regions := DefaultRegions()
+	for i, region := range regions {
+		lastRegion := i == len(regions)-1
+		req := clusterReq(name, projectID, region)
+		_, _, err := ConnV2().ClustersAPI.CreateCluster(tb.Context(), projectID, &req).Execute()
+		if isOutOfCapacityError(err) && !lastRegion {
+			tb.Logf("Cluster creation in %s failed with OUT_OF_CAPACITY, trying next region: %s, err: %s", region, name, err)
+			continue
+		}
+		require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
+		stateConf := cluster.CreateStateChangeConfig(tb.Context(), ConnV2(), projectID, name, 1*time.Hour)
+		_, err = stateConf.WaitForStateContext(tb.Context())
+		if isOutOfCapacityError(err) && !lastRegion {
+			tb.Logf("Cluster creation in %s failed with OUT_OF_CAPACITY while provisioning, trying next region: %s, err: %s", region, name, err)
+			if err := deleteCluster(projectID, name); err != nil {
+				tb.Logf("Failed to delete cluster %s after OUT_OF_CAPACITY: %s", name, err)
+			}
+			continue
+		}
+		require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
+		return name
+	}
+	require.Fail(tb, "Cluster creation failed with OUT_OF_CAPACITY in all candidate regions", "name: %s, regions: %s", name, strings.Join(regions, ","))
 	return name
+}
+
+func isOutOfCapacityError(err error) bool {
+	return err != nil && (admin.IsErrorCode(err, "OUT_OF_CAPACITY") || strings.Contains(err.Error(), "OUT_OF_CAPACITY"))
 }
 
 func deleteCluster(projectID, name string) error {
@@ -64,7 +85,7 @@ func deleteCluster(projectID, name string) error {
 	return nil
 }
 
-func clusterReq(name, projectID string) admin.ClusterDescription20240805 {
+func clusterReq(name, projectID, region string) admin.ClusterDescription20240805 {
 	return admin.ClusterDescription20240805{
 		Name:        new(name),
 		GroupId:     new(projectID),
@@ -74,7 +95,7 @@ func clusterReq(name, projectID string) admin.ClusterDescription20240805 {
 				RegionConfigs: &[]admin.CloudRegionConfig20240805{
 					{
 						ProviderName: admin.PtrString(constant.AWS),
-						RegionName:   admin.PtrString(constant.UsWest2),
+						RegionName:   new(region),
 						Priority:     new(7),
 						ElectableSpecs: &admin.HardwareSpec20240805{
 							InstanceSize: admin.PtrString(constant.M10),
