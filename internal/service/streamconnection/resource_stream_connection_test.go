@@ -272,8 +272,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 				),
 			},
 			{
-				Config:   configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
-				PlanOnly: true,
+				Config: configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectResourceAction(
@@ -381,7 +380,6 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t
 					kafkaNetworkingVPC,
 					true,
 				),
-				PlanOnly: true,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectResourceAction(
