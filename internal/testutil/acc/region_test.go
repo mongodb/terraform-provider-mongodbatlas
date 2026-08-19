@@ -16,7 +16,7 @@ func TestDefaultRegions(t *testing.T) {
 	}{
 		"empty uses default list": {
 			envValue: "",
-			expected: []string{constant.UsWest2, "US_EAST_1", "US_EAST_2"},
+			expected: []string{constant.UsWest2, constant.UsEast1, constant.UsEast2},
 		},
 		"single region": {
 			envValue: "EU_WEST_1",

@@ -16,7 +16,7 @@ import (
 // (e.g. M40_NVME) it must also support NVMe instance sizes.
 const TestRegionsEnvName = "MONGODB_ATLAS_TEST_REGIONS"
 
-var defaultRegions = []string{constant.UsWest2, "US_EAST_1", "US_EAST_2"}
+var defaultRegions = []string{constant.UsWest2, constant.UsEast1, constant.UsEast2}
 
 // DefaultRegions returns the Atlas regions used by acceptance test helpers, the first one
 // being the default and the rest fallback candidates. It can be overridden with the
