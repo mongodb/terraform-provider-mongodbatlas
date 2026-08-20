@@ -41,6 +41,5 @@ Read-Only:
 - `id` (String) Unique 24-hexadecimal digit string that identifies the secret.
 - `last_used_at` (String) The last time the secret was used. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 - `masked_secret_value` (String) The masked Service Account secret.
-- `secret` (String) The secret for the Service Account. It will be returned only the first time after creation.
 
 For more information, see [Return All Secrets for One Organization MCP Configuration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listorgmcpconfigsecrets) in the MongoDB Atlas API documentation.

@@ -825,7 +825,7 @@ resources:
         path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets
         method: GET
       schema:
-        ignores: ["secret"] # `secret` is only ever populated in the create response
+        ignores: ["secret", "results.secret"] 
         aliases:
           id: secretId
         overrides:
