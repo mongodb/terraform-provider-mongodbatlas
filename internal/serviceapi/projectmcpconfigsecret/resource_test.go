@@ -57,8 +57,8 @@ func TestAccProjectMcpConfigSecret_maxSecretsLimit(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				// A config's ingress SA allows a maximum of 2 concurrent secrets;
-				// creating both here confirms rotation overlap is possible.
+				// A config's ingress SA allows a maximum of 2 concurrent secrets.
+				// Creating both here confirms rotation overlap is possible.
 				Config: configTwoSecrets(projectID, name, 720),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName+"_1"),
@@ -121,9 +121,6 @@ func configTwoSecrets(projectID, name string, secretExpiresAfterHours int) strin
 	`, projectID, name, secretExpiresAfterHours)
 }
 
-// masked_secret_value is only populated via a GET, not by the create response, so it's
-// checked on the data sources (which always call GET) but not on the resource itself
-// right after apply -- confirmed live that the create response omits this field entirely.
 func checkBasic(isCreate bool) resource.TestCheckFunc {
 	commonAttrsSet := []string{"secret_id", "created_at", "expires_at"}
 	checks := acc.CheckRSAndDS(resourceName, new(dataSourceName), nil, commonAttrsSet, nil, checkExists(resourceName))

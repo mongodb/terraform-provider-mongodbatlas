@@ -4,11 +4,11 @@ subcategory: "Remote MCP"
 
 # Resource: mongodbatlas_project_mcp_config_secret
 
-`mongodbatlas_project_mcp_config_secret` provides a Project MCP Config Secret resource. The resource lets you create and delete ingress secrets for a [`mongodbatlas_project_mcp_config`](project_mcp_config.md) configuration. The egress Service Account secret is system-managed, automatically rotated, and is not exposed through this or any other public resource.
+`mongodbatlas_project_mcp_config_secret` provides a Project MCP Config Secret resource. The resource lets you create and delete ingress secrets for a [`mongodbatlas_project_mcp_config`](project_mcp_config.md) configuration.
 
--> **NOTE:** This resource does not support updates. To rotate secrets, create a new secret resource and delete the old one once no longer needed -- up to two secrets can be active at once.
+~> **IMPORTANT WARNING:** Managing MCP Config Secrets with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
--> **NOTE:** Unlike [`mongodbatlas_project_service_account_secret`](project_service_account_secret.md), no auto-generated secret is created that needs to be imported. The auto-generated ingress secret from `mongodbatlas_project_mcp_config` creation is deleted server-side, so you always create your first secret explicitly with this resource.
+-> **NOTE:** This resource does not support updates. To rotate a secret, create a new secret resource and delete the old one once no longer needed. Up to two secrets can be active at once.
 
 ## Example Usages
 

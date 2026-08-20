@@ -48,10 +48,6 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							Computed:            true,
 							MarkdownDescription: "The masked Service Account secret.",
 						},
-						"secret": dsschema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The secret for the Service Account. It will be returned only the first time after creation.",
-						},
 					},
 				},
 			},
@@ -70,5 +66,4 @@ type TFPluralDSResultsModel struct {
 	Id                types.String `tfsdk:"id" autogen:"omitjson"`
 	LastUsedAt        types.String `tfsdk:"last_used_at" autogen:"omitjson"`
 	MaskedSecretValue types.String `tfsdk:"masked_secret_value" autogen:"omitjson"`
-	Secret            types.String `tfsdk:"secret" autogen:"omitjson"`
 }

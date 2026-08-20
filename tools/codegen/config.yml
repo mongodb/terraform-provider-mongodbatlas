@@ -810,7 +810,7 @@ resources:
     schema:
       aliases:
         id: secretId
-        groupId: projectId # Align with project_id naming used by other project-scoped resources (e.g. project_service_account).
+        groupId: projectId
       overrides:
         project_id:
           description: *project_id_description
@@ -826,7 +826,7 @@ resources:
         path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets
         method: GET
       schema:
-        ignores: ["secret"] # `secret` is only ever populated in the create response
+        ignores: ["secret", "results.secret"] # `secret` is only ever populated in the create response
         aliases:
           id: secretId
           groupId: projectId
