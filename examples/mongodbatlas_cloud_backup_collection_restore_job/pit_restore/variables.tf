@@ -11,6 +11,7 @@ variable "cluster_name" {
 variable "point_in_time_utc_seconds" {
   description = "Point-in-time restore time in seconds since UNIX epoch"
   type        = number
+  default     = null
 }
 
 variable "oplog_ts" {
