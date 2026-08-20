@@ -1744,6 +1744,26 @@ resources:
             optional: true
             computed: true
           description: *databases_target_namespace_description
+        snapshot_id:
+          # Atlas fills the PIT-base snapshot when the client sends only PIT fields.
+          computability:
+            optional: true
+            computed: true
+        oplog_ts:
+          # Atlas copies pointInTimeUtcSeconds into oplogTs when omitted.
+          computability:
+            optional: true
+            computed: true
+        oplog_inc:
+          # Atlas defaults to 0 when PIT is specified via pointInTimeUtcSeconds only.
+          computability:
+            optional: true
+            computed: true
+        point_in_time_utc_seconds:
+          # Atlas copies oplogTs into pointInTimeUtcSeconds when omitted.
+          computability:
+            optional: true
+            computed: true
     datasources:
       read: *cloud-backup-collection-restore-job-read
       list:

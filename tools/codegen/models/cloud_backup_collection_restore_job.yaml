@@ -224,35 +224,35 @@ schema:
           request_only_required_on_create: false
         - int64: {}
           description: Oplog increment for point-in-time restore.
-          computed_optional_required: optional
+          computed_optional_required: computed_optional
           tf_schema_name: oplog_inc
           tf_model_name: OplogInc
           api_name: oplogInc
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: true
+          create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
         - int64: {}
           description: Oplog timestamp (seconds part) for point-in-time restore.
-          computed_optional_required: optional
+          computed_optional_required: computed_optional
           tf_schema_name: oplog_ts
           tf_model_name: OplogTs
           api_name: oplogTs
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: true
+          create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
         - int64: {}
           description: Point-in-time restore time in seconds since UNIX epoch.
-          computed_optional_required: optional
+          computed_optional_required: computed_optional
           tf_schema_name: point_in_time_utc_seconds
           tf_model_name: PointInTimeUtcSeconds
           api_name: pointInTimeUtcSeconds
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: true
+          create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
         - int64: {}
@@ -268,13 +268,13 @@ schema:
           request_only_required_on_create: false
         - string: {}
           description: ID of the snapshot to restore.
-          computed_optional_required: optional
+          computed_optional_required: computed_optional
           tf_schema_name: snapshot_id
           tf_model_name: SnapshotId
           api_name: snapshotId
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: true
+          create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}

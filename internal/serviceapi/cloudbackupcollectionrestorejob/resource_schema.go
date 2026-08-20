@@ -114,28 +114,28 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"oplog_inc": schema.Int64Attribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Oplog increment for point-in-time restore.",
-				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
 			},
 			"oplog_ts": schema.Int64Attribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Oplog timestamp (seconds part) for point-in-time restore.",
-				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
 			},
 			"point_in_time_utc_seconds": schema.Int64Attribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Point-in-time restore time in seconds since UNIX epoch.",
-				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
 			},
 			"restored_documents": schema.Int64Attribute{
 				Computed:            true,
 				MarkdownDescription: "Number of documents restored so far across all supported collections.",
 			},
 			"snapshot_id": schema.StringAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "ID of the snapshot to restore.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"state": schema.StringAttribute{
 				Computed:            true,
