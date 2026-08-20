@@ -4,7 +4,7 @@ subcategory: "Remote MCP"
 
 # Data Source: mongodbatlas_mcp_config_secrets
 
-`mongodbatlas_mcp_config_secrets` returns all ingress secrets for an Organization Remote MCP Configuration. Secret values are never returned; only masked metadata is available.
+`mongodbatlas_mcp_config_secrets` returns all ingress secrets for an Organization Remote MCP Configuration. Secret values are never returned. Only masked metadata is available.
 
 ## Example Usages
 ```terraform
