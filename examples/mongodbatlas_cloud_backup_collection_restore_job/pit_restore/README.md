@@ -6,11 +6,17 @@ This example does not use snapshot IDs. [`snapshot_discovery/`](../snapshot_disc
 
 For product limits, see the [resource documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_collection_restore_job#limitations).
 
+## Restore time
+
+Set **one** of the following. Atlas [collection restore](https://www.mongodb.com/docs/atlas/backup/cloud-backup/restore-from-db-coll/) and [continuous backup restore](https://www.mongodb.com/docs/atlas/backup/cloud-backup/restore-from-continuous) use the same split (Date & Time vs Oplog Timestamp in the UI). Do not combine the paths, and do not set `snapshot_id`. The time must fall inside the cluster's continuous backup window.
+
+- **`point_in_time_utc_seconds`**: Wall-clock UNIX epoch seconds. Use this when you know the clock time to restore to.
+- **`oplog_ts` and `oplog_inc`**: [Oplog](https://www.mongodb.com/docs/manual/core/replica-set-oplog/) [Timestamp](https://www.mongodb.com/docs/manual/reference/bson-types/#timestamps): seconds since epoch plus the ordinal of operations in that second. Use this when you have a Timestamp from the oplog, or need a specific operation inside a second.
+
 ## Prerequisites
 
 - Backup Manager or Project Owner on the source project, and on the target project if they differ.
 - A dedicated cluster with continuous Cloud Backup enabled.
-- A restore time within the continuous backup window.
 
 Credentials come from the environment (`MONGODB_ATLAS_CLIENT_ID` and `MONGODB_ATLAS_CLIENT_SECRET`).
 
@@ -18,11 +24,11 @@ Credentials come from the environment (`MONGODB_ATLAS_CLIENT_ID` and `MONGODB_AT
 
 Omit optional variables to use these values from `variables.tf`:
 
-- `write_strategy`: `CREATE_NEW` — append restored data; Atlas renames matching namespaces on conflict instead of replacing live data
-- `index_strategy`: `ALL` — restore all indexes; `NONE` skips indexes; `ALL_EXCEPT_TTL` restores non-TTL indexes only
-- `target_project_id` / `target_cluster_name`: unset — restore to the same project and cluster as the backup source
-- `oplog_ts` / `oplog_inc`: unset — use `point_in_time_utc_seconds` only
-- `restore_databases` / `restore_collections`: `[]` — set at least one list with namespaces to restore
+- `write_strategy`: `CREATE_NEW`. Append restored data; Atlas renames matching namespaces on conflict instead of replacing live data.
+- `index_strategy`: `ALL`. Restore all indexes; `NONE` skips indexes; `ALL_EXCEPT_TTL` restores non-TTL indexes only.
+- `target_project_id` / `target_cluster_name`: Unset. Restore to the same project and cluster as the backup source.
+- `point_in_time_utc_seconds` / `oplog_ts` / `oplog_inc`: Unset. Set one restore-time path above.
+- `restore_databases` / `restore_collections`: Unset. Set at least one list with namespaces to restore.
 
 To drop and replace matching namespaces on the target, set `write_strategy = "OVERWRITE_EXISTING"` and stop writers before apply.
 
@@ -43,22 +49,32 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 
 **2. Create `terraform.tfvars`.**
 
-Required inputs plus optional overrides. Lines below match `variables.tf` defaults; omit them to keep defaults.
+Required inputs plus one restore-time path. Lines below match `variables.tf` defaults; omit them to keep defaults.
 
 ```hcl
-project_id                = "your-prod-project-id"
-cluster_name              = "your-prod-cluster-name"
-point_in_time_utc_seconds = 1710000000
-restore_databases         = ["inventory"]
-restore_collections       = ["orders.refunds"]
+project_id          = "your-prod-project-id"
+cluster_name        = "your-prod-cluster-name"
+restore_databases   = ["inventory"]
+restore_collections = ["orders.refunds"]
 
 # write_strategy      = "CREATE_NEW"            # default
 # index_strategy      = "ALL"                   # default
 # target_project_id   = "your-staging-project-id"  # default: same as project_id
 # target_cluster_name = "staging-app"              # default: same as cluster_name
-# oplog_ts            = 1710000000                # default: unset; alternative to point_in_time_utc_seconds
-# oplog_inc           = 1                         # default: unset; use with oplog_ts
 # write_strategy      = "OVERWRITE_EXISTING"    # optional: replace matching namespaces
+```
+
+Wall clock:
+
+```hcl
+point_in_time_utc_seconds = 1710000000
+```
+
+Oplog Timestamp:
+
+```hcl
+oplog_ts  = 1710000000
+oplog_inc = 1
 ```
 
 Per-key rename example (commented):
@@ -78,8 +94,6 @@ Global suffix example (commented):
 # database_suffix   = "_staging"
 # collection_suffix = "_restored"
 ```
-
-Do not set `snapshot_id` or other snapshot fields on the resource.
 
 **3. Plan and apply.**
 
