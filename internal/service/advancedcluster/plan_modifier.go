@@ -61,6 +61,7 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version", "config_server_type"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
+	keepUnknown = append(keepUnknown, determineKeepUnknownsRemoved(ctx, diags, state, plan)...) // POC: keep removed O+C leaves unknown so the unset isn't refilled from state
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
 }
 
@@ -173,6 +174,69 @@ func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnosti
 	}
 	// When either compute or disk auto-scaling is enabled, all three fields may be adjusted by Atlas
 	return []string{"instance_size", "disk_size_gb", "disk_iops"}
+}
+
+// determineKeepUnknownsRemoved (POC: unsetting Optional+Computed sizing/autoscaling attributes) returns
+// the tfsdk names of sizing/autoscaling leaves that the attribute plan modifiers forced to unknown
+// because they were removed from config (config null) while state held a value. Adding them to
+// keepUnknown prevents CopyUnknowns from refilling them from state, so the removal survives into the
+// plan (and, together with ForceUpdateAttr in findClusterDiff, is sent to the API as an unset).
+func determineKeepUnknownsRemoved(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) []string {
+	found := map[string]bool{}
+	markIfRemoved := func(name string, planVal, stateVal attr.Value) {
+		if planVal.IsUnknown() && isKnown(stateVal) {
+			found[name] = true
+		}
+	}
+	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
+	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
+	if diags.HasError() {
+		return nil
+	}
+	for i := range minLen(planRepSpecsTF, stateRepSpecsTF) {
+		stateRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, stateRepSpecsTF[i].RegionConfigs)
+		planRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecsTF[i].RegionConfigs)
+		if diags.HasError() {
+			return nil
+		}
+		for j := range minLen(planRegionConfigsTF, stateRegionConfigsTF) {
+			pRC, sRC := planRegionConfigsTF[j], stateRegionConfigsTF[j]
+			for _, pair := range [][2]types.Object{
+				{pRC.ElectableSpecs, sRC.ElectableSpecs},
+				{pRC.AnalyticsSpecs, sRC.AnalyticsSpecs},
+				{pRC.ReadOnlySpecs, sRC.ReadOnlySpecs},
+			} {
+				planSpec := TFModelObject[TFSpecsModel](ctx, pair[0])
+				stateSpec := TFModelObject[TFSpecsModel](ctx, pair[1])
+				if planSpec == nil || stateSpec == nil {
+					continue
+				}
+				markIfRemoved("instance_size", planSpec.InstanceSize, stateSpec.InstanceSize)
+				markIfRemoved("disk_iops", planSpec.DiskIops, stateSpec.DiskIops)
+				markIfRemoved("disk_size_gb", planSpec.DiskSizeGb, stateSpec.DiskSizeGb)
+			}
+			for _, pair := range [][2]types.Object{
+				{pRC.AutoScaling, sRC.AutoScaling},
+				{pRC.AnalyticsAutoScaling, sRC.AnalyticsAutoScaling},
+			} {
+				planAS := TFModelObject[TFAutoScalingModel](ctx, pair[0])
+				stateAS := TFModelObject[TFAutoScalingModel](ctx, pair[1])
+				if planAS == nil || stateAS == nil {
+					continue
+				}
+				markIfRemoved("compute_enabled", planAS.ComputeEnabled, stateAS.ComputeEnabled)
+				markIfRemoved("compute_scale_down_enabled", planAS.ComputeScaleDownEnabled, stateAS.ComputeScaleDownEnabled)
+				markIfRemoved("compute_min_instance_size", planAS.ComputeMinInstanceSize, stateAS.ComputeMinInstanceSize)
+				markIfRemoved("compute_max_instance_size", planAS.ComputeMaxInstanceSize, stateAS.ComputeMaxInstanceSize)
+				markIfRemoved("disk_gb_enabled", planAS.DiskGBEnabled, stateAS.DiskGBEnabled)
+			}
+		}
+	}
+	result := make([]string, 0, len(found))
+	for name := range found {
+		result = append(result, name)
+	}
+	return result
 }
 
 // autoScalingUsed checks if auto-scaling was enabled (state) or will be enabled (plan).
