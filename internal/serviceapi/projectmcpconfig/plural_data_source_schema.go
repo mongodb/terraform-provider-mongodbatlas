@@ -73,10 +73,10 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Human-readable name that identifies this MCP configuration.",
 						},
-						"roles": dsschema.ListAttribute{
+						"roles": dsschema.SetAttribute{
 							Computed:            true,
 							MarkdownDescription: "List of project roles associated with this MCP configuration.",
-							CustomType:          customtypes.NewListType[types.String](ctx),
+							CustomType:          customtypes.NewSetType[types.String](ctx),
 							ElementType:         types.StringType,
 						},
 					},
@@ -96,7 +96,7 @@ type TFPluralDSResultsModel struct {
 	IpAccessList   customtypes.NestedListValue[TFPluralDSResultsIpAccessListModel] `tfsdk:"ip_access_list" autogen:"omitjson"`
 	McpConfigId    types.String                                                    `tfsdk:"mcp_config_id" autogen:"omitjson"`
 	McpConfigName  types.String                                                    `tfsdk:"mcp_config_name" autogen:"omitjson"`
-	Roles          customtypes.ListValue[types.String]                             `tfsdk:"roles" autogen:"omitjson"`
+	Roles          customtypes.SetValue[types.String]                              `tfsdk:"roles" autogen:"omitjson"`
 }
 type TFPluralDSResultsIpAccessListModel struct {
 	CidrBlock       types.String `tfsdk:"cidr_block" autogen:"omitjson"`

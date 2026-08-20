@@ -38,7 +38,7 @@ Read-Only:
 - `ip_access_list` (Attributes List) List of IP access list entries that define allowed source addresses for this MCP configuration. (see [below for nested schema](#nestedatt--results--ip_access_list))
 - `mcp_config_id` (String) Unique identifier that identifies this MCP configuration.
 - `mcp_config_name` (String) Human-readable name that identifies this MCP configuration.
-- `roles` (List of String) List of project roles associated with this MCP configuration.
+- `roles` (Set of String) List of project roles associated with this MCP configuration.
 
 <a id="nestedatt--results--ip_access_list"></a>
 ### Nested Schema for `results.ip_access_list`

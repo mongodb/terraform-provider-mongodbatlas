@@ -2,6 +2,7 @@ package projectmcpconfig_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -17,6 +18,35 @@ const resourceName = "mongodbatlas_project_mcp_config.test"
 const dataSourceName = "data.mongodbatlas_project_mcp_config.test"
 const dataSourcePluralName = "data.mongodbatlas_project_mcp_configs.test"
 
+type ipAccessListEntry struct {
+	cidr string
+	ip   string
+}
+
+func (e ipAccessListEntry) hclStr() string {
+	if e.cidr != "" {
+		return fmt.Sprintf("cidr_block = %q", e.cidr)
+	}
+	if e.ip != "" {
+		return fmt.Sprintf("ip_address = %q", e.ip)
+	}
+	return ""
+}
+
+func (e ipAccessListEntry) attrMap() map[string]string {
+	if e.cidr == "" && e.ip == "" {
+		return nil
+	}
+	result := map[string]string{"ip_access_list.#": "1"}
+	if e.cidr != "" {
+		result["ip_access_list.0.cidr_block"] = e.cidr
+	}
+	if e.ip != "" {
+		result["ip_access_list.0.ip_address"] = e.ip
+	}
+	return result
+}
+
 func TestAccProjectMcpConfig_basic(t *testing.T) {
 	var (
 		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -30,28 +60,27 @@ func TestAccProjectMcpConfig_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, name1, []string{"GROUP_READ_ONLY"}, ""),
-				Check:  checkBasic(),
+				Config: configBasic(projectID, name1, []string{"GROUP_READ_ONLY"}, ipAccessListEntry{}),
+				Check:  checkBasic(ipAccessListEntry{}),
 			},
 			{
-				Config: configBasic(projectID, name2, []string{"GROUP_OWNER"}, ""),
-				Check:  checkBasic(),
+				Config: configBasic(projectID, name2, []string{"GROUP_OWNER"}, ipAccessListEntry{}),
+				Check:  checkBasic(ipAccessListEntry{}),
 			},
 			{
-				Config: configBasic(projectID, name2, []string{"GROUP_OWNER"}, `ip_address = "203.0.113.10"`),
+				Config: configBasic(projectID, name2, []string{"GROUP_OWNER", "GROUP_READ_ONLY"}, ipAccessListEntry{}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "ip_access_list.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "ip_access_list.0.ip_address", "203.0.113.10"),
+					checkBasic(ipAccessListEntry{}),
+					resource.TestCheckResourceAttr(resourceName, "roles.#", "2"),
 				),
 			},
 			{
-				Config: configBasic(projectID, name2, []string{"GROUP_OWNER"}, `cidr_block = "203.0.113.0/24"`),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "ip_access_list.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "ip_access_list.0.cidr_block", "203.0.113.0/24"),
-				),
+				Config: configBasic(projectID, name2, []string{"GROUP_OWNER"}, ipAccessListEntry{ip: "203.0.113.10"}),
+				Check:  checkBasic(ipAccessListEntry{ip: "203.0.113.10"}),
+			},
+			{
+				Config: configBasic(projectID, name2, []string{"GROUP_OWNER"}, ipAccessListEntry{cidr: "203.0.113.0/24"}),
+				Check:  checkBasic(ipAccessListEntry{cidr: "203.0.113.0/24"}),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -64,16 +93,16 @@ func TestAccProjectMcpConfig_basic(t *testing.T) {
 	})
 }
 
-func configBasic(projectID, name string, roles []string, ipAccessListEntry string) string {
+func configBasic(projectID, name string, roles []string, entry ipAccessListEntry) string {
 	rolesHCL := hcl.StringSliceToHCL(roles)
 	ipAccessListHCL := ""
-	if ipAccessListEntry != "" {
+	if entryHCL := entry.hclStr(); entryHCL != "" {
 		ipAccessListHCL = fmt.Sprintf(`
 			ip_access_list = [
 				{
 					%s
 				}
-			]`, ipAccessListEntry)
+			]`, entryHCL)
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_mcp_config" "test" {
@@ -95,9 +124,9 @@ func configBasic(projectID, name string, roles []string, ipAccessListEntry strin
 	`, projectID, name, rolesHCL, ipAccessListHCL)
 }
 
-func checkBasic() resource.TestCheckFunc {
+func checkBasic(entry ipAccessListEntry) resource.TestCheckFunc {
 	commonAttrsSet := []string{"mcp_config_id", "client_id", "egress_client_id"}
-	checks := acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName), commonAttrsSet, nil, checkExists(resourceName))
+	checks := acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName), commonAttrsSet, entry.attrMap(), checkExists(resourceName))
 	return checks
 }
 
@@ -121,6 +150,8 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	var errs []error
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_project_mcp_config" {
 			continue
@@ -128,15 +159,19 @@ func checkDestroy(s *terraform.State) error {
 		projectID := rs.Primary.Attributes["project_id"]
 		mcpConfigID := rs.Primary.Attributes["mcp_config_id"]
 		if projectID == "" || mcpConfigID == "" {
-			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
+			errs = append(errs, fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName))
+			break
 		}
 
-		_, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetGroupMcpConfig(context.Background(), projectID, mcpConfigID).Execute()
-		if err == nil {
-			return fmt.Errorf("mcp config (%s/%s) still exists", projectID, mcpConfigID)
+		if _, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetGroupMcpConfig(context.Background(), projectID, mcpConfigID).Execute(); err == nil {
+			errs = append(errs, fmt.Errorf("mcp config (%s/%s) still exists", projectID, mcpConfigID))
+			break
+		}
+		if _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.DeleteOrgMcpConfig(context.Background(), orgID, mcpConfigID).Cascading(true).Execute(); err != nil {
+			errs = append(errs, fmt.Errorf("failed to delete org mcp config %s: %w", mcpConfigID, err))
 		}
 	}
-	return nil
+	return errors.Join(errs...)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {

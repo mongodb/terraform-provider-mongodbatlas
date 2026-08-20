@@ -67,10 +67,10 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 			},
-			"roles": dsschema.ListAttribute{
+			"roles": dsschema.SetAttribute{
 				Computed:            true,
 				MarkdownDescription: "List of project roles associated with this MCP configuration.",
-				CustomType:          customtypes.NewListType[types.String](ctx),
+				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
 		},
@@ -84,7 +84,7 @@ type TFDSModel struct {
 	McpConfigId    types.String                                       `tfsdk:"mcp_config_id" autogen:"omitjson"`
 	McpConfigName  types.String                                       `tfsdk:"mcp_config_name" autogen:"omitjson"`
 	ProjectId      types.String                                       `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Roles          customtypes.ListValue[types.String]                `tfsdk:"roles" autogen:"omitjson"`
+	Roles          customtypes.SetValue[types.String]                 `tfsdk:"roles" autogen:"omitjson"`
 }
 type TFDSIpAccessListModel struct {
 	CidrBlock       types.String `tfsdk:"cidr_block" autogen:"omitjson"`

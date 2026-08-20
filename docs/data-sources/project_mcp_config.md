@@ -32,7 +32,7 @@ output "mcp_config_name" {
 - `egress_client_id` (String) Unique identifier for the egress Service Account client associated with this MCP configuration. This Service Account is managed by MongoDB Atlas.
 - `ip_access_list` (Attributes List) List of IP access list entries that define allowed source addresses for this MCP configuration. (see [below for nested schema](#nestedatt--ip_access_list))
 - `mcp_config_name` (String) Human-readable name that identifies this MCP configuration.
-- `roles` (List of String) List of project roles associated with this MCP configuration.
+- `roles` (Set of String) List of project roles associated with this MCP configuration.
 
 <a id="nestedatt--ip_access_list"></a>
 ### Nested Schema for `ip_access_list`
