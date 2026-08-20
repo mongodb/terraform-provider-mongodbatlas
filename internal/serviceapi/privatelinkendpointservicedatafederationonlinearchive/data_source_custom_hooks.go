@@ -55,7 +55,7 @@ func (d *ds) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 	})
 
 	var obj map[string]any
-	if err := json.Unmarshal(result.Body, &obj); err != nil {
+	if err := autogen.DecodeUseNumber(result.Body, &obj); err != nil {
 		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
 	}
 	// Mirror SDKv2 behavior for omitted optional strings in state.
@@ -85,7 +85,7 @@ func (d *pluralDS) PostReadAggregatedListAPICall(req autogen.HandleReadReq, resu
 	}
 
 	var obj map[string]any
-	if err := json.Unmarshal(result.Body, &obj); err != nil {
+	if err := autogen.DecodeUseNumber(result.Body, &obj); err != nil {
 		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
 	}
 

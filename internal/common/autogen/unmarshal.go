@@ -1,6 +1,7 @@
 package autogen
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -23,10 +24,18 @@ func Unmarshal(raw []byte, model any) error {
 		return nil // Some operations return an empty response body, in that case there is no need to update the model.
 	}
 	var objJSON map[string]any
-	if err := json.Unmarshal(raw, &objJSON); err != nil {
+	if err := DecodeUseNumber(raw, &objJSON); err != nil {
 		return err
 	}
 	return unmarshalAttrs(objJSON, model)
+}
+
+// DecodeUseNumber decodes JSON preserving number literals as json.Number instead of
+// float64, preventing silent precision loss for integers larger than 2^53.
+func DecodeUseNumber(raw []byte, v any) error {
+	dec := json.NewDecoder(bytes.NewReader(raw))
+	dec.UseNumber()
+	return dec.Decode(v)
 }
 
 func unmarshalAttrs(objJSON map[string]any, model any) error {
@@ -136,6 +145,25 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string, s
 			return types.BoolValue(v), nil
 		}
 		return nil, errUnmarshal(valueType, "Bool", nameErr)
+	case json.Number:
+		switch valueType {
+		case types.Int64Type:
+			if i, err := v.Int64(); err == nil {
+				return types.Int64Value(i), nil
+			}
+			f, err := v.Float64() // tolerate non-integer literals (e.g. 3.0) for Int64 attributes
+			if err != nil {
+				return nil, errUnmarshal(valueType, "Number", nameErr)
+			}
+			return types.Int64Value(int64(f)), nil
+		case types.Float64Type:
+			f, err := v.Float64()
+			if err != nil {
+				return nil, errUnmarshal(valueType, "Number", nameErr)
+			}
+			return types.Float64Value(f), nil
+		}
+		return nil, errUnmarshal(valueType, "Number", nameErr)
 	case float64:
 		switch valueType {
 		case types.Int64Type:

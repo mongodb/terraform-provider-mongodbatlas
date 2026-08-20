@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -43,7 +44,7 @@ func injectConnectionName(callParams config.APICallParams, bodyReq []byte) []byt
 		return bodyReq
 	}
 	var body map[string]any
-	if err := json.Unmarshal(bodyReq, &body); err != nil {
+	if err := autogen.DecodeUseNumber(bodyReq, &body); err != nil {
 		return bodyReq
 	}
 	body["name"] = name

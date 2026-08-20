@@ -62,7 +62,7 @@ func stripProviderFromResult(result autogen.APICallResult) autogen.APICallResult
 	}
 
 	var obj map[string]any
-	if err := json.Unmarshal(result.Body, &obj); err != nil {
+	if err := autogen.DecodeUseNumber(result.Body, &obj); err != nil {
 		return result
 	}
 
@@ -145,7 +145,7 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 	})
 
 	var obj map[string]any
-	if err := json.Unmarshal(result.Body, &obj); err != nil {
+	if err := autogen.DecodeUseNumber(result.Body, &obj); err != nil {
 		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
 	}
 
@@ -180,7 +180,7 @@ func (r *rs) PreImport(id string) (string, error) {
 
 func prepareBody(bodyReq []byte) ([]byte, bool) {
 	var body map[string]any
-	if err := json.Unmarshal(bodyReq, &body); err != nil {
+	if err := autogen.DecodeUseNumber(bodyReq, &body); err != nil {
 		return bodyReq, false
 	}
 

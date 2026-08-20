@@ -24,7 +24,7 @@ func resourcePostReadAPICall(secretID string, result autogen.APICallResult) auto
 		return result
 	}
 	var responseJSON readAPIResponse
-	if err := json.Unmarshal(result.Body, &responseJSON); err != nil {
+	if err := autogen.DecodeUseNumber(result.Body, &responseJSON); err != nil {
 		return autogen.APICallResult{Body: nil, Err: err}
 	}
 
