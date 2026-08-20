@@ -291,6 +291,19 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 						),
 					},
 				},
+				// Confirm the replacement actually has VPC networking.
+				Check: checkKafkaAttributesAcceptance(
+					resourceName,
+					instanceName,
+					"kafka-conn-ssl",
+					"user",
+					"rawpassword",
+					"localhost:9092",
+					"earliest",
+					networkingTypeVPC,
+					true,
+					true,
+				),
 			},
 			{
 				ResourceName:            resourceName,
