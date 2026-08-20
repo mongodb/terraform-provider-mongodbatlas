@@ -6,7 +6,7 @@ subcategory: "Remote MCP"
 
 `mongodbatlas_mcp_config_secret` provides an Organization MCP Config Secret resource. The resource lets you create and delete ingress secrets for an [`mongodbatlas_mcp_config`](mcp_config.md) configuration.
 
-~> **IMPORTANT WARNING:** Managing MCP Config Secrets with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
+~> **IMPORTANT:** Managing MCP Config Secrets with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
 -> **NOTE:** This resource does not support updates. To rotate a secret, create a new secret resource and delete the old one once no longer needed. Up to two secrets can be active at once.
 
