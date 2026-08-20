@@ -26,7 +26,7 @@ resource "mongodbatlas_cloud_backup_collection_restore_job" "this" {
   }]
 
   timeouts = {
-    create = "3h"
+    create = var.create_timeout
   }
 }
 

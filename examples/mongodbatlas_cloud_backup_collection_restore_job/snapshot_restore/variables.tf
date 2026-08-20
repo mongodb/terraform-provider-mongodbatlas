@@ -86,3 +86,9 @@ variable "collection_suffix" {
   type        = string
   default     = null
 }
+
+variable "create_timeout" {
+  description = "Timeout for the create operation."
+  type        = string
+  default     = "3h"
+}
