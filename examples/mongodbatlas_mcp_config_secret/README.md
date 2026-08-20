@@ -4,8 +4,6 @@ This example shows how to create an ingress secret for an organization-level MCP
 
 ## Important Notes
 
-Unlike `mongodbatlas_service_account_secret`, no auto-generated secret needs to be imported: the MCP config's create flow deletes its auto-generated ingress secret server-side, so you always create your first usable secret explicitly with this resource.
-
 The secret value is returned only once, in the create response. The example includes a sensitive output `secret` that captures it.
 You can retrieve it using (**warning**: this prints the secret to your terminal):
 
