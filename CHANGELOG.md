@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* resource/mongodbatlas_stream_connection: Requires replacement of mongodbatlas_stream_connection when networking changes ([#4659](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4659))
+
 ## 2.16.0 (August 13, 2026)
 
 FEATURES:
