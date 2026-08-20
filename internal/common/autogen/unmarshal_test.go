@@ -1020,3 +1020,25 @@ func TestDecodeUseNumber(t *testing.T) {
 	require.NoError(t, err)
 	assert.InEpsilon(t, 1.5, f, epsilon)
 }
+
+func TestDecodeUseNumberTrailingData(t *testing.T) {
+	testCases := map[string]struct {
+		raw       string
+		expectErr bool
+	}{
+		"concatenated JSON values are rejected": {`{"a": 1} {"b": 2}`, true},
+		"trailing garbage is rejected":          {`{"a": 1} garbage`, true},
+		"trailing whitespace is allowed":        {"{\"a\": 1}\n  ", false},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			var obj map[string]any
+			err := autogen.DecodeUseNumber([]byte(tc.raw), &obj)
+			if tc.expectErr {
+				require.ErrorContains(t, err, "unexpected data after JSON value")
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}

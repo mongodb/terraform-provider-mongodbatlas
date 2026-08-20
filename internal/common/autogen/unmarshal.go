@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"reflect"
 	"strings"
 
@@ -35,7 +36,14 @@ func Unmarshal(raw []byte, model any) error {
 func DecodeUseNumber(raw []byte, v any) error {
 	dec := json.NewDecoder(bytes.NewReader(raw))
 	dec.UseNumber()
-	return dec.Decode(v)
+	if err := dec.Decode(v); err != nil {
+		return err
+	}
+	// Match json.Unmarshal strictness: reject any data after the first JSON value.
+	if err := dec.Decode(new(any)); err != io.EOF {
+		return fmt.Errorf("unexpected data after JSON value")
+	}
+	return nil
 }
 
 func unmarshalAttrs(objJSON map[string]any, model any) error {
