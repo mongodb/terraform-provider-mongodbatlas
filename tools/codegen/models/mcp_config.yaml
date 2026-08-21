@@ -316,12 +316,12 @@ data_sources:
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
-            - list:
+            - set:
                 element_type: 4
               description: List of organization roles associated with this MCP configuration.
               custom_type:
-                model: customtypes.ListValue[types.String]
-                schema: customtypes.NewListType[types.String](ctx)
+                model: customtypes.SetValue[types.String]
+                schema: customtypes.NewSetType[types.String](ctx)
                 packages:
                     - customtypes
               computed_optional_required: computed
@@ -479,12 +479,12 @@ data_sources:
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false
-                        - list:
+                        - set:
                             element_type: 4
                           description: List of organization roles associated with this MCP configuration.
                           custom_type:
-                            model: customtypes.ListValue[types.String]
-                            schema: customtypes.NewListType[types.String](ctx)
+                            model: customtypes.SetValue[types.String]
+                            schema: customtypes.NewSetType[types.String](ctx)
                             packages:
                                 - customtypes
                           computed_optional_required: computed
