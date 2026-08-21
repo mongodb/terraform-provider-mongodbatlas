@@ -1,5 +1,5 @@
 schema:
-    description: Creates an MCP configuration for the specified organization. Returns the configuration ID and ingress credentials.
+    description: Creates an MCP configuration for the specified project. Returns the configuration ID and ingress credentials.
     attributes:
         - string: {}
           description: Unique identifier for the Service Account client associated with this MCP configuration. Use this Service Account to connect to the Atlas Remote MCP.
@@ -22,6 +22,17 @@ schema:
           sensitive: false
           create_only: false
           present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+          computed_optional_required: required
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
           request_only_required_on_create: false
         - list_nested:
             nested_object:
@@ -130,20 +141,9 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-        - string: {}
-          description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
-          computed_optional_required: required
-          tf_schema_name: org_id
-          tf_model_name: OrgId
-          api_name: orgId
-          req_body_usage: omit_always
-          sensitive: false
-          create_only: true
-          present_in_any_response: false
-          request_only_required_on_create: false
         - set:
             element_type: 4
-          description: List of organization roles to assign to this MCP configuration.
+          description: List of project roles to assign to this MCP configuration.
           custom_type:
             model: customtypes.SetValue[types.String]
             schema: customtypes.NewSetType[types.String](ctx)
@@ -161,20 +161,20 @@ schema:
 operations:
     delete:
         http_method: DELETE
-        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+        path: /api/atlas/v2/groups/{projectId}/mcpConfigs/{mcpConfigId}
     create:
         http_method: POST
-        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs
+        path: /api/atlas/v2/groups/{projectId}/mcpConfigs
     read:
         http_method: GET
-        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+        path: /api/atlas/v2/groups/{projectId}/mcpConfigs/{mcpConfigId}
     update:
         http_method: PATCH
-        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+        path: /api/atlas/v2/groups/{projectId}/mcpConfigs/{mcpConfigId}
     version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
     singular:
-        description: Returns the MCP configuration with the specified ID for the specified organization.
+        description: Returns the MCP configuration with the specified ID for the specified project.
         attributes:
             - string: {}
               description: Unique identifier for the Service Account client associated with this MCP configuration. Use this Service Account to connect to the Atlas Remote MCP.
@@ -306,11 +306,11 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
               computed_optional_required: required
-              tf_schema_name: org_id
-              tf_model_name: OrgId
-              api_name: orgId
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
               req_body_usage: omit_always
               sensitive: false
               create_only: false
@@ -318,7 +318,7 @@ data_sources:
               request_only_required_on_create: false
             - set:
                 element_type: 4
-              description: List of organization roles associated with this MCP configuration.
+              description: List of project roles associated with this MCP configuration.
               custom_type:
                 model: customtypes.SetValue[types.String]
                 schema: customtypes.NewSetType[types.String](ctx)
@@ -334,14 +334,14 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
     plural:
-        description: Returns all MCP configurations associated with the specified organization.
+        description: Returns all MCP configurations associated with the specified project.
         attributes:
             - string: {}
-              description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
               computed_optional_required: required
-              tf_schema_name: org_id
-              tf_model_name: OrgId
-              api_name: orgId
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
               req_body_usage: omit_always
               sensitive: false
               create_only: false
@@ -481,7 +481,7 @@ data_sources:
                           request_only_required_on_create: false
                         - set:
                             element_type: 4
-                          description: List of organization roles associated with this MCP configuration.
+                          description: List of project roles associated with this MCP configuration.
                           custom_type:
                             model: customtypes.SetValue[types.String]
                             schema: customtypes.NewSetType[types.String](ctx)
@@ -515,10 +515,10 @@ data_sources:
     operations:
         read:
             http_method: GET
-            path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+            path: /api/atlas/v2/groups/{projectId}/mcpConfigs/{mcpConfigId}
         list:
             http_method: GET
-            path: /api/atlas/v2/orgs/{orgId}/mcpConfigs
+            path: /api/atlas/v2/groups/{projectId}/mcpConfigs
         version_header: application/vnd.atlas.2025-03-12+json
-name: mcp_config
-packageName: mcpconfig
+name: project_mcp_config
+packageName: projectmcpconfig
