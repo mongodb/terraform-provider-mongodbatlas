@@ -7,12 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
 var (
@@ -29,12 +29,11 @@ var (
 			"connectionName": "__testLog",
 		},
 	}
-	processorName          = "processor1"
-	processorID            = "66b39806187592e8d721215d"
-	processorEffectiveTier = "SP30"
-	stateCreated           = streamprocessor.CreatedState
-	stateStarted           = streamprocessor.StartedState
-	streamOptionsExample   = admin.StreamsOptions{
+	processorName        = "processor1"
+	processorID          = "66b39806187592e8d721215d"
+	stateCreated         = streamprocessor.CreatedState
+	stateStarted         = streamprocessor.StartedState
+	streamOptionsExample = admin.StreamsOptions{
 		Dlq: &admin.StreamsDLQ{
 			Coll:           conversion.StringPtr("testColl"),
 			ConnectionName: conversion.StringPtr("testConnection"),
@@ -104,7 +103,7 @@ var statsExample = `
 func streamProcessorWithStats(t *testing.T, options *admin.StreamsOptions) *admin.StreamsProcessorWithStats {
 	t.Helper()
 	processor := admin.NewStreamsProcessorWithStats(
-		processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateStarted,
+		processorID, "", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateStarted,
 	)
 	var stats any
 	err := json.Unmarshal([]byte(statsExample), &stats)
@@ -162,7 +161,7 @@ func TestDSSDKToTFModel(t *testing.T) {
 	}{
 		"afterCreate": {
 			sdkModel: admin.NewStreamsProcessorWithStats(
-				processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
+				processorID, "", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 			),
 			expectedTFModel: streamProcessorDSTFModel(t, stateCreated, "", optionsToTFModel(t, nil)),
 		},
@@ -176,7 +175,7 @@ func TestDSSDKToTFModel(t *testing.T) {
 		},
 		"withFailoverEnabled": {
 			sdkModel: func() *admin.StreamsProcessorWithStats {
-				p := admin.NewStreamsProcessorWithStats(processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated)
+				p := admin.NewStreamsProcessorWithStats(processorID, "", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated)
 				p.FailoverEnabled = &failoverEnabled
 				return p
 			}(),
@@ -216,7 +215,7 @@ func TestDSSDKToTFModelInstanceName(t *testing.T) {
 	}{
 		"afterCreate": {
 			sdkModel: admin.NewStreamsProcessorWithStats(
-				processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
+				processorID, "", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 			),
 			expectedTFModel: streamProcessorDSTFModelWithInstanceName(t, stateCreated, "", optionsToTFModel(t, nil)),
 		},
@@ -258,7 +257,7 @@ func TestSDKToTFModel(t *testing.T) {
 	}{
 		"afterCreate": {
 			sdkModel: admin.NewStreamsProcessorWithStats(
-				processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED",
+				processorID, "", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED",
 			),
 			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
 				InstanceName:  types.StringValue(workspaceName),
@@ -298,7 +297,7 @@ func TestSDKToTFModel(t *testing.T) {
 			},
 		},
 		"withFailoverEnabled": {
-			sdkModel:        admin.NewStreamsProcessorWithStats(processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED"),
+			sdkModel:        admin.NewStreamsProcessorWithStats(processorID, "", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED"),
 			failoverEnabled: func() *types.Bool { v := types.BoolValue(true); return &v }(),
 			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
 				InstanceName:    types.StringValue(workspaceName),
@@ -354,7 +353,7 @@ func TestPluralDSSDKToTFModel(t *testing.T) {
 		"oneResult_with_workspace_name": {
 			sdkModel: &admin.PaginatedApiStreamsStreamProcessorWithStats{
 				Results: []admin.StreamsProcessorWithStats{*admin.NewStreamsProcessorWithStats(
-					processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
+					processorID, "", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 				)},
 				TotalCount: new(1),
 			},
@@ -398,7 +397,7 @@ func TestPluralDSSDKToTFModelWithInstanceName(t *testing.T) {
 		}},
 		"oneResult": {sdkModel: &admin.PaginatedApiStreamsStreamProcessorWithStats{
 			Results: []admin.StreamsProcessorWithStats{*admin.NewStreamsProcessorWithStats(
-				processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
+				processorID, "", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 			)},
 			TotalCount: new(1),
 		}, expectedTFModel: &streamprocessor.TFStreamProcessorsDSModel{
@@ -561,22 +560,22 @@ func TestConvertOptionsToTFAutoscaling(t *testing.T) {
 
 func TestEffectiveTierFromResp(t *testing.T) {
 	testCases := map[string]struct {
-		effectiveTier *string
+		effectiveTier string
 		tier          *string
 		expected      types.String
 	}{
 		"prefers explicit effectiveTier": {
-			effectiveTier: conversion.StringPtr("SP30"),
+			effectiveTier: "SP30",
 			tier:          conversion.StringPtr("SP10"),
 			expected:      types.StringValue("SP30"),
 		},
 		"falls back to tier when effectiveTier is nil": {
-			effectiveTier: nil,
+			effectiveTier: "",
 			tier:          conversion.StringPtr("SP10"),
 			expected:      types.StringValue("SP10"),
 		},
 		"null when neither is set": {
-			effectiveTier: nil,
+			effectiveTier: "",
 			tier:          nil,
 			expected:      types.StringNull(),
 		},
@@ -586,7 +585,7 @@ func TestEffectiveTierFromResp(t *testing.T) {
 			resp := streamProcessorWithStats(t, nil)
 			resp.Tier = tc.tier
 			resp.EffectiveTier = tc.effectiveTier
-			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", resp, nil, nil)
+			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", resp, nil, nil, nil)
 			require.False(t, diags.HasError())
 			assert.Equal(t, tc.expected, resultModel.EffectiveTier)
 		})
@@ -722,17 +721,18 @@ func TestPipelineFieldOrderPreserved(t *testing.T) {
 	// The whole request body is marshaled, not just the pipeline, so the assertion covers the
 	// final SDK serialization, including the structs' own MarshalJSON, which the client invokes
 	// via json.Encoder and which delegates to encoding/json when no fields are explicitly null.
-	wantBody := `{"name":"` + processorName + `","pipeline":` + pipeline + `}`
+	wantCreateBody := `{"effectiveTier":"","name":"` + processorName + `","pipeline":` + pipeline + `}`
+	wantUpdateBody := `{"name":"` + processorName + `","pipeline":` + pipeline + `}`
 
 	createReq, diags := streamprocessor.NewStreamProcessorReq(t.Context(), model)
 	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
 	createBody, err := json.Marshal(createReq)
 	require.NoError(t, err)
-	assert.Equal(t, wantBody, string(createBody))
+	assert.Equal(t, wantCreateBody, string(createBody))
 
-	updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), model)
+	updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), model, &streamprocessor.TFStreamProcessorRSModel{})
 	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
 	updateBody, err := json.Marshal(updateReq.StreamsModifyStreamProcessor)
 	require.NoError(t, err)
-	assert.Equal(t, wantBody, string(updateBody))
+	assert.Equal(t, wantUpdateBody, string(updateBody))
 }

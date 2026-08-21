@@ -5,7 +5,7 @@ import (
 	"errors"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -70,7 +70,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		}
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	projectID := plan.ProjectID.ValueString()
 	workspaceOrInstanceName := GetWorkspaceOrInstanceName(plan.WorkspaceName, plan.InstanceName)
 
@@ -148,7 +148,7 @@ func (r *streamProcessorRS) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 
 	projectID := state.ProjectID.ValueString()
 	workspaceOrInstanceName := GetWorkspaceOrInstanceName(state.WorkspaceName, state.InstanceName)
@@ -192,7 +192,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 	workspaceOrInstanceName := GetWorkspaceOrInstanceName(plan.WorkspaceName, plan.InstanceName)
 	processorName := plan.ProcessorName.ValueString()
 	currentState := state.State.ValueString()
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	var streamProcessorResp *admin.StreamsProcessorWithStats
 
 	// requestParams are needed for the state transition via the GET API
@@ -222,7 +222,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		}
 
 		// wait for transition from started to stopped
-		_, err = WaitStateTransition(ctx, requestParams, r.Client.AtlasV2.StreamsAPI, []string{StartedState}, []string{StoppedState})
+		_, err = WaitStateTransition(ctx, requestParams, r.Client.AtlasPreview.StreamsAPI, []string{StartedState}, []string{StoppedState})
 		if err != nil {
 			resp.Diagnostics.AddError("Error changing state of stream processor", err.Error())
 			return
@@ -235,7 +235,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	streamProcessorResp, _, err := r.Client.AtlasV2.StreamsAPI.UpdateStreamProcessorWithParams(ctx, modifyAPIRequestParams).Execute()
+	streamProcessorResp, _, err := r.Client.AtlasPreview.StreamsAPI.UpdateStreamProcessorWithParams(ctx, modifyAPIRequestParams).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("Error modifying stream processor", err.Error())
 		return
@@ -255,14 +255,14 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		}
 		startWithOptions.Autoscaling = autoscaling
 
-		_, err := r.Client.AtlasV2.StreamsAPI.StartStreamProcessorWith(ctx, projectID, workspaceOrInstanceName, processorName, startWithOptions).Execute()
+		_, err := r.Client.AtlasPreview.StreamsAPI.StartStreamProcessorWith(ctx, projectID, workspaceOrInstanceName, processorName, startWithOptions).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("Error starting stream processor", err.Error())
 			return
 		}
 
 		// wait for transition from stopped to started
-		streamProcessorResp, err = WaitStateTransition(ctx, requestParams, r.Client.AtlasV2.StreamsAPI, []string{StoppedState}, []string{StartedState})
+		streamProcessorResp, err = WaitStateTransition(ctx, requestParams, r.Client.AtlasPreview.StreamsAPI, []string{StoppedState}, []string{StartedState})
 		if err != nil {
 			resp.Diagnostics.AddError("Error changing state of stream processor", err.Error())
 			return
@@ -271,7 +271,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 
 	// Get the current state if the processor was not restarted
 	if streamProcessorResp == nil {
-		streamProcessorResp, _, err = r.Client.AtlasV2.StreamsAPI.GetStreamProcessorWithParams(ctx, requestParams).Execute()
+		streamProcessorResp, _, err = r.Client.AtlasPreview.StreamsAPI.GetStreamProcessorWithParams(ctx, requestParams).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("Error reading updated stream processor", err.Error())
 			return
@@ -295,7 +295,7 @@ func (r *streamProcessorRS) Delete(ctx context.Context, req resource.DeleteReque
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	workspaceOrInstanceName := GetWorkspaceOrInstanceName(streamProcessorState.WorkspaceName, streamProcessorState.InstanceName)
 	if _, err := connV2.StreamsAPI.DeleteStreamProcessor(ctx, streamProcessorState.ProjectID.ValueString(), workspaceOrInstanceName, streamProcessorState.ProcessorName.ValueString()).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
