@@ -28,7 +28,7 @@ func TestAccMcpConfigSecret_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name, 720, false),
+				Config: configBasic(orgID, name, 720, 1),
 				Check:  checkBasic(true),
 			},
 			{
@@ -56,7 +56,7 @@ func TestAccMcpConfigSecret_rotateWithTaint(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name, 720, false),
+				Config: configBasic(orgID, name, 720, 1),
 				Check: resource.ComposeTestCheckFunc(
 					checkBasic(true),
 					func(s *terraform.State) error {
@@ -67,10 +67,13 @@ func TestAccMcpConfigSecret_rotateWithTaint(t *testing.T) {
 			{
 				// The `taint` command is deprecated in favor of the `-replace` flag: https://developer.hashicorp.com/terraform/cli/commands/taint.
 				// The testing plugin does not facilitate testing with replace, but it does enable tainting so using taint here.
+				//
+				// A config's ingress SA allows a maximum of 2 concurrent secrets, so requesting 2 here
+				// while tainting the first also confirms rotation overlap is possible.
 				Taint:  []string{resourceName},
-				Config: configBasic(orgID, name, 720, false),
+				Config: configBasic(orgID, name, 720, 2),
 				Check: resource.ComposeTestCheckFunc(
-					checkBasic(true),
+					checkExists(resourceName+"_2"),
 					func(s *terraform.State) error {
 						var secondSecretID string
 						if err := getSecretID(s, resourceName, &secondSecretID); err != nil {
@@ -87,32 +90,29 @@ func TestAccMcpConfigSecret_rotateWithTaint(t *testing.T) {
 	})
 }
 
-func TestAccMcpConfigSecret_maxSecretsLimit(t *testing.T) {
-	var (
-		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		name  = acc.RandomName()
-	)
+func configBasic(orgID, name string, secretExpiresAfterHours, secretCount int) string {
+	if secretCount > 1 {
+		secretsHCL := fmt.Sprintf(`
+			resource "mongodbatlas_mcp_config_secret" "test" {
+				org_id                     = %[1]q
+				mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
+				secret_expires_after_hours = %[2]d
+			}
+		`, orgID, secretExpiresAfterHours)
+		prevAddr := "mongodbatlas_mcp_config_secret.test"
+		for i := 2; i <= secretCount; i++ {
+			addr := fmt.Sprintf("test_%d", i)
+			secretsHCL += fmt.Sprintf(`
+				resource "mongodbatlas_mcp_config_secret" "%[1]s" {
+					org_id                     = %[2]q
+					mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
+					secret_expires_after_hours = %[3]d
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				// A config's ingress SA allows a maximum of 2 concurrent secrets.
-				// Creating both here confirms rotation overlap is possible.
-				Config: configBasic(orgID, name, 720, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName+"_1"),
-					checkExists(resourceName+"_2"),
-				),
-			},
-		},
-	})
-}
-
-func configBasic(orgID, name string, secretExpiresAfterHours int, twoSecrets bool) string {
-	if twoSecrets {
+					depends_on = [%[4]s]
+				}
+			`, addr, orgID, secretExpiresAfterHours, prevAddr)
+			prevAddr = "mongodbatlas_mcp_config_secret." + addr
+		}
 		return fmt.Sprintf(`
 			resource "mongodbatlas_mcp_config" "test" {
 				org_id          = %[1]q
@@ -120,20 +120,8 @@ func configBasic(orgID, name string, secretExpiresAfterHours int, twoSecrets boo
 				roles           = ["ORG_READ_ONLY"]
 			}
 
-			resource "mongodbatlas_mcp_config_secret" "test_1" {
-				org_id                     = %[1]q
-				mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
-				secret_expires_after_hours = %[3]d
-			}
-
-			resource "mongodbatlas_mcp_config_secret" "test_2" {
-				org_id                     = %[1]q
-				mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
-				secret_expires_after_hours = %[3]d
-
-				depends_on = [mongodbatlas_mcp_config_secret.test_1]
-			}
-		`, orgID, name, secretExpiresAfterHours)
+			%[3]s
+		`, orgID, name, secretsHCL)
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_mcp_config" "test" {
