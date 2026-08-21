@@ -1,3 +1,0 @@
-```release-note:bug
-provider: Fixes integer precision loss for JSON number values larger than 2^53 in auto-generated resources
-```
