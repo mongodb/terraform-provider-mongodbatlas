@@ -18,6 +18,10 @@ type sdkToTFModelTestCase struct {
 	projectID       string
 }
 
+const (
+	AuthenticationSchemeSaslScram = "SASL_SCRAM"
+)
+
 var (
 	projectID                  = "projectID"
 	id                         = "id"
@@ -648,7 +652,7 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 				Provider:             types.StringValue(constant.AWS),
 				Vendor:               types.StringValue(streamprivatelinkendpoint.VendorMSK),
 				Arn:                  types.StringValue(mskArn),
-				AuthenticationScheme: types.StringValue(streamprivatelinkendpoint.AuthenticationSchemeSaslScram),
+				AuthenticationScheme: types.StringValue(AuthenticationSchemeSaslScram),
 			},
 			expectError: false,
 			errorCount:  0,

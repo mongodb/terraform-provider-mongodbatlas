@@ -21,13 +21,6 @@ const (
 	VendorAzureBlobStorage = "AZURE_BLOB_STORAGE"
 )
 
-// Authentication schemes supported for MSK Private Link connections.
-const (
-	AuthenticationSchemeSaslScram = "SASL_SCRAM"
-	AuthenticationSchemeTLS       = "TLS"
-	AuthenticationSchemeIAM       = "IAM"
-)
-
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {
 	result := &TFModel{
 		Id:                    types.StringPointerValue(apiResp.Id),
