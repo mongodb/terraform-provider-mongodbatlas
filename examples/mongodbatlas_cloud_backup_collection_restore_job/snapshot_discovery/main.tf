@@ -1,3 +1,4 @@
+# List Cloud Backup snapshots for a cluster, resolve a snapshot_id, and browse databases and collections in that snapshot.
 locals {
   completed_snapshots = [
     for snapshot in data.mongodbatlas_cloud_backup_snapshots.this.results :
@@ -17,7 +18,6 @@ locals {
   selected_snapshot_created_at = try(one([
     for s in local.available_snapshots_all : s.created_at if s.id == local.snapshot_id
   ]), null)
-  available_snapshots_limit = 5
   available_snapshots_all = [
     for snapshot in data.mongodbatlas_cloud_backup_snapshots.this.results : {
       id            = snapshot.id
@@ -30,7 +30,7 @@ locals {
     for created_at in slice(
       reverse(sort([for s in local.available_snapshots_all : s.created_at])),
       0,
-      min(local.available_snapshots_limit, length(local.available_snapshots_all)),
+      min(var.available_snapshots_limit, length(local.available_snapshots_all)),
       ) : [
       for s in local.available_snapshots_all : s if s.created_at == created_at
     ][0]
@@ -59,14 +59,17 @@ data "mongodbatlas_cloud_backup_snapshot_database_collections" "this" {
 }
 
 output "available_snapshots" {
-  value = local.available_snapshots_newest
+  description = "Newest completed snapshots for the cluster (up to available_snapshots_limit)."
+  value       = local.available_snapshots_newest
 }
 
 output "snapshot_id" {
-  value = local.snapshot_id
+  description = "Snapshot ID used for database and collection listing."
+  value       = local.snapshot_id
 }
 
 output "snapshot_details" {
+  description = "Created time, databases, and collections in the selected snapshot."
   value = {
     created_at = local.selected_snapshot_created_at
     databases = [for db in data.mongodbatlas_cloud_backup_snapshot_databases.this.results : {

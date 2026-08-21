@@ -1,9 +1,11 @@
+# Read back collection restore jobs on a cluster without creating a new job.
 data "mongodbatlas_cloud_backup_collection_restore_jobs" "this" {
   project_id   = var.project_id
   cluster_name = var.cluster_name
 }
 
 output "restore_jobs" {
+  description = "Trimmed list of collection restore jobs on the cluster."
   value = [for j in data.mongodbatlas_cloud_backup_collection_restore_jobs.this.results : {
     job_id     = j.job_id
     state      = j.state
@@ -16,7 +18,8 @@ locals {
 }
 
 output "job_id" {
-  value = local.job_id
+  description = "Resolved collection restore job ID."
+  value       = local.job_id
 }
 
 data "mongodbatlas_cloud_backup_collection_restore_job" "this" {
@@ -26,5 +29,6 @@ data "mongodbatlas_cloud_backup_collection_restore_job" "this" {
 }
 
 output "job_state" {
-  value = data.mongodbatlas_cloud_backup_collection_restore_job.this.state
+  description = "State of the resolved job from the singular job data source."
+  value       = data.mongodbatlas_cloud_backup_collection_restore_job.this.state
 }

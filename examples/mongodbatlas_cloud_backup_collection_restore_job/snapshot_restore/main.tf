@@ -1,4 +1,4 @@
-# Default destination is the source cluster when target_project_id and target_cluster_name are unset.
+# Restore selected databases and collections from a Cloud Backup snapshot into an existing cluster, optionally in a different project or cluster.
 locals {
   target_project_id   = coalesce(var.target_project_id, var.project_id)
   target_cluster_name = coalesce(var.target_cluster_name, var.cluster_name)
@@ -31,7 +31,8 @@ resource "mongodbatlas_cloud_backup_collection_restore_job" "this" {
 }
 
 output "job_state" {
-  value = mongodbatlas_cloud_backup_collection_restore_job.this.state
+  description = "Final state of the collection restore job after create completes."
+  value       = mongodbatlas_cloud_backup_collection_restore_job.this.state
 }
 
 data "mongodbatlas_cloud_backup_collection_restore_job_collections" "this" {
@@ -41,6 +42,7 @@ data "mongodbatlas_cloud_backup_collection_restore_job_collections" "this" {
 }
 
 output "collection_states" {
+  description = "Per-collection restore state, index status, and document counts from the job."
   value = [for c in data.mongodbatlas_cloud_backup_collection_restore_job_collections.this.results : {
     source_namespace           = c.source_namespace
     target_namespace           = c.target_namespace

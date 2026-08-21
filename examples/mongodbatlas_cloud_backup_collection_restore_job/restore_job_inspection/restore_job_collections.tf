@@ -1,3 +1,4 @@
+# Per-collection read-back for the resolved collection restore job.
 data "mongodbatlas_cloud_backup_collection_restore_job_collections" "this" {
   project_id   = var.project_id
   cluster_name = var.cluster_name
@@ -5,6 +6,7 @@ data "mongodbatlas_cloud_backup_collection_restore_job_collections" "this" {
 }
 
 output "collection_states" {
+  description = "Per-collection state for the resolved job."
   value = [for c in data.mongodbatlas_cloud_backup_collection_restore_job_collections.this.results : {
     source_namespace           = c.source_namespace
     target_namespace           = c.target_namespace
@@ -27,5 +29,6 @@ data "mongodbatlas_cloud_backup_collection_restore_job_collection" "this" {
 }
 
 output "collection_state" {
-  value = data.mongodbatlas_cloud_backup_collection_restore_job_collection.this.state
+  description = "State of one collection from the singular collection data source."
+  value       = data.mongodbatlas_cloud_backup_collection_restore_job_collection.this.state
 }

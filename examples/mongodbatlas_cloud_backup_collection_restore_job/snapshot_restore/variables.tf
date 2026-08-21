@@ -1,52 +1,52 @@
 variable "project_id" {
-  description = "Atlas project ID of the source cluster"
+  description = "Atlas project ID of the backup source cluster."
   type        = string
 }
 
 variable "cluster_name" {
-  description = "Human-readable label of the source cluster"
+  description = "Name of the backup source cluster."
   type        = string
 }
 
 variable "snapshot_id" {
-  description = "Snapshot ID to restore from"
+  description = "Cloud Backup snapshot ID to restore from."
   type        = string
 }
 
-variable "restore_databases" {
-  description = "Database names to restore. Restores all collections under each database."
-  type        = list(string)
-  default     = []
-}
-
-variable "restore_collections" {
-  description = "Collection namespaces to restore, in database.collection form."
-  type        = list(string)
-  default     = []
-}
-
 variable "target_project_id" {
-  description = "Atlas project ID of the target cluster. Defaults to the source project."
+  description = "Atlas project ID of the restore target cluster. When unset, restores to project_id."
   type        = string
   default     = null
 }
 
 variable "target_cluster_name" {
-  description = "Human-readable label of the target cluster. Defaults to the source cluster."
+  description = "Name of the restore target cluster. When unset, restores to cluster_name."
   type        = string
   default     = null
 }
 
 variable "write_strategy" {
-  description = "How to write restored data on the target. CREATE_NEW or OVERWRITE_EXISTING."
+  description = "How Atlas handles existing data on the target. CREATE_NEW appends and renames on conflict; OVERWRITE_EXISTING drops and replaces matching namespaces."
   type        = string
   default     = "CREATE_NEW"
 }
 
 variable "index_strategy" {
-  description = "How to restore indexes. ALL, NONE, or ALL_EXCEPT_TTL."
+  description = "Which indexes to restore. ALL restores all indexes; NONE skips indexes; ALL_EXCEPT_TTL restores non-TTL indexes only."
   type        = string
   default     = "ALL"
+}
+
+variable "restore_databases" {
+  description = "Database names to restore (database name only, not database.collection)."
+  type        = list(string)
+  default     = []
+}
+
+variable "restore_collections" {
+  description = "Collection namespaces to restore in database.collection form."
+  type        = list(string)
+  default     = []
 }
 
 variable "database_renames" {
@@ -88,7 +88,7 @@ variable "collection_suffix" {
 }
 
 variable "create_timeout" {
-  description = "Timeout for the create operation."
+  description = "Maximum time to wait for the restore job to reach SUCCESSFUL during create."
   type        = string
   default     = "3h"
 }

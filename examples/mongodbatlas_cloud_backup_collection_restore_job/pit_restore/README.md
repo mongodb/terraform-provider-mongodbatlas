@@ -1,6 +1,6 @@
 # Point-in-time collection restore
 
-Restore selected databases and collections from continuous Cloud Backup into an existing cluster at a specific point in time.
+Restore selected databases and collections from continuous Cloud Backup at a point in time into an existing cluster, optionally in a different project or cluster.
 
 This example does not use snapshot IDs. [`snapshot_discovery/`](../snapshot_discovery/README.md) does not apply. For snapshot-based restores, use [`snapshot_restore/`](../snapshot_restore/README.md).
 
@@ -29,6 +29,7 @@ Omit optional variables to use these values from `variables.tf`:
 - `target_project_id` / `target_cluster_name`: Unset. Restore to the same project and cluster as the backup source.
 - `point_in_time_utc_seconds` / `oplog_ts` / `oplog_inc`: Unset. Set one restore-time path above.
 - `restore_databases` / `restore_collections`: Unset. Set at least one list with namespaces to restore.
+- `create_timeout`: `"3h"`. Maximum time to wait for the restore job to reach SUCCESSFUL during create.
 
 To drop and replace matching namespaces on the target, set `write_strategy = "OVERWRITE_EXISTING"` and stop writers before apply.
 

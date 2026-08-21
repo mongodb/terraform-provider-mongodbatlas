@@ -1,6 +1,6 @@
 # Snapshot collection restore
 
-Restore selected databases and collections from a Cloud Backup snapshot into an existing cluster.
+Restore selected databases and collections from a Cloud Backup snapshot into an existing cluster, optionally in a different project or cluster.
 
 For product limits, see the [resource documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_collection_restore_job#limitations).
 
@@ -20,6 +20,7 @@ Omit optional variables to use these values from `variables.tf`:
 - `index_strategy`: `ALL` — restore all indexes; `NONE` skips indexes; `ALL_EXCEPT_TTL` restores non-TTL indexes only
 - `target_project_id` / `target_cluster_name`: unset — restore to the same project and cluster as the snapshot source
 - `restore_databases` / `restore_collections`: `[]` — set at least one list with namespaces to restore
+- `create_timeout`: `"3h"` — maximum time to wait for the restore job to reach SUCCESSFUL during create
 
 To drop and replace matching namespaces on the target, set `write_strategy = "OVERWRITE_EXISTING"` and stop writers before apply.
 
