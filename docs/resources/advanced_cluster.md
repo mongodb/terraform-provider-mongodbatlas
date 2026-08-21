@@ -781,7 +781,7 @@ replication_specs = [
   For AWS, valid configurations are:
   * For Gen2 instance sizes (`M30_GEN_2` or greater) with `ebs_volume_type` set to `STANDARD`: configurable between 3000 and 80000 IOPS.
   * For Gen2 instance sizes (`M30_GEN_2` or greater) with `ebs_volume_type` set to `HIGH_PERFORMANCE`: configurable within the allowable range for the selected volume size.
-  * For M30 or greater (Gen1 or Gen2, not including `Mxx_NVME` tiers) with `ebs_volume_type` set to `PROVISIONED`: configurable within the allowable range for the selected volume size.
+  * For Gen1 instance sizes (`M30` or greater, not including `Mxx_NVME` tiers) with `ebs_volume_type` set to `PROVISIONED`: configurable within the allowable range for the selected volume size.
   
   For GCP, you can set this attribute only for Gen2 instance sizes (`M30_GEN_2` or greater), which use Hyperdisk Balanced storage. Gen1 instance sizes don't support configurable IOPS. The valid range depends on `disk_size_gb` and the selected instance size:
   * The minimum value is the greater of 3000 and three times `disk_size_gb`.
@@ -789,11 +789,11 @@ replication_specs = [
   
   For Azure (Gen1 only; Azure doesn't support Gen2), `instance_size` must be set to `M40` or greater (not including `Mxx_NVME` tiers), and the region must support Extended IOPS. You can't set this attribute for a multi-cloud cluster.
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Don't set this parameter for GCP or Azure clusters. Valid values are:
-  * `STANDARD` volume types use gp3 storage. For Gen 2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.
-  * `PROVISIONED` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size.
+  * `STANDARD` volume types use gp3 storage. For Gen2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.
+  * `PROVISIONED` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size. Only Gen1 instance sizes support this value.
   * `HIGH_PERFORMANCE` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size. Only Gen2 instance sizes support this value.
 * `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
-* `disk_size_gb` - (Optional) Storage capacity that the host's root volume possesses expressed in gigabytes. This value must be equal for all shards and node types. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier. **Note:** Using `disk_size_gb` with Standard IOPS could lead to errors and configuration issues. Therefore, it should be used only with the [Provisioned IOPS volume type](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#PROVISIONED). When using Provisioned IOPS, the disk_size_gb parameter specifies the storage capacity, but the IOPS are set independently. Ensuring that `disk_size_gb` is used exclusively with Provisioned IOPS will help avoid these issues.
+* `disk_size_gb` - (Optional) Storage capacity that the host's root volume possesses expressed in gigabytes. This value must be equal for all shards and node types. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier. **Note:** On AWS, using `disk_size_gb` with Standard IOPS could lead to errors and configuration issues. Therefore, on AWS, use `disk_size_gb` only with the [Provisioned IOPS volume type](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#PROVISIONED); with Provisioned IOPS, `disk_size_gb` specifies the storage capacity while the IOPS are set independently. On GCP, `disk_size_gb` is always required input, since it determines the valid `disk_iops` range for Gen2 instance sizes.
 
 
 ### analytics_specs
@@ -806,11 +806,12 @@ replication_specs = [
 
   GCP supports the following Gen2 instance sizes: `M30_GEN_2`, `M40_GEN_2`, `M50_GEN_2`, `M60_GEN_2`, `M80_GEN_2`, `M140_GEN_2`, `M200_GEN_2`, `R40_GEN_2`, `R50_GEN_2`, `R60_GEN_2`, `R80_GEN_2`, `R200_GEN_2`, `R300_GEN_2`, and `R400_GEN_2`. GCP doesn't support `Mxx_NVME` Gen2 instance sizes.
 
-* `disk_iops` - (Optional) Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. You can set this attribute if you selected AWS, GCP, or Azure as your cloud service provider. For AWS, valid configurations are:
+* `disk_iops` - (Optional) Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. You can set this attribute if you selected AWS, GCP, or Azure as your cloud service provider.
 
+  For AWS, valid configurations are:
   * For Gen2 instance sizes (`M30_GEN_2` or greater) with `ebs_volume_type` set to `STANDARD`: configurable between 3000 and 80000 IOPS.
   * For Gen2 instance sizes (`M30_GEN_2` or greater) with `ebs_volume_type` set to `HIGH_PERFORMANCE`: configurable within the allowable range for the selected volume size.
-  * For M30 or greater (Gen1 or Gen2, not including `Mxx_NVME` tiers) with `ebs_volume_type` set to `PROVISIONED`: configurable within the allowable range for the selected volume size.
+  * For Gen1 instance sizes (`M30` or greater, not including `Mxx_NVME` tiers) with `ebs_volume_type` set to `PROVISIONED`: configurable within the allowable range for the selected volume size.
   
   For GCP, you can set this attribute only for Gen2 instance sizes (`M30_GEN_2` or greater), which use Hyperdisk Balanced storage. Gen1 instance sizes don't support configurable IOPS. The valid range depends on `disk_size_gb` and the selected instance size:
   * The minimum value is the greater of 3000 and three times `disk_size_gb`.
@@ -818,11 +819,11 @@ replication_specs = [
   
   For Azure (Gen1 only; Azure doesn't support Gen2), `instance_size` must be set to `M40` or greater (not including `Mxx_NVME` tiers), and the region must support Extended IOPS. You can't set this attribute for a multi-cloud cluster.
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Don't set this parameter for GCP or Azure clusters. Valid values are:
-  * `STANDARD` volume types use gp3 storage. For Gen 2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.
-  * `PROVISIONED` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size.
+  * `STANDARD` volume types use gp3 storage. For Gen2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.
+  * `PROVISIONED` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size. Only Gen1 instance sizes support this value.
   * `HIGH_PERFORMANCE` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size. Only Gen2 instance sizes support this value.
 * `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
-* `disk_size_gb` - (Optional) Storage capacity that the host's root volume possesses expressed in gigabytes. This value must be equal for all shards and node types. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier. **Note:** Using `disk_size_gb` with Standard IOPS could lead to errors and configuration issues. Therefore, it should be used only with the [Provisioned IOPS volume type](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#PROVISIONED). When using Provisioned IOPS, the disk_size_gb parameter specifies the storage capacity, but the IOPS are set independently. Ensuring that `disk_size_gb` is used exclusively with Provisioned IOPS will help avoid these issues.
+* `disk_size_gb` - (Optional) Storage capacity that the host's root volume possesses expressed in gigabytes. This value must be equal for all shards and node types. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier. **Note:** On AWS, using `disk_size_gb` with Standard IOPS could lead to errors and configuration issues. Therefore, on AWS, use `disk_size_gb` only with the [Provisioned IOPS volume type](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#PROVISIONED); with Provisioned IOPS, `disk_size_gb` specifies the storage capacity while the IOPS are set independently. On GCP, `disk_size_gb` is always required input, since it determines the valid `disk_iops` range for Gen2 instance sizes.
 
 ### read_only_specs
 
@@ -834,11 +835,12 @@ replication_specs = [
 
   GCP supports the following Gen2 instance sizes: `M30_GEN_2`, `M40_GEN_2`, `M50_GEN_2`, `M60_GEN_2`, `M80_GEN_2`, `M140_GEN_2`, `M200_GEN_2`, `R40_GEN_2`, `R50_GEN_2`, `R60_GEN_2`, `R80_GEN_2`, `R200_GEN_2`, `R300_GEN_2`, and `R400_GEN_2`. GCP doesn't support `Mxx_NVME` Gen2 instance sizes.
 
-* `disk_iops` - (Optional) Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. You can set this attribute if you selected AWS, GCP, or Azure as your cloud service provider. For AWS, valid configurations are:
-  
+* `disk_iops` - (Optional) Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. You can set this attribute if you selected AWS, GCP, or Azure as your cloud service provider.
+
+  For AWS, valid configurations are:
   * For Gen2 instance sizes (`M30_GEN_2` or greater) with `ebs_volume_type` set to `STANDARD`: configurable between 3000 and 80000 IOPS.
   * For Gen2 instance sizes (`M30_GEN_2` or greater) with `ebs_volume_type` set to `HIGH_PERFORMANCE`: configurable within the allowable range for the selected volume size.
-  * For M30 or greater (Gen1 or Gen2, not including `Mxx_NVME` tiers) with `ebs_volume_type` set to `PROVISIONED`: configurable within the allowable range for the selected volume size.
+  * For Gen1 instance sizes (`M30` or greater, not including `Mxx_NVME` tiers) with `ebs_volume_type` set to `PROVISIONED`: configurable within the allowable range for the selected volume size.
   
   For GCP, you can set this attribute only for Gen2 instance sizes (`M30_GEN_2` or greater), which use Hyperdisk Balanced storage. Gen1 instance sizes don't support configurable IOPS. The valid range depends on `disk_size_gb` and the selected instance size:
   * The minimum value is the greater of 3000 and three times `disk_size_gb`.
@@ -846,11 +848,11 @@ replication_specs = [
   
   For Azure (Gen1 only; Azure doesn't support Gen2), `instance_size` must be set to `M40` or greater (not including `Mxx_NVME` tiers), and the region must support Extended IOPS. You can't set this attribute for a multi-cloud cluster. This parameter defaults to the cluster tier's standard IOPS value.
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Don't set this parameter for GCP or Azure clusters. Valid values are:
-  * `STANDARD` volume types use gp3 storage. For Gen 2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.
-  * `PROVISIONED` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size.
+  * `STANDARD` volume types use gp3 storage. For Gen2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.
+  * `PROVISIONED` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size. Only Gen1 instance sizes support this value.
   * `HIGH_PERFORMANCE` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size. Only Gen2 instance sizes support this value.
 * `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
-* `disk_size_gb` - (Optional) Storage capacity that the host's root volume possesses expressed in gigabytes. This value must be equal for all shards and node types. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier. **Note:** Using `disk_size_gb` with Standard IOPS could lead to errors and configuration issues. Therefore, it should be used only with the [Provisioned IOPS volume type](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#PROVISIONED). When using Provisioned IOPS, the disk_size_gb parameter specifies the storage capacity, but the IOPS are set independently. Ensuring that `disk_size_gb` is used exclusively with Provisioned IOPS will help avoid these issues.
+* `disk_size_gb` - (Optional) Storage capacity that the host's root volume possesses expressed in gigabytes. This value must be equal for all shards and node types. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier. **Note:** On AWS, using `disk_size_gb` with Standard IOPS could lead to errors and configuration issues. Therefore, on AWS, use `disk_size_gb` only with the [Provisioned IOPS volume type](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#PROVISIONED); with Provisioned IOPS, `disk_size_gb` specifies the storage capacity while the IOPS are set independently. On GCP, `disk_size_gb` is always required input, since it determines the valid `disk_iops` range for Gen2 instance sizes.
 
 ### auto_scaling
 
