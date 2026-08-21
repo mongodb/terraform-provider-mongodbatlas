@@ -47,7 +47,7 @@ var (
 			Db:             conversion.StringPtr("testDB"),
 		},
 		Autoscaling: &admin.StreamsAutoscaling{
-			Enabled: admin.PtrBool(true),
+			Enabled: new(true),
 			MinTier: conversion.StringPtr("SP10"),
 			MaxTier: conversion.StringPtr("SP50"),
 		},
