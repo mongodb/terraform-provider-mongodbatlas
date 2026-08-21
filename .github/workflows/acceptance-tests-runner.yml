@@ -333,8 +333,6 @@ jobs:
             - 'internal/serviceapi/streamconnectionfailover/*.go'
             - 'internal/serviceapi/logintegration/*.go'
             - 'internal/serviceapi/metricintegration/*.go'
-            - 'internal/serviceapi/mcpconfig/*.go'
-            - 'internal/serviceapi/mcpconfigsecret/*.go'
           autogen_slow:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/clusterapi/*.go'
@@ -712,8 +710,6 @@ jobs:
             ./internal/serviceapi/databaseuserapi
             ./internal/serviceapi/logintegration
             ./internal/serviceapi/metricintegration
-            ./internal/serviceapi/mcpconfig
-            ./internal/serviceapi/mcpconfigsecret
             ./internal/serviceapi/maintenancewindowapi
             ./internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive
             ./internal/serviceapi/projectapi
