@@ -24,9 +24,9 @@ import (
 )
 
 type TFAutoscalingModel struct {
-	Enabled types.Bool   `tfsdk:"enabled"`
 	MinTier types.String `tfsdk:"min_tier"`
 	MaxTier types.String `tfsdk:"max_tier"`
+	Enabled types.Bool   `tfsdk:"enabled"`
 }
 
 var AutoscalingObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -128,7 +128,7 @@ func resolveAutoscalingForUpdate(ctx context.Context, plan, state *TFStreamProce
 		return nil, diags
 	}
 	if stateAutoscaling != nil {
-		return &admin.StreamsAutoscaling{Enabled: admin.PtrBool(false)}, nil
+		return &admin.StreamsAutoscaling{Enabled: new(false)}, nil
 	}
 	return nil, nil
 }
