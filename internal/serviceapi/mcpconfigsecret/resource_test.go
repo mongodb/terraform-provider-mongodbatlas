@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -92,17 +93,18 @@ func TestAccMcpConfigSecret_rotateWithTaint(t *testing.T) {
 
 func configBasic(orgID, name string, secretExpiresAfterHours, secretCount int) string {
 	if secretCount > 1 {
-		secretsHCL := fmt.Sprintf(`
+		var secretsHCL strings.Builder
+		secretsHCL.WriteString(fmt.Sprintf(`
 			resource "mongodbatlas_mcp_config_secret" "test" {
 				org_id                     = %[1]q
 				mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
 				secret_expires_after_hours = %[2]d
 			}
-		`, orgID, secretExpiresAfterHours)
+		`, orgID, secretExpiresAfterHours))
 		prevAddr := "mongodbatlas_mcp_config_secret.test"
 		for i := 2; i <= secretCount; i++ {
 			addr := fmt.Sprintf("test_%d", i)
-			secretsHCL += fmt.Sprintf(`
+			secretsHCL.WriteString(fmt.Sprintf(`
 				resource "mongodbatlas_mcp_config_secret" "%[1]s" {
 					org_id                     = %[2]q
 					mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
@@ -110,7 +112,7 @@ func configBasic(orgID, name string, secretExpiresAfterHours, secretCount int) s
 
 					depends_on = [%[4]s]
 				}
-			`, addr, orgID, secretExpiresAfterHours, prevAddr)
+			`, addr, orgID, secretExpiresAfterHours, prevAddr))
 			prevAddr = "mongodbatlas_mcp_config_secret." + addr
 		}
 		return fmt.Sprintf(`
@@ -121,7 +123,7 @@ func configBasic(orgID, name string, secretExpiresAfterHours, secretCount int) s
 			}
 
 			%[3]s
-		`, orgID, name, secretsHCL)
+		`, orgID, name, secretsHCL.String())
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_mcp_config" "test" {
