@@ -13,5 +13,6 @@ For product limits, see the [resource documentation](https://registry.terraform.
 - [`snapshot_discovery/`](snapshot_discovery/README.md) — list snapshots, resolve `snapshot_id`, browse databases and collections in a snapshot. Run this before a snapshot restore when you need to pick inputs.
 - [`snapshot_restore/`](snapshot_restore/README.md) — restore from a scheduled or on-demand snapshot.
 - [`pit_restore/`](pit_restore/README.md) — restore from continuous backup at a point in time. No snapshot ID.
+- [`restore_job_inspection/`](restore_job_inspection/README.md) — read back collection restore jobs on a cluster without creating a new job.
 
 Typical snapshot flow: `snapshot_discovery` → copy outputs into `snapshot_restore` tfvars → apply.

@@ -104,6 +104,8 @@ terraform apply
 
 Create waits until the job `state` is `SUCCESSFUL`. Default create timeout is 3 hours. Check `job_state` and `collection_states` after apply.
 
+For job read-back data sources after apply, see [`restore_job_inspection/`](../restore_job_inspection/README.md).
+
 **4. Destroy.**
 
 ```bash

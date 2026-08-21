@@ -30,17 +30,8 @@ resource "mongodbatlas_cloud_backup_collection_restore_job" "this" {
   }
 }
 
-# Illustration only; not referenced by outputs.
-data "mongodbatlas_cloud_backup_collection_restore_job" "this" {
-  project_id   = mongodbatlas_cloud_backup_collection_restore_job.this.project_id
-  cluster_name = mongodbatlas_cloud_backup_collection_restore_job.this.cluster_name
-  job_id       = mongodbatlas_cloud_backup_collection_restore_job.this.job_id
-}
-
-# Illustration only; not referenced by outputs.
-data "mongodbatlas_cloud_backup_collection_restore_jobs" "this" {
-  project_id   = mongodbatlas_cloud_backup_collection_restore_job.this.project_id
-  cluster_name = mongodbatlas_cloud_backup_collection_restore_job.this.cluster_name
+output "job_state" {
+  value = mongodbatlas_cloud_backup_collection_restore_job.this.state
 }
 
 data "mongodbatlas_cloud_backup_collection_restore_job_collections" "this" {
@@ -49,15 +40,13 @@ data "mongodbatlas_cloud_backup_collection_restore_job_collections" "this" {
   job_id       = mongodbatlas_cloud_backup_collection_restore_job.this.job_id
 }
 
-output "job_state" {
-  value = mongodbatlas_cloud_backup_collection_restore_job.this.state
-}
-
 output "collection_states" {
   value = [for c in data.mongodbatlas_cloud_backup_collection_restore_job_collections.this.results : {
     source_namespace           = c.source_namespace
     target_namespace           = c.target_namespace
     effective_target_namespace = c.effective_target_namespace
     state                      = c.state
+    index_status               = c.index_status
+    documents                  = "${c.restored_documents} / ${c.total_documents}"
   }]
 }

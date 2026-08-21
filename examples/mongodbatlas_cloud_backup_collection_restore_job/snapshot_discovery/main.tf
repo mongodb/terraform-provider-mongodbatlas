@@ -50,7 +50,7 @@ data "mongodbatlas_cloud_backup_snapshot_databases" "this" {
 }
 
 data "mongodbatlas_cloud_backup_snapshot_database_collections" "this" {
-  for_each = toset(var.discovery_database_names)
+  for_each = toset(data.mongodbatlas_cloud_backup_snapshot_databases.this.results[*].name)
 
   project_id    = var.project_id
   cluster_name  = var.cluster_name

@@ -12,11 +12,12 @@ To use this data source, the requesting Service Account or API Key must have the
 
 ## Example Usage
 
-The following example creates a collection restore job, then lists per-collection restore state.
+The following example lists per-collection restore state for a job, then reads one collection by `source_namespace`. When `source_namespace` is omitted, the example defaults to the last namespace from the plural data source.
 
-{{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_restore/main.tf" }}
+{{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/restore_job_inspection/restore_job_collections.tf" }}
 
 ### Further Examples
+- [Restore job inspection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/restore_job_inspection)
 - [Snapshot restore](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_restore)
 - [Point-in-time restore](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/pit_restore)
 - [Snapshot discovery](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_discovery)

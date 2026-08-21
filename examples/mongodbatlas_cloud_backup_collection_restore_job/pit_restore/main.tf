@@ -7,9 +7,6 @@ locals {
 resource "mongodbatlas_cloud_backup_collection_restore_job" "this" {
   project_id                = var.project_id
   cluster_name              = var.cluster_name
-  point_in_time_utc_seconds = var.point_in_time_utc_seconds
-  oplog_ts                  = var.oplog_ts
-  oplog_inc                 = var.oplog_inc
   target_project_id         = local.target_project_id
   target_cluster_name       = local.target_cluster_name
   write_strategy            = var.write_strategy
@@ -17,6 +14,10 @@ resource "mongodbatlas_cloud_backup_collection_restore_job" "this" {
   database_suffix           = var.database_suffix
   collection_suffix         = var.collection_suffix
 
+  point_in_time_utc_seconds = var.point_in_time_utc_seconds
+  oplog_ts                  = var.oplog_ts
+  oplog_inc                 = var.oplog_inc
+  
   databases = [for db in var.restore_databases : {
     source_namespace = db
     target_namespace = try(var.database_renames[db], null)
@@ -32,17 +33,8 @@ resource "mongodbatlas_cloud_backup_collection_restore_job" "this" {
   }
 }
 
-# Illustration only; not referenced by outputs.
-data "mongodbatlas_cloud_backup_collection_restore_job" "this" {
-  project_id   = mongodbatlas_cloud_backup_collection_restore_job.this.project_id
-  cluster_name = mongodbatlas_cloud_backup_collection_restore_job.this.cluster_name
-  job_id       = mongodbatlas_cloud_backup_collection_restore_job.this.job_id
-}
-
-# Illustration only; not referenced by outputs.
-data "mongodbatlas_cloud_backup_collection_restore_jobs" "this" {
-  project_id   = mongodbatlas_cloud_backup_collection_restore_job.this.project_id
-  cluster_name = mongodbatlas_cloud_backup_collection_restore_job.this.cluster_name
+output "job_state" {
+  value = mongodbatlas_cloud_backup_collection_restore_job.this.state
 }
 
 data "mongodbatlas_cloud_backup_collection_restore_job_collections" "this" {
@@ -51,15 +43,13 @@ data "mongodbatlas_cloud_backup_collection_restore_job_collections" "this" {
   job_id       = mongodbatlas_cloud_backup_collection_restore_job.this.job_id
 }
 
-output "job_state" {
-  value = mongodbatlas_cloud_backup_collection_restore_job.this.state
-}
-
 output "collection_states" {
   value = [for c in data.mongodbatlas_cloud_backup_collection_restore_job_collections.this.results : {
     source_namespace           = c.source_namespace
     target_namespace           = c.target_namespace
     effective_target_namespace = c.effective_target_namespace
     state                      = c.state
+    index_status               = c.index_status
+    documents                  = "${c.restored_documents} / ${c.total_documents}"
   }]
 }
