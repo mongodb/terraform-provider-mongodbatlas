@@ -135,7 +135,7 @@ func (r *ReplicationSpecRequest) AddDefaults() {
 		r.ZoneName = "Zone 1"
 	}
 	if r.Region == "" {
-		r.Region = "US_WEST_2"
+		r.Region = DefaultRegion()
 	}
 	if r.InstanceSize == "" {
 		r.InstanceSize = "M10"
