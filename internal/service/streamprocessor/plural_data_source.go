@@ -6,10 +6,10 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
 )
 
 var _ datasource.DataSource = &StreamProccesorDS{}
@@ -42,7 +42,7 @@ func (d *streamProcessorsDS) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	connV2 := d.Client.AtlasV2
+	connV2 := d.Client.AtlasPreview
 	projectID := streamConnectionsConfig.ProjectID.ValueString()
 	workspaceOrInstanceName := GetWorkspaceOrInstanceName(streamConnectionsConfig.WorkspaceName, streamConnectionsConfig.InstanceName)
 

@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"go.mongodb.org/atlas-sdk/v20250312020/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 )
 
 type TFAutoscalingModel struct {
@@ -136,9 +136,9 @@ func resolveAutoscalingForUpdate(ctx context.Context, plan, state *TFStreamProce
 // effectiveTierFromResp derives the read-only `effective_tier` from the API response.
 // Falls back to the baseline `tier` when the API does not return an explicit
 // effectiveTier (they are equal whenever autoscaling is disabled).
-func effectiveTierFromResp(effectiveTier, tier *string) types.String {
-	if effectiveTier != nil {
-		return types.StringPointerValue(effectiveTier)
+func effectiveTierFromResp(effectiveTier string, tier *string) types.String {
+	if effectiveTier != "" {
+		return types.StringValue(effectiveTier)
 	}
 	return types.StringPointerValue(tier)
 }
