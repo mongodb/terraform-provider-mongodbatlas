@@ -65,13 +65,15 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Plan:       &plan,
 		CallParams: &callParams,
 		Wait: &autogen.WaitReq{
-			StateProperty:     "state",
-			PendingStates:     []string{"INITIALIZING", "IN_PROGRESS", "FINALIZING"},
-			TargetStates:      []string{"SUCCESSFUL"},
-			Timeout:           timeout,
-			MinTimeoutSeconds: 60,
-			DelaySeconds:      30,
-			CallParams:        readAPICallParams,
+			StateProperty:            "state",
+			ErrorDescriptionProperty: "errorMessage",
+			PendingStates:            []string{"INITIALIZING", "IN_PROGRESS", "FINALIZING"},
+			TargetStates:             []string{"SUCCESSFUL"},
+			FailedStates:             []string{"FAILED", "CANCELED"},
+			Timeout:                  timeout,
+			MinTimeoutSeconds:        60,
+			DelaySeconds:             30,
+			CallParams:               readAPICallParams,
 		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)

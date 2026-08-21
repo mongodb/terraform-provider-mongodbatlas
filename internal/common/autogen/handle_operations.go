@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -34,13 +36,15 @@ const (
 )
 
 type WaitReq struct {
-	CallParams        func(model any) *config.APICallParams
-	StateProperty     string
-	PendingStates     []string
-	TargetStates      []string
-	Timeout           time.Duration
-	MinTimeoutSeconds int
-	DelaySeconds      int
+	CallParams               func(model any) *config.APICallParams
+	StateProperty            string
+	ErrorDescriptionProperty string // camelCase JSON key in the API response body, e.g. "errorMessage"
+	PendingStates            []string
+	TargetStates             []string
+	FailedStates             []string
+	Timeout                  time.Duration
+	MinTimeoutSeconds        int
+	DelaySeconds             int
 }
 type HandleCreateReq struct {
 	Hooks                 any
@@ -419,8 +423,25 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 		if !ok {
 			return nil, "", fmt.Errorf("wait state attribute value is not a string, attribute name: %s, value: %s", wait.StateProperty, stateValAny)
 		}
+		if err := WaitFailedStateError(wait, stateValStr, objJSON); err != nil {
+			return nil, "", err
+		}
 		return callResult.Body, stateValStr, nil
 	}
+}
+
+// WaitFailedStateError returns an error when state is a configured failed state.
+// Prefers ErrorDescriptionProperty from the poll JSON when it is a non-empty string.
+func WaitFailedStateError(wait *WaitReq, state string, objJSON map[string]any) error {
+	if wait == nil || !slices.Contains(wait.FailedStates, state) {
+		return nil
+	}
+	if wait.ErrorDescriptionProperty != "" {
+		if msg, ok := objJSON[wait.ErrorDescriptionProperty].(string); ok && msg != "" {
+			return errors.New(msg)
+		}
+	}
+	return fmt.Errorf("operation failed with state %q", state)
 }
 
 // notFound returns if the resource is not found (API response is 404 or response body is empty JSON).

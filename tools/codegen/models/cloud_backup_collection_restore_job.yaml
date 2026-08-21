@@ -347,12 +347,16 @@ operations:
     create:
         wait:
             state_property: state
+            error_description_property: errorMessage
             pending_states:
                 - INITIALIZING
                 - IN_PROGRESS
                 - FINALIZING
             target_states:
                 - SUCCESSFUL
+            failed_states:
+                - FAILED
+                - CANCELED
             timeout_seconds: 10800
             min_timeout_seconds: 60
             delay_seconds: 30

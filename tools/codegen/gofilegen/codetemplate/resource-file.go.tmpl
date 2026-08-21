@@ -83,8 +83,14 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		{{- end }}
 		Wait: &autogen.WaitReq{
 			StateProperty: "{{ .StateProperty }}",
+			{{- if .ErrorDescriptionProperty }}
+			ErrorDescriptionProperty: "{{ .ErrorDescriptionProperty }}",
+			{{- end }}
 			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
+			{{- if .FailedStates }}
+			FailedStates: []string{ {{range .FailedStates }}"{{ . }}", {{- end }} },
+			{{- end }}
 			Timeout: timeout,
 			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 			DelaySeconds: {{ .DelaySeconds }},
@@ -148,8 +154,14 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		{{with .APIOperations.Update.Wait -}}
 		Wait: &autogen.WaitReq{
 			StateProperty: "{{ .StateProperty }}",
+			{{- if .ErrorDescriptionProperty }}
+			ErrorDescriptionProperty: "{{ .ErrorDescriptionProperty }}",
+			{{- end }}
 			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
+			{{- if .FailedStates }}
+			FailedStates: []string{ {{range .FailedStates }}"{{ . }}", {{- end }} },
+			{{- end }}
 			Timeout: timeout,
 			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 			DelaySeconds: {{ .DelaySeconds }},
@@ -179,8 +191,14 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	}
 	reqHandle.Wait = &autogen.WaitReq{
 		StateProperty: "{{ .StateProperty }}",
+		{{- if .ErrorDescriptionProperty }}
+		ErrorDescriptionProperty: "{{ .ErrorDescriptionProperty }}",
+		{{- end }}
 		PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 		TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
+		{{- if .FailedStates }}
+		FailedStates: []string{ {{range .FailedStates }}"{{ . }}", {{- end }} },
+		{{- end }}
 		Timeout: timeout,
 		MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 		DelaySeconds: {{ .DelaySeconds }},
