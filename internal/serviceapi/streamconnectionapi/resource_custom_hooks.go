@@ -44,7 +44,7 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 	craftedID := fmt.Sprintf("%s-%s-%s", model.WorkspaceName.ValueString(), model.ProjectId.ValueString(), model.ConnectionName.ValueString())
 
 	var obj map[string]any
-	if err := autogen.DecodeUseNumber(result.Body, &obj); err != nil {
+	if err := autogen.Decode(result.Body, &obj); err != nil {
 		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
 	}
 

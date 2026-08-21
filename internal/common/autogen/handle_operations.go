@@ -408,7 +408,7 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 			return nil, "", callResult.Err
 		}
 		var objJSON map[string]any
-		if err := DecodeUseNumber(callResult.Body, &objJSON); err != nil {
+		if err := Decode(callResult.Body, &objJSON); err != nil {
 			return nil, "", err
 		}
 		stateValAny, found := objJSON[wait.StateProperty]

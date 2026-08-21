@@ -25,15 +25,15 @@ func Unmarshal(raw []byte, model any) error {
 		return nil // Some operations return an empty response body, in that case there is no need to update the model.
 	}
 	var objJSON map[string]any
-	if err := DecodeUseNumber(raw, &objJSON); err != nil {
+	if err := Decode(raw, &objJSON); err != nil {
 		return err
 	}
 	return unmarshalAttrs(objJSON, model)
 }
 
-// DecodeUseNumber decodes JSON preserving number literals as json.Number instead of
-// float64, preventing silent precision loss for integers larger than 2^53.
-func DecodeUseNumber(raw []byte, v any) error {
+// Decode decodes JSON like json.Unmarshal but preserves number literals as json.Number
+// instead of float64, preventing silent precision loss for integers larger than 2^53.
+func Decode(raw []byte, v any) error {
 	dec := json.NewDecoder(bytes.NewReader(raw))
 	dec.UseNumber()
 	if err := dec.Decode(v); err != nil {
@@ -170,14 +170,6 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string, s
 				return nil, errUnmarshal(valueType, "Number", nameErr)
 			}
 			return types.Float64Value(f), nil
-		}
-		return nil, errUnmarshal(valueType, "Number", nameErr)
-	case float64:
-		switch valueType {
-		case types.Int64Type:
-			return types.Int64Value(int64(v)), nil
-		case types.Float64Type:
-			return types.Float64Value(v), nil
 		}
 		return nil, errUnmarshal(valueType, "Number", nameErr)
 	case map[string]any:

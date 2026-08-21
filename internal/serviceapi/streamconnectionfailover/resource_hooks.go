@@ -44,7 +44,7 @@ func injectConnectionName(callParams config.APICallParams, bodyReq []byte) []byt
 		return bodyReq
 	}
 	var body map[string]any
-	if err := autogen.DecodeUseNumber(bodyReq, &body); err != nil {
+	if err := autogen.Decode(bodyReq, &body); err != nil {
 		return bodyReq
 	}
 	body["name"] = name

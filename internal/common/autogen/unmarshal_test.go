@@ -1006,9 +1006,9 @@ func TestUnmarshalLargeIntegers(t *testing.T) {
 	assert.Equal(t, modelExpected, model)
 }
 
-func TestDecodeUseNumber(t *testing.T) {
+func TestDecode(t *testing.T) {
 	var obj map[string]any
-	require.NoError(t, autogen.DecodeUseNumber([]byte(`{"big": 9007199254740993, "float": 1.5}`), &obj))
+	require.NoError(t, autogen.Decode([]byte(`{"big": 9007199254740993, "float": 1.5}`), &obj))
 
 	num, ok := obj["big"].(json.Number)
 	require.True(t, ok, "expected json.Number, got %T", obj["big"])
@@ -1021,7 +1021,7 @@ func TestDecodeUseNumber(t *testing.T) {
 	assert.InEpsilon(t, 1.5, f, epsilon)
 }
 
-func TestDecodeUseNumberTrailingData(t *testing.T) {
+func TestDecodeTrailingData(t *testing.T) {
 	testCases := map[string]struct {
 		raw       string
 		expectErr bool
@@ -1033,7 +1033,7 @@ func TestDecodeUseNumberTrailingData(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			var obj map[string]any
-			err := autogen.DecodeUseNumber([]byte(tc.raw), &obj)
+			err := autogen.Decode([]byte(tc.raw), &obj)
 			if tc.expectErr {
 				require.ErrorContains(t, err, "unexpected data after JSON value")
 			} else {

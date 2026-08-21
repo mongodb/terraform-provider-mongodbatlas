@@ -132,7 +132,7 @@ func getModelAttr(val attr.Value, isUpdate bool) (any, error) {
 		return v.ValueFloat64(), nil
 	case jsontypes.Normalized:
 		var valueJSON any
-		if err := DecodeUseNumber([]byte(v.ValueString()), &valueJSON); err != nil {
+		if err := Decode([]byte(v.ValueString()), &valueJSON); err != nil {
 			return nil, fmt.Errorf("marshal failed for JSON custom type: %v", err)
 		}
 		return valueJSON, nil
