@@ -76,7 +76,6 @@ func getWaitValues(wait *codespec.Wait) *codetemplate.Wait {
 		ErrorDescriptionProperty: wait.ErrorDescriptionProperty,
 		PendingStates:            wait.PendingStates,
 		TargetStates:             wait.TargetStates,
-		FailedStates:             wait.FailedStates,
 		TimeoutSeconds:           wait.TimeoutSeconds,
 		MinTimeoutSeconds:        wait.MinTimeoutSeconds,
 		DelaySeconds:             wait.DelaySeconds,

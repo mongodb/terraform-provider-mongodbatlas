@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"slices"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -41,7 +40,7 @@ type WaitReq struct {
 	ErrorDescriptionProperty string // camelCase JSON key in the API response body, e.g. "errorMessage"
 	PendingStates            []string
 	TargetStates             []string
-	FailedStates             []string
+	IDAttributes             []string
 	Timeout                  time.Duration
 	MinTimeoutSeconds        int
 	DelaySeconds             int
@@ -375,28 +374,46 @@ func callDelete(ctx context.Context, req *HandleDeleteReq) error {
 
 // waitForChanges waits until a long-running operation is done.
 // It returns the latest JSON response from the API so it can be used to update the response state.
+type waitCapture struct {
+	lastJSON  map[string]any
+	lastState string
+}
+
 func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model, hooks any) ([]byte, error) {
 	if len(wait.TargetStates) == 0 {
 		return nil, fmt.Errorf("wait must have at least one target state, pending states: %v", wait.PendingStates)
 	}
+	capture := &waitCapture{}
 	stateConf := retry.StateChangeConf{
 		Target:     wait.TargetStates,
 		Pending:    wait.PendingStates,
 		Timeout:    wait.Timeout,
 		MinTimeout: time.Duration(wait.MinTimeoutSeconds) * time.Second,
 		Delay:      time.Duration(wait.DelaySeconds) * time.Second,
-		Refresh:    refreshFunc(ctx, wait, client, model, hooks),
+		Refresh:    refreshFunc(ctx, wait, client, model, hooks, capture),
 	}
 	bodyResp, err := stateConf.WaitForStateContext(ctx)
-	if err != nil || bodyResp == nil {
+	if err != nil {
+		var timeoutErr *retry.TimeoutError
+		if errors.As(err, &timeoutErr) {
+			return nil, DefaultFormatWaitFailure(wait, WaitFailure{
+				LastJSON:   capture.lastJSON,
+				Model:      model,
+				TimeoutErr: err,
+				LastState:  capture.lastState,
+			})
+		}
 		return nil, err
 	}
-	return bodyResp.([]byte), err
+	if bodyResp == nil {
+		return nil, nil
+	}
+	return bodyResp.([]byte), nil
 }
 
 // refreshFunc retries until a target state or error happens.
 // It uses a special state value of "DELETED" when the API returns 404 or empty object
-func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model, hooks any) retry.StateRefreshFunc {
+func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model, hooks any, capture *waitCapture) retry.StateRefreshFunc {
 	return func() (result any, state string, err error) {
 		callParams := wait.CallParams(model)
 		callResult := callReadWithHooks(ctx, client, *callParams, HandleReadReq{
@@ -406,7 +423,7 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 		}, hooks)
 		if notFound(callResult.Body, callResult.Resp) {
 			// if "artificial" states continue to grow we can evaluate using a prefix to clearly separate states coming from API and those defined by refreshFunc
-			return emptyJSON, retrystrategy.RetryStrategyDeletedState, nil
+			return waitRefreshResult(wait, model, capture, emptyJSON, retrystrategy.RetryStrategyDeletedState, nil)
 		}
 		if callResult.Err != nil {
 			return nil, "", callResult.Err
@@ -423,25 +440,21 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 		if !ok {
 			return nil, "", fmt.Errorf("wait state attribute value is not a string, attribute name: %s, value: %s", wait.StateProperty, stateValAny)
 		}
-		if err := WaitFailedStateError(wait, stateValStr, objJSON); err != nil {
-			return nil, "", err
-		}
-		return callResult.Body, stateValStr, nil
+		return waitRefreshResult(wait, model, capture, callResult.Body, stateValStr, objJSON)
 	}
 }
 
-// WaitFailedStateError returns an error when state is a configured failed state.
-// Prefers ErrorDescriptionProperty from the poll JSON when it is a non-empty string.
-func WaitFailedStateError(wait *WaitReq, state string, objJSON map[string]any) error {
-	if wait == nil || !slices.Contains(wait.FailedStates, state) {
-		return nil
+func waitRefreshResult(wait *WaitReq, model any, capture *waitCapture, body []byte, stateValStr string, objJSON map[string]any) (result any, state string, err error) {
+	capture.lastJSON = objJSON
+	capture.lastState = stateValStr
+	if IsWaitContinueState(wait.PendingStates, wait.TargetStates, stateValStr) {
+		return body, stateValStr, nil
 	}
-	if wait.ErrorDescriptionProperty != "" {
-		if msg, ok := objJSON[wait.ErrorDescriptionProperty].(string); ok && msg != "" {
-			return errors.New(msg)
-		}
-	}
-	return fmt.Errorf("operation failed with state %q", state)
+	return nil, "", DefaultFormatWaitFailure(wait, WaitFailure{
+		LastJSON:  objJSON,
+		Model:     model,
+		LastState: stateValStr,
+	})
 }
 
 // notFound returns if the resource is not found (API response is 404 or response body is empty JSON).

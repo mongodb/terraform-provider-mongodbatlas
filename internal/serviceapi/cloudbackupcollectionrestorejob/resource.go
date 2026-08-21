@@ -69,7 +69,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			ErrorDescriptionProperty: "errorMessage",
 			PendingStates:            []string{"INITIALIZING", "IN_PROGRESS", "FINALIZING"},
 			TargetStates:             []string{"SUCCESSFUL"},
-			FailedStates:             []string{"FAILED", "CANCELED"},
+			IDAttributes:             []string{"project_id", "cluster_name", "job_id"},
 			Timeout:                  timeout,
 			MinTimeoutSeconds:        60,
 			DelaySeconds:             30,

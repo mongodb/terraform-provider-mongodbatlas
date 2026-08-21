@@ -354,9 +354,6 @@ operations:
                 - FINALIZING
             target_states:
                 - SUCCESSFUL
-            failed_states:
-                - FAILED
-                - CANCELED
             timeout_seconds: 10800
             min_timeout_seconds: 60
             delay_seconds: 30

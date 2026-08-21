@@ -62,7 +62,6 @@ type Wait struct {
 	ErrorDescriptionProperty string
 	PendingStates            []string
 	TargetStates             []string
-	FailedStates             []string
 	TimeoutSeconds           int
 	MinTimeoutSeconds        int
 	DelaySeconds             int

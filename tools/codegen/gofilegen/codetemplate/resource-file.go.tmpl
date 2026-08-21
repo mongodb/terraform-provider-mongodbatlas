@@ -88,9 +88,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			{{- end }}
 			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
-			{{- if .FailedStates }}
-			FailedStates: []string{ {{range .FailedStates }}"{{ . }}", {{- end }} },
-			{{- end }}
+			IDAttributes: []string{ {{range $.IDAttributes }}"{{ . }}", {{- end }} },
 			Timeout: timeout,
 			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 			DelaySeconds: {{ .DelaySeconds }},
@@ -159,9 +157,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			{{- end }}
 			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
-			{{- if .FailedStates }}
-			FailedStates: []string{ {{range .FailedStates }}"{{ . }}", {{- end }} },
-			{{- end }}
+			IDAttributes: []string{ {{range $.IDAttributes }}"{{ . }}", {{- end }} },
 			Timeout: timeout,
 			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 			DelaySeconds: {{ .DelaySeconds }},
@@ -196,9 +192,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		{{- end }}
 		PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 		TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
-		{{- if .FailedStates }}
-		FailedStates: []string{ {{range .FailedStates }}"{{ . }}", {{- end }} },
-		{{- end }}
+		IDAttributes: []string{ {{range $.IDAttributes }}"{{ . }}", {{- end }} },
 		Timeout: timeout,
 		MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 		DelaySeconds: {{ .DelaySeconds }},

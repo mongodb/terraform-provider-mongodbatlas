@@ -79,7 +79,6 @@ type Wait struct {
 	ErrorDescriptionProperty string   `yaml:"error_description_property,omitempty"`
 	PendingStates            []string `yaml:"pending_states"`
 	TargetStates             []string `yaml:"target_states"`
-	FailedStates             []string `yaml:"failed_states,omitempty"`
 	TimeoutSeconds           int      `yaml:"timeout_seconds"`
 	MinTimeoutSeconds        int      `yaml:"min_timeout_seconds"`
 	DelaySeconds             int      `yaml:"delay_seconds"`

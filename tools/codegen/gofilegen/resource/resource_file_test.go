@@ -374,14 +374,13 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 	}
 }
 
-func TestResourceGenerationWaitFailedStates(t *testing.T) {
+func TestResourceGenerationWaitErrorDescription(t *testing.T) {
 	wait := func(pending []string, target []string) *codespec.Wait {
 		return &codespec.Wait{
 			StateProperty:            "state",
 			ErrorDescriptionProperty: "errorMessage",
 			PendingStates:            pending,
 			TargetStates:             target,
-			FailedStates:             []string{"FAILED", "CANCELED"},
 			TimeoutSeconds:           300,
 			MinTimeoutSeconds:        60,
 			DelaySeconds:             10,
@@ -427,5 +426,5 @@ func TestResourceGenerationWaitFailedStates(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
-	g.Assert(t, "wait-failed-states", result)
+	g.Assert(t, "wait-error-description", result)
 }

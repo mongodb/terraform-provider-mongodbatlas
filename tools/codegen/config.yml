@@ -1689,7 +1689,6 @@ resources:
         state_property: state
         pending_states: [INITIALIZING, IN_PROGRESS, FINALIZING]
         target_states: [SUCCESSFUL]
-        failed_states: [FAILED, CANCELED]
         error_description_property: errorMessage
         timeout_seconds: 10800 # 3 hours
         min_timeout_seconds: 60
