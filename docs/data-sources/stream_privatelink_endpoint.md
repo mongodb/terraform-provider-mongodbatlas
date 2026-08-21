@@ -199,7 +199,7 @@ resource "mongodbatlas_stream_privatelink_endpoint" "test" {
   provider_name         = "AWS"
   vendor                = "MSK"
   arn                   = aws_msk_cluster.example.arn
-  authentication_scheme = "IAM" # Authentication mechanism for MSK. Valid values are SASL_SCRAM, TLS, and IAM.
+  authentication_scheme = "SASL_SCRAM" # Authentication mechanism for MSK. Valid values are SASL_SCRAM, TLS, and IAM.
 }
 
 data "mongodbatlas_stream_privatelink_endpoint" "singular_datasource" {
