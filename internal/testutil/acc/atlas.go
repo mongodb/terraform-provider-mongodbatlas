@@ -39,9 +39,9 @@ func deleteProject(id string) error {
 	return nil
 }
 
-func createCluster(tb testing.TB, projectID, name string) string {
+func createCluster(tb testing.TB, projectID, name string, backupEnabled, pitEnabled bool) string {
 	tb.Helper()
-	req := clusterReq(name, projectID)
+	req := clusterReq(name, projectID, backupEnabled, pitEnabled)
 	_, _, err := ConnV2().ClustersAPI.CreateCluster(tb.Context(), projectID, &req).Execute()
 	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
 	stateConf := cluster.CreateStateChangeConfig(tb.Context(), ConnV2(), projectID, name, 1*time.Hour)
@@ -64,11 +64,13 @@ func deleteCluster(projectID, name string) error {
 	return nil
 }
 
-func clusterReq(name, projectID string) admin.ClusterDescription20240805 {
+func clusterReq(name, projectID string, backupEnabled, pitEnabled bool) admin.ClusterDescription20240805 {
 	return admin.ClusterDescription20240805{
-		Name:        new(name),
-		GroupId:     new(projectID),
-		ClusterType: new("REPLICASET"),
+		Name:          new(name),
+		GroupId:       new(projectID),
+		ClusterType:   new("REPLICASET"),
+		BackupEnabled: new(backupEnabled),
+		PitEnabled:    new(pitEnabled),
 		ReplicationSpecs: &[]admin.ReplicationSpec20240805{
 			{
 				RegionConfigs: &[]admin.CloudRegionConfig20240805{
