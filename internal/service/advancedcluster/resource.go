@@ -530,6 +530,13 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknown and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
+	// POC (unsetting O+C sizing/autoscaling attrs): a bare field removal is not counted as a change by
+	// PatchPayload's hasChanged(), so replicationSpecs would be dropped from the PATCH entirely. When a
+	// removal is detected, force replicationSpecs to be (re)sent; the plan value already omits the removed
+	// field (NilForUnknown), and IgnoreInStatePrefix keeps it from being re-added from state.
+	if len(determineKeepUnknownsRemoved(ctx, diags, state, plan)) > 0 {
+		patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
+	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
 		diags.AddError(errorPatchPayload, err.Error())

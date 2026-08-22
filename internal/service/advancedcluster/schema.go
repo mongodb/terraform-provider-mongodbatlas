@@ -459,28 +459,43 @@ func autoScalingSchema() schema.SingleNestedAttribute {
 		MarkdownDescription: descAutoScaling,
 		Attributes: map[string]schema.Attribute{
 			"compute_enabled": schema.BoolAttribute{
-				Computed:            true,
-				Optional:            true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					customplanmodifier.KeepUnknownOnRemovalBool(), // POC: allow unsetting via config removal
+				},
 				MarkdownDescription: descComputeEnabled,
 			},
 			"compute_max_instance_size": schema.StringAttribute{
-				Computed:            true,
-				Optional:            true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					customplanmodifier.KeepUnknownOnRemovalString(), // POC: allow unsetting via config removal
+				},
 				MarkdownDescription: descComputeMinMaxInstanceSize,
 			},
 			"compute_min_instance_size": schema.StringAttribute{
-				Computed:            true,
-				Optional:            true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					customplanmodifier.KeepUnknownOnRemovalString(), // POC: allow unsetting via config removal
+				},
 				MarkdownDescription: descComputeMinMaxInstanceSize,
 			},
 			"compute_scale_down_enabled": schema.BoolAttribute{
-				Computed:            true,
-				Optional:            true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					customplanmodifier.KeepUnknownOnRemovalBool(), // POC: allow unsetting via config removal
+				},
 				MarkdownDescription: descComputeScaleDownEnabled,
 			},
 			"disk_gb_enabled": schema.BoolAttribute{
-				Computed:            true,
-				Optional:            true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					customplanmodifier.KeepUnknownOnRemovalBool(), // POC: allow unsetting via config removal
+				},
 				MarkdownDescription: descDiskGBEnabled,
 			},
 		},
@@ -523,13 +538,19 @@ func specsSchema() schema.SingleNestedAttribute {
 		MarkdownDescription: descSpecs,
 		Attributes: map[string]schema.Attribute{
 			"disk_iops": schema.Int64Attribute{
-				Computed:            true,
-				Optional:            true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.Int64{
+					customplanmodifier.KeepUnknownOnRemovalInt64(), // POC: allow unsetting via config removal
+				},
 				MarkdownDescription: descDiskIops,
 			},
 			"disk_size_gb": schema.Float64Attribute{
-				Computed:            true,
-				Optional:            true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.Float64{
+					customplanmodifier.KeepUnknownOnRemovalFloat64(), // POC: allow unsetting via config removal
+				},
 				MarkdownDescription: descDiskSizeGb,
 			},
 			"ebs_volume_type": schema.StringAttribute{
@@ -542,6 +563,7 @@ func specsSchema() schema.SingleNestedAttribute {
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					customplanmodifier.InstanceSizeStringAttributePlanModifier(),
+					customplanmodifier.KeepUnknownOnRemovalString(), // POC: allow unsetting via config removal
 				},
 				MarkdownDescription: descInstanceSize,
 			},

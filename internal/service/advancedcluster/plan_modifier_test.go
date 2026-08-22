@@ -41,9 +41,26 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 		autoScalingEnabled = autoScalingKnownValue(true, true, true, "M10", "M30")
 		testCases          = []unit.PlanCheckTest{
 			{
+				// POC (unsetting O+C sizing/autoscaling attrs): previously a Noop. With the
+				// keep-unknown-on-removal plan modifiers, the omitted (computed) disk_iops/disk_size_gb
+				// on the kept electable_specs are forced unknown, so this is now an Update. This is the
+				// concrete cost of the "can't distinguish removed vs never-set" limitation: fields the
+				// user never set in config now show (known after apply) on every plan.
 				ConfigFilename: "main_removed_blocks_from_config_no_plan_changes.tf",
 				Checks: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionNoop),
+					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("electable_specs").AtMapKey("disk_size_gb")),
+					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("electable_specs").AtMapKey("disk_iops")),
+				},
+			},
+			{
+				// POC: deliberately removing a set autoscaling field (auto_scaling.compute_max_instance_size,
+				// "M30" in state) makes the unset a real, sendable change instead of a silent no-op.
+				ConfigFilename: "main_removed_optional_attrs.tf",
+				Checks: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("auto_scaling").AtMapKey("compute_max_instance_size")),
+					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("electable_specs").AtMapKey("disk_size_gb")),
 				},
 			},
 			{
