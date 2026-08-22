@@ -105,11 +105,18 @@ resource "mongodbatlas_stream_processor" "stream-processor-kafka-to-cluster-exam
     ]
   JSON
   state          = "CREATED"
+  # `tier` is the baseline tier; the current autoscaled tier is `effective_tier`.
+  tier = "SP10"
   options = {
     dlq = {
       coll            = "exampleColumn"
       connection_name = mongodbatlas_stream_connection.example-cluster.connection_name
       db              = "exampleDb"
+    }
+    autoscaling = {
+      enabled  = true
+      min_tier = "SP10"
+      max_tier = "SP50"
     }
   }
 }
@@ -156,12 +163,13 @@ output "stream_processors_results" {
 - `state` (String) The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`. When a Stream Processor is created without specifying the state, it will default to `CREATED` state. When a Stream Processor is updated without specifying the state, it will default to the Previous state. 
 
 **NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.
-- `tier` (String) Selected tier to start a stream processor on rather than defaulting to the workspace setting. Configures Memory / VCPU allowances. Valid options are SP2, SP5, SP10, SP30, and SP50.
+- `tier` (String) Selected tier to start a stream processor on rather than defaulting to the workspace setting. Configures Memory / VCPU allowances. Valid options are SP2, SP5, SP10, SP30, and SP50. When `options.autoscaling` is enabled, this is used only as the initial/baseline tier; the running tier is reported by `effective_tier`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 - `workspace_name` (String) Label that identifies the stream processing workspace.
 
 ### Read-Only
 
+- `effective_tier` (String) Tier the stream processor is currently running on. When autoscaling is disabled this equals `tier`; when autoscaling is enabled it reflects the tier chosen by the autoscaler within the configured bounds.
 - `id` (String) Unique 24-hexadecimal character string that identifies the stream processor.
 - `stats` (String) The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.
 
@@ -172,6 +180,10 @@ Required:
 
 - `dlq` (Attributes) Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information. (see [below for nested schema](#nestedatt--options--dlq))
 
+Optional:
+
+- `autoscaling` (Attributes) Vertical autoscaling configuration for the stream processor. When present, autoscaling is enabled and the processor automatically scales its tier between `min_tier` and `max_tier` based on load; `tier` is then used only as the initial/baseline tier (the tier it is actually running on is reported by `effective_tier`). To disable autoscaling, remove this block — the backend clears the configuration on disable, so autoscaling cannot be turned off by setting `enabled = false`. (see [below for nested schema](#nestedatt--options--autoscaling))
+
 <a id="nestedatt--options--dlq"></a>
 ### Nested Schema for `options.dlq`
 
@@ -180,6 +192,19 @@ Required:
 - `coll` (String) Name of the collection to use for the DLQ.
 - `connection_name` (String) Name of the connection to write DLQ messages to. Must be an Atlas connection.
 - `db` (String) Name of the database to use for the DLQ.
+
+
+<a id="nestedatt--options--autoscaling"></a>
+### Nested Schema for `options.autoscaling`
+
+Required:
+
+- `enabled` (Boolean) Flag that indicates whether autoscaling is enabled. Must be `true` when the `options.autoscaling` block is present. To disable autoscaling, remove the block rather than setting this to `false` (the backend does not persist a disabled config, so `enabled = false` is rejected during planning).
+
+Optional:
+
+- `max_tier` (String) Tier ceiling for autoscaling (scale-up limit). Valid options are SP2, SP5, SP10, SP30, and SP50. When not set, it defaults to the workspace maximum tier.
+- `min_tier` (String) Tier floor for autoscaling (scale-down limit). Valid options are SP2, SP5, SP10, SP30, and SP50. When not set, it defaults to the workspace default tier.
 
 
 

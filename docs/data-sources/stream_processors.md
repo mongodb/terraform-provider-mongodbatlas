@@ -95,11 +95,18 @@ resource "mongodbatlas_stream_processor" "stream-processor-kafka-to-cluster-exam
     ]
   JSON
   state          = "CREATED"
+  # `tier` is the baseline tier; the current autoscaled tier is `effective_tier`.
+  tier = "SP10"
   options = {
     dlq = {
       coll            = "exampleColumn"
       connection_name = mongodbatlas_stream_connection.example-cluster.connection_name
       db              = "exampleDb"
+    }
+    autoscaling = {
+      enabled  = true
+      min_tier = "SP10"
+      max_tier = "SP50"
     }
   }
 }
@@ -150,6 +157,7 @@ role or Project Stream Processing Owner role. (see [below for nested schema](#ne
 
 Read-Only:
 
+- `effective_tier` (String) Tier the stream processor is currently running on. When autoscaling is disabled this equals `tier`; when autoscaling is enabled it reflects the tier chosen by the autoscaler within the configured bounds.
 - `failover_enabled` (Boolean) Indicates whether this stream processor is eligible for failover. When `true`, an operator can trigger a failover event to migrate the stream processor to a secondary region configured in the workspace's `failover_regions`. Requires an Atlas-to-Atlas or Atlas-to-Kafka pipeline with `failover_regions` configured on the workspace.
 - `id` (String) Unique 24-hexadecimal character string that identifies the stream processor.
 - `instance_name` (String, Deprecated) Label that identifies the stream processing workspace.
@@ -161,7 +169,7 @@ Read-Only:
 
 **NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.
 - `stats` (String) The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.
-- `tier` (String) Selected tier to start a stream processor on rather than defaulting to the workspace setting. Configures Memory / VCPU allowances. Valid options are SP2, SP5, SP10, SP30, and SP50.
+- `tier` (String) Selected tier to start a stream processor on rather than defaulting to the workspace setting. Configures Memory / VCPU allowances. Valid options are SP2, SP5, SP10, SP30, and SP50. When `options.autoscaling` is enabled, this is used only as the initial/baseline tier; the running tier is reported by `effective_tier`.
 - `workspace_name` (String) Label that identifies the stream processing workspace.
 
 <a id="nestedatt--results--options"></a>
@@ -169,7 +177,18 @@ Read-Only:
 
 Read-Only:
 
+- `autoscaling` (Attributes) Vertical autoscaling configuration for the stream processor. When present, autoscaling is enabled and the processor automatically scales its tier between `min_tier` and `max_tier` based on load; `tier` is then used only as the initial/baseline tier (the tier it is actually running on is reported by `effective_tier`). To disable autoscaling, remove this block — the backend clears the configuration on disable, so autoscaling cannot be turned off by setting `enabled = false`. (see [below for nested schema](#nestedatt--results--options--autoscaling))
 - `dlq` (Attributes) Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information. (see [below for nested schema](#nestedatt--results--options--dlq))
+
+<a id="nestedatt--results--options--autoscaling"></a>
+### Nested Schema for `results.options.autoscaling`
+
+Read-Only:
+
+- `enabled` (Boolean) Flag that indicates whether autoscaling is enabled. Must be `true` when the `options.autoscaling` block is present. To disable autoscaling, remove the block rather than setting this to `false` (the backend does not persist a disabled config, so `enabled = false` is rejected during planning).
+- `max_tier` (String) Tier ceiling for autoscaling (scale-up limit). Valid options are SP2, SP5, SP10, SP30, and SP50. When not set, it defaults to the workspace maximum tier.
+- `min_tier` (String) Tier floor for autoscaling (scale-down limit). Valid options are SP2, SP5, SP10, SP30, and SP50. When not set, it defaults to the workspace default tier.
+
 
 <a id="nestedatt--results--options--dlq"></a>
 ### Nested Schema for `results.options.dlq`
