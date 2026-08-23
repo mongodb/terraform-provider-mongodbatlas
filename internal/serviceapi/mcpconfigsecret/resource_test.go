@@ -101,19 +101,14 @@ func configBasic(orgID, name string, secretExpiresAfterHours, secretCount int) s
 				secret_expires_after_hours = %[2]d
 			}
 		`, orgID, secretExpiresAfterHours)
-		prevAddr := "mongodbatlas_mcp_config_secret.test"
 		for i := 2; i <= secretCount; i++ {
-			addr := fmt.Sprintf("test_%d", i)
 			fmt.Fprintf(&secretsHCL, `
-				resource "mongodbatlas_mcp_config_secret" "%[1]s" {
+				resource "mongodbatlas_mcp_config_secret" "test_%[1]d" {
 					org_id                     = %[2]q
 					mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
 					secret_expires_after_hours = %[3]d
-
-					depends_on = [%[4]s]
 				}
-			`, addr, orgID, secretExpiresAfterHours, prevAddr)
-			prevAddr = "mongodbatlas_mcp_config_secret." + addr
+			`, i, orgID, secretExpiresAfterHours)
 		}
 		return fmt.Sprintf(`
 			resource "mongodbatlas_mcp_config" "test" {
