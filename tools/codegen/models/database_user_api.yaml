@@ -65,9 +65,10 @@ schema:
             element_type: 4
           description: List that contains the key-value pairs for tagging and categorizing the MongoDB database user. The labels that you define do not appear in the console.
           custom_type:
-            package: customtypes
             model: customtypes.MapValue[types.String]
             schema: customtypes.NewMapType[types.String](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: labels
           tf_model_name: Labels
@@ -151,10 +152,11 @@ schema:
                       request_only_required_on_create: false
           description: List that provides the pairings of one role with one applicable database.
           custom_type:
-            package: customtypes
             name: Roles
             model: customtypes.NestedListValue[TFRolesModel]
             schema: customtypes.NewNestedListType[TFRolesModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: required
           tf_schema_name: roles
           tf_model_name: Roles
@@ -191,10 +193,11 @@ schema:
                       request_only_required_on_create: false
           description: List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces in the project.
           custom_type:
-            package: customtypes
             name: Scopes
             model: customtypes.NestedListValue[TFScopesModel]
             schema: customtypes.NewNestedListType[TFScopesModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: scopes
           tf_model_name: Scopes

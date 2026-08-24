@@ -149,6 +149,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed: true,
 				PlanModifiers: []planmodifier.Object{
 					objectplanmodifier.UseStateForUnknown(),
+					objectplanmodifier.RequiresReplaceIfConfigured(),
 				},
 				Attributes: map[string]schema.Attribute{
 					"access": schema.SingleNestedAttribute{

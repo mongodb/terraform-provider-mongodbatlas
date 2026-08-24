@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -266,7 +267,10 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck: func() {
+			acc.PreCheckBasic(t)
+			acc.PreCheckPeeringEnvAWS(t)
+		},
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
@@ -278,8 +282,28 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 				),
 			},
 			{
-				Config:      networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
-				ExpectError: regexp.MustCompile("STREAM_NETWORKING_CANNOT_BE_MODIFIED"),
+				Config: networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(
+							resourceName,
+							plancheck.ResourceActionDestroyBeforeCreate,
+						),
+					},
+				},
+				// Confirm the replacement actually has VPC networking.
+				Check: checkKafkaAttributesAcceptance(
+					resourceName,
+					instanceName,
+					"kafka-conn-ssl",
+					"user",
+					"rawpassword",
+					"localhost:9092",
+					"earliest",
+					networkingTypeVPC,
+					true,
+					true,
+				),
 			},
 			{
 				ResourceName:            resourceName,
@@ -287,6 +311,106 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"authentication.password"},
+			},
+		},
+	})
+}
+
+func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		vpcID                   = os.Getenv("AWS_VPC_ID")
+		vpcCIDRBlock            = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID            = os.Getenv("AWS_ACCOUNT_ID")
+		peerRegion              = os.Getenv("AWS_REGION")
+		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
+		providerName            = "AWS"
+		networkPeeringConfig    = configNetworkPeeringAWS(
+			projectID,
+			providerName,
+			vpcID,
+			awsAccountID,
+			vpcCIDRBlock,
+			containerRegion,
+			peerRegion,
+		)
+		connectionName = "kafka-conn-public-to-vpc"
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			acc.PreCheckBasic(t)
+			acc.PreCheckPeeringEnvAWS(t)
+		},
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				// Create the connection with PUBLIC networking.
+				Config: configureKafka(
+					fmt.Sprintf("%q", projectID),
+					instanceName,
+					connectionName,
+					getKafkaAuthenticationConfig(
+						"PLAIN",
+						"user",
+						"rawpassword",
+						"",
+						"",
+						"",
+						"",
+						"",
+						"",
+					),
+					"localhost:9092",
+					"earliest",
+					kafkaNetworkingPublic,
+					true,
+				),
+				Check: checkKafkaAttributesAcceptance(
+					resourceName,
+					instanceName,
+					connectionName,
+					"user",
+					"rawpassword",
+					"localhost:9092",
+					"earliest",
+					networkingTypePublic,
+					true,
+					true,
+				),
+			},
+			{
+				// Changing networking from PUBLIC to VPC must replace
+				// the stream connection rather than update it in place.
+				Config: networkPeeringConfig + configureKafka(
+					"mongodbatlas_network_peering.test.project_id",
+					instanceName,
+					connectionName,
+					getKafkaAuthenticationConfig(
+						"PLAIN",
+						"user",
+						"rawpassword",
+						"",
+						"",
+						"",
+						"",
+						"",
+						"",
+					),
+					"localhost:9092",
+					"earliest",
+					kafkaNetworkingVPC,
+					true,
+				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(
+							resourceName,
+							plancheck.ResourceActionDestroyBeforeCreate,
+						),
+					},
+				},
 			},
 		},
 	})

@@ -29,6 +29,88 @@ schema:
         - single_nested:
             nested_object:
                 attributes:
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - list_nested:
+                                    nested_object:
+                                        attributes:
+                                            - string: {}
+                                              description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                              computed_optional_required: computed
+                                              tf_schema_name: href
+                                              tf_model_name: Href
+                                              api_name: href
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                              computed_optional_required: computed
+                                              tf_schema_name: rel
+                                              tf_model_name: Rel
+                                              api_name: rel
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                  description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                                  custom_type:
+                                    name: AuthenticationAwsLinks
+                                    model: customtypes.NestedListValue[TFAuthenticationAwsLinksModel]
+                                    schema: customtypes.NewNestedListType[TFAuthenticationAwsLinksModel](ctx)
+                                    packages:
+                                        - customtypes
+                                  computed_optional_required: computed
+                                  tf_schema_name: links
+                                  tf_model_name: Links
+                                  api_name: links
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+                                  computed_optional_required: optional
+                                  tf_schema_name: role_arn
+                                  tf_model_name: RoleArn
+                                  api_name: roleArn
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
+                                  computed_optional_required: optional
+                                  tf_schema_name: test_bucket
+                                  tf_model_name: TestBucket
+                                  api_name: testBucket
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: AWS configurations for AWS-based connection types.
+                      custom_type:
+                        name: AuthenticationAws
+                        model: customtypes.ObjectValue[TFAuthenticationAwsModel]
+                        schema: customtypes.NewObjectType[TFAuthenticationAwsModel](ctx)
+                        packages:
+                            - customtypes
+                      computed_optional_required: optional
+                      tf_schema_name: aws
+                      tf_model_name: Aws
+                      api_name: aws
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - string: {}
                       description: OIDC client identifier for authentication to the Kafka cluster.
                       computed_optional_required: optional
@@ -63,7 +145,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: SASL OAUTHBEARER authentication method. Can only be OIDC currently.
+                      description: SASL OAUTHBEARER authentication method. Currently, only OIDC is supported.
                       computed_optional_required: optional
                       tf_schema_name: method
                       tf_model_name: Method
@@ -163,10 +245,11 @@ schema:
                       request_only_required_on_create: false
           description: 'Optional for type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.'
           custom_type:
-            package: customtypes
             name: Authentication
             model: customtypes.ObjectValue[TFAuthenticationModel]
             schema: customtypes.NewObjectType[TFAuthenticationModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: authentication
           tf_model_name: Authentication
@@ -211,11 +294,12 @@ schema:
           request_only_required_on_create: false
         - map:
             element_type: 4
-          description: 'Optional for type: Kafka. A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have ''.'' characters.'
+          description: 'Optional for type: Kafka. Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have ''.'' characters.'
           custom_type:
-            package: customtypes
             model: customtypes.MapValue[types.String]
             schema: customtypes.NewMapType[types.String](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: config
           tf_model_name: Config
@@ -261,12 +345,13 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
-          description: 'Optional for type: Cluster. The name of a Built in or Custom DB Role to connect to an Atlas Cluster.'
+          description: 'Optional for type: Cluster. Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster.'
           custom_type:
-            package: customtypes
             name: DbRoleToExecute
             model: customtypes.ObjectValue[TFDbRoleToExecuteModel]
             schema: customtypes.NewObjectType[TFDbRoleToExecuteModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: db_role_to_execute
           tf_model_name: DbRoleToExecute
@@ -350,10 +435,11 @@ schema:
                                   request_only_required_on_create: false
                       description: Information about networking access.
                       custom_type:
-                        package: customtypes
                         name: NetworkingAccess
                         model: customtypes.ObjectValue[TFNetworkingAccessModel]
                         schema: customtypes.NewObjectType[TFNetworkingAccessModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed_optional
                       tf_schema_name: access
                       tf_model_name: Access
@@ -365,10 +451,11 @@ schema:
                       request_only_required_on_create: false
           description: 'Optional for type: Kafka. Networking configuration for Streams connections.'
           custom_type:
-            package: customtypes
             name: Networking
             model: customtypes.ObjectValue[TFNetworkingModel]
             schema: customtypes.NewObjectType[TFNetworkingModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed_optional
           tf_schema_name: networking
           tf_model_name: Networking
@@ -379,7 +466,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: The connection's region.
+          description: Connection region.
           computed_optional_required: required
           tf_schema_name: region
           tf_model_name: Region
@@ -416,10 +503,11 @@ schema:
                       request_only_required_on_create: false
           description: 'Optional for type: Kafka. Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.'
           custom_type:
-            package: customtypes
             name: Security
             model: customtypes.ObjectValue[TFSecurityModel]
             schema: customtypes.NewObjectType[TFSecurityModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: security
           tf_model_name: Security
@@ -430,7 +518,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: The state of the connection.
+          description: Connection state.
           computed_optional_required: computed
           tf_schema_name: state
           tf_model_name: State
@@ -452,7 +540,7 @@ schema:
           present_in_any_response: false
           request_only_required_on_create: false
         - string: {}
-          description: Type of the connection.
+          description: Connection type.
           computed_optional_required: required
           tf_schema_name: type
           tf_model_name: Type
@@ -563,6 +651,88 @@ data_sources:
             - single_nested:
                 nested_object:
                     attributes:
+                        - single_nested:
+                            nested_object:
+                                attributes:
+                                    - list_nested:
+                                        nested_object:
+                                            attributes:
+                                                - string: {}
+                                                  description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: href
+                                                  tf_model_name: Href
+                                                  api_name: href
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: rel
+                                                  tf_model_name: Rel
+                                                  api_name: rel
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                      description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                                      custom_type:
+                                        name: AuthenticationAwsLinks
+                                        model: customtypes.NestedListValue[TFAuthenticationAwsLinksModel]
+                                        schema: customtypes.NewNestedListType[TFAuthenticationAwsLinksModel](ctx)
+                                        packages:
+                                            - customtypes
+                                      computed_optional_required: computed
+                                      tf_schema_name: links
+                                      tf_model_name: Links
+                                      api_name: links
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+                                      computed_optional_required: computed
+                                      tf_schema_name: role_arn
+                                      tf_model_name: RoleArn
+                                      api_name: roleArn
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
+                                      computed_optional_required: computed
+                                      tf_schema_name: test_bucket
+                                      tf_model_name: TestBucket
+                                      api_name: testBucket
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: AWS configurations for AWS-based connection types.
+                          custom_type:
+                            name: AuthenticationAws
+                            model: customtypes.ObjectValue[TFAuthenticationAwsModel]
+                            schema: customtypes.NewObjectType[TFAuthenticationAwsModel](ctx)
+                            packages:
+                                - customtypes
+                          computed_optional_required: computed
+                          tf_schema_name: aws
+                          tf_model_name: Aws
+                          api_name: aws
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
                         - string: {}
                           description: OIDC client identifier for authentication to the Kafka cluster.
                           computed_optional_required: computed
@@ -597,7 +767,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: SASL OAUTHBEARER authentication method. Can only be OIDC currently.
+                          description: SASL OAUTHBEARER authentication method. Currently, only OIDC is supported.
                           computed_optional_required: computed
                           tf_schema_name: method
                           tf_model_name: Method
@@ -658,7 +828,7 @@ data_sources:
                           tf_model_name: SslKey
                           api_name: sslKey
                           req_body_usage: omit_always
-                          sensitive: false
+                          sensitive: true
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false
@@ -669,7 +839,7 @@ data_sources:
                           tf_model_name: SslKeyPassword
                           api_name: sslKeyPassword
                           req_body_usage: omit_always
-                          sensitive: false
+                          sensitive: true
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false
@@ -697,10 +867,11 @@ data_sources:
                           request_only_required_on_create: false
               description: 'Applies to type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.'
               custom_type:
-                package: customtypes
                 name: Authentication
                 model: customtypes.ObjectValue[TFAuthenticationModel]
                 schema: customtypes.NewObjectType[TFAuthenticationModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: authentication
               tf_model_name: Authentication
@@ -745,11 +916,12 @@ data_sources:
               request_only_required_on_create: false
             - map:
                 element_type: 4
-              description: 'Applies to type: Kafka. A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have ''.'' characters.'
+              description: 'Applies to type: Kafka. Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have ''.'' characters.'
               custom_type:
-                package: customtypes
                 model: customtypes.MapValue[types.String]
                 schema: customtypes.NewMapType[types.String](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: config
               tf_model_name: Config
@@ -795,12 +967,13 @@ data_sources:
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false
-              description: 'Applies to type: Cluster. The name of a Built in or Custom DB Role to connect to an Atlas Cluster.'
+              description: 'Applies to type: Cluster. Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster.'
               custom_type:
-                package: customtypes
                 name: DbRoleToExecute
                 model: customtypes.ObjectValue[TFDbRoleToExecuteModel]
                 schema: customtypes.NewObjectType[TFDbRoleToExecuteModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: db_role_to_execute
               tf_model_name: DbRoleToExecute
@@ -873,10 +1046,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: Information about networking access.
                           custom_type:
-                            package: customtypes
                             name: NetworkingAccess
                             model: customtypes.ObjectValue[TFNetworkingAccessModel]
                             schema: customtypes.NewObjectType[TFNetworkingAccessModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: access
                           tf_model_name: Access
@@ -888,10 +1062,11 @@ data_sources:
                           request_only_required_on_create: false
               description: 'Applies to type: Kafka. Networking configuration for Streams connections.'
               custom_type:
-                package: customtypes
                 name: Networking
                 model: customtypes.ObjectValue[TFNetworkingModel]
                 schema: customtypes.NewObjectType[TFNetworkingModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: networking
               tf_model_name: Networking
@@ -913,7 +1088,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: The connection's region.
+              description: Connection region.
               computed_optional_required: computed
               tf_schema_name: region
               tf_model_name: Region
@@ -950,10 +1125,11 @@ data_sources:
                           request_only_required_on_create: false
               description: 'Applies to type: Kafka. Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.'
               custom_type:
-                package: customtypes
                 name: Security
                 model: customtypes.ObjectValue[TFSecurityModel]
                 schema: customtypes.NewObjectType[TFSecurityModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: security
               tf_model_name: Security
@@ -964,7 +1140,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: The state of the connection.
+              description: Connection state.
               computed_optional_required: computed
               tf_schema_name: state
               tf_model_name: State
@@ -975,7 +1151,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Type of the connection.
+              description: Connection type.
               computed_optional_required: computed
               tf_schema_name: type
               tf_model_name: Type
@@ -1053,6 +1229,88 @@ data_sources:
                         - single_nested:
                             nested_object:
                                 attributes:
+                                    - single_nested:
+                                        nested_object:
+                                            attributes:
+                                                - list_nested:
+                                                    nested_object:
+                                                        attributes:
+                                                            - string: {}
+                                                              description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                                              computed_optional_required: computed
+                                                              tf_schema_name: href
+                                                              tf_model_name: Href
+                                                              api_name: href
+                                                              req_body_usage: omit_always
+                                                              sensitive: false
+                                                              create_only: false
+                                                              present_in_any_response: false
+                                                              request_only_required_on_create: false
+                                                            - string: {}
+                                                              description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                                              computed_optional_required: computed
+                                                              tf_schema_name: rel
+                                                              tf_model_name: Rel
+                                                              api_name: rel
+                                                              req_body_usage: omit_always
+                                                              sensitive: false
+                                                              create_only: false
+                                                              present_in_any_response: false
+                                                              request_only_required_on_create: false
+                                                  description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                                                  custom_type:
+                                                    name: ResultsAuthenticationAwsLinks
+                                                    model: customtypes.NestedListValue[TFResultsAuthenticationAwsLinksModel]
+                                                    schema: customtypes.NewNestedListType[TFResultsAuthenticationAwsLinksModel](ctx)
+                                                    packages:
+                                                        - customtypes
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: links
+                                                  tf_model_name: Links
+                                                  api_name: links
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: role_arn
+                                                  tf_model_name: RoleArn
+                                                  api_name: roleArn
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: test_bucket
+                                                  tf_model_name: TestBucket
+                                                  api_name: testBucket
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                      description: AWS configurations for AWS-based connection types.
+                                      custom_type:
+                                        name: ResultsAuthenticationAws
+                                        model: customtypes.ObjectValue[TFResultsAuthenticationAwsModel]
+                                        schema: customtypes.NewObjectType[TFResultsAuthenticationAwsModel](ctx)
+                                        packages:
+                                            - customtypes
+                                      computed_optional_required: computed
+                                      tf_schema_name: aws
+                                      tf_model_name: Aws
+                                      api_name: aws
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
                                     - string: {}
                                       description: OIDC client identifier for authentication to the Kafka cluster.
                                       computed_optional_required: computed
@@ -1087,7 +1345,7 @@ data_sources:
                                       present_in_any_response: false
                                       request_only_required_on_create: false
                                     - string: {}
-                                      description: SASL OAUTHBEARER authentication method. Can only be OIDC currently.
+                                      description: SASL OAUTHBEARER authentication method. Currently, only OIDC is supported.
                                       computed_optional_required: computed
                                       tf_schema_name: method
                                       tf_model_name: Method
@@ -1148,7 +1406,7 @@ data_sources:
                                       tf_model_name: SslKey
                                       api_name: sslKey
                                       req_body_usage: omit_always
-                                      sensitive: false
+                                      sensitive: true
                                       create_only: false
                                       present_in_any_response: false
                                       request_only_required_on_create: false
@@ -1159,7 +1417,7 @@ data_sources:
                                       tf_model_name: SslKeyPassword
                                       api_name: sslKeyPassword
                                       req_body_usage: omit_always
-                                      sensitive: false
+                                      sensitive: true
                                       create_only: false
                                       present_in_any_response: false
                                       request_only_required_on_create: false
@@ -1187,10 +1445,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: 'Applies to type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.'
                           custom_type:
-                            package: customtypes
                             name: ResultsAuthentication
                             model: customtypes.ObjectValue[TFResultsAuthenticationModel]
                             schema: customtypes.NewObjectType[TFResultsAuthenticationModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: authentication
                           tf_model_name: Authentication
@@ -1235,11 +1494,12 @@ data_sources:
                           request_only_required_on_create: false
                         - map:
                             element_type: 4
-                          description: 'Applies to type: Kafka. A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have ''.'' characters.'
+                          description: 'Applies to type: Kafka. Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have ''.'' characters.'
                           custom_type:
-                            package: customtypes
                             model: customtypes.MapValue[types.String]
                             schema: customtypes.NewMapType[types.String](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: config
                           tf_model_name: Config
@@ -1274,12 +1534,13 @@ data_sources:
                                       create_only: false
                                       present_in_any_response: false
                                       request_only_required_on_create: false
-                          description: 'Applies to type: Cluster. The name of a Built in or Custom DB Role to connect to an Atlas Cluster.'
+                          description: 'Applies to type: Cluster. Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster.'
                           custom_type:
-                            package: customtypes
                             name: ResultsDbRoleToExecute
                             model: customtypes.ObjectValue[TFResultsDbRoleToExecuteModel]
                             schema: customtypes.NewObjectType[TFResultsDbRoleToExecuteModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: db_role_to_execute
                           tf_model_name: DbRoleToExecute
@@ -1352,10 +1613,11 @@ data_sources:
                                                   request_only_required_on_create: false
                                       description: Information about networking access.
                                       custom_type:
-                                        package: customtypes
                                         name: ResultsNetworkingAccess
                                         model: customtypes.ObjectValue[TFResultsNetworkingAccessModel]
                                         schema: customtypes.NewObjectType[TFResultsNetworkingAccessModel](ctx)
+                                        packages:
+                                            - customtypes
                                       computed_optional_required: computed
                                       tf_schema_name: access
                                       tf_model_name: Access
@@ -1367,10 +1629,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: 'Applies to type: Kafka. Networking configuration for Streams connections.'
                           custom_type:
-                            package: customtypes
                             name: ResultsNetworking
                             model: customtypes.ObjectValue[TFResultsNetworkingModel]
                             schema: customtypes.NewObjectType[TFResultsNetworkingModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: networking
                           tf_model_name: Networking
@@ -1381,7 +1644,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: The connection's region.
+                          description: Connection region.
                           computed_optional_required: computed
                           tf_schema_name: region
                           tf_model_name: Region
@@ -1418,10 +1681,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: 'Applies to type: Kafka. Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.'
                           custom_type:
-                            package: customtypes
                             name: ResultsSecurity
                             model: customtypes.ObjectValue[TFResultsSecurityModel]
                             schema: customtypes.NewObjectType[TFResultsSecurityModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: security
                           tf_model_name: Security
@@ -1432,7 +1696,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: The state of the connection.
+                          description: Connection state.
                           computed_optional_required: computed
                           tf_schema_name: state
                           tf_model_name: State
@@ -1443,7 +1707,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Type of the connection.
+                          description: Connection type.
                           computed_optional_required: computed
                           tf_schema_name: type
                           tf_model_name: Type
@@ -1455,10 +1719,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List of returned documents that MongoDB Cloud provides when completing this request.
               custom_type:
-                package: customtypes
                 name: Results
                 model: customtypes.NestedListValue[TFResultsModel]
                 schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: results
               tf_model_name: Results

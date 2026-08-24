@@ -11,12 +11,16 @@ subcategory: "Streams"
 2. The update will be performed while the processor is in `STOPPED` state
 3. If the processor was originally in `STARTED` state, it will be restarted after the update
 
+## Pipeline field ordering
+
+~> **IMPORTANT:** MongoDB documents are ordered, and several pipeline constructs depend on the order of keys within a document: sort specifications, where key order is sort precedence; equality comparisons against a document literal, which match by exact field order; and `$addFields`/`$project` specifications, whose key order becomes the field order of the documents the processor writes. Do not build `pipeline` with [`jsonencode()`](https://developer.hashicorp.com/terraform/language/functions/jsonencode): it emits object keys in lexicographic order, so a sort written as `{"region": 1, "city": 1}` reaches Atlas as `{"city": 1, "region": 1}`, reversing the sort precedence and silently changing what your processor does. Author `pipeline` as a raw JSON string instead — a heredoc, `file("pipeline.json")`, or `templatefile("pipeline.json", { ... })` when the pipeline needs values interpolated into it — which Terraform passes through unchanged. Beware that `jsonencode(jsondecode(...))`, sometimes used to pull a pipeline out of a larger JSON document, sorts the keys for the same reason `jsonencode()` does; keep the pipeline in a file of its own so it can be read as a string. Note that `terraform plan` still displays the attribute alphabetized and rendered as `jsonencode(...)`; that is how Terraform renders any JSON-string attribute and does not reflect what is sent to Atlas. To confirm the order that was applied, inspect the request body with `TF_LOG=DEBUG`, or run `sp.listStreamProcessors()` against the workspace.
+
 ## Example Usages
 
 {{ tffile (printf "examples/%s/main.tf" .Name )}}
 
 ### Further Examples
-- [Atlas Stream Processor](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_stream_processor)
+- [Atlas Stream Processor](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.16.0/examples/mongodbatlas_stream_processor)
 
 {{ .SchemaMarkdown | trimspace }}
 

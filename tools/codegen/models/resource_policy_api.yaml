@@ -28,10 +28,11 @@ schema:
                       request_only_required_on_create: false
           description: The user that last updated the atlas resource policy.
           custom_type:
-            package: customtypes
             name: CreatedByUser
             model: customtypes.ObjectValue[TFCreatedByUserModel]
             schema: customtypes.NewObjectType[TFCreatedByUserModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed
           tf_schema_name: created_by_user
           tf_model_name: CreatedByUser
@@ -101,10 +102,11 @@ schema:
                       request_only_required_on_create: false
           description: The user that last updated the atlas resource policy.
           custom_type:
-            package: customtypes
             name: LastUpdatedByUser
             model: customtypes.ObjectValue[TFLastUpdatedByUserModel]
             schema: customtypes.NewObjectType[TFLastUpdatedByUserModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed
           tf_schema_name: last_updated_by_user
           tf_model_name: LastUpdatedByUser
@@ -174,10 +176,11 @@ schema:
                       request_only_required_on_create: false
           description: List of policies that make up the atlas resource policy.
           custom_type:
-            package: customtypes
             name: Policies
             model: customtypes.NestedListValue[TFPoliciesModel]
             schema: customtypes.NewNestedListType[TFPoliciesModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: required
           tf_schema_name: policies
           tf_model_name: Policies

@@ -127,6 +127,8 @@ jobs:
       gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
       gcp_workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       gcp_service_account_email: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+      mongodb_atlas_metric_integration_endpoint: ${{ secrets.MONGODB_ATLAS_METRIC_INTEGRATION_ENDPOINT }}
+      mongodb_atlas_metric_integration_api_key: ${{ secrets.MONGODB_ATLAS_METRIC_INTEGRATION_API_KEY }}
 
     with:
       terraform_version: ${{ inputs.terraform_version || '1.15.x' }}

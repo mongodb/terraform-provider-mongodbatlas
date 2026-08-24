@@ -132,7 +132,7 @@ jobs:
       - name: Summarize test run
         id: summary
         timeout-minutes: 15
-        uses: anthropics/claude-code-action@be7b93b1907a4abad570368f3c74b6fe3807510b
+        uses: anthropics/claude-code-action@e63208cb983318a44e3f945e959ef894b707dcfa
         with:
           anthropic_api_key: ${{ secrets.AI_GATEWAY_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}

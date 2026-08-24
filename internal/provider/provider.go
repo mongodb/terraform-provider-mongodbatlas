@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/metricintegration"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -51,6 +53,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelapikey"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgapikey"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgratelimit"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelratelimit"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orgmaintenancesettings"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive"
@@ -336,8 +342,18 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		logintegration.DataSource,
 		logintegration.PluralDataSource,
 		orgmaintenancesettings.DataSource,
+		metricintegration.DataSource,
+		metricintegration.PluralDataSource,
 		privatelinkendpointservicedatafederationonlinearchive.DataSource,
 		privatelinkendpointservicedatafederationonlinearchive.PluralDataSource,
+		aimodelapikey.DataSource,
+		aimodelapikey.PluralDataSource,
+		aimodelorgapikey.DataSource,
+		aimodelorgapikey.PluralDataSource,
+		aimodelorgratelimit.DataSource,
+		aimodelorgratelimit.PluralDataSource,
+		aimodelratelimit.DataSource,
+		aimodelratelimit.PluralDataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
@@ -348,6 +364,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 
 func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Resource {
 	resources := []func() resource.Resource{
+		metricintegration.Resource,
 		project.Resource,
 		logintegration.Resource,
 		orgmaintenancesettings.Resource,
@@ -381,6 +398,8 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		projectserviceaccountsecret.Resource,
 		projectserviceaccountaccesslistentry.Resource,
 		privatelinkendpointservicedatafederationonlinearchive.Resource,
+		aimodelapikey.Resource,
+		aimodelratelimit.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {

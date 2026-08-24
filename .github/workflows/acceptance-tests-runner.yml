@@ -216,6 +216,10 @@ on:
         required: true
       gcp_service_account_email:
         required: true
+      mongodb_atlas_metric_integration_endpoint:
+        required: true
+      mongodb_atlas_metric_integration_api_key:
+        required: true
 
 env:
   TF_ACC: 1
@@ -295,7 +299,7 @@ jobs:
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-    - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706
+    - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d
       id: filter
       if: ${{ inputs.test_group == ''  && env.mustTrigger == 'false' }}
       with:
@@ -312,6 +316,10 @@ jobs:
             - 'internal/service/serviceaccountjwt/*.go'
           autogen_fast:
             - 'internal/common/autogen/*.go'
+            - 'internal/serviceapi/aimodelapikey/*.go'
+            - 'internal/serviceapi/aimodelorgapikey/*.go'
+            - 'internal/serviceapi/aimodelorgratelimit/*.go'
+            - 'internal/serviceapi/aimodelratelimit/*.go'
             - 'internal/serviceapi/alertconfigurationapi/*.go'
             - 'internal/serviceapi/auditingapi/*.go'
             - 'internal/serviceapi/customdbroleapi/*.go'
@@ -325,6 +333,7 @@ jobs:
             - 'internal/serviceapi/streamconnectionapi/*.go'
             - 'internal/serviceapi/streamconnectionfailover/*.go'
             - 'internal/serviceapi/logintegration/*.go'
+            - 'internal/serviceapi/metricintegration/*.go'
           autogen_slow:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/clusterapi/*.go'
@@ -689,13 +698,19 @@ jobs:
           AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
           AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
           GCP_PROJECT_ID: ${{ secrets.gcp_project_id }}
+          MONGODB_ATLAS_METRIC_INTEGRATION_ENDPOINT: ${{ secrets.mongodb_atlas_metric_integration_endpoint }}
+          MONGODB_ATLAS_METRIC_INTEGRATION_API_KEY: ${{ secrets.mongodb_atlas_metric_integration_api_key }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          # No need to include aimodelorgapikey/aimodelorgratelimit as their tests are in aimodelapikey/aimodelratelimit.
           ACCTEST_PACKAGES: |
+            ./internal/serviceapi/aimodelapikey
+            ./internal/serviceapi/aimodelratelimit
             ./internal/serviceapi/alertconfigurationapi
             ./internal/serviceapi/auditingapi
             ./internal/serviceapi/customdbroleapi
             ./internal/serviceapi/databaseuserapi
             ./internal/serviceapi/logintegration
+            ./internal/serviceapi/metricintegration
             ./internal/serviceapi/maintenancewindowapi
             ./internal/serviceapi/orgmaintenancesettings
             ./internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive

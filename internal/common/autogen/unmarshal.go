@@ -1,9 +1,11 @@
 package autogen
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"reflect"
 	"strings"
 
@@ -23,10 +25,25 @@ func Unmarshal(raw []byte, model any) error {
 		return nil // Some operations return an empty response body, in that case there is no need to update the model.
 	}
 	var objJSON map[string]any
-	if err := json.Unmarshal(raw, &objJSON); err != nil {
+	if err := Decode(raw, &objJSON); err != nil {
 		return err
 	}
 	return unmarshalAttrs(objJSON, model)
+}
+
+// Decode decodes JSON like json.Unmarshal but preserves number literals as json.Number
+// instead of float64, preventing silent precision loss for integers larger than 2^53.
+func Decode(raw []byte, v any) error {
+	dec := json.NewDecoder(bytes.NewReader(raw))
+	dec.UseNumber()
+	if err := dec.Decode(v); err != nil {
+		return err
+	}
+	// Match json.Unmarshal strictness: reject any data after the first JSON value.
+	if err := dec.Decode(new(any)); err != io.EOF {
+		return fmt.Errorf("unexpected data after JSON value")
+	}
+	return nil
 }
 
 func unmarshalAttrs(objJSON map[string]any, model any) error {
@@ -136,12 +153,23 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string, s
 			return types.BoolValue(v), nil
 		}
 		return nil, errUnmarshal(valueType, "Bool", nameErr)
-	case float64:
+	case json.Number:
 		switch valueType {
 		case types.Int64Type:
-			return types.Int64Value(int64(v)), nil
+			if i, err := v.Int64(); err == nil {
+				return types.Int64Value(i), nil
+			}
+			f, err := v.Float64() // tolerate non-integer literals (e.g. 3.0) for Int64 attributes
+			if err != nil {
+				return nil, errUnmarshal(valueType, "Number", nameErr)
+			}
+			return types.Int64Value(int64(f)), nil
 		case types.Float64Type:
-			return types.Float64Value(v), nil
+			f, err := v.Float64()
+			if err != nil {
+				return nil, errUnmarshal(valueType, "Number", nameErr)
+			}
+			return types.Float64Value(f), nil
 		}
 		return nil, errUnmarshal(valueType, "Number", nameErr)
 	case map[string]any:
