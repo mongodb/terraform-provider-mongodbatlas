@@ -45,7 +45,7 @@ func TestAccCloudBackupCollectionRestoreJob_snapshotSameClusterDatabaseRename(t 
 		targetClusterName: sourceClusterNameRef,
 		databaseSource:    acc.CollectionRestoreSeedDatabase,
 		databaseTarget:    renamedDB,
-		collectionSource:  acc.CollectionRestoreSeedCollectionNS,
+		collectionSource:  acc.CollectionRestoreSeedRestaurantsNS,
 		withDataSources:   true,
 	}
 
@@ -69,7 +69,7 @@ func TestAccCloudBackupCollectionRestoreJob_snapshotSameClusterDatabaseRename(t 
 						"effective_target_namespace": knownvalue.StringExact(renamedDB + "." + acc.CollectionRestoreSeedCollectionName),
 						"state":                      knownvalue.StringExact(stateSuccessful),
 					}),
-					acc.PluralResultCheck(collectionsDSName, "source_namespace", knownvalue.StringExact(acc.CollectionRestoreSeedCollectionNS), map[string]knownvalue.Check{
+					acc.PluralResultCheck(collectionsDSName, "source_namespace", knownvalue.StringExact(acc.CollectionRestoreSeedRestaurantsNS), map[string]knownvalue.Check{
 						"effective_target_namespace": knownvalue.StringRegexp(regexp.MustCompile(`^sample_restaurants\.restaurants`)),
 						"state":                      knownvalue.StringExact(stateSuccessful),
 					}),

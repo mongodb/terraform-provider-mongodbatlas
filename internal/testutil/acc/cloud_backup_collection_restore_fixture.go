@@ -23,7 +23,7 @@ const (
 	CollectionRestoreAPIVersion          = "application/vnd.atlas.2025-03-12+json"
 	CollectionRestoreSeedDatabase        = "sample_mflix"
 	CollectionRestoreSeedDatabaseRenamed = "sample_mflix_renamed"
-	CollectionRestoreSeedCollectionNS    = "sample_restaurants.restaurants"
+	CollectionRestoreSeedRestaurantsNS   = "sample_restaurants.restaurants"
 	CollectionRestoreSeedCollectionName  = "movies"
 	CollectionRestoreMissingCollectionNS = "sample_mflix.never_there"
 	collectionRestoreSnapshotRetention   = 1
