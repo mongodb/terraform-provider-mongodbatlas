@@ -29,7 +29,7 @@ func TestAccMcpConfigSecret_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name, 720, 1),
+				Config: configBasic(orgID, name, 720),
 				Check:  checkBasic(true),
 			},
 			{
@@ -57,23 +57,24 @@ func TestAccMcpConfigSecret_rotateWithTaint(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name, 720, 1),
+				Config: configMultipleSecrets(orgID, name, 720, 1),
 				Check: resource.ComposeTestCheckFunc(
-					checkBasic(true),
+					checkExists(resourceName),
 					func(s *terraform.State) error {
 						return getSecretID(s, resourceName, &firstSecretID)
 					},
 				),
 			},
 			{
-				// The `taint` command is deprecated in favor of the `-replace` flag: https://developer.hashicorp.com/terraform/cli/commands/taint.
-				// The testing plugin does not facilitate testing with replace, but it does enable tainting so using taint here.
+				// `taint` is deprecated in favor of -replace https://developer.hashicorp.com/terraform/cli/commands/taint
+				// the testing plugin doesn't support -replace so using taint instead.
 				//
-				// A config's ingress SA allows a maximum of 2 concurrent secrets, so requesting 2 here
-				// while tainting the first also confirms rotation overlap is possible.
+				// requesting 2 secrets while tainting the first confirms overlap is possible, since a config's
+				// ingress SA allows a max of 2 concurrent secrets.
 				Taint:  []string{resourceName},
-				Config: configBasic(orgID, name, 720, 2),
+				Config: configMultipleSecrets(orgID, name, 720, 2),
 				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
 					checkExists(resourceName+"_2"),
 					func(s *terraform.State) error {
 						var secondSecretID string
@@ -91,35 +92,38 @@ func TestAccMcpConfigSecret_rotateWithTaint(t *testing.T) {
 	})
 }
 
-func configBasic(orgID, name string, secretExpiresAfterHours, secretCount int) string {
-	if secretCount > 1 {
-		var secretsHCL strings.Builder
-		fmt.Fprintf(&secretsHCL, `
-			resource "mongodbatlas_mcp_config_secret" "test" {
-				org_id                     = %[1]q
-				mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
-				secret_expires_after_hours = %[2]d
-			}
-		`, orgID, secretExpiresAfterHours)
-		for i := 2; i <= secretCount; i++ {
-			fmt.Fprintf(&secretsHCL, `
-				resource "mongodbatlas_mcp_config_secret" "test_%[1]d" {
-					org_id                     = %[2]q
-					mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
-					secret_expires_after_hours = %[3]d
-				}
-			`, i, orgID, secretExpiresAfterHours)
+// builds secretCount mongodbatlas_mcp_config_secret resources without data sources.
+func configMultipleSecrets(orgID, name string, secretExpiresAfterHours, secretCount int) string {
+	var secretsHCL strings.Builder
+	fmt.Fprintf(&secretsHCL, `
+		resource "mongodbatlas_mcp_config_secret" "test" {
+			org_id                     = %[1]q
+			mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
+			secret_expires_after_hours = %[2]d
 		}
-		return fmt.Sprintf(`
-			resource "mongodbatlas_mcp_config" "test" {
-				org_id          = %[1]q
-				mcp_config_name = %[2]q
-				roles           = ["ORG_READ_ONLY"]
+	`, orgID, secretExpiresAfterHours)
+	for i := 2; i <= secretCount; i++ {
+		fmt.Fprintf(&secretsHCL, `
+			resource "mongodbatlas_mcp_config_secret" "test_%[1]d" {
+				org_id                     = %[2]q
+				mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
+				secret_expires_after_hours = %[3]d
 			}
-
-			%[3]s
-		`, orgID, name, secretsHCL.String())
+		`, i, orgID, secretExpiresAfterHours)
 	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_mcp_config" "test" {
+			org_id          = %[1]q
+			mcp_config_name = %[2]q
+			roles           = ["ORG_READ_ONLY"]
+		}
+
+		%[3]s
+	`, orgID, name, secretsHCL.String())
+}
+
+// builds a single mongodbatlas_mcp_config_secret resource + its singular/plural data sources.
+func configBasic(orgID, name string, secretExpiresAfterHours int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_mcp_config" "test" {
 			org_id          = %[1]q
