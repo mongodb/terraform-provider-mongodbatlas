@@ -2,19 +2,18 @@
 subcategory: "Remote MCP"
 ---
 
-# Data Source: mongodbatlas_mcp_config
+# Data Source: mongodbatlas_project_mcp_configs
 
-`mongodbatlas_mcp_config` describes an Organization Remote MCP Configuration.
+`mongodbatlas_project_mcp_configs` returns all Remote MCP Configurations for the specified Project.
 
 ## Example Usages
 ```terraform
-data "mongodbatlas_mcp_config" "this" {
-  org_id        = var.org_id
-  mcp_config_id = mongodbatlas_mcp_config.this.mcp_config_id
+data "mongodbatlas_project_mcp_configs" "this" {
+  project_id = var.project_id
 }
 
-output "mcp_config_name" {
-  value = data.mongodbatlas_mcp_config.this.mcp_config_name
+output "mcp_configs_results" {
+  value = data.mongodbatlas_project_mcp_configs.this.results
 }
 ```
 
@@ -23,19 +22,26 @@ output "mcp_config_name" {
 
 ### Required
 
-- `mcp_config_id` (String) Unique identifier of the MCP configuration.
-- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Read-Only
 
+- `results` (Attributes List) List of returned documents that MongoDB Cloud provides when completing this request. (see [below for nested schema](#nestedatt--results))
+
+<a id="nestedatt--results"></a>
+### Nested Schema for `results`
+
+Read-Only:
+
 - `client_id` (String) Unique identifier for the Service Account client associated with this MCP configuration. Use this Service Account to connect to the Atlas Remote MCP.
 - `egress_client_id` (String) Unique identifier for the egress Service Account client associated with this MCP configuration. This Service Account is managed by MongoDB Atlas.
-- `ip_access_list` (Attributes List) List of IP access list entries that define allowed source addresses for this MCP configuration. (see [below for nested schema](#nestedatt--ip_access_list))
+- `ip_access_list` (Attributes List) List of IP access list entries that define allowed source addresses for this MCP configuration. (see [below for nested schema](#nestedatt--results--ip_access_list))
+- `mcp_config_id` (String) Unique identifier that identifies this MCP configuration.
 - `mcp_config_name` (String) Human-readable name that identifies this MCP configuration.
-- `roles` (Set of String) List of organization roles associated with this MCP configuration.
+- `roles` (Set of String) List of project roles associated with this MCP configuration.
 
-<a id="nestedatt--ip_access_list"></a>
-### Nested Schema for `ip_access_list`
+<a id="nestedatt--results--ip_access_list"></a>
+### Nested Schema for `results.ip_access_list`
 
 Read-Only:
 
@@ -46,4 +52,4 @@ Read-Only:
 - `last_used_at` (String) Date when MongoDB Cloud received the most recent request that originated from this Internet Protocol version 4 or version 6 address. The resource returns this parameter when at least one request originates from this IP address. MongoDB Cloud updates this parameter each time a client accesses the permitted resource, with a delay of up to 5 minutes. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 - `request_count` (Number) The number of requests that has originated from this network address.
 
-For more information, see [Return One MCP Configuration for One Organization](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorgmcpconfig) in the MongoDB Atlas API documentation.
+For more information, see [Return All MCP Configurations for One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listgroupmcpconfigs) in the MongoDB Atlas API documentation.
