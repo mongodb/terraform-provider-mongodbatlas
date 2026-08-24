@@ -5,11 +5,11 @@ package cloudbackupcollectionrestorejobcollection
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
+
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
