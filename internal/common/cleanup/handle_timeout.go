@@ -21,7 +21,8 @@ const (
 // It deletes the resource if the creation times out and `delete_on_create_timeout` is enabled.
 // It returns an error with additional information which should be used instead of the original error.
 func HandleCreateTimeout(deleteOnCreateTimeout bool, errWait error, cleanup func(context.Context) error) error {
-	if _, isTimeoutErr := errWait.(*retry.TimeoutError); !isTimeoutErr {
+	var timeoutErr *retry.TimeoutError
+	if !errors.As(errWait, &timeoutErr) {
 		return errWait
 	}
 	if !deleteOnCreateTimeout {

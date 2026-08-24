@@ -58,12 +58,13 @@ type Operation struct {
 }
 
 type Wait struct {
-	StateProperty     string
-	PendingStates     []string
-	TargetStates      []string
-	TimeoutSeconds    int
-	MinTimeoutSeconds int
-	DelaySeconds      int
+	StateProperty            string
+	ErrorDescriptionProperty string
+	PendingStates            []string
+	TargetStates             []string
+	TimeoutSeconds           int
+	MinTimeoutSeconds        int
+	DelaySeconds             int
 }
 type Param struct {
 	PascalCaseName string

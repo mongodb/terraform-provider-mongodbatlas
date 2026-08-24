@@ -72,12 +72,13 @@ func getWaitValues(wait *codespec.Wait) *codetemplate.Wait {
 		return nil
 	}
 	return &codetemplate.Wait{
-		StateProperty:     wait.StateProperty,
-		PendingStates:     wait.PendingStates,
-		TargetStates:      wait.TargetStates,
-		TimeoutSeconds:    wait.TimeoutSeconds,
-		MinTimeoutSeconds: wait.MinTimeoutSeconds,
-		DelaySeconds:      wait.DelaySeconds,
+		StateProperty:            wait.StateProperty,
+		ErrorDescriptionProperty: wait.ErrorDescriptionProperty,
+		PendingStates:            wait.PendingStates,
+		TargetStates:             wait.TargetStates,
+		TimeoutSeconds:           wait.TimeoutSeconds,
+		MinTimeoutSeconds:        wait.MinTimeoutSeconds,
+		DelaySeconds:             wait.DelaySeconds,
 	}
 }
 

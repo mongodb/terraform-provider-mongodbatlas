@@ -69,14 +69,15 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		},
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		Wait: &autogen.WaitReq{
-			StateProperty:     "state",
-			PendingStates:     []string{"INITIATING"},
-			TargetStates:      []string{"IDLE"},
-			IDAttributes:      []string{"project_id"},
-			Timeout:           timeout,
-			MinTimeoutSeconds: 60,
-			DelaySeconds:      10,
-			CallParams:        readAPICallParams,
+			StateProperty:            "state",
+			ErrorDescriptionProperty: "errorMessage",
+			PendingStates:            []string{"INITIATING"},
+			TargetStates:             []string{"IDLE"},
+			IDAttributes:             []string{"project_id"},
+			Timeout:                  timeout,
+			MinTimeoutSeconds:        60,
+			DelaySeconds:             10,
+			CallParams:               readAPICallParams,
 		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)
@@ -129,14 +130,15 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Plan:       &plan,
 		CallParams: &callParams,
 		Wait: &autogen.WaitReq{
-			StateProperty:     "state",
-			PendingStates:     []string{"UPDATING"},
-			TargetStates:      []string{"IDLE"},
-			IDAttributes:      []string{"project_id"},
-			Timeout:           timeout,
-			MinTimeoutSeconds: 60,
-			DelaySeconds:      10,
-			CallParams:        readAPICallParams,
+			StateProperty:            "state",
+			ErrorDescriptionProperty: "errorMessage",
+			PendingStates:            []string{"UPDATING"},
+			TargetStates:             []string{"IDLE"},
+			IDAttributes:             []string{"project_id"},
+			Timeout:                  timeout,
+			MinTimeoutSeconds:        60,
+			DelaySeconds:             10,
+			CallParams:               readAPICallParams,
 		},
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
@@ -155,14 +157,15 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 	reqHandle.Wait = &autogen.WaitReq{
-		StateProperty:     "state",
-		PendingStates:     []string{"PENDING"},
-		TargetStates:      []string{"UNCONFIGURED", "DELETED"},
-		IDAttributes:      []string{"project_id"},
-		Timeout:           timeout,
-		MinTimeoutSeconds: 60,
-		DelaySeconds:      10,
-		CallParams:        readAPICallParams,
+		StateProperty:            "state",
+		ErrorDescriptionProperty: "errorMessage",
+		PendingStates:            []string{"PENDING"},
+		TargetStates:             []string{"UNCONFIGURED", "DELETED"},
+		IDAttributes:             []string{"project_id"},
+		Timeout:                  timeout,
+		MinTimeoutSeconds:        60,
+		DelaySeconds:             10,
+		CallParams:               readAPICallParams,
 	}
 	autogen.HandleDelete(ctx, *reqHandle)
 }

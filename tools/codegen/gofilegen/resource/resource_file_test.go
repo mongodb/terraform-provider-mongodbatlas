@@ -373,3 +373,58 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 		})
 	}
 }
+
+func TestResourceGenerationWaitErrorDescription(t *testing.T) {
+	wait := func(pending []string, target []string) *codespec.Wait {
+		return &codespec.Wait{
+			StateProperty:            "state",
+			ErrorDescriptionProperty: "errorMessage",
+			PendingStates:            pending,
+			TargetStates:             target,
+			TimeoutSeconds:           300,
+			MinTimeoutSeconds:        60,
+			DelaySeconds:             10,
+		}
+	}
+	input := codespec.Resource{
+		Name:        "test_name",
+		PackageName: "testname",
+		Schema: &codespec.Schema{
+			Attributes: codespec.Attributes{
+				{
+					TFSchemaName: "project_id",
+					TFModelName:  "ProjectId",
+				},
+			},
+		},
+		Operations: codespec.APIOperations{
+			Create: &codespec.APIOperation{
+				HTTPMethod: "POST",
+				Path:       "/api/v1/testname/{projectId}",
+				Wait:       wait([]string{"INITIATING"}, []string{"IDLE"}),
+			},
+			Update: &codespec.APIOperation{
+				HTTPMethod: "PUT",
+				Path:       "/api/v1/testname/{projectId}",
+				Wait:       wait([]string{"UPDATING"}, []string{"IDLE"}),
+			},
+			Read: &codespec.APIOperation{
+				HTTPMethod: "GET",
+				Path:       "/api/v1/testname/{projectId}",
+			},
+			Delete: &codespec.APIOperation{
+				HTTPMethod: "DELETE",
+				Path:       "/api/v1/testname/{projectId}",
+				Wait:       wait([]string{"PENDING"}, []string{"UNCONFIGURED", "DELETED"}),
+			},
+			VersionHeader: "application/vnd.atlas.2024-05-30+json",
+		},
+	}
+
+	result, err := resource.GenerateGoCode(&input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
+	g.Assert(t, "wait-error-description", result)
+}
