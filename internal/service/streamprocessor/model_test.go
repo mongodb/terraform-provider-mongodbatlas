@@ -28,11 +28,12 @@ var (
 			"connectionName": "__testLog",
 		},
 	}
-	processorName        = "processor1"
-	processorID          = "66b39806187592e8d721215d"
-	stateCreated         = streamprocessor.CreatedState
-	stateStarted         = streamprocessor.StartedState
-	streamOptionsExample = admin.StreamsOptions{
+	processorName          = "processor1"
+	processorID            = "66b39806187592e8d721215d"
+	processorEffectiveTier = "SP30"
+	stateCreated           = streamprocessor.CreatedState
+	stateStarted           = streamprocessor.StartedState
+	streamOptionsExample   = admin.StreamsOptions{
 		Dlq: &admin.StreamsDLQ{
 			Coll:           conversion.StringPtr("testColl"),
 			ConnectionName: conversion.StringPtr("testConnection"),
@@ -90,7 +91,7 @@ var statsExample = `
 func streamProcessorWithStats(t *testing.T, options *admin.StreamsOptions) *admin.StreamsProcessorWithStats {
 	t.Helper()
 	processor := admin.NewStreamsProcessorWithStats(
-		processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateStarted,
+		processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateStarted,
 	)
 	var stats any
 	err := json.Unmarshal([]byte(statsExample), &stats)
@@ -148,7 +149,7 @@ func TestDSSDKToTFModel(t *testing.T) {
 	}{
 		"afterCreate": {
 			sdkModel: admin.NewStreamsProcessorWithStats(
-				processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
+				processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 			),
 			expectedTFModel: streamProcessorDSTFModel(t, stateCreated, "", optionsToTFModel(t, nil)),
 		},
@@ -162,7 +163,7 @@ func TestDSSDKToTFModel(t *testing.T) {
 		},
 		"withFailoverEnabled": {
 			sdkModel: func() *admin.StreamsProcessorWithStats {
-				p := admin.NewStreamsProcessorWithStats(processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated)
+				p := admin.NewStreamsProcessorWithStats(processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated)
 				p.FailoverEnabled = &failoverEnabled
 				return p
 			}(),
@@ -202,7 +203,7 @@ func TestDSSDKToTFModelInstanceName(t *testing.T) {
 	}{
 		"afterCreate": {
 			sdkModel: admin.NewStreamsProcessorWithStats(
-				processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
+				processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 			),
 			expectedTFModel: streamProcessorDSTFModelWithInstanceName(t, stateCreated, "", optionsToTFModel(t, nil)),
 		},
@@ -244,7 +245,7 @@ func TestSDKToTFModel(t *testing.T) {
 	}{
 		"afterCreate": {
 			sdkModel: admin.NewStreamsProcessorWithStats(
-				processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED",
+				processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED",
 			),
 			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
 				InstanceName:  types.StringValue(workspaceName),
@@ -284,7 +285,7 @@ func TestSDKToTFModel(t *testing.T) {
 			},
 		},
 		"withFailoverEnabled": {
-			sdkModel:        admin.NewStreamsProcessorWithStats(processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED"),
+			sdkModel:        admin.NewStreamsProcessorWithStats(processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED"),
 			failoverEnabled: func() *types.Bool { v := types.BoolValue(true); return &v }(),
 			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
 				InstanceName:    types.StringValue(workspaceName),
@@ -340,7 +341,7 @@ func TestPluralDSSDKToTFModel(t *testing.T) {
 		"oneResult_with_workspace_name": {
 			sdkModel: &admin.PaginatedApiStreamsStreamProcessorWithStats{
 				Results: []admin.StreamsProcessorWithStats{*admin.NewStreamsProcessorWithStats(
-					processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
+					processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 				)},
 				TotalCount: new(1),
 			},
@@ -384,7 +385,7 @@ func TestPluralDSSDKToTFModelWithInstanceName(t *testing.T) {
 		}},
 		"oneResult": {sdkModel: &admin.PaginatedApiStreamsStreamProcessorWithStats{
 			Results: []admin.StreamsProcessorWithStats{*admin.NewStreamsProcessorWithStats(
-				processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
+				processorID, processorEffectiveTier, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 			)},
 			TotalCount: new(1),
 		}, expectedTFModel: &streamprocessor.TFStreamProcessorsDSModel{
