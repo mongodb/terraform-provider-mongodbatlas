@@ -45,7 +45,7 @@ func TestAccProjectMcpConfigSecret_basic(t *testing.T) {
 	})
 }
 
-func TestAccProjectMcpConfigSecret_rotateWithTaint(t *testing.T) {
+func TestAccProjectMcpConfigSecret_rotate(t *testing.T) {
 	var (
 		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		name          = acc.RandomName()
@@ -58,7 +58,8 @@ func TestAccProjectMcpConfigSecret_rotateWithTaint(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configMultipleSecrets(projectID, name, 720, 1),
+				// create the original secret.
+				Config: configSecrets(projectID, name, 720, "test"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					func(s *terraform.State) error {
@@ -67,23 +68,21 @@ func TestAccProjectMcpConfigSecret_rotateWithTaint(t *testing.T) {
 				),
 			},
 			{
-				// `taint` is deprecated in favor of -replace https://developer.hashicorp.com/terraform/cli/commands/taint
-				// the testing plugin doesn't support -replace so using taint instead.
-				//
-				// requesting 2 secrets while tainting the first confirms overlap is possible, since a config's
-				// ingress SA allows a max of 2 concurrent secrets.
-				Taint:  []string{resourceName},
-				Config: configMultipleSecrets(projectID, name, 720, 2),
+				// create the replacement secret before removing the old one
+				Config: configSecrets(projectID, name, 720, "test", "test_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					checkExists(resourceName+"_2"),
+				),
+			},
+			{
+				// remove old secret now that the new one is active.
+				Config: configSecrets(projectID, name, 720, "test_2"),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName+"_2"),
 					func(s *terraform.State) error {
-						var secondSecretID string
-						if err := getSecretID(s, resourceName, &secondSecretID); err != nil {
-							return err
-						}
-						if secondSecretID == firstSecretID {
-							return fmt.Errorf("expected secret %s to be replaced but it still exists", firstSecretID)
+						if _, ok := s.RootModule().Resources[resourceName]; ok {
+							return fmt.Errorf("expected %s to be removed from state", resourceName)
 						}
 						return nil
 					},
@@ -94,23 +93,16 @@ func TestAccProjectMcpConfigSecret_rotateWithTaint(t *testing.T) {
 }
 
 // builds secretCount mongodbatlas_project_mcp_config_secret resources without data sources.
-func configMultipleSecrets(projectID, name string, secretExpiresAfterHours, secretCount int) string {
+func configSecrets(projectID, name string, secretExpiresAfterHours int, addrs ...string) string {
 	var secretsHCL strings.Builder
-	fmt.Fprintf(&secretsHCL, `
-		resource "mongodbatlas_project_mcp_config_secret" "test" {
-			project_id                 = %[1]q
-			mcp_config_id              = mongodbatlas_project_mcp_config.test.mcp_config_id
-			secret_expires_after_hours = %[2]d
-		}
-	`, projectID, secretExpiresAfterHours)
-	for i := 2; i <= secretCount; i++ {
+	for _, addr := range addrs {
 		fmt.Fprintf(&secretsHCL, `
-			resource "mongodbatlas_project_mcp_config_secret" "test_%[1]d" {
+			resource "mongodbatlas_project_mcp_config_secret" "%[1]s" {
 				project_id                 = %[2]q
 				mcp_config_id              = mongodbatlas_project_mcp_config.test.mcp_config_id
 				secret_expires_after_hours = %[3]d
 			}
-		`, i, projectID, secretExpiresAfterHours)
+		`, addr, projectID, secretExpiresAfterHours)
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_mcp_config" "test" {
