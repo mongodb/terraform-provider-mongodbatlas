@@ -51,6 +51,12 @@ var (
 			MaxTier: conversion.StringPtr("SP50"),
 		},
 	}
+	streamOptionsAutoscalingOnly = admin.StreamsOptions{
+		Autoscaling: &admin.StreamsAutoscaling{
+			MinTier: conversion.StringPtr("SP10"),
+			MaxTier: conversion.StringPtr("SP50"),
+		},
+	}
 )
 
 var statsExample = `
@@ -594,6 +600,7 @@ func TestNewStreamProcessorReqAutoscaling(t *testing.T) {
 	ctx := t.Context()
 	validPipeline := jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}}]")
 	optionsWithAutoscaling := optionsToTFModel(t, &streamOptionsWithAutoscaling)
+	optionsAutoscalingOnly := optionsToTFModel(t, &streamOptionsAutoscalingOnly)
 
 	plan := &streamprocessor.TFStreamProcessorRSModel{
 		WorkspaceName: types.StringValue(workspaceName),
@@ -611,12 +618,20 @@ func TestNewStreamProcessorReqAutoscaling(t *testing.T) {
 	assert.Equal(t, "SP10", req.Options.Autoscaling.GetMinTier())
 	assert.Equal(t, "SP50", req.Options.Autoscaling.GetMaxTier())
 	assert.Equal(t, "SP10", req.GetTier())
+
+	plan.Options = optionsAutoscalingOnly
+	req, diags = streamprocessor.NewStreamProcessorReq(ctx, plan)
+	require.False(t, diags.HasError())
+	require.NotNil(t, req.Options)
+	assert.Nil(t, req.Options.Dlq)
+	require.NotNil(t, req.Options.Autoscaling)
 }
 
 func TestNewStreamProcessorUpdateReqAutoscaling(t *testing.T) {
 	ctx := t.Context()
 	validPipeline := jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}}]")
 	optionsWithAutoscaling := optionsToTFModel(t, &streamOptionsWithAutoscaling)
+	optionsAutoscalingOnly := optionsToTFModel(t, &streamOptionsAutoscalingOnly)
 	optionsDlqOnly := optionsToTFModel(t, &streamOptionsExample)
 	optionsNull := types.ObjectNull(streamprocessor.OptionsObjectType.AttributeTypes())
 
@@ -635,6 +650,14 @@ func TestNewStreamProcessorUpdateReqAutoscaling(t *testing.T) {
 		require.False(t, diags.HasError())
 		require.NotNil(t, req.StreamsModifyStreamProcessor.Options.Autoscaling)
 		assert.True(t, req.StreamsModifyStreamProcessor.Options.Autoscaling.GetEnabled())
+	})
+
+	t.Run("autoscaling-only options omit DLQ", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsAutoscalingOnly), base(optionsDlqOnly))
+		require.False(t, diags.HasError())
+		require.NotNil(t, req.StreamsModifyStreamProcessor.Options)
+		assert.Nil(t, req.StreamsModifyStreamProcessor.Options.Dlq)
+		require.NotNil(t, req.StreamsModifyStreamProcessor.Options.Autoscaling)
 	})
 
 	t.Run("autoscaling removed but present in state => explicit disable", func(t *testing.T) {

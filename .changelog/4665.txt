@@ -1,5 +1,5 @@
 ```release-note:enhancement
-resource/mongodbatlas_stream_processor: Adds `options.autoscaling` block (`min_tier`, `max_tier`) and read-only `effective_tier` attribute to support vertical autoscaling
+resource/mongodbatlas_stream_processor: Adds independently optional `options.autoscaling` and `options.dlq` blocks plus read-only `effective_tier` attribute to support vertical autoscaling
 ```
 
 ```release-note:enhancement

@@ -43,8 +43,8 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 		if diags := plan.Options.As(ctx, optionsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
 		}
-		dlqModel := &TFDlqModel{}
-		if diags := optionsModel.Dlq.As(ctx, dlqModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+		dlq, diags := newDlqReq(ctx, optionsModel.Dlq)
+		if diags.HasError() {
 			return nil, diags
 		}
 		autoscaling, diags := newAutoscalingReq(ctx, optionsModel.Autoscaling)
@@ -52,11 +52,7 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 			return nil, diags
 		}
 		streamProcessor.Options = &admin.StreamsOptions{
-			Dlq: &admin.StreamsDLQ{
-				Coll:           dlqModel.Coll.ValueStringPointer(),
-				ConnectionName: dlqModel.ConnectionName.ValueStringPointer(),
-				Db:             dlqModel.DB.ValueStringPointer(),
-			},
+			Dlq:         dlq,
 			Autoscaling: autoscaling,
 		}
 	}
@@ -101,16 +97,12 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProce
 		if diags := plan.Options.As(ctx, optionsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
 		}
-		dlqModel := &TFDlqModel{}
-		if diags := optionsModel.Dlq.As(ctx, dlqModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+		dlq, diags := newDlqReq(ctx, optionsModel.Dlq)
+		if diags.HasError() {
 			return nil, diags
 		}
 		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = &admin.StreamsModifyStreamProcessorOptions{
-			Dlq: &admin.StreamsDLQ{
-				Coll:           dlqModel.Coll.ValueStringPointer(),
-				ConnectionName: dlqModel.ConnectionName.ValueStringPointer(),
-				Db:             dlqModel.DB.ValueStringPointer(),
-			},
+			Dlq:         dlq,
 			Autoscaling: autoscaling,
 		}
 	} else if autoscaling != nil {
@@ -217,6 +209,21 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName, w
 		tfModel.WorkspaceName = types.StringNull()
 	}
 	return tfModel, nil
+}
+
+func newDlqReq(ctx context.Context, dlq types.Object) (*admin.StreamsDLQ, diag.Diagnostics) {
+	if dlq.IsNull() || dlq.IsUnknown() {
+		return nil, nil
+	}
+	dlqModel := &TFDlqModel{}
+	if diags := dlq.As(ctx, dlqModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return nil, diags
+	}
+	return &admin.StreamsDLQ{
+		Coll:           dlqModel.Coll.ValueStringPointer(),
+		ConnectionName: dlqModel.ConnectionName.ValueStringPointer(),
+		Db:             dlqModel.DB.ValueStringPointer(),
+	}, nil
 }
 
 func ConvertOptionsToTF(ctx context.Context, options *admin.StreamsOptions) (*types.Object, diag.Diagnostics) {

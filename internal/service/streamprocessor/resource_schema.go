@@ -87,7 +87,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								MarkdownDescription: "Name of the database to use for the DLQ.",
 							},
 						},
-						Required:            true,
+						Optional:            true,
 						MarkdownDescription: "Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information.",
 					},
 					"autoscaling": schema.SingleNestedAttribute{

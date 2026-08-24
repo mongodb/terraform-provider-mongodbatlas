@@ -175,13 +175,19 @@ output "stream_processors_results" {
 <a id="nestedatt--options"></a>
 ### Nested Schema for `options`
 
-Required:
-
-- `dlq` (Attributes) Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information. (see [below for nested schema](#nestedatt--options--dlq))
-
 Optional:
 
 - `autoscaling` (Attributes) Vertical autoscaling configuration for the stream processor. When present, the processor automatically scales its tier between `min_tier` and `max_tier` based on load; `tier` is used only as the initial/baseline tier and the running tier is reported by `effective_tier`. To disable autoscaling, remove this block. (see [below for nested schema](#nestedatt--options--autoscaling))
+- `dlq` (Attributes) Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information. (see [below for nested schema](#nestedatt--options--dlq))
+
+<a id="nestedatt--options--autoscaling"></a>
+### Nested Schema for `options.autoscaling`
+
+Optional:
+
+- `max_tier` (String) Tier ceiling for autoscaling (scale-up limit). When not set, it defaults to the workspace maximum tier.
+- `min_tier` (String) Tier floor for autoscaling (scale-down limit). When not set, it defaults to the workspace default tier.
+
 
 <a id="nestedatt--options--dlq"></a>
 ### Nested Schema for `options.dlq`
@@ -191,15 +197,6 @@ Required:
 - `coll` (String) Name of the collection to use for the DLQ.
 - `connection_name` (String) Name of the connection to write DLQ messages to. Must be an Atlas connection.
 - `db` (String) Name of the database to use for the DLQ.
-
-
-<a id="nestedatt--options--autoscaling"></a>
-### Nested Schema for `options.autoscaling`
-
-Optional:
-
-- `max_tier` (String) Tier ceiling for autoscaling (scale-up limit). When not set, it defaults to the workspace maximum tier.
-- `min_tier` (String) Tier floor for autoscaling (scale-down limit). When not set, it defaults to the workspace default tier.
 
 
 
