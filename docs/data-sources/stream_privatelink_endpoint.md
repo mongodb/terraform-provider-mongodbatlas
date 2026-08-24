@@ -195,10 +195,11 @@ PROPERTIES
 }
 
 resource "mongodbatlas_stream_privatelink_endpoint" "test" {
-  project_id    = var.project_id
-  provider_name = "AWS"
-  vendor        = "MSK"
-  arn           = aws_msk_cluster.example.arn
+  project_id            = var.project_id
+  provider_name         = "AWS"
+  vendor                = "MSK"
+  arn                   = aws_msk_cluster.example.arn
+  authentication_scheme = "SASL_SCRAM" # Authentication mechanism for MSK. Valid values are SASL_SCRAM, TLS, and IAM.
 }
 
 data "mongodbatlas_stream_privatelink_endpoint" "singular_datasource" {
@@ -391,6 +392,7 @@ output "privatelink_endpoint_id" {
 ### Read-Only
 
 - `arn` (String) Amazon Resource Name (ARN). Required for AWS Provider and MSK vendor.
+- `authentication_scheme` (String) Authentication mechanism to use with this private link connection. Only applies when the vendor is `MSK`. Valid values are `SASL_SCRAM`, `TLS`, and `IAM`. Changing this value forces replacement of the private link connection.
 - `dns_domain` (String) The domain hostname. Optional for AWS Confluent Enterprise Kafka Cluster. Required for the following provider and vendor combinations:
 
 	* AWS provider with CONFLUENT vendor for Dedicated Kafka Cluster.
