@@ -797,6 +797,43 @@ resources:
           roles:
             type: set
 
+  mcp_config_secret:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets
+      method: POST
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    id_attributes: ["org_id", "mcp_config_id", "secret_id"]
+    schema:
+      aliases:
+        id: secretId
+      overrides:
+        org_id:
+          description: *org_id_description
+        secret:
+          sensitive: true
+        secret_expires_after_hours:
+          description: "The expiration time of the new ingress Service Account secret, provided in hours. This attribute is required when creating the secret and cannot be updated later."
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+        method: GET
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets
+        method: GET
+      schema:
+        ignores: ["secret", "results.secret"] # `secret` is only ever populated in the create response
+        aliases:
+          id: secretId
+        overrides:
+          org_id:
+            description: *org_id_description
+
   project_mcp_config_secret:
     read:
       path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}

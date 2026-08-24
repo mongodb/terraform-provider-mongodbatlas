@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/mcpconfig"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/mcpconfigsecret"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/metricintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectmcpconfig"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectmcpconfigsecret"
@@ -357,6 +358,8 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		aimodelratelimit.PluralDataSource,
 		mcpconfig.DataSource,
 		mcpconfig.PluralDataSource,
+		mcpconfigsecret.DataSource,
+		mcpconfigsecret.PluralDataSource,
 		projectmcpconfig.DataSource,
 		projectmcpconfig.PluralDataSource,
 		projectmcpconfigsecret.DataSource,
@@ -372,6 +375,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Resource {
 	resources := []func() resource.Resource{
 		mcpconfig.Resource,
+		mcpconfigsecret.Resource,
 		projectmcpconfig.Resource,
 		projectmcpconfigsecret.Resource,
 		metricintegration.Resource,
