@@ -65,7 +65,7 @@ func TestDefaultFormatWaitFailure_withErrorDescription(t *testing.T) {
 	err := autogen.DefaultFormatWaitFailure(wait, req)
 
 	require.Error(t, err)
-	assert.Equal(t, "id proj/cluster/job1: The restore could not complete because 1 collection was not found", err.Error())
+	assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": The restore could not complete because 1 collection was not found`, err.Error())
 }
 
 func TestDefaultFormatWaitFailure_withoutErrorDescription(t *testing.T) {
@@ -81,7 +81,7 @@ func TestDefaultFormatWaitFailure_withoutErrorDescription(t *testing.T) {
 			LastState: "FAILED",
 		})
 		require.Error(t, err)
-		assert.Equal(t, `id proj/cluster/job1: operation failed with state "FAILED"`, err.Error())
+		assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": operation failed with state "FAILED"`, err.Error())
 	})
 
 	t.Run("property empty", func(t *testing.T) {
@@ -91,7 +91,7 @@ func TestDefaultFormatWaitFailure_withoutErrorDescription(t *testing.T) {
 			LastState: "FAILED",
 		})
 		require.Error(t, err)
-		assert.Equal(t, `id proj/cluster/job1: operation failed with state "FAILED"`, err.Error())
+		assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": operation failed with state "FAILED"`, err.Error())
 	})
 
 	t.Run("property not a string", func(t *testing.T) {
@@ -101,7 +101,7 @@ func TestDefaultFormatWaitFailure_withoutErrorDescription(t *testing.T) {
 			LastState: "FAILED",
 		})
 		require.Error(t, err)
-		assert.Equal(t, `id proj/cluster/job1: operation failed with state "FAILED"`, err.Error())
+		assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": operation failed with state "FAILED"`, err.Error())
 	})
 }
 
@@ -122,7 +122,7 @@ func TestDefaultFormatWaitFailure_timeoutWrapsSDKError(t *testing.T) {
 	})
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "id proj/cluster/job1:")
+	assert.Contains(t, err.Error(), `project_id="proj", cluster_name="cluster", job_id="job1":`)
 	assert.Contains(t, err.Error(), "timeout while waiting")
 	var got *retry.TimeoutError
 	require.ErrorAs(t, err, &got)

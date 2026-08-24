@@ -21,21 +21,24 @@ type WaitFailure struct {
 
 const tfsdkTag = "tfsdk"
 
-// ResourceID joins id attribute values from the in-memory model in import order.
-// Non-string fields are skipped. Empty or unknown strings still occupy their slot.
-func ResourceID(model any, idAttrs []string) string {
+type idAttrPair struct {
+	name  string
+	value string
+}
+
+func resourceIDPairs(model any, idAttrs []string) []idAttrPair {
 	if model == nil || len(idAttrs) == 0 {
-		return ""
+		return nil
 	}
 	val := reflect.ValueOf(model)
 	if val.Kind() == reflect.Pointer {
 		if val.IsNil() {
-			return ""
+			return nil
 		}
 		val = val.Elem()
 	}
 	if val.Kind() != reflect.Struct {
-		return ""
+		return nil
 	}
 
 	byTag := make(map[string]reflect.Value, val.NumField())
@@ -48,7 +51,7 @@ func ResourceID(model any, idAttrs []string) string {
 		byTag[tag] = val.Field(i)
 	}
 
-	parts := make([]string, 0, len(idAttrs))
+	pairs := make([]idAttrPair, 0, len(idAttrs))
 	for _, attr := range idAttrs {
 		field, ok := byTag[attr]
 		if !ok {
@@ -58,20 +61,38 @@ func ResourceID(model any, idAttrs []string) string {
 		if !ok {
 			continue
 		}
-		parts = append(parts, str.ValueString())
+		pairs = append(pairs, idAttrPair{name: attr, value: str.ValueString()})
+	}
+	return pairs
+}
+
+// ResourceID joins id attribute values from the in-memory model in import order.
+// Non-string fields are skipped. Empty or unknown strings still occupy their slot.
+func ResourceID(model any, idAttrs []string) string {
+	pairs := resourceIDPairs(model, idAttrs)
+	if len(pairs) == 0 {
+		return ""
+	}
+	parts := make([]string, 0, len(pairs))
+	for _, p := range pairs {
+		parts = append(parts, p.value)
 	}
 	return strings.Join(parts, "/")
 }
 
 func waitFailureIDPrefix(model any, idAttrs []string) string {
-	id := ResourceID(model, idAttrs)
-	if id == "" {
+	pairs := resourceIDPairs(model, idAttrs)
+	if len(pairs) == 0 {
 		return ""
 	}
-	return "id " + id + ": "
+	parts := make([]string, 0, len(pairs))
+	for _, p := range pairs {
+		parts = append(parts, fmt.Sprintf("%s=%q", p.name, p.value))
+	}
+	return strings.Join(parts, ", ") + ": "
 }
 
-// DefaultFormatWaitFailure builds the wait error with an import-style id prefix.
+// DefaultFormatWaitFailure builds the wait error with named id attributes.
 // When TimeoutErr is set it wraps that error with %w so *retry.TimeoutError stays in the chain.
 func DefaultFormatWaitFailure(wait *WaitReq, req WaitFailure) error {
 	var idAttrs []string
