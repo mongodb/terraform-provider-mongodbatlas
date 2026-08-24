@@ -159,7 +159,7 @@ func NextCollectionRestoreDestRegion() string {
 func takeCompletedOnDemandSnapshot(ctx context.Context, projectID, clusterName string) (snapshotID string, afterSeconds int64, err error) {
 	retention := collectionRestoreSnapshotRetention
 	params := &admin.DiskBackupOnDemandSnapshotRequest{
-		Description:     admin.PtrString("tf acc collection restore fixture"),
+		Description:     new("tf acc collection restore fixture"),
 		RetentionInDays: &retention,
 	}
 	snapshot, _, err := ConnV2().CloudBackupsAPI.TakeSnapshots(ctx, projectID, clusterName, params).Execute()
