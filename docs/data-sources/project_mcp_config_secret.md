@@ -6,7 +6,7 @@ subcategory: "Remote MCP"
 
 `mongodbatlas_project_mcp_config_secret` describes an ingress secret for a Project Remote MCP Configuration. Secret values are never returned. Only masked metadata is available.
 
-~> **IMPORTANT WARNING:** Managing MCP Config Secrets with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
+~> **IMPORTANT:** Managing MCP Config Secrets with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
 ## Example Usages
 ```terraform

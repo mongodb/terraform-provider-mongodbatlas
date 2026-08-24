@@ -1,8 +1,11 @@
 package projectmcpconfigsecret_test
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -15,11 +18,6 @@ const resourceName = "mongodbatlas_project_mcp_config_secret.test"
 const dataSourceName = "data.mongodbatlas_project_mcp_config_secret.test"
 const dataSourcePluralName = "data.mongodbatlas_project_mcp_config_secrets.test"
 
-// NOTE: the Atlas Go SDK (atlas-sdk-go admin.RemoteMCPConfigurationsApi) does not yet expose
-// create/read/delete operations for MCP config secrets (only Get/List for the config itself).
-// Because of this, checkExists below can only verify state, not the live API.
-// Update this once the SDK adds secret support.
-
 func TestAccProjectMcpConfigSecret_basic(t *testing.T) {
 	var (
 		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -29,9 +27,10 @@ func TestAccProjectMcpConfigSecret_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, name, 720),
+				Config: configBasic(projectID, name, 720, 1),
 				Check:  checkBasic(true),
 			},
 			{
@@ -46,77 +45,105 @@ func TestAccProjectMcpConfigSecret_basic(t *testing.T) {
 	})
 }
 
-func TestAccProjectMcpConfigSecret_maxSecretsLimit(t *testing.T) {
+func TestAccProjectMcpConfigSecret_rotateWithTaint(t *testing.T) {
 	var (
-		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		name      = acc.RandomName()
+		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		name          = acc.RandomName()
+		firstSecretID string
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				// A config's ingress SA allows a maximum of 2 concurrent secrets.
-				// Creating both here confirms rotation overlap is possible.
-				Config: configTwoSecrets(projectID, name, 720),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName+"_1"),
+				Config: configBasic(projectID, name, 720, 1),
+				Check: resource.ComposeTestCheckFunc(
+					checkBasic(true),
+					func(s *terraform.State) error {
+						return getSecretID(s, resourceName, &firstSecretID)
+					},
+				),
+			},
+			{
+				// The `taint` command is deprecated in favor of the `-replace` flag: https://developer.hashicorp.com/terraform/cli/commands/taint.
+				// The testing plugin does not facilitate testing with replace, but it does enable tainting so using taint here.
+				//
+				// A config's ingress SA allows a maximum of 2 concurrent secrets, so requesting 2 here
+				// while tainting the first also confirms rotation overlap is possible.
+				Taint:  []string{resourceName},
+				Config: configBasic(projectID, name, 720, 2),
+				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName+"_2"),
+					func(s *terraform.State) error {
+						var secondSecretID string
+						if err := getSecretID(s, resourceName, &secondSecretID); err != nil {
+							return err
+						}
+						if secondSecretID == firstSecretID {
+							return fmt.Errorf("expected secret %s to be replaced but it still exists", firstSecretID)
+						}
+						return nil
+					},
 				),
 			},
 		},
 	})
 }
 
-func configBasic(projectID, name string, secretExpiresAfterHours int) string {
+func configBasic(projectID, name string, secretExpiresAfterHours, secretCount int) string {
+	if secretCount > 1 {
+		var secretsHCL strings.Builder
+		fmt.Fprintf(&secretsHCL, `
+			resource "mongodbatlas_project_mcp_config_secret" "test" {
+				project_id                 = %[1]q
+				mcp_config_id              = mongodbatlas_project_mcp_config.test.mcp_config_id
+				secret_expires_after_hours = %[2]d
+			}
+		`, projectID, secretExpiresAfterHours)
+		for i := 2; i <= secretCount; i++ {
+			fmt.Fprintf(&secretsHCL, `
+				resource "mongodbatlas_project_mcp_config_secret" "test_%[1]d" {
+					project_id                 = %[2]q
+					mcp_config_id              = mongodbatlas_project_mcp_config.test.mcp_config_id
+					secret_expires_after_hours = %[3]d
+				}
+			`, i, projectID, secretExpiresAfterHours)
+		}
+		return fmt.Sprintf(`
+			resource "mongodbatlas_project_mcp_config" "test" {
+				project_id      = %[1]q
+				mcp_config_name = %[2]q
+				roles           = ["GROUP_READ_ONLY"]
+			}
+
+			%[3]s
+		`, projectID, name, secretsHCL.String())
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_mcp_config" "test" {
-			project_id        = %[1]q
+			project_id      = %[1]q
 			mcp_config_name = %[2]q
 			roles           = ["GROUP_READ_ONLY"]
 		}
 
 		resource "mongodbatlas_project_mcp_config_secret" "test" {
-			project_id                   = %[1]q
+			project_id                 = %[1]q
 			mcp_config_id              = mongodbatlas_project_mcp_config.test.mcp_config_id
 			secret_expires_after_hours = %[3]d
 		}
 
 		data "mongodbatlas_project_mcp_config_secret" "test" {
-			project_id      = %[1]q
+			project_id    = %[1]q
 			mcp_config_id = mongodbatlas_project_mcp_config.test.mcp_config_id
 			secret_id     = mongodbatlas_project_mcp_config_secret.test.secret_id
 		}
 
 		data "mongodbatlas_project_mcp_config_secrets" "test" {
-			project_id      = %[1]q
+			project_id    = %[1]q
 			mcp_config_id = mongodbatlas_project_mcp_config.test.mcp_config_id
 			depends_on    = [mongodbatlas_project_mcp_config_secret.test]
-		}
-	`, projectID, name, secretExpiresAfterHours)
-}
-
-func configTwoSecrets(projectID, name string, secretExpiresAfterHours int) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project_mcp_config" "test" {
-			project_id        = %[1]q
-			mcp_config_name = %[2]q
-			roles           = ["GROUP_READ_ONLY"]
-		}
-
-		resource "mongodbatlas_project_mcp_config_secret" "test_1" {
-			project_id                   = %[1]q
-			mcp_config_id              = mongodbatlas_project_mcp_config.test.mcp_config_id
-			secret_expires_after_hours = %[3]d
-		}
-
-		resource "mongodbatlas_project_mcp_config_secret" "test_2" {
-			project_id                   = %[1]q
-			mcp_config_id              = mongodbatlas_project_mcp_config.test.mcp_config_id
-			secret_expires_after_hours = %[3]d
-
-			depends_on = [mongodbatlas_project_mcp_config_secret.test_1]
 		}
 	`, projectID, name, secretExpiresAfterHours)
 }
@@ -135,18 +162,60 @@ func checkBasic(isCreate bool) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(checks, resource.ComposeAggregateTestCheckFunc(additionalChecks...))
 }
 
-// checkExists verifies state only. See NOTE at top of file re: SDK gap for secrets.
+func getSecretID(s *terraform.State, resourceName string, secretID *string) error {
+	rs, ok := s.RootModule().Resources[resourceName]
+	if !ok {
+		return fmt.Errorf("not found: %s", resourceName)
+	}
+	id := rs.Primary.Attributes["secret_id"]
+	if id == "" {
+		return fmt.Errorf("secret_id is empty")
+	}
+	*secretID = id
+	return nil
+}
+
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-		if rs.Primary.Attributes["secret_id"] == "" {
-			return fmt.Errorf("checkExists, secret_id not found for: %s", resourceName)
+		projectID := rs.Primary.Attributes["project_id"]
+		mcpConfigID := rs.Primary.Attributes["mcp_config_id"]
+		secretID := rs.Primary.Attributes["secret_id"]
+		if projectID == "" || mcpConfigID == "" || secretID == "" {
+			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		return nil
+		_, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetGroupMcpSecret(context.Background(), projectID, mcpConfigID, secretID).Execute()
+		if err == nil {
+			return nil
+		}
+		return fmt.Errorf("mcp config secret (%s/%s/%s) does not exist: %w", projectID, mcpConfigID, secretID, err)
 	}
+}
+
+func checkDestroy(s *terraform.State) error {
+	var errs []error
+	for name, rs := range s.RootModule().Resources {
+		if !strings.HasPrefix(name, "mongodbatlas_project_mcp_config_secret.") {
+			continue
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		mcpConfigID := rs.Primary.Attributes["mcp_config_id"]
+		secretID := rs.Primary.Attributes["secret_id"]
+		if projectID == "" || mcpConfigID == "" || secretID == "" {
+			errs = append(errs, fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName))
+			continue
+		}
+		if _, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetGroupMcpSecret(context.Background(), projectID, mcpConfigID, secretID).Execute(); err == nil {
+			errs = append(errs, fmt.Errorf("mcp config secret (%s/%s/%s) still exists", projectID, mcpConfigID, secretID))
+		}
+	}
+	if err := acc.CheckDestroyDeleteOrgMcpConfigs(s); err != nil {
+		errs = append(errs, err)
+	}
+	return errors.Join(errs...)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
