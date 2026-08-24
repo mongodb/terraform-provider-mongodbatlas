@@ -17,7 +17,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/atlas-sdk-go/admin"
@@ -26,11 +25,9 @@ import (
 type TFAutoscalingModel struct {
 	MinTier types.String `tfsdk:"min_tier"`
 	MaxTier types.String `tfsdk:"max_tier"`
-	Enabled types.Bool   `tfsdk:"enabled"`
 }
 
 var AutoscalingObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"enabled":  types.BoolType,
 	"min_tier": types.StringType,
 	"max_tier": types.StringType,
 }}
@@ -46,9 +43,9 @@ func newAutoscalingReq(ctx context.Context, autoscaling types.Object) (*admin.St
 	if diags := autoscaling.As(ctx, tfModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil, diags
 	}
-	req := &admin.StreamsAutoscaling{
-		Enabled: tfModel.Enabled.ValueBoolPointer(),
-	}
+	// Block presence is Terraform's enablement signal. The API requires this
+	// transport field for create/PATCH semantics, but it is not exposed in state.
+	req := &admin.StreamsAutoscaling{Enabled: new(true)}
 	if !tfModel.MinTier.IsNull() && !tfModel.MinTier.IsUnknown() {
 		req.MinTier = tfModel.MinTier.ValueStringPointer()
 	}
@@ -56,45 +53,6 @@ func newAutoscalingReq(ctx context.Context, autoscaling types.Object) (*admin.St
 		req.MaxTier = tfModel.MaxTier.ValueStringPointer()
 	}
 	return req, nil
-}
-
-// disableAutoscalingErrorDetail is the guidance shown when a user sets enabled = false.
-// It is shared by the plan-time validator so the docs, validator, and runtime message agree.
-const disableAutoscalingErrorDetail = "To disable autoscaling, remove the `options.autoscaling` block rather than setting `enabled = false`. The backend does not persist a disabled configuration, so `enabled = false` cannot round-trip."
-
-// autoscalingEnabledValidator rejects `enabled = false`. When the autoscaling block is
-// present, autoscaling must be enabled; disabling is expressed by removing the block (the
-// provider then sends the explicit disable to the API). This avoids the "inconsistent result
-// after apply" that would otherwise occur, since a disabled config is not persisted and reads
-// back as null.
-type autoscalingEnabledValidator struct{}
-
-func (v autoscalingEnabledValidator) Description(_ context.Context) string {
-	return "enabled must be true when the autoscaling block is present; disable by removing the block"
-}
-
-func (v autoscalingEnabledValidator) MarkdownDescription(ctx context.Context) string {
-	return v.Description(ctx)
-}
-
-func (v autoscalingEnabledValidator) ValidateObject(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	tfModel := &TFAutoscalingModel{}
-	if diags := req.ConfigValue.As(ctx, tfModel, basetypes.ObjectAsOptions{}); diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-	// Only flag when enabled is explicitly false; unknown/true are allowed.
-	if tfModel.Enabled.IsNull() || tfModel.Enabled.IsUnknown() || tfModel.Enabled.ValueBool() {
-		return
-	}
-	resp.Diagnostics.AddAttributeError(
-		req.Path,
-		"Invalid autoscaling configuration",
-		disableAutoscalingErrorDetail,
-	)
 }
 
 // autoscalingFromPlanOptions extracts the autoscaling SDK request from the plan's
@@ -149,7 +107,6 @@ func convertAutoscalingToTF(ctx context.Context, autoscaling *admin.StreamsAutos
 		return types.ObjectNull(AutoscalingObjectType.AttributeTypes()), nil
 	}
 	tfModel := TFAutoscalingModel{
-		Enabled: types.BoolPointerValue(autoscaling.Enabled),
 		MinTier: types.StringPointerValue(autoscaling.MinTier),
 		MaxTier: types.StringPointerValue(autoscaling.MaxTier),
 	}

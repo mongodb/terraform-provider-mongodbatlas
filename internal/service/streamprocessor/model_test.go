@@ -47,7 +47,6 @@ var (
 			Db:             conversion.StringPtr("testDB"),
 		},
 		Autoscaling: &admin.StreamsAutoscaling{
-			Enabled: new(true),
 			MinTier: conversion.StringPtr("SP10"),
 			MaxTier: conversion.StringPtr("SP50"),
 		},
@@ -543,7 +542,6 @@ func TestConvertOptionsToTFAutoscaling(t *testing.T) {
 		autoscalingModel := &streamprocessor.TFAutoscalingModel{}
 		diags = optionsModel.Autoscaling.As(ctx, autoscalingModel, basetypes.ObjectAsOptions{})
 		require.False(t, diags.HasError())
-		assert.True(t, autoscalingModel.Enabled.ValueBool())
 		assert.Equal(t, "SP10", autoscalingModel.MinTier.ValueString())
 		assert.Equal(t, "SP50", autoscalingModel.MaxTier.ValueString())
 	})
@@ -721,7 +719,7 @@ func TestPipelineFieldOrderPreserved(t *testing.T) {
 	// The whole request body is marshaled, not just the pipeline, so the assertion covers the
 	// final SDK serialization, including the structs' own MarshalJSON, which the client invokes
 	// via json.Encoder and which delegates to encoding/json when no fields are explicitly null.
-	wantCreateBody := `{"effectiveTier":"","name":"` + processorName + `","pipeline":` + pipeline + `}`
+	wantCreateBody := `{"effectiveTier":null,"name":"` + processorName + `","pipeline":` + pipeline + `}`
 	wantUpdateBody := `{"name":"` + processorName + `","pipeline":` + pipeline + `}`
 
 	createReq, diags := streamprocessor.NewStreamProcessorReq(t.Context(), model)

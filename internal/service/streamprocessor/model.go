@@ -28,6 +28,10 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 	streamProcessor := &admin.StreamsProcessor{
 		Name:     plan.ProcessorName.ValueStringPointer(),
 		Pipeline: &pipeline,
+		// effectiveTier is read-only but the preview SDK currently models it as a
+		// required value type. Send explicit null rather than its invalid zero-value
+		// enum (empty string) until the generated SDK makes it optional/read-only.
+		NullFields: []string{"EffectiveTier"},
 	}
 
 	if !plan.FailoverEnabled.IsNull() && !plan.FailoverEnabled.IsUnknown() {

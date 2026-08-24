@@ -138,10 +138,9 @@ func TestAccStreamProcessor_withAutoscaling(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithAutoscaling(t, projectID, workspaceName, clusterName, processorName, "SP10", "SP50", true),
+				Config: configWithAutoscaling(t, projectID, workspaceName, clusterName, processorName, "SP10", "SP50"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.min_tier", "SP10"),
 					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.max_tier", "SP50"),
 					resource.TestCheckResourceAttrSet(resourceName, "effective_tier"),
@@ -149,35 +148,13 @@ func TestAccStreamProcessor_withAutoscaling(t *testing.T) {
 			},
 			{
 				// Removing the autoscaling block disables autoscaling.
-				Config: configWithAutoscaling(t, projectID, workspaceName, clusterName, processorName, "", "", false),
+				Config: configWithAutoscaling(t, projectID, workspaceName, clusterName, processorName, "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckNoResourceAttr(resourceName, "options.autoscaling"),
 				),
 			},
 			importStep(),
-		}})
-}
-
-// TestAccStreamProcessor_autoscalingDisabledRejected verifies the plan-time validator rejects
-// `enabled = false`; disabling is done by removing the options.autoscaling block instead.
-func TestAccStreamProcessor_autoscalingDisabledRejected(t *testing.T) {
-	var (
-		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		_, clusterName           = acc.ClusterNameExecution(t, false)
-		processorName            = "new-processor-autoscaling-invalid" + acctest.RandString(5)
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroyStreamProcessor,
-		Steps: []resource.TestStep{
-			{
-				// bounds present forces the block to be emitted with enabled = false, which the validator rejects.
-				Config:      configWithAutoscaling(t, projectID, workspaceName, clusterName, processorName, "SP10", "SP50", false),
-				ExpectError: regexp.MustCompile("remove the `options.autoscaling` block"),
-			},
 		}})
 }
 
@@ -910,15 +887,12 @@ func processorDataSources() string {
 }
 
 // configWithAutoscaling builds a processor whose DLQ points at a cluster connection.
-// When enabled is true the options.autoscaling block is included with the given bounds;
-// when false and both tiers are empty the block is omitted (autoscaling disabled). When
-// enabled is false but bounds are provided, the (invalid) block is emitted to exercise the
-// plan-time validator.
-func configWithAutoscaling(t *testing.T, projectID, workspaceName, clusterName, processorName, minTier, maxTier string, enabled bool) string {
+// When both bounds are empty, the autoscaling block is omitted (autoscaling disabled).
+func configWithAutoscaling(t *testing.T, projectID, workspaceName, clusterName, processorName, minTier, maxTier string) string {
 	t.Helper()
 
 	autoscalingBlock := ""
-	if enabled || minTier != "" || maxTier != "" {
+	if minTier != "" || maxTier != "" {
 		bounds := ""
 		if minTier != "" {
 			bounds += fmt.Sprintf("\n\t\t\t\tmin_tier = %[1]q", minTier)
@@ -927,9 +901,8 @@ func configWithAutoscaling(t *testing.T, projectID, workspaceName, clusterName, 
 			bounds += fmt.Sprintf("\n\t\t\t\tmax_tier = %[1]q", maxTier)
 		}
 		autoscalingBlock = fmt.Sprintf(`
-			autoscaling = {
-				enabled = %[1]t%[2]s
-			}`, enabled, bounds)
+			autoscaling = {%[1]s
+			}`, bounds)
 	}
 
 	return fmt.Sprintf(`

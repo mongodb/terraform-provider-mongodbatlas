@@ -18,10 +18,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
-// streamProcessorTiers enumerates the valid stream processor tiers, used for
-// both `tier`/`effective_tier` and the autoscaling `min_tier`/`max_tier` bounds.
-var streamProcessorTiers = []string{"SP2", "SP5", "SP10", "SP30", "SP50"}
-
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -96,30 +92,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"autoscaling": schema.SingleNestedAttribute{
 						Optional:            true,
-						MarkdownDescription: "Vertical autoscaling configuration for the stream processor. When present, autoscaling is enabled and the processor automatically scales its tier between `min_tier` and `max_tier` based on load; `tier` is then used only as the initial/baseline tier (the tier it is actually running on is reported by `effective_tier`). To disable autoscaling, remove this block — the backend clears the configuration on disable, so autoscaling cannot be turned off by setting `enabled = false`.",
-						Validators: []validator.Object{
-							autoscalingEnabledValidator{},
-						},
+						MarkdownDescription: "Vertical autoscaling configuration for the stream processor. When present, the processor automatically scales its tier between `min_tier` and `max_tier` based on load; `tier` is used only as the initial/baseline tier and the running tier is reported by `effective_tier`. To disable autoscaling, remove this block.",
 						Attributes: map[string]schema.Attribute{
-							"enabled": schema.BoolAttribute{
-								Required:            true,
-								MarkdownDescription: "Flag that indicates whether autoscaling is enabled. Must be `true` when the `options.autoscaling` block is present. To disable autoscaling, remove the block rather than setting this to `false` (the backend does not persist a disabled config, so `enabled = false` is rejected during planning).",
-							},
 							"min_tier": schema.StringAttribute{
 								Optional:            true,
 								Computed:            true,
-								MarkdownDescription: "Tier floor for autoscaling (scale-down limit). Valid options are SP2, SP5, SP10, SP30, and SP50. When not set, it defaults to the workspace default tier.",
-								Validators: []validator.String{
-									stringvalidator.OneOf(streamProcessorTiers...),
-								},
+								MarkdownDescription: "Tier floor for autoscaling (scale-down limit). When not set, it defaults to the workspace default tier.",
 							},
 							"max_tier": schema.StringAttribute{
 								Optional:            true,
 								Computed:            true,
-								MarkdownDescription: "Tier ceiling for autoscaling (scale-up limit). Valid options are SP2, SP5, SP10, SP30, and SP50. When not set, it defaults to the workspace maximum tier.",
-								Validators: []validator.String{
-									stringvalidator.OneOf(streamProcessorTiers...),
-								},
+								MarkdownDescription: "Tier ceiling for autoscaling (scale-up limit). When not set, it defaults to the workspace maximum tier.",
 							},
 						},
 					},

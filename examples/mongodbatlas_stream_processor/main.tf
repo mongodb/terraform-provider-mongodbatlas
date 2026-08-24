@@ -94,7 +94,6 @@ resource "mongodbatlas_stream_processor" "stream-processor-kafka-to-cluster-exam
       db              = "exampleDb"
     }
     autoscaling = {
-      enabled  = true
       min_tier = "SP10"
       max_tier = "SP50"
     }
