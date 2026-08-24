@@ -1,0 +1,1062 @@
+schema:
+    description: Creates one collection-level restore job for one cluster from the specified project. Collection-level restores allow restoring specific databases or collections from a snapshot or point-in-time.
+    attributes:
+        - string: {}
+          description: Human-readable label that identifies the source cluster for the restore.
+          computed_optional_required: required
+          tf_schema_name: cluster_name
+          tf_model_name: ClusterName
+          api_name: clusterName
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - string: {}
+          description: Optional suffix applied to restored collection names.
+          computed_optional_required: computed_optional
+          tf_schema_name: collection_suffix
+          tf_model_name: CollectionSuffix
+          api_name: collectionSuffix
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Collection requested to restore, as `database.collection`.
+                      computed_optional_required: required
+                      tf_schema_name: source_namespace
+                      tf_model_name: SourceNamespace
+                      api_name: sourceNamespace
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Requested target collection as `database.collection`; if empty, source namespace is used.
+                      computed_optional_required: computed_optional
+                      tf_schema_name: target_namespace
+                      tf_model_name: TargetNamespace
+                      api_name: targetNamespace
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: List of collections to restore (up to 100 items).
+          custom_type:
+            package: customtypes
+            name: Collections
+            model: customtypes.NestedListValue[TFCollectionsModel]
+            schema: customtypes.NewNestedListType[TFCollectionsModel](ctx)
+          computed_optional_required: computed_optional
+          tf_schema_name: collections
+          tf_model_name: Collections
+          api_name: collections
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Date and time when the restore job was created (ISO 8601 format in UTC).
+          computed_optional_required: computed
+          tf_schema_name: created_at
+          tf_model_name: CreatedAt
+          api_name: createdAt
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string: {}
+          description: Optional suffix applied to restored database names.
+          computed_optional_required: computed_optional
+          tf_schema_name: database_suffix
+          tf_model_name: DatabaseSuffix
+          api_name: databaseSuffix
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Database name requested to restore.
+                      computed_optional_required: required
+                      tf_schema_name: source_namespace
+                      tf_model_name: SourceNamespace
+                      api_name: sourceNamespace
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Requested target database name; if empty, source database name is used.
+                      computed_optional_required: computed_optional
+                      tf_schema_name: target_namespace
+                      tf_model_name: TargetNamespace
+                      api_name: targetNamespace
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: List of databases to restore (up to 100 items).
+          custom_type:
+            package: customtypes
+            name: Databases
+            model: customtypes.NestedListValue[TFDatabasesModel]
+            schema: customtypes.NewNestedListType[TFDatabasesModel](ctx)
+          computed_optional_required: computed_optional
+          tf_schema_name: databases
+          tf_model_name: Databases
+          api_name: databases
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Error message when the job has failed or been canceled.
+          computed_optional_required: computed
+          tf_schema_name: error_message
+          tf_model_name: ErrorMessage
+          api_name: errorMessage
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Date and time when the restore job finished (ISO 8601 format in UTC).
+          computed_optional_required: computed
+          tf_schema_name: finished_at
+          tf_model_name: FinishedAt
+          api_name: finishedAt
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+          computed_optional_required: required
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies the collection restore job.
+          computed_optional_required: computed
+          tf_schema_name: job_id
+          tf_model_name: JobId
+          api_name: id
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - single_nested:
+            nested_object:
+                attributes:
+                    - int64: {}
+                      description: Number of collections that failed to build indexes.
+                      computed_optional_required: computed
+                      tf_schema_name: failed_collection_count
+                      tf_model_name: FailedCollectionCount
+                      api_name: failedCollectionCount
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Index build state indicating the status of index creation during or after a restore operation.
+                      computed_optional_required: computed
+                      tf_schema_name: state
+                      tf_model_name: State
+                      api_name: state
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Overall index build status for a collection restore job.
+          custom_type:
+            package: customtypes
+            name: IndexStatus
+            model: customtypes.ObjectValue[TFIndexStatusModel]
+            schema: customtypes.NewObjectType[TFIndexStatusModel](ctx)
+          computed_optional_required: computed
+          tf_schema_name: index_status
+          tf_model_name: IndexStatus
+          api_name: indexStatus
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Strategy for restoring indexes (all, none, or all except TTL).
+          computed_optional_required: required
+          tf_schema_name: index_strategy
+          tf_model_name: IndexStrategy
+          api_name: indexStrategy
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - int64: {}
+          description: Oplog increment for point-in-time restore.
+          computed_optional_required: computed_optional
+          tf_schema_name: oplog_inc
+          tf_model_name: OplogInc
+          api_name: oplogInc
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - int64: {}
+          description: Oplog timestamp (seconds part) for point-in-time restore.
+          computed_optional_required: computed_optional
+          tf_schema_name: oplog_ts
+          tf_model_name: OplogTs
+          api_name: oplogTs
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - int64: {}
+          description: Point-in-time restore time in seconds since UNIX epoch.
+          computed_optional_required: computed_optional
+          tf_schema_name: point_in_time_utc_seconds
+          tf_model_name: PointInTimeUtcSeconds
+          api_name: pointInTimeUtcSeconds
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - int64: {}
+          description: Number of documents restored so far across all supported collections.
+          computed_optional_required: computed
+          tf_schema_name: restored_documents
+          tf_model_name: RestoredDocuments
+          api_name: restoredDocuments
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: ID of the snapshot to restore.
+          computed_optional_required: computed_optional
+          tf_schema_name: snapshot_id
+          tf_model_name: SnapshotId
+          api_name: snapshotId
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Current state of the collection restore job.
+          computed_optional_required: computed
+          tf_schema_name: state
+          tf_model_name: State
+          api_name: state
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Target cluster name.
+          computed_optional_required: required
+          tf_schema_name: target_cluster_name
+          tf_model_name: TargetClusterName
+          api_name: targetClusterName
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+          computed_optional_required: required
+          tf_schema_name: target_project_id
+          tf_model_name: TargetProjectId
+          api_name: targetGroupId
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - int64: {}
+          description: Total number of documents across all supported collections in the restore job. This value may initially reflect an estimate based on collection metadata and can change as accurate document counts become available during the restore.
+          computed_optional_required: computed
+          tf_schema_name: total_documents
+          tf_model_name: TotalDocuments
+          api_name: totalDocuments
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Strategy for writing data on the target (create as new or overwrite existing). With `OVERWRITE_EXISTING`, any writes to the affected databases or collections during the restore will be lost when the existing namespaces are dropped and replaced. To avoid data loss, stop writes to the affected namespaces before starting the restore.
+          computed_optional_required: required
+          tf_schema_name: write_strategy
+          tf_model_name: WriteStrategy
+          api_name: writeStrategy
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - timeouts:
+            configurable_timeouts:
+                - create
+          computed_optional_required: ""
+          tf_schema_name: timeouts
+          tf_model_name: Timeouts
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
+operations:
+    create:
+        wait:
+            state_property: state
+            error_description_property: errorMessage
+            pending_states:
+                - INITIALIZING
+                - IN_PROGRESS
+                - FINALIZING
+            target_states:
+                - SUCCESSFUL
+            timeout_seconds: 10800
+            min_timeout_seconds: 60
+            delay_seconds: 30
+        http_method: POST
+        path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/collectionRestoreJobs
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}
+    version_header: application/vnd.atlas.2025-03-12+json
+data_sources:
+    singular:
+        description: Returns one collection restore job for one cluster from the specified project.
+        attributes:
+            - string: {}
+              description: Human-readable label that identifies the cluster with the collection restore jobs you want to return.
+              computed_optional_required: required
+              tf_schema_name: cluster_name
+              tf_model_name: ClusterName
+              api_name: clusterName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Suffix applied to restored collection names.
+              computed_optional_required: computed
+              tf_schema_name: collection_suffix
+              tf_model_name: CollectionSuffix
+              api_name: collectionSuffix
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Collection requested to restore, as `database.collection`.
+                          computed_optional_required: computed
+                          tf_schema_name: source_namespace
+                          tf_model_name: SourceNamespace
+                          api_name: sourceNamespace
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Requested target collection as `database.collection`; if empty, source namespace is used.
+                          computed_optional_required: computed
+                          tf_schema_name: target_namespace
+                          tf_model_name: TargetNamespace
+                          api_name: targetNamespace
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of collections in the restore scope (up to 100 items).
+              custom_type:
+                package: customtypes
+                name: Collections
+                model: customtypes.NestedListValue[TFCollectionsModel]
+                schema: customtypes.NewNestedListType[TFCollectionsModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: collections
+              tf_model_name: Collections
+              api_name: collections
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Date and time when the restore job was created (ISO 8601 format in UTC).
+              computed_optional_required: computed
+              tf_schema_name: created_at
+              tf_model_name: CreatedAt
+              api_name: createdAt
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Suffix applied to restored database names.
+              computed_optional_required: computed
+              tf_schema_name: database_suffix
+              tf_model_name: DatabaseSuffix
+              api_name: databaseSuffix
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Database name requested to restore.
+                          computed_optional_required: computed
+                          tf_schema_name: source_namespace
+                          tf_model_name: SourceNamespace
+                          api_name: sourceNamespace
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Requested target database name; if empty, source database name is used.
+                          computed_optional_required: computed
+                          tf_schema_name: target_namespace
+                          tf_model_name: TargetNamespace
+                          api_name: targetNamespace
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of databases in the restore scope (up to 100 items).
+              custom_type:
+                package: customtypes
+                name: Databases
+                model: customtypes.NestedListValue[TFDatabasesModel]
+                schema: customtypes.NewNestedListType[TFDatabasesModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: databases
+              tf_model_name: Databases
+              api_name: databases
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Error message when the job has failed or been canceled.
+              computed_optional_required: computed
+              tf_schema_name: error_message
+              tf_model_name: ErrorMessage
+              api_name: errorMessage
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Date and time when the restore job finished (ISO 8601 format in UTC).
+              computed_optional_required: computed
+              tf_schema_name: finished_at
+              tf_model_name: FinishedAt
+              api_name: finishedAt
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - single_nested:
+                nested_object:
+                    attributes:
+                        - int64: {}
+                          description: Number of collections that failed to build indexes.
+                          computed_optional_required: computed
+                          tf_schema_name: failed_collection_count
+                          tf_model_name: FailedCollectionCount
+                          api_name: failedCollectionCount
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Index build state indicating the status of index creation during or after a restore operation.
+                          computed_optional_required: computed
+                          tf_schema_name: state
+                          tf_model_name: State
+                          api_name: state
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: Overall index build status for a collection restore job.
+              custom_type:
+                package: customtypes
+                name: IndexStatus
+                model: customtypes.ObjectValue[TFIndexStatusModel]
+                schema: customtypes.NewObjectType[TFIndexStatusModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: index_status
+              tf_model_name: IndexStatus
+              api_name: indexStatus
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Strategy for restoring indexes (all, none, or all except TTL).
+              computed_optional_required: computed
+              tf_schema_name: index_strategy
+              tf_model_name: IndexStrategy
+              api_name: indexStrategy
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies the collection restore job to return.
+              computed_optional_required: required
+              tf_schema_name: job_id
+              tf_model_name: JobId
+              api_name: jobId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - int64: {}
+              description: Oplog increment for point-in-time restore.
+              computed_optional_required: computed
+              tf_schema_name: oplog_inc
+              tf_model_name: OplogInc
+              api_name: oplogInc
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - int64: {}
+              description: Oplog timestamp (seconds part) for point-in-time restore.
+              computed_optional_required: computed
+              tf_schema_name: oplog_ts
+              tf_model_name: OplogTs
+              api_name: oplogTs
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - int64: {}
+              description: Point-in-time restore time in seconds since UNIX epoch.
+              computed_optional_required: computed
+              tf_schema_name: point_in_time_utc_seconds
+              tf_model_name: PointInTimeUtcSeconds
+              api_name: pointInTimeUtcSeconds
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - int64: {}
+              description: Number of documents restored so far across all supported collections.
+              computed_optional_required: computed
+              tf_schema_name: restored_documents
+              tf_model_name: RestoredDocuments
+              api_name: restoredDocuments
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies the snapshot being restored.
+              computed_optional_required: computed
+              tf_schema_name: snapshot_id
+              tf_model_name: SnapshotId
+              api_name: snapshotId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Current state of the collection restore job.
+              computed_optional_required: computed
+              tf_schema_name: state
+              tf_model_name: State
+              api_name: state
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Human-readable label that identifies the target cluster.
+              computed_optional_required: computed
+              tf_schema_name: target_cluster_name
+              tf_model_name: TargetClusterName
+              api_name: targetClusterName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+              computed_optional_required: computed
+              tf_schema_name: target_project_id
+              tf_model_name: TargetProjectId
+              api_name: targetGroupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - int64: {}
+              description: Total number of documents across all supported collections in the restore job. This value may initially reflect an estimate based on collection metadata and can change as accurate document counts become available during the restore.
+              computed_optional_required: computed
+              tf_schema_name: total_documents
+              tf_model_name: TotalDocuments
+              api_name: totalDocuments
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Strategy for writing data on the target (create as new or overwrite existing). With `OVERWRITE_EXISTING`, any writes to the affected databases or collections during the restore will be lost when the existing namespaces are dropped and replaced. To avoid data loss, stop writes to the affected namespaces before starting the restore.
+              computed_optional_required: computed
+              tf_schema_name: write_strategy
+              tf_model_name: WriteStrategy
+              api_name: writeStrategy
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    plural:
+        description: Returns all collection restore jobs for one cluster from the specified project.
+        attributes:
+            - string: {}
+              description: Human-readable label that identifies the cluster with the collection restore jobs you want to return.
+              computed_optional_required: required
+              tf_schema_name: cluster_name
+              tf_model_name: ClusterName
+              api_name: clusterName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Suffix applied to restored collection names.
+                          computed_optional_required: computed
+                          tf_schema_name: collection_suffix
+                          tf_model_name: CollectionSuffix
+                          api_name: collectionSuffix
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - list_nested:
+                            nested_object:
+                                attributes:
+                                    - string: {}
+                                      description: Collection requested to restore, as `database.collection`.
+                                      computed_optional_required: computed
+                                      tf_schema_name: source_namespace
+                                      tf_model_name: SourceNamespace
+                                      api_name: sourceNamespace
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Requested target collection as `database.collection`; if empty, source namespace is used.
+                                      computed_optional_required: computed
+                                      tf_schema_name: target_namespace
+                                      tf_model_name: TargetNamespace
+                                      api_name: targetNamespace
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: List of collections in the restore scope (up to 100 items).
+                          custom_type:
+                            package: customtypes
+                            name: ResultsCollections
+                            model: customtypes.NestedListValue[TFResultsCollectionsModel]
+                            schema: customtypes.NewNestedListType[TFResultsCollectionsModel](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: collections
+                          tf_model_name: Collections
+                          api_name: collections
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Date and time when the restore job was created (ISO 8601 format in UTC).
+                          computed_optional_required: computed
+                          tf_schema_name: created_at
+                          tf_model_name: CreatedAt
+                          api_name: createdAt
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Suffix applied to restored database names.
+                          computed_optional_required: computed
+                          tf_schema_name: database_suffix
+                          tf_model_name: DatabaseSuffix
+                          api_name: databaseSuffix
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - list_nested:
+                            nested_object:
+                                attributes:
+                                    - string: {}
+                                      description: Database name requested to restore.
+                                      computed_optional_required: computed
+                                      tf_schema_name: source_namespace
+                                      tf_model_name: SourceNamespace
+                                      api_name: sourceNamespace
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Requested target database name; if empty, source database name is used.
+                                      computed_optional_required: computed
+                                      tf_schema_name: target_namespace
+                                      tf_model_name: TargetNamespace
+                                      api_name: targetNamespace
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: List of databases in the restore scope (up to 100 items).
+                          custom_type:
+                            package: customtypes
+                            name: ResultsDatabases
+                            model: customtypes.NestedListValue[TFResultsDatabasesModel]
+                            schema: customtypes.NewNestedListType[TFResultsDatabasesModel](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: databases
+                          tf_model_name: Databases
+                          api_name: databases
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Error message when the job has failed or been canceled.
+                          computed_optional_required: computed
+                          tf_schema_name: error_message
+                          tf_model_name: ErrorMessage
+                          api_name: errorMessage
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Date and time when the restore job finished (ISO 8601 format in UTC).
+                          computed_optional_required: computed
+                          tf_schema_name: finished_at
+                          tf_model_name: FinishedAt
+                          api_name: finishedAt
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-hexadecimal digit string that identifies the collection restore job.
+                          computed_optional_required: computed
+                          tf_schema_name: job_id
+                          tf_model_name: JobId
+                          api_name: id
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - single_nested:
+                            nested_object:
+                                attributes:
+                                    - int64: {}
+                                      description: Number of collections that failed to build indexes.
+                                      computed_optional_required: computed
+                                      tf_schema_name: failed_collection_count
+                                      tf_model_name: FailedCollectionCount
+                                      api_name: failedCollectionCount
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Index build state indicating the status of index creation during or after a restore operation.
+                                      computed_optional_required: computed
+                                      tf_schema_name: state
+                                      tf_model_name: State
+                                      api_name: state
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: Overall index build status for a collection restore job.
+                          custom_type:
+                            package: customtypes
+                            name: ResultsIndexStatus
+                            model: customtypes.ObjectValue[TFResultsIndexStatusModel]
+                            schema: customtypes.NewObjectType[TFResultsIndexStatusModel](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: index_status
+                          tf_model_name: IndexStatus
+                          api_name: indexStatus
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Strategy for restoring indexes (all, none, or all except TTL).
+                          computed_optional_required: computed
+                          tf_schema_name: index_strategy
+                          tf_model_name: IndexStrategy
+                          api_name: indexStrategy
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - int64: {}
+                          description: Oplog increment for point-in-time restore.
+                          computed_optional_required: computed
+                          tf_schema_name: oplog_inc
+                          tf_model_name: OplogInc
+                          api_name: oplogInc
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - int64: {}
+                          description: Oplog timestamp (seconds part) for point-in-time restore.
+                          computed_optional_required: computed
+                          tf_schema_name: oplog_ts
+                          tf_model_name: OplogTs
+                          api_name: oplogTs
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - int64: {}
+                          description: Point-in-time restore time in seconds since UNIX epoch.
+                          computed_optional_required: computed
+                          tf_schema_name: point_in_time_utc_seconds
+                          tf_model_name: PointInTimeUtcSeconds
+                          api_name: pointInTimeUtcSeconds
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - int64: {}
+                          description: Number of documents restored so far across all supported collections.
+                          computed_optional_required: computed
+                          tf_schema_name: restored_documents
+                          tf_model_name: RestoredDocuments
+                          api_name: restoredDocuments
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-hexadecimal digit string that identifies the snapshot being restored.
+                          computed_optional_required: computed
+                          tf_schema_name: snapshot_id
+                          tf_model_name: SnapshotId
+                          api_name: snapshotId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Current state of the collection restore job.
+                          computed_optional_required: computed
+                          tf_schema_name: state
+                          tf_model_name: State
+                          api_name: state
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Human-readable label that identifies the target cluster.
+                          computed_optional_required: computed
+                          tf_schema_name: target_cluster_name
+                          tf_model_name: TargetClusterName
+                          api_name: targetClusterName
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+                          computed_optional_required: computed
+                          tf_schema_name: target_project_id
+                          tf_model_name: TargetProjectId
+                          api_name: targetGroupId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - int64: {}
+                          description: Total number of documents across all supported collections in the restore job. This value may initially reflect an estimate based on collection metadata and can change as accurate document counts become available during the restore.
+                          computed_optional_required: computed
+                          tf_schema_name: total_documents
+                          tf_model_name: TotalDocuments
+                          api_name: totalDocuments
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Strategy for writing data on the target (create as new or overwrite existing). With `OVERWRITE_EXISTING`, any writes to the affected databases or collections during the restore will be lost when the existing namespaces are dropped and replaced. To avoid data loss, stop writes to the affected namespaces before starting the restore.
+                          computed_optional_required: computed
+                          tf_schema_name: write_strategy
+                          tf_model_name: WriteStrategy
+                          api_name: writeStrategy
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of returned documents that MongoDB Cloud provides when completing this request.
+              custom_type:
+                package: customtypes
+                name: Results
+                model: customtypes.NestedListValue[TFResultsModel]
+                schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: results
+              tf_model_name: Results
+              api_name: results
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}
+        list:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/collectionRestoreJobs
+        version_header: application/vnd.atlas.2025-03-12+json
+name: cloud_backup_collection_restore_job
+packageName: cloudbackupcollectionrestorejob
+id_attributes:
+    - project_id
+    - cluster_name
+    - job_id
