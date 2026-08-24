@@ -5,14 +5,14 @@ locals {
 }
 
 resource "mongodbatlas_cloud_backup_collection_restore_job" "this" {
-  project_id                = var.project_id
-  cluster_name              = var.cluster_name
-  target_project_id         = local.target_project_id
-  target_cluster_name       = local.target_cluster_name
-  write_strategy            = var.write_strategy
-  index_strategy            = var.index_strategy
-  database_suffix           = var.database_suffix
-  collection_suffix         = var.collection_suffix
+  project_id          = var.project_id
+  cluster_name        = var.cluster_name
+  target_project_id   = local.target_project_id
+  target_cluster_name = local.target_cluster_name
+  write_strategy      = var.write_strategy
+  index_strategy      = var.index_strategy
+  database_suffix     = var.database_suffix
+  collection_suffix   = var.collection_suffix
 
   point_in_time_utc_seconds = var.point_in_time_utc_seconds
   oplog_ts                  = var.oplog_ts
