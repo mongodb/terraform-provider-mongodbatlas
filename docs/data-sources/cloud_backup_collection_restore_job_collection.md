@@ -35,7 +35,8 @@ output "collection_states" {
 }
 
 locals {
-  source_namespace = coalesce(var.source_namespace, data.mongodbatlas_cloud_backup_collection_restore_job_collections.this.results[length(data.mongodbatlas_cloud_backup_collection_restore_job_collections.this.results) - 1].source_namespace)
+  collections      = data.mongodbatlas_cloud_backup_collection_restore_job_collections.this.results
+  source_namespace = coalesce(var.source_namespace, length(local.collections) > 0 ? local.collections[length(local.collections) - 1].source_namespace : null)
 }
 
 data "mongodbatlas_cloud_backup_collection_restore_job_collection" "this" {

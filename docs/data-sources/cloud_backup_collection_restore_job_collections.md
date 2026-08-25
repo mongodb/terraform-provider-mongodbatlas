@@ -35,7 +35,8 @@ output "collection_states" {
 }
 
 locals {
-  source_namespace = coalesce(var.source_namespace, data.mongodbatlas_cloud_backup_collection_restore_job_collections.this.results[length(data.mongodbatlas_cloud_backup_collection_restore_job_collections.this.results) - 1].source_namespace)
+  collections      = data.mongodbatlas_cloud_backup_collection_restore_job_collections.this.results
+  source_namespace = coalesce(var.source_namespace, length(local.collections) > 0 ? local.collections[length(local.collections) - 1].source_namespace : null)
 }
 
 data "mongodbatlas_cloud_backup_collection_restore_job_collection" "this" {
@@ -65,12 +66,6 @@ output "collection_state" {
 - `cluster_name` (String) Human-readable label that identifies the cluster with the collection restore job you want to return.
 - `job_id` (String) Unique 24-hexadecimal digit string that identifies the collection restore job.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
-
-### Optional
-
-- `source_namespace` (String) Source namespace to filter by (e.g. `db.collection`).
-- `state` (String) Collection-level state to filter by.
-- `target_namespace` (String) Target namespace to filter by (e.g. `db.collection`).
 
 ### Read-Only
 

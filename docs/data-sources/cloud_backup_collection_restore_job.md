@@ -29,7 +29,8 @@ output "restore_jobs" {
 }
 
 locals {
-  job_id = coalesce(var.job_id, data.mongodbatlas_cloud_backup_collection_restore_jobs.this.results[length(data.mongodbatlas_cloud_backup_collection_restore_jobs.this.results) - 1].job_id)
+  jobs   = data.mongodbatlas_cloud_backup_collection_restore_jobs.this.results
+  job_id = coalesce(var.job_id, length(local.jobs) > 0 ? local.jobs[length(local.jobs) - 1].job_id : null)
 }
 
 output "job_id" {
