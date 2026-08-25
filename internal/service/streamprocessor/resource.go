@@ -112,7 +112,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 			startWithOptions.SetTier(plan.Tier.ValueString())
 		}
 		// On the :startWith endpoint, `autoscaling` is TOP-LEVEL (no options wrapper).
-		autoscaling, diags := autoscalingFromPlanOptions(ctx, plan.Options)
+		autoscaling, diags := autoscalingFromOptions(ctx, plan.Options)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
@@ -248,7 +248,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 			startWithOptions.SetTier(plan.Tier.ValueString())
 		}
 		// On the :startWith endpoint, `autoscaling` is TOP-LEVEL (see create path).
-		autoscaling, diags := autoscalingFromPlanOptions(ctx, plan.Options)
+		autoscaling, diags := autoscalingFromOptions(ctx, plan.Options)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return

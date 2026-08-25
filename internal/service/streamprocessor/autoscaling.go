@@ -43,10 +43,10 @@ func newAutoscalingReq(ctx context.Context, autoscaling types.Object) (*admin.St
 	return req, nil
 }
 
-// autoscalingFromPlanOptions extracts the autoscaling SDK request from the plan's
+// autoscalingFromOptions extracts the autoscaling SDK request from a Terraform
 // `options` object, for endpoints (e.g. :startWith) that take autoscaling top-level.
 // Returns nil when options or the autoscaling block is unset.
-func autoscalingFromPlanOptions(ctx context.Context, options types.Object) (*admin.StreamsAutoscaling, diag.Diagnostics) {
+func autoscalingFromOptions(ctx context.Context, options types.Object) (*admin.StreamsAutoscaling, diag.Diagnostics) {
 	if options.IsNull() || options.IsUnknown() {
 		return nil, nil
 	}
@@ -62,14 +62,14 @@ func autoscalingFromPlanOptions(ctx context.Context, options types.Object) (*adm
 // from the plan but was present in prior state; or no operation when autoscaling is
 // absent from both, so the API preserves whatever is persisted.
 func resolveAutoscalingForUpdate(ctx context.Context, plan, state *TFStreamProcessorRSModel) (*admin.StreamsAutoscaling, bool, diag.Diagnostics) {
-	planAutoscaling, diags := autoscalingFromPlanOptions(ctx, plan.Options)
+	planAutoscaling, diags := autoscalingFromOptions(ctx, plan.Options)
 	if diags.HasError() {
 		return nil, false, diags
 	}
 	if planAutoscaling != nil {
 		return planAutoscaling, false, nil
 	}
-	stateAutoscaling, diags := autoscalingFromPlanOptions(ctx, state.Options)
+	stateAutoscaling, diags := autoscalingFromOptions(ctx, state.Options)
 	if diags.HasError() {
 		return nil, false, diags
 	}

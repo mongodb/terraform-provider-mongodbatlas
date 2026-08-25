@@ -124,7 +124,7 @@ func TestAccStreamProcessor_withTier(t *testing.T) {
 		}})
 }
 
-func TestAccStreamProcessor_withAutoscaling(t *testing.T) {
+func TestAccStreamProcessor_withOptionsDLQAutoscaling(t *testing.T) {
 	var (
 		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		_, clusterName           = acc.ClusterNameExecution(t, false)
@@ -138,7 +138,12 @@ func TestAccStreamProcessor_withAutoscaling(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithAutoscaling(t, projectID, workspaceName, clusterName, processorName, "SP10", "SP50"),
+				Config: configWithOptionsDLQAutoscaling(t, projectID, workspaceName, clusterName, processorName, streamProcessorOptionsConfig{
+					includeDLQ:         true,
+					autoscalingMinTier: "SP10",
+					autoscalingMaxTier: "SP50",
+					state:              streamprocessor.CreatedState,
+				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.min_tier", "SP10"),
@@ -147,10 +152,45 @@ func TestAccStreamProcessor_withAutoscaling(t *testing.T) {
 				),
 			},
 			{
-				// Removing the autoscaling block disables autoscaling.
-				Config: configWithAutoscaling(t, projectID, workspaceName, clusterName, processorName, "", ""),
+				// Starts a configured autoscaling processor through the top-level
+				// autoscaling field of the :startWith request.
+				Config: configWithOptionsDLQAutoscaling(t, projectID, workspaceName, clusterName, processorName, streamProcessorOptionsConfig{
+					includeDLQ:         true,
+					autoscalingMinTier: "SP10",
+					autoscalingMaxTier: "SP50",
+					state:              streamprocessor.StartedState,
+				}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
+					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.min_tier", "SP10"),
+					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.max_tier", "SP50"),
+					resource.TestCheckResourceAttrSet(resourceName, "effective_tier"),
+				),
+			},
+			{
+				// Removing DLQ sends the MMS/SPM empty-object clear while preserving autoscaling.
+				Config: configWithOptionsDLQAutoscaling(t, projectID, workspaceName, clusterName, processorName, streamProcessorOptionsConfig{
+					autoscalingMinTier: "SP10",
+					autoscalingMaxTier: "SP50",
+					state:              streamprocessor.StartedState,
+				}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
+					resource.TestCheckNoResourceAttr(resourceName, "options.dlq"),
+					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.min_tier", "SP10"),
+					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.max_tier", "SP50"),
+				),
+			},
+			{
+				// Removing the autoscaling block disables autoscaling while DLQ remains configured.
+				Config: configWithOptionsDLQAutoscaling(t, projectID, workspaceName, clusterName, processorName, streamProcessorOptionsConfig{
+					includeDLQ: true,
+					state:      streamprocessor.StartedState,
+				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
+					resource.TestCheckResourceAttrSet(resourceName, "options.dlq.connection_name"),
 					resource.TestCheckNoResourceAttr(resourceName, "options.autoscaling"),
 				),
 			},
@@ -886,19 +926,36 @@ func processorDataSources() string {
 	}`
 }
 
-// configWithAutoscaling builds a processor whose DLQ points at a cluster connection.
-// When both bounds are empty, the autoscaling block is omitted (autoscaling disabled).
-func configWithAutoscaling(t *testing.T, projectID, workspaceName, clusterName, processorName, minTier, maxTier string) string {
+type streamProcessorOptionsConfig struct {
+	autoscalingMinTier string
+	autoscalingMaxTier string
+	state              string
+	includeDLQ         bool
+}
+
+// configWithOptionsDLQAutoscaling builds a processor with independently configurable DLQ and autoscaling.
+// When both autoscaling tiers are empty, the autoscaling block is omitted (autoscaling disabled).
+func configWithOptionsDLQAutoscaling(t *testing.T, projectID, workspaceName, clusterName, processorName string, options streamProcessorOptionsConfig) string {
 	t.Helper()
 
+	dlqBlock := ""
+	if options.includeDLQ {
+		dlqBlock = `
+			dlq = {
+				coll            = "dlq_coll"
+				connection_name = mongodbatlas_stream_connection.cluster.connection_name
+				db              = "dlq_db"
+			}`
+	}
+
 	autoscalingBlock := ""
-	if minTier != "" || maxTier != "" {
+	if options.autoscalingMinTier != "" || options.autoscalingMaxTier != "" {
 		bounds := ""
-		if minTier != "" {
-			bounds += fmt.Sprintf("\n\t\t\t\tmin_tier = %[1]q", minTier)
+		if options.autoscalingMinTier != "" {
+			bounds += fmt.Sprintf("\n\t\t\t\tmin_tier = %[1]q", options.autoscalingMinTier)
 		}
-		if maxTier != "" {
-			bounds += fmt.Sprintf("\n\t\t\t\tmax_tier = %[1]q", maxTier)
+		if options.autoscalingMaxTier != "" {
+			bounds += fmt.Sprintf("\n\t\t\t\tmax_tier = %[1]q", options.autoscalingMaxTier)
 		}
 		autoscalingBlock = fmt.Sprintf(`
 			autoscaling = {%[1]s
@@ -926,13 +983,9 @@ func configWithAutoscaling(t *testing.T, projectID, workspaceName, clusterName, 
 			{ "$source" = { "connectionName" = mongodbatlas_stream_connection.cluster.connection_name, "db" = "sample", "coll" = "solar" } },
 			{ "$emit" = { "connectionName" = "__testLog" } }
 		])
-		tier = "SP10"
-		options = {
-			dlq = {
-				coll            = "dlq_coll"
-				connection_name = mongodbatlas_stream_connection.cluster.connection_name
-				db              = "dlq_db"
-			}%[5]s
+		tier  = "SP10"
+		state = %[7]q
+		options = {%[5]s%[6]s
 		}
 	}
 
@@ -941,7 +994,7 @@ func configWithAutoscaling(t *testing.T, projectID, workspaceName, clusterName, 
 		workspace_name = mongodbatlas_stream_processor.processor.workspace_name
 		processor_name = mongodbatlas_stream_processor.processor.processor_name
 	}
-	`, projectID, workspaceName, clusterName, processorName, autoscalingBlock)
+	`, projectID, workspaceName, clusterName, processorName, dlqBlock, autoscalingBlock, options.state)
 }
 
 func configMigration(t *testing.T, projectID, instanceName, processorName, state, nameSuffix string, src, dest connectionConfig, timeoutConfig string, deleteOnCreateTimeout *bool) string {

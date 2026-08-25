@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
-func dlqFromPlanOptions(ctx context.Context, options types.Object) (*admin.StreamsDLQ, diag.Diagnostics) {
+func dlqFromOptions(ctx context.Context, options types.Object) (*admin.StreamsDLQ, diag.Diagnostics) {
 	if options.IsNull() || options.IsUnknown() {
 		return nil, nil
 	}
@@ -24,14 +24,14 @@ func dlqFromPlanOptions(ctx context.Context, options types.Object) (*admin.Strea
 // an empty DLQ object as the explicit clear signal; omission preserves the
 // existing DLQ.
 func resolveDlqForUpdate(ctx context.Context, plan, state *TFStreamProcessorRSModel) (*admin.StreamsDLQ, bool, diag.Diagnostics) {
-	planDLQ, diags := dlqFromPlanOptions(ctx, plan.Options)
+	planDLQ, diags := dlqFromOptions(ctx, plan.Options)
 	if diags.HasError() {
 		return nil, false, diags
 	}
 	if planDLQ != nil {
 		return planDLQ, false, nil
 	}
-	stateDLQ, diags := dlqFromPlanOptions(ctx, state.Options)
+	stateDLQ, diags := dlqFromOptions(ctx, state.Options)
 	if diags.HasError() {
 		return nil, false, diags
 	}
