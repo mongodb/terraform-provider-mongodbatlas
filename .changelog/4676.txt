@@ -1,0 +1,43 @@
+```release-note:bug
+resource/mongodbatlas_metric_integration: Fixes API errors being silently ignored during read, delete, and wait operations, which could remove the resource from the state
+```
+
+```release-note:bug
+resource/mongodbatlas_log_integration: Fixes API errors being silently ignored during read, delete, and wait operations, which could remove the resource from the state
+```
+
+```release-note:bug
+resource/mongodbatlas_stream_connection_failover: Fixes API errors being silently ignored during read, delete, and wait operations, which could remove the resource from the state
+```
+
+```release-note:bug
+resource/mongodbatlas_service_account: Fixes API errors being silently ignored during read, delete, and wait operations, which could remove the resource from the state
+```
+
+```release-note:bug
+resource/mongodbatlas_service_account_secret: Fixes API errors being silently ignored during read, delete, and wait operations, which could remove the resource from the state
+```
+
+```release-note:bug
+resource/mongodbatlas_service_account_project_assignment: Fixes API errors being silently ignored during read, delete, and wait operations, which could remove the resource from the state
+```
+
+```release-note:bug
+resource/mongodbatlas_project_service_account: Fixes API errors being silently ignored during read, delete, and wait operations, which could remove the resource from the state
+```
+
+```release-note:bug
+resource/mongodbatlas_project_service_account_secret: Fixes API errors being silently ignored during read, delete, and wait operations, which could remove the resource from the state
+```
+
+```release-note:bug
+resource/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive: Fixes API errors being silently ignored during read, delete, and wait operations, which could remove the resource from the state
+```
+
+```release-note:bug
+resource/mongodbatlas_ai_model_api_key: Fixes API errors being silently ignored during read, delete, and wait operations, which could remove the resource from the state
+```
+
+```release-note:bug
+resource/mongodbatlas_ai_model_rate_limit: Fixes API errors being silently ignored during read, delete, and wait operations, which could remove the resource from the state
+```
