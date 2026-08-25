@@ -1,7 +1,8 @@
-package mcpconfigsecret_test
+package projectmcpconfigsecret_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -13,14 +14,14 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-const resourceName = "mongodbatlas_mcp_config_secret.test"
-const dataSourceName = "data.mongodbatlas_mcp_config_secret.test"
-const dataSourcePluralName = "data.mongodbatlas_mcp_config_secrets.test"
+const resourceName = "mongodbatlas_project_mcp_config_secret.test"
+const dataSourceName = "data.mongodbatlas_project_mcp_config_secret.test"
+const dataSourcePluralName = "data.mongodbatlas_project_mcp_config_secrets.test"
 
-func TestAccMcpConfigSecret_basic(t *testing.T) {
+func TestAccProjectMcpConfigSecret_basic(t *testing.T) {
 	var (
-		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		name  = acc.RandomName()
+		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		name      = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -29,7 +30,7 @@ func TestAccMcpConfigSecret_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name, 720),
+				Config: configBasic(projectID, name, 720),
 				Check:  checkBasic(true),
 			},
 			{
@@ -44,9 +45,9 @@ func TestAccMcpConfigSecret_basic(t *testing.T) {
 	})
 }
 
-func TestAccMcpConfigSecret_rotate(t *testing.T) {
+func TestAccProjectMcpConfigSecret_rotate(t *testing.T) {
 	var (
-		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		name          = acc.RandomName()
 		firstSecretID string
 	)
@@ -58,7 +59,7 @@ func TestAccMcpConfigSecret_rotate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// create the original secret.
-				Config: configSecrets(orgID, name, 720, "test"),
+				Config: configSecrets(projectID, name, 720, "test"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					func(s *terraform.State) error {
@@ -68,7 +69,7 @@ func TestAccMcpConfigSecret_rotate(t *testing.T) {
 			},
 			{
 				// add a second secret.
-				Config: configSecrets(orgID, name, 720, "test", "test_2"),
+				Config: configSecrets(projectID, name, 720, "test", "test_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					checkExists(resourceName+"_2"),
@@ -79,7 +80,7 @@ func TestAccMcpConfigSecret_rotate(t *testing.T) {
 				// `taint` is deprecated in favor of -replace (https://developer.hashicorp.com/terraform/cli/commands/taint)
 				// but testing plugin doesn't support -replace so using taint instead.
 				Taint:  []string{resourceName},
-				Config: configSecrets(orgID, name, 720, "test", "test_2"),
+				Config: configSecrets(projectID, name, 720, "test", "test_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					checkExists(resourceName+"_2"),
@@ -99,57 +100,57 @@ func TestAccMcpConfigSecret_rotate(t *testing.T) {
 	})
 }
 
-// builds a mongodbatlas_mcp_config_secret resource for each given address
+// builds a mongodbatlas_project_mcp_config_secret resource for each given address
 // without data sources.
-func configSecrets(orgID, name string, secretExpiresAfterHours int, addrs ...string) string {
+func configSecrets(projectID, name string, secretExpiresAfterHours int, addrs ...string) string {
 	var secretsHCL strings.Builder
 	for _, addr := range addrs {
 		fmt.Fprintf(&secretsHCL, `
-			resource "mongodbatlas_mcp_config_secret" "%[1]s" {
-				org_id                     = %[2]q
-				mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
+			resource "mongodbatlas_project_mcp_config_secret" "%[1]s" {
+				project_id                 = %[2]q
+				mcp_config_id              = mongodbatlas_project_mcp_config.test.mcp_config_id
 				secret_expires_after_hours = %[3]d
 			}
-		`, addr, orgID, secretExpiresAfterHours)
+		`, addr, projectID, secretExpiresAfterHours)
 	}
 	return fmt.Sprintf(`
-		resource "mongodbatlas_mcp_config" "test" {
-			org_id          = %[1]q
+		resource "mongodbatlas_project_mcp_config" "test" {
+			project_id      = %[1]q
 			mcp_config_name = %[2]q
-			roles           = ["ORG_READ_ONLY"]
+			roles           = ["GROUP_READ_ONLY"]
 		}
 
 		%[3]s
-	`, orgID, name, secretsHCL.String())
+	`, projectID, name, secretsHCL.String())
 }
 
-// builds a single mongodbatlas_mcp_config_secret resource + its singular/plural data sources.
-func configBasic(orgID, name string, secretExpiresAfterHours int) string {
+// builds a single mongodbatlas_project_mcp_config_secret resource + its singular/plural data sources.
+func configBasic(projectID, name string, secretExpiresAfterHours int) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_mcp_config" "test" {
-			org_id          = %[1]q
+		resource "mongodbatlas_project_mcp_config" "test" {
+			project_id      = %[1]q
 			mcp_config_name = %[2]q
-			roles           = ["ORG_READ_ONLY"]
+			roles           = ["GROUP_READ_ONLY"]
 		}
 
-		resource "mongodbatlas_mcp_config_secret" "test" {
-			org_id                     = %[1]q
-			mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
+		resource "mongodbatlas_project_mcp_config_secret" "test" {
+			project_id                 = %[1]q
+			mcp_config_id              = mongodbatlas_project_mcp_config.test.mcp_config_id
 			secret_expires_after_hours = %[3]d
 		}
 
-		data "mongodbatlas_mcp_config_secret" "test" {
-			org_id        = %[1]q
-			mcp_config_id = mongodbatlas_mcp_config.test.mcp_config_id
-			secret_id     = mongodbatlas_mcp_config_secret.test.secret_id
+		data "mongodbatlas_project_mcp_config_secret" "test" {
+			project_id    = %[1]q
+			mcp_config_id = mongodbatlas_project_mcp_config.test.mcp_config_id
+			secret_id     = mongodbatlas_project_mcp_config_secret.test.secret_id
 		}
 
-		data "mongodbatlas_mcp_config_secrets" "test" {
-			org_id        = %[1]q
-			mcp_config_id = mongodbatlas_mcp_config.test.mcp_config_id
-			depends_on    = [mongodbatlas_mcp_config_secret.test]
+		data "mongodbatlas_project_mcp_config_secrets" "test" {
+			project_id    = %[1]q
+			mcp_config_id = mongodbatlas_project_mcp_config.test.mcp_config_id
+			depends_on    = [mongodbatlas_project_mcp_config_secret.test]
 		}
-	`, orgID, name, secretExpiresAfterHours)
+	`, projectID, name, secretExpiresAfterHours)
 }
 
 func checkBasic(isCreate bool) resource.TestCheckFunc {
@@ -185,37 +186,41 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-		orgID := rs.Primary.Attributes["org_id"]
+		projectID := rs.Primary.Attributes["project_id"]
 		mcpConfigID := rs.Primary.Attributes["mcp_config_id"]
 		secretID := rs.Primary.Attributes["secret_id"]
-		if orgID == "" || mcpConfigID == "" || secretID == "" {
+		if projectID == "" || mcpConfigID == "" || secretID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetOrgMcpSecret(context.Background(), orgID, mcpConfigID, secretID).Execute()
+		_, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetGroupMcpSecret(context.Background(), projectID, mcpConfigID, secretID).Execute()
 		if err == nil {
 			return nil
 		}
-		return fmt.Errorf("mcp config secret (%s/%s/%s) does not exist: %w", orgID, mcpConfigID, secretID, err)
+		return fmt.Errorf("mcp config secret (%s/%s/%s) does not exist: %w", projectID, mcpConfigID, secretID, err)
 	}
 }
 
 func checkDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_mcp_config_secret" {
+	var errs []error
+	for name, rs := range s.RootModule().Resources {
+		if !strings.HasPrefix(name, "mongodbatlas_project_mcp_config_secret.") {
 			continue
 		}
-		orgID := rs.Primary.Attributes["org_id"]
+		projectID := rs.Primary.Attributes["project_id"]
 		mcpConfigID := rs.Primary.Attributes["mcp_config_id"]
 		secretID := rs.Primary.Attributes["secret_id"]
-		if orgID == "" || mcpConfigID == "" || secretID == "" {
-			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
+		if projectID == "" || mcpConfigID == "" || secretID == "" {
+			errs = append(errs, fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName))
+			continue
 		}
-		_, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetOrgMcpSecret(context.Background(), orgID, mcpConfigID, secretID).Execute()
-		if err == nil {
-			return fmt.Errorf("mcp config secret (%s/%s/%s) still exists", orgID, mcpConfigID, secretID)
+		if _, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetGroupMcpSecret(context.Background(), projectID, mcpConfigID, secretID).Execute(); err == nil {
+			errs = append(errs, fmt.Errorf("mcp config secret (%s/%s/%s) still exists", projectID, mcpConfigID, secretID))
 		}
 	}
-	return nil
+	if err := acc.CheckDestroyDeleteOrgMcpConfigs(s); err != nil {
+		errs = append(errs, err)
+	}
+	return errors.Join(errs...)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
@@ -224,12 +229,12 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		orgID := rs.Primary.Attributes["org_id"]
+		projectID := rs.Primary.Attributes["project_id"]
 		mcpConfigID := rs.Primary.Attributes["mcp_config_id"]
 		secretID := rs.Primary.Attributes["secret_id"]
-		if orgID == "" || mcpConfigID == "" || secretID == "" {
+		if projectID == "" || mcpConfigID == "" || secretID == "" {
 			return "", fmt.Errorf("import, attributes not found for: %s", resourceName)
 		}
-		return fmt.Sprintf("%s/%s/%s", orgID, mcpConfigID, secretID), nil
+		return fmt.Sprintf("%s/%s/%s", projectID, mcpConfigID, secretID), nil
 	}
 }
