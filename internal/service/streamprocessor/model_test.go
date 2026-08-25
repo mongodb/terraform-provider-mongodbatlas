@@ -624,8 +624,8 @@ func TestNewStreamProcessorUpdateReqAutoscaling(t *testing.T) {
 		assert.True(t, req.StreamsModifyStreamProcessor.Options.Autoscaling.GetEnabled())
 	})
 
-	t.Run("autoscaling-only options omit DLQ", func(t *testing.T) {
-		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsAutoscalingOnly), base(optionsDlqOnly))
+	t.Run("autoscaling-only options omit DLQ when absent in state", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsAutoscalingOnly), base(optionsAutoscalingOnly))
 		require.False(t, diags.HasError())
 		require.NotNil(t, req.StreamsModifyStreamProcessor.Options)
 		assert.Nil(t, req.StreamsModifyStreamProcessor.Options.Dlq)
@@ -660,10 +660,43 @@ func TestNewStreamProcessorUpdateReqAutoscaling(t *testing.T) {
 		assert.Nil(t, payload["options"].(map[string]any)["autoscaling"])
 	})
 
-	t.Run("autoscaling absent in plan and state => no autoscaling operation", func(t *testing.T) {
-		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsDlqOnly), base(optionsDlqOnly))
+	t.Run("DLQ removed but present in state => explicit empty object", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsAutoscalingOnly), base(optionsWithAutoscaling))
 		require.False(t, diags.HasError())
-		assert.Nil(t, req.StreamsModifyStreamProcessor.Options.Autoscaling)
+		options := req.StreamsModifyStreamProcessor.Options
+		require.NotNil(t, options)
+		require.NotNil(t, options.Dlq)
+		assert.Nil(t, options.Dlq.Coll)
+		assert.Nil(t, options.Dlq.ConnectionName)
+		assert.Nil(t, options.Dlq.Db)
+		body, err := json.Marshal(req.StreamsModifyStreamProcessor)
+		require.NoError(t, err)
+		var payload map[string]any
+		require.NoError(t, json.Unmarshal(body, &payload))
+		dlq, ok := payload["options"].(map[string]any)["dlq"]
+		require.True(t, ok)
+		assert.Empty(t, dlq)
+	})
+
+	t.Run("whole options block removed but DLQ present in state => explicit empty object", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsNull), base(optionsDlqOnly))
+		require.False(t, diags.HasError())
+		options := req.StreamsModifyStreamProcessor.Options
+		require.NotNil(t, options)
+		require.NotNil(t, options.Dlq)
+		body, err := json.Marshal(req.StreamsModifyStreamProcessor)
+		require.NoError(t, err)
+		var payload map[string]any
+		require.NoError(t, json.Unmarshal(body, &payload))
+		dlq, ok := payload["options"].(map[string]any)["dlq"]
+		require.True(t, ok)
+		assert.Empty(t, dlq)
+	})
+
+	t.Run("autoscaling and DLQ absent in plan and state => no options operation", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsNull), base(optionsNull))
+		require.False(t, diags.HasError())
+		assert.Nil(t, req.StreamsModifyStreamProcessor.Options)
 	})
 }
 

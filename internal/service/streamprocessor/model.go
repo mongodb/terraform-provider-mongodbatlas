@@ -82,21 +82,17 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProce
 		streamProcessorAPIParams.StreamsModifyStreamProcessor.FailoverEnabled = plan.FailoverEnabled.ValueBoolPointer()
 	}
 
-	// Resolve the autoscaling operation with PATCH tri-state semantics.
+	// Resolve the options PATCH operations with tri-state semantics.
 	autoscaling, clearAutoscaling, diags := resolveAutoscalingForUpdate(ctx, plan, state)
 	if diags.HasError() {
 		return nil, diags
 	}
+	dlq, clearDLQ, diags := resolveDlqForUpdate(ctx, plan, state)
+	if diags.HasError() {
+		return nil, diags
+	}
 
-	if !plan.Options.IsNull() && !plan.Options.IsUnknown() {
-		optionsModel := &TFOptionsModel{}
-		if diags := plan.Options.As(ctx, optionsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
-			return nil, diags
-		}
-		dlq, diags := newDlqReq(ctx, optionsModel.Dlq)
-		if diags.HasError() {
-			return nil, diags
-		}
+	if autoscaling != nil || clearAutoscaling || dlq != nil || clearDLQ {
 		options := &admin.StreamsModifyStreamProcessorOptions{
 			Dlq:         dlq,
 			Autoscaling: autoscaling,
@@ -104,12 +100,10 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProce
 		if clearAutoscaling {
 			options.SetAutoscalingNil()
 		}
-		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = options
-	} else if clearAutoscaling {
-		// The whole options block was removed but autoscaling still needs an explicit
-		// clear. Dlq is omitted so the API preserves it.
-		options := &admin.StreamsModifyStreamProcessorOptions{}
-		options.SetAutoscalingNil()
+		if clearDLQ {
+			// SPM uses an empty object (rather than null) as the DLQ clear signal.
+			options.Dlq = &admin.StreamsDLQ{}
+		}
 		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = options
 	}
 
