@@ -6,10 +6,10 @@ import (
 	"context"
 
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 )
 
 func DataSourceSchema(ctx context.Context) dsschema.Schema {

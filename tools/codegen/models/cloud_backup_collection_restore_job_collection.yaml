@@ -44,9 +44,11 @@ data_sources:
                             element_type: 5
                           description: List of index specifications that failed to build (up to 64 items).
                           custom_type:
-                            package: customtypes
                             model: customtypes.ListValue[jsontypes.Normalized]
                             schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+                            packages:
+                                - customtypes
+                                - jsontypes
                           computed_optional_required: computed
                           tf_schema_name: failed_indexes
                           tf_model_name: FailedIndexes
@@ -69,10 +71,11 @@ data_sources:
                           request_only_required_on_create: false
               description: Index build status for a collection within a restore job.
               custom_type:
-                package: customtypes
                 name: IndexStatus
                 model: customtypes.ObjectValue[TFIndexStatusModel]
                 schema: customtypes.NewObjectType[TFIndexStatusModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: index_status
               tf_model_name: IndexStatus
@@ -227,9 +230,11 @@ data_sources:
                                         element_type: 5
                                       description: List of index specifications that failed to build (up to 64 items).
                                       custom_type:
-                                        package: customtypes
                                         model: customtypes.ListValue[jsontypes.Normalized]
                                         schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+                                        packages:
+                                            - customtypes
+                                            - jsontypes
                                       computed_optional_required: computed
                                       tf_schema_name: failed_indexes
                                       tf_model_name: FailedIndexes
@@ -252,10 +257,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: Index build status for a collection within a restore job.
                           custom_type:
-                            package: customtypes
                             name: ResultsIndexStatus
                             model: customtypes.ObjectValue[TFResultsIndexStatusModel]
                             schema: customtypes.NewObjectType[TFResultsIndexStatusModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: index_status
                           tf_model_name: IndexStatus
@@ -322,10 +328,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List of returned documents that MongoDB Cloud provides when completing this request.
               custom_type:
-                package: customtypes
                 name: Results
                 model: customtypes.NestedListValue[TFResultsModel]
                 schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: results
               tf_model_name: Results

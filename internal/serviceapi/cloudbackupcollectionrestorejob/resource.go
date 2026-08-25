@@ -4,6 +4,7 @@ package cloudbackupcollectionrestorejob
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -69,11 +70,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			ErrorDescriptionProperty: "errorMessage",
 			PendingStates:            []string{"INITIALIZING", "IN_PROGRESS", "FINALIZING"},
 			TargetStates:             []string{"SUCCESSFUL"},
-			IDAttributes:             []string{"project_id", "cluster_name", "job_id"},
 			Timeout:                  timeout,
 			MinTimeoutSeconds:        60,
 			DelaySeconds:             30,
 			CallParams:               readAPICallParams,
+			FormatID:                 formatIDAttributes,
 		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)
@@ -122,4 +123,13 @@ func readAPICallParams(model any) *config.APICallParams {
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
+}
+
+func formatIDAttributes(model any) string {
+	m := model.(*TFModel)
+	return fmt.Sprintf("project_id=%q, cluster_name=%q, job_id=%q",
+		m.ProjectId.ValueString(),
+		m.ClusterName.ValueString(),
+		m.JobId.ValueString(),
+	)
 }

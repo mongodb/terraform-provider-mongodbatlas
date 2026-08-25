@@ -50,10 +50,11 @@ schema:
                       request_only_required_on_create: false
           description: List of collections to restore (up to 100 items).
           custom_type:
-            package: customtypes
             name: Collections
             model: customtypes.NestedListValue[TFCollectionsModel]
             schema: customtypes.NewNestedListType[TFCollectionsModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed_optional
           tf_schema_name: collections
           tf_model_name: Collections
@@ -113,10 +114,11 @@ schema:
                       request_only_required_on_create: false
           description: List of databases to restore (up to 100 items).
           custom_type:
-            package: customtypes
             name: Databases
             model: customtypes.NestedListValue[TFDatabasesModel]
             schema: customtypes.NewNestedListType[TFDatabasesModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed_optional
           tf_schema_name: databases
           tf_model_name: Databases
@@ -198,10 +200,11 @@ schema:
                       request_only_required_on_create: false
           description: Overall index build status for a collection restore job.
           custom_type:
-            package: customtypes
             name: IndexStatus
             model: customtypes.ObjectValue[TFIndexStatusModel]
             schema: customtypes.NewObjectType[TFIndexStatusModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed
           tf_schema_name: index_status
           tf_model_name: IndexStatus
@@ -416,10 +419,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List of collections in the restore scope (up to 100 items).
               custom_type:
-                package: customtypes
                 name: Collections
                 model: customtypes.NestedListValue[TFCollectionsModel]
                 schema: customtypes.NewNestedListType[TFCollectionsModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: collections
               tf_model_name: Collections
@@ -478,10 +482,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List of databases in the restore scope (up to 100 items).
               custom_type:
-                package: customtypes
                 name: Databases
                 model: customtypes.NestedListValue[TFDatabasesModel]
                 schema: customtypes.NewNestedListType[TFDatabasesModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: databases
               tf_model_name: Databases
@@ -540,10 +545,11 @@ data_sources:
                           request_only_required_on_create: false
               description: Overall index build status for a collection restore job.
               custom_type:
-                package: customtypes
                 name: IndexStatus
                 model: customtypes.ObjectValue[TFIndexStatusModel]
                 schema: customtypes.NewObjectType[TFIndexStatusModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: index_status
               tf_model_name: IndexStatus
@@ -762,10 +768,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: List of collections in the restore scope (up to 100 items).
                           custom_type:
-                            package: customtypes
                             name: ResultsCollections
                             model: customtypes.NestedListValue[TFResultsCollectionsModel]
                             schema: customtypes.NewNestedListType[TFResultsCollectionsModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: collections
                           tf_model_name: Collections
@@ -824,10 +831,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: List of databases in the restore scope (up to 100 items).
                           custom_type:
-                            package: customtypes
                             name: ResultsDatabases
                             model: customtypes.NestedListValue[TFResultsDatabasesModel]
                             schema: customtypes.NewNestedListType[TFResultsDatabasesModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: databases
                           tf_model_name: Databases
@@ -897,10 +905,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: Overall index build status for a collection restore job.
                           custom_type:
-                            package: customtypes
                             name: ResultsIndexStatus
                             model: customtypes.ObjectValue[TFResultsIndexStatusModel]
                             schema: customtypes.NewObjectType[TFResultsIndexStatusModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: index_status
                           tf_model_name: IndexStatus
@@ -1033,10 +1042,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List of returned documents that MongoDB Cloud provides when completing this request.
               custom_type:
-                package: customtypes
                 name: Results
                 model: customtypes.NestedListValue[TFResultsModel]
                 schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: results
               tf_model_name: Results
