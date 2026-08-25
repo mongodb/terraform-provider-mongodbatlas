@@ -83,7 +83,7 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProce
 	}
 
 	// Resolve the autoscaling operation with PATCH tri-state semantics.
-	autoscaling, diags := resolveAutoscalingForUpdate(ctx, plan, state)
+	autoscaling, clearAutoscaling, diags := resolveAutoscalingForUpdate(ctx, plan, state)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -97,16 +97,20 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProce
 		if diags.HasError() {
 			return nil, diags
 		}
-		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = &admin.StreamsModifyStreamProcessorOptions{
+		options := &admin.StreamsModifyStreamProcessorOptions{
 			Dlq:         dlq,
 			Autoscaling: autoscaling,
 		}
-	} else if autoscaling != nil {
-		// The whole options block was removed but autoscaling still needs an explicit
-		// disable. Dlq is left nil (omitted => preserved by the API).
-		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = &admin.StreamsModifyStreamProcessorOptions{
-			Autoscaling: autoscaling,
+		if clearAutoscaling {
+			options.SetAutoscalingNil()
 		}
+		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = options
+	} else if clearAutoscaling {
+		// The whole options block was removed but autoscaling still needs an explicit
+		// clear. Dlq is omitted so the API preserves it.
+		options := &admin.StreamsModifyStreamProcessorOptions{}
+		options.SetAutoscalingNil()
+		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = options
 	}
 
 	// Baseline tier is settable on the PATCH body; when autoscaling is enabled the API treats

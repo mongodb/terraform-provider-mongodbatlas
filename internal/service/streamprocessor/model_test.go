@@ -632,19 +632,32 @@ func TestNewStreamProcessorUpdateReqAutoscaling(t *testing.T) {
 		require.NotNil(t, req.StreamsModifyStreamProcessor.Options.Autoscaling)
 	})
 
-	t.Run("autoscaling removed but present in state => explicit disable", func(t *testing.T) {
+	t.Run("autoscaling removed but present in state => explicit null", func(t *testing.T) {
 		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsDlqOnly), base(optionsWithAutoscaling))
 		require.False(t, diags.HasError())
-		require.NotNil(t, req.StreamsModifyStreamProcessor.Options.Autoscaling)
-		assert.False(t, req.StreamsModifyStreamProcessor.Options.Autoscaling.GetEnabled())
+		options := req.StreamsModifyStreamProcessor.Options
+		require.NotNil(t, options)
+		assert.Nil(t, options.Autoscaling)
+		assert.Contains(t, options.NullFields, "Autoscaling")
+		body, err := json.Marshal(req.StreamsModifyStreamProcessor)
+		require.NoError(t, err)
+		var payload map[string]any
+		require.NoError(t, json.Unmarshal(body, &payload))
+		assert.Nil(t, payload["options"].(map[string]any)["autoscaling"])
 	})
 
-	t.Run("whole options block removed but autoscaling in state => explicit disable", func(t *testing.T) {
+	t.Run("whole options block removed but autoscaling in state => explicit null", func(t *testing.T) {
 		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsNull), base(optionsWithAutoscaling))
 		require.False(t, diags.HasError())
-		require.NotNil(t, req.StreamsModifyStreamProcessor.Options)
-		require.NotNil(t, req.StreamsModifyStreamProcessor.Options.Autoscaling)
-		assert.False(t, req.StreamsModifyStreamProcessor.Options.Autoscaling.GetEnabled())
+		options := req.StreamsModifyStreamProcessor.Options
+		require.NotNil(t, options)
+		assert.Nil(t, options.Autoscaling)
+		assert.Contains(t, options.NullFields, "Autoscaling")
+		body, err := json.Marshal(req.StreamsModifyStreamProcessor)
+		require.NoError(t, err)
+		var payload map[string]any
+		require.NoError(t, json.Unmarshal(body, &payload))
+		assert.Nil(t, payload["options"].(map[string]any)["autoscaling"])
 	})
 
 	t.Run("autoscaling absent in plan and state => no autoscaling operation", func(t *testing.T) {

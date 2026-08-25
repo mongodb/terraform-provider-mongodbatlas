@@ -58,25 +58,25 @@ func autoscalingFromPlanOptions(ctx context.Context, options types.Object) (*adm
 }
 
 // resolveAutoscalingForUpdate applies the PATCH tri-state semantics: it returns the
-// plan's autoscaling request when configured; an explicit disable ({enabled:false})
-// when the block was removed from the plan but was present in prior state; or nil when
-// autoscaling is absent from both, so the API preserves whatever is persisted.
-func resolveAutoscalingForUpdate(ctx context.Context, plan, state *TFStreamProcessorRSModel) (*admin.StreamsAutoscaling, diag.Diagnostics) {
+// plan's autoscaling request when configured; clear=true when the block was removed
+// from the plan but was present in prior state; or no operation when autoscaling is
+// absent from both, so the API preserves whatever is persisted.
+func resolveAutoscalingForUpdate(ctx context.Context, plan, state *TFStreamProcessorRSModel) (*admin.StreamsAutoscaling, bool, diag.Diagnostics) {
 	planAutoscaling, diags := autoscalingFromPlanOptions(ctx, plan.Options)
 	if diags.HasError() {
-		return nil, diags
+		return nil, false, diags
 	}
 	if planAutoscaling != nil {
-		return planAutoscaling, nil
+		return planAutoscaling, false, nil
 	}
 	stateAutoscaling, diags := autoscalingFromPlanOptions(ctx, state.Options)
 	if diags.HasError() {
-		return nil, diags
+		return nil, false, diags
 	}
 	if stateAutoscaling != nil {
-		return &admin.StreamsAutoscaling{Enabled: new(false)}, nil
+		return nil, true, nil
 	}
-	return nil, nil
+	return nil, false, nil
 }
 
 // convertAutoscalingToTF converts the SDK response type into a TF object.
