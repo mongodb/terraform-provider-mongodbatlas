@@ -95,11 +95,11 @@ func initCollectionRestoreFixture(tb testing.TB) (*CollectionRestoreFixture, err
 	tb.Helper()
 	ctx := tb.Context()
 	if env, ok := collectionRestoreEnvFromOS(); ok {
-		snapshot, _, err := ConnV2().CloudBackupsAPI.GetClusterBackupSnapshot(ctx, env.ProjectID, env.ClusterName, env.SnapshotID).Execute()
-		if err != nil {
-			return nil, fmt.Errorf("get snapshot %s: %w", env.SnapshotID, err)
-		}
 		if err := requireCloudBackupAndPIT(ctx, env.ProjectID, env.ClusterName); err != nil {
+			return nil, err
+		}
+		snapshot, err := waitForCompletedSnapshot(ctx, env.ProjectID, env.ClusterName, env.SnapshotID)
+		if err != nil {
 			return nil, err
 		}
 		return &CollectionRestoreFixture{
@@ -167,6 +167,13 @@ func takeCompletedOnDemandSnapshot(ctx context.Context, projectID, clusterName s
 		return "", 0, fmt.Errorf("take snapshot: %w", err)
 	}
 	snapshotID = snapshot.GetId()
+	if _, err := waitForCompletedSnapshot(ctx, projectID, clusterName, snapshotID); err != nil {
+		return "", 0, err
+	}
+	return snapshotID, time.Now().UTC().Unix(), nil
+}
+
+func waitForCompletedSnapshot(ctx context.Context, projectID, clusterName, snapshotID string) (*admin.DiskBackupReplicaSet, error) {
 	requestParams := &admin.GetClusterBackupSnapshotApiParams{
 		GroupId:     projectID,
 		ClusterName: clusterName,
@@ -190,10 +197,14 @@ func takeCompletedOnDemandSnapshot(ctx context.Context, projectID, clusterName s
 			return cur, status, nil
 		},
 	}
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return "", 0, fmt.Errorf("wait snapshot %s: %w", snapshotID, err)
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return nil, fmt.Errorf("wait snapshot %s: %w", snapshotID, err)
 	}
-	return snapshotID, time.Now().UTC().Unix(), nil
+	snapshot, _, err := ConnV2().CloudBackupsAPI.GetClusterBackupSnapshot(ctx, projectID, clusterName, snapshotID).Execute()
+	if err != nil {
+		return nil, fmt.Errorf("get snapshot %s: %w", snapshotID, err)
+	}
+	return snapshot, nil
 }
 
 type collectionRestoreJobView struct {
@@ -224,6 +235,13 @@ func collectionRestoreJobCall(projectID, clusterName, jobID string) config.APICa
 	}
 }
 
+func closeOnAPIErr(resp *http.Response, err error) error {
+	if err != nil && resp != nil && resp.Body != nil {
+		_ = resp.Body.Close()
+	}
+	return err
+}
+
 func readJSONBody(resp *http.Response, dest any) error {
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
@@ -236,7 +254,7 @@ func readJSONBody(resp *http.Response, dest any) error {
 // GetCollectionRestoreJob GETs one job via the untyped client and the resource version header.
 func GetCollectionRestoreJob(ctx context.Context, projectID, clusterName, jobID string) (map[string]any, error) {
 	resp, err := MongoDBClient.UntypedAPICall(ctx, collectionRestoreJobCall(projectID, clusterName, jobID), nil)
-	if err != nil {
+	if err := closeOnAPIErr(resp, err); err != nil {
 		return nil, err
 	}
 	var body map[string]any
@@ -249,7 +267,7 @@ func GetCollectionRestoreJob(ctx context.Context, projectID, clusterName, jobID 
 // LatestCollectionRestoreJobID returns the newest job on the source cluster whose target matches destClusterName.
 func LatestCollectionRestoreJobID(ctx context.Context, projectID, clusterName, destClusterName string) (string, error) {
 	resp, err := MongoDBClient.UntypedAPICall(ctx, collectionRestoreJobCall(projectID, clusterName, ""), nil)
-	if err != nil {
+	if err := closeOnAPIErr(resp, err); err != nil {
 		return "", err
 	}
 	var list collectionRestoreJobList
