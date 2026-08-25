@@ -1694,7 +1694,6 @@ resources:
         min_timeout_seconds: 60
         delay_seconds: 30
     version_header: application/vnd.atlas.2025-03-12+json
-    id_attributes: [project_id, cluster_name, job_id]
     schema:
       aliases:
         groupId: projectId

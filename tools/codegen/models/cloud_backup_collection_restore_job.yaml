@@ -1056,7 +1056,3 @@ data_sources:
         version_header: application/vnd.atlas.2025-03-12+json
 name: cloud_backup_collection_restore_job
 packageName: cloudbackupcollectionrestorejob
-id_attributes:
-    - project_id
-    - cluster_name
-    - job_id
