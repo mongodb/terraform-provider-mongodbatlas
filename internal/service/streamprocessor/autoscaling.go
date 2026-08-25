@@ -1,17 +1,5 @@
 package streamprocessor
 
-// Vertical Autoscaling (Phase 1) for stream processors.
-//
-// The autoscaling config (`options.autoscaling`) and the read-only top-level
-// `effectiveTier` field are still `@Hidden` in the Atlas API and are therefore
-// not part of the officially generated SDK yet. During development they are
-// provided by a hand-patched LOCAL copy of the versioned SDK wired in via the
-// `replace` directive in go.mod (see .sdkstub/, per the ASP "Terraform
-// Development" wiki's "Local validation in Cloud Dev" guidance). Once the fields
-// are un-hidden and land in the official SDK, remove the stub + replace directive;
-// no changes to this file should be required because it already targets the real
-// admin.StreamsAutoscaling type.
-
 import (
 	"context"
 
