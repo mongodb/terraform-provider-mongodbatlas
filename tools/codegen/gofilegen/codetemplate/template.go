@@ -36,8 +36,14 @@ type ResourceFileInputs struct {
 	MoveState     *MoveState
 	PackageName   string
 	ResourceName  string
-	IDAttributes  []string
+	IDAttributes  []IDAttribute
 	APIOperations APIOperations
+	HasWait       bool
+}
+
+type IDAttribute struct {
+	SchemaName     string
+	PascalCaseName string
 }
 
 type APIOperations struct {

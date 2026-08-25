@@ -4,6 +4,7 @@ package searchindexapi
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -73,11 +74,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			StateProperty:     "status",
 			PendingStates:     []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING"},
 			TargetStates:      []string{"READY", "STEADY"},
-			IDAttributes:      []string{"group_id", "cluster_name", "index_id"},
 			Timeout:           timeout,
 			MinTimeoutSeconds: 30,
 			DelaySeconds:      30,
 			CallParams:        readAPICallParams,
+			FormatID:          formatIDAttributes,
 		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)
@@ -135,11 +136,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			StateProperty:     "status",
 			PendingStates:     []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING"},
 			TargetStates:      []string{"READY", "STEADY"},
-			IDAttributes:      []string{"group_id", "cluster_name", "index_id"},
 			Timeout:           timeout,
 			MinTimeoutSeconds: 30,
 			DelaySeconds:      30,
 			CallParams:        readAPICallParams,
+			FormatID:          formatIDAttributes,
 		},
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
@@ -161,11 +162,11 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		StateProperty:     "status",
 		PendingStates:     []string{"DELETING"},
 		TargetStates:      []string{"DELETED"},
-		IDAttributes:      []string{"group_id", "cluster_name", "index_id"},
 		Timeout:           timeout,
 		MinTimeoutSeconds: 5,
 		DelaySeconds:      5,
 		CallParams:        readAPICallParams,
+		FormatID:          formatIDAttributes,
 	}
 	autogen.HandleDelete(ctx, *reqHandle)
 }
@@ -188,6 +189,15 @@ func readAPICallParams(model any) *config.APICallParams {
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
+}
+
+func formatIDAttributes(model any) string {
+	m := model.(*TFModel)
+	return fmt.Sprintf("group_id=%q, cluster_name=%q, index_id=%q",
+		m.GroupId.ValueString(),
+		m.ClusterName.ValueString(),
+		m.IndexID.ValueString(),
+	)
 }
 
 func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {

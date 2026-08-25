@@ -36,11 +36,11 @@ const (
 
 type WaitReq struct {
 	CallParams               func(model any) *config.APICallParams
+	FormatID                 func(model any) string
 	StateProperty            string
 	ErrorDescriptionProperty string // camelCase JSON key in the API response body, e.g. "errorMessage"
 	PendingStates            []string
 	TargetStates             []string
-	IDAttributes             []string
 	Timeout                  time.Duration
 	MinTimeoutSeconds        int
 	DelaySeconds             int

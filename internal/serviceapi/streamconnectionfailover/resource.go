@@ -4,6 +4,7 @@ package streamconnectionfailover
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -74,11 +75,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			StateProperty:     "state",
 			PendingStates:     []string{"PENDING", "DELETED"},
 			TargetStates:      []string{"READY"},
-			IDAttributes:      []string{"project_id", "workspace_name", "connection_name", "failover_connection_id"},
 			Timeout:           timeout,
 			MinTimeoutSeconds: 10,
 			DelaySeconds:      10,
 			CallParams:        readAPICallParams,
+			FormatID:          formatIDAttributes,
 		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)
@@ -137,11 +138,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			StateProperty:     "state",
 			PendingStates:     []string{"PENDING"},
 			TargetStates:      []string{"READY"},
-			IDAttributes:      []string{"project_id", "workspace_name", "connection_name", "failover_connection_id"},
 			Timeout:           timeout,
 			MinTimeoutSeconds: 10,
 			DelaySeconds:      10,
 			CallParams:        readAPICallParams,
+			FormatID:          formatIDAttributes,
 		},
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
@@ -163,11 +164,11 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		StateProperty:     "state",
 		PendingStates:     []string{"READY", "PENDING", "DELETING"},
 		TargetStates:      []string{"DELETED"},
-		IDAttributes:      []string{"project_id", "workspace_name", "connection_name", "failover_connection_id"},
 		Timeout:           timeout,
 		MinTimeoutSeconds: 10,
 		DelaySeconds:      10,
 		CallParams:        readAPICallParams,
+		FormatID:          formatIDAttributes,
 	}
 	autogen.HandleDelete(ctx, *reqHandle)
 }
@@ -191,6 +192,16 @@ func readAPICallParams(model any) *config.APICallParams {
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
+}
+
+func formatIDAttributes(model any) string {
+	m := model.(*TFModel)
+	return fmt.Sprintf("project_id=%q, workspace_name=%q, connection_name=%q, failover_connection_id=%q",
+		m.ProjectId.ValueString(),
+		m.WorkspaceName.ValueString(),
+		m.ConnectionName.ValueString(),
+		m.FailoverConnectionId.ValueString(),
+	)
 }
 
 func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {

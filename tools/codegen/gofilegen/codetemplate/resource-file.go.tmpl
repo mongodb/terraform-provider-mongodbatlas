@@ -4,8 +4,11 @@ package {{ .PackageName }}
 
 import (
 	"context"
-	{{- if or .APIOperations.Create.Wait (and .APIOperations.Update .APIOperations.Update.Wait) (and .APIOperations.Delete .APIOperations.Delete.Wait) }}
+	{{- if .HasWait }}
 	"time"
+	{{- end }}
+	{{- if and .HasWait .IDAttributes }}
+	"fmt"
 	{{ end }}
 
 	{{if .APIOperations.Delete }}
@@ -88,11 +91,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			{{- end }}
 			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
-			IDAttributes: []string{ {{range $.IDAttributes }}"{{ . }}", {{- end }} },
 			Timeout: timeout,
 			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 			DelaySeconds: {{ .DelaySeconds }},
 			CallParams: readAPICallParams,
+			{{- if $.IDAttributes }}
+			FormatID: formatIDAttributes,
+			{{- end }}
 		},
 		{{ end }}
 	}
@@ -157,11 +162,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			{{- end }}
 			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
-			IDAttributes: []string{ {{range $.IDAttributes }}"{{ . }}", {{- end }} },
 			Timeout: timeout,
 			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 			DelaySeconds: {{ .DelaySeconds }},
 			CallParams: readAPICallParams,
+			{{- if $.IDAttributes }}
+			FormatID: formatIDAttributes,
+			{{- end }}
 		},
 		{{ end }}
 	}
@@ -192,11 +199,13 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		{{- end }}
 		PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 		TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
-		IDAttributes: []string{ {{range $.IDAttributes }}"{{ . }}", {{- end }} },
 		Timeout: timeout,
 		MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 		DelaySeconds: {{ .DelaySeconds }},
 		CallParams: readAPICallParams,
+		{{- if $.IDAttributes }}
+		FormatID: formatIDAttributes,
+		{{- end }}
 	}
 	{{- end }}
 	autogen.HandleDelete(ctx, *reqHandle)
@@ -206,7 +215,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	idAttributes := []string{ {{range .IDAttributes }}"{{ . }}", {{- end }}}
+	idAttributes := []string{ {{range .IDAttributes }}"{{ .SchemaName }}", {{- end }}}
 	autogen.HandleImport(ctx, idAttributes, req, resp, r)
 }
 
@@ -223,6 +232,17 @@ func readAPICallParams(model any) *config.APICallParams {
 		Method: "{{ .APIOperations.Read.HTTPMethod }}",
 	}
 }
+
+{{if and .HasWait .IDAttributes }}
+func formatIDAttributes(model any) string {
+	m := model.(*TFModel)
+	return fmt.Sprintf("{{range $i, $a := .IDAttributes}}{{if $i}}, {{end}}{{$a.SchemaName}}=%q{{end}}",
+	{{- range .IDAttributes }}
+		m.{{ .PascalCaseName }}.ValueString(),
+	{{- end }}
+	)
+}
+{{end}}
 
 {{with .APIOperations.Delete}}
 func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
@@ -258,7 +278,7 @@ func (r *rs) MoveState(context.Context) []resource.StateMover {
 
 func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
     supportedSources := []string{ {{range .MoveState.SourceResources }}"{{ . }}", {{- end }}}
-    idAttributes := []string{ {{range .IDAttributes }}"{{ . }}", {{- end }}}
+    idAttributes := []string{ {{range .IDAttributes }}"{{ .SchemaName }}", {{- end }}}
     autogen.HandleMove(ctx, supportedSources, idAttributes, req, resp)
 }
 

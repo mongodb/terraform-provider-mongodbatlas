@@ -23,6 +23,10 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 	if len(idAttrs) == 0 {
 		idAttrs = GetIDAttributes(input.Operations.Read.Path)
 	}
+	idAttributeFields, err := toIDAttributeFields(idAttrs, input.Schema, input.Operations.Read.Path)
+	if err != nil {
+		return nil, err
+	}
 
 	tmplInputs := codetemplate.ResourceFileInputs{
 		PackageName:  input.PackageName,
@@ -35,7 +39,8 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
 		MoveState:    toCodeTemplateMoveStateModel(input.MoveState),
-		IDAttributes: idAttrs,
+		IDAttributes: idAttributeFields,
+		HasWait:      hasWait(input.Operations),
 	}
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 
@@ -110,4 +115,45 @@ func GetIDAttributes(readPath string) []string {
 		result[i] = stringcase.ToSnakeCase(param.PascalCaseName)
 	}
 	return result
+}
+
+func hasWait(ops codespec.APIOperations) bool {
+	if ops.Create != nil && ops.Create.Wait != nil {
+		return true
+	}
+	if ops.Update != nil && ops.Update.Wait != nil {
+		return true
+	}
+	if ops.Delete != nil && ops.Delete.Wait != nil {
+		return true
+	}
+	return false
+}
+
+func toIDAttributeFields(idAttrs []string, schema *codespec.Schema, readPath string) ([]codetemplate.IDAttribute, error) {
+	byName := make(map[string]string, len(idAttrs))
+	for _, param := range GetPathParams(readPath) {
+		byName[stringcase.ToSnakeCase(param.PascalCaseName)] = param.PascalCaseName
+	}
+	if schema != nil {
+		for i := range schema.Attributes {
+			attr := &schema.Attributes[i]
+			if attr.TFModelName != "" {
+				byName[attr.TFSchemaName] = attr.TFModelName
+			}
+		}
+	}
+
+	result := make([]codetemplate.IDAttribute, 0, len(idAttrs))
+	for _, name := range idAttrs {
+		pascal, ok := byName[name]
+		if !ok {
+			return nil, fmt.Errorf("id attribute %q has no matching schema field or read path param", name)
+		}
+		result = append(result, codetemplate.IDAttribute{
+			SchemaName:     name,
+			PascalCaseName: pascal,
+		})
+	}
+	return result, nil
 }

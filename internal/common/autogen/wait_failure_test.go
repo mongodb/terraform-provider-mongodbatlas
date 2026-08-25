@@ -13,10 +13,9 @@ import (
 )
 
 type fakeWaitModel struct {
-	ProjectID   types.String `tfsdk:"project_id"`
-	ClusterName types.String `tfsdk:"cluster_name"`
-	JobID       types.String `tfsdk:"job_id"`
-	Count       types.Int64  `tfsdk:"count"`
+	ProjectID   types.String
+	ClusterName types.String
+	JobID       types.String
 }
 
 func testWaitModel() *fakeWaitModel {
@@ -24,14 +23,19 @@ func testWaitModel() *fakeWaitModel {
 		ProjectID:   types.StringValue("proj"),
 		ClusterName: types.StringValue("cluster"),
 		JobID:       types.StringValue("job1"),
-		Count:       types.Int64Value(3),
 	}
+}
+
+func testFormatID(model any) string {
+	m := model.(*fakeWaitModel)
+	return fmt.Sprintf("project_id=%q, cluster_name=%q, job_id=%q",
+		m.ProjectID.ValueString(), m.ClusterName.ValueString(), m.JobID.ValueString())
 }
 
 func TestDefaultFormatWaitFailure_withErrorDescription(t *testing.T) {
 	wait := &autogen.WaitReq{
 		ErrorDescriptionProperty: "errorMessage",
-		IDAttributes:             []string{"project_id", "cluster_name", "job_id"},
+		FormatID:                 testFormatID,
 	}
 	req := autogen.WaitFailure{
 		LastJSON: map[string]any{
@@ -51,7 +55,7 @@ func TestDefaultFormatWaitFailure_withErrorDescription(t *testing.T) {
 func TestDefaultFormatWaitFailure_withoutErrorDescription(t *testing.T) {
 	wait := &autogen.WaitReq{
 		ErrorDescriptionProperty: "errorMessage",
-		IDAttributes:             []string{"project_id", "cluster_name", "job_id"},
+		FormatID:                 testFormatID,
 	}
 
 	t.Run("property missing", func(t *testing.T) {
@@ -92,7 +96,7 @@ func TestDefaultFormatWaitFailure_timeoutWrapsSDKError(t *testing.T) {
 		ExpectedState: []string{"SUCCESSFUL"},
 	}
 	wait := &autogen.WaitReq{
-		IDAttributes: []string{"project_id", "cluster_name", "job_id"},
+		FormatID: testFormatID,
 	}
 
 	err := autogen.DefaultFormatWaitFailure(wait, autogen.WaitFailure{
