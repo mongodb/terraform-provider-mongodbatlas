@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/mongodb/atlas-sdk-go/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
 // GetWorkspaceOrInstanceName returns the workspace name from workspace_name or instance_name field. Assumes exactly one of the two is set.
@@ -28,9 +28,6 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 	streamProcessor := &admin.StreamsProcessor{
 		Name:     plan.ProcessorName.ValueStringPointer(),
 		Pipeline: &pipeline,
-		// effectiveTier is read-only but the generated SDK models it as a required
-		// value type. Send explicit null rather than its invalid zero-value enum.
-		NullFields: []string{"EffectiveTier"},
 	}
 
 	if !plan.FailoverEnabled.IsNull() && !plan.FailoverEnabled.IsUnknown() {

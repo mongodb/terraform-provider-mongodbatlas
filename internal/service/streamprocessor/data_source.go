@@ -63,7 +63,7 @@ func (d *StreamProccesorDS) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	connV2 := d.Client.AtlasPreview
+	connV2 := d.Client.AtlasV2
 	projectID := streamProccesorConfig.ProjectID.ValueString()
 	workspaceOrInstanceName := GetWorkspaceOrInstanceName(streamProccesorConfig.WorkspaceName, streamProccesorConfig.InstanceName)
 

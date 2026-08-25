@@ -7,12 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
 var (
@@ -742,7 +742,7 @@ func TestPipelineFieldOrderPreserved(t *testing.T) {
 	// The whole request body is marshaled, not just the pipeline, so the assertion covers the
 	// final SDK serialization, including the structs' own MarshalJSON, which the client invokes
 	// via json.Encoder and which delegates to encoding/json when no fields are explicitly null.
-	wantCreateBody := `{"effectiveTier":null,"name":"` + processorName + `","pipeline":` + pipeline + `}`
+	wantCreateBody := `{"name":"` + processorName + `","pipeline":` + pipeline + `}`
 	wantUpdateBody := `{"name":"` + processorName + `","pipeline":` + pipeline + `}`
 
 	createReq, diags := streamprocessor.NewStreamProcessorReq(t.Context(), model)
