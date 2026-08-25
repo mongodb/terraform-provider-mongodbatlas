@@ -44,7 +44,7 @@ func TestAccMcpConfigSecret_basic(t *testing.T) {
 	})
 }
 
-func TestAccMcpConfigSecret_rotateWithTaint(t *testing.T) {
+func TestAccMcpConfigSecret_rotate(t *testing.T) {
 	var (
 		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name          = acc.RandomName()
@@ -57,7 +57,8 @@ func TestAccMcpConfigSecret_rotateWithTaint(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configMultipleSecrets(orgID, name, 720, 1),
+				// create the original secret.
+				Config: configSecrets(orgID, name, 720, "test"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					func(s *terraform.State) error {
@@ -66,13 +67,19 @@ func TestAccMcpConfigSecret_rotateWithTaint(t *testing.T) {
 				),
 			},
 			{
-				// `taint` is deprecated in favor of -replace https://developer.hashicorp.com/terraform/cli/commands/taint
-				// the testing plugin doesn't support -replace so using taint instead.
-				//
-				// requesting 2 secrets while tainting the first confirms overlap is possible, since a config's
-				// ingress SA allows a max of 2 concurrent secrets.
+				// add a second secret.
+				Config: configSecrets(orgID, name, 720, "test", "test_2"),
+				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
+					checkExists(resourceName+"_2"),
+				),
+			},
+			{
+				// rotate the first secret. 
+				// `taint` is deprecated in favor of -replace (https://developer.hashicorp.com/terraform/cli/commands/taint)
+				// but testing plugin doesn't support -replace so using taint instead.
 				Taint:  []string{resourceName},
-				Config: configMultipleSecrets(orgID, name, 720, 2),
+				Config: configSecrets(orgID, name, 720, "test", "test_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					checkExists(resourceName+"_2"),
@@ -92,24 +99,18 @@ func TestAccMcpConfigSecret_rotateWithTaint(t *testing.T) {
 	})
 }
 
-// builds secretCount mongodbatlas_mcp_config_secret resources without data sources.
-func configMultipleSecrets(orgID, name string, secretExpiresAfterHours, secretCount int) string {
+// builds a mongodbatlas_mcp_config_secret resource for each given address
+// without data sources.
+func configSecrets(orgID, name string, secretExpiresAfterHours int, addrs ...string) string {
 	var secretsHCL strings.Builder
-	fmt.Fprintf(&secretsHCL, `
-		resource "mongodbatlas_mcp_config_secret" "test" {
-			org_id                     = %[1]q
-			mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
-			secret_expires_after_hours = %[2]d
-		}
-	`, orgID, secretExpiresAfterHours)
-	for i := 2; i <= secretCount; i++ {
+	for _, addr := range addrs {
 		fmt.Fprintf(&secretsHCL, `
-			resource "mongodbatlas_mcp_config_secret" "test_%[1]d" {
+			resource "mongodbatlas_mcp_config_secret" "%[1]s" {
 				org_id                     = %[2]q
 				mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
 				secret_expires_after_hours = %[3]d
 			}
-		`, i, orgID, secretExpiresAfterHours)
+		`, addr, orgID, secretExpiresAfterHours)
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_mcp_config" "test" {

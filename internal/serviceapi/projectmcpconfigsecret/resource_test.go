@@ -68,7 +68,7 @@ func TestAccProjectMcpConfigSecret_rotate(t *testing.T) {
 				),
 			},
 			{
-				// create the replacement secret before removing the old one
+				// add a second secret.
 				Config: configSecrets(projectID, name, 720, "test", "test_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
@@ -76,13 +76,21 @@ func TestAccProjectMcpConfigSecret_rotate(t *testing.T) {
 				),
 			},
 			{
-				// remove old secret now that the new one is active.
-				Config: configSecrets(projectID, name, 720, "test_2"),
+				// rotate the first secret. 
+				// `taint` is deprecated in favor of -replace (https://developer.hashicorp.com/terraform/cli/commands/taint)
+				// but testing plugin doesn't support -replace so using taint instead.
+				Taint:  []string{resourceName},
+				Config: configSecrets(projectID, name, 720, "test", "test_2"),
 				Check: resource.ComposeTestCheckFunc(
+					checkExists(resourceName),
 					checkExists(resourceName+"_2"),
 					func(s *terraform.State) error {
-						if _, ok := s.RootModule().Resources[resourceName]; ok {
-							return fmt.Errorf("expected %s to be removed from state", resourceName)
+						var secondSecretID string
+						if err := getSecretID(s, resourceName, &secondSecretID); err != nil {
+							return err
+						}
+						if secondSecretID == firstSecretID {
+							return fmt.Errorf("expected secret %s to be replaced but it still exists", firstSecretID)
 						}
 						return nil
 					},
@@ -92,7 +100,8 @@ func TestAccProjectMcpConfigSecret_rotate(t *testing.T) {
 	})
 }
 
-// builds secretCount mongodbatlas_project_mcp_config_secret resources without data sources.
+// builds a mongodbatlas_project_mcp_config_secret resource for each given address
+// without data sources.
 func configSecrets(projectID, name string, secretExpiresAfterHours int, addrs ...string) string {
 	var secretsHCL strings.Builder
 	for _, addr := range addrs {
