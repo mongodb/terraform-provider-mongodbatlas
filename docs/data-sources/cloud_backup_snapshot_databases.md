@@ -43,11 +43,11 @@ locals {
   ]
   available_snapshots_newest = [
     for created_at in slice(
-      reverse(sort([for s in local.available_snapshots_all : s.created_at])),
+      reverse(sort([for s in local.completed_snapshots : s.created_at])),
       0,
-      min(var.available_snapshots_limit, length(local.available_snapshots_all)),
+      min(var.available_snapshots_limit, length(local.completed_snapshots)),
       ) : [
-      for s in local.available_snapshots_all : s if s.created_at == created_at
+      for s in local.available_snapshots_all : s if s.created_at == created_at && s.status == "completed"
     ][0]
   ]
 }
