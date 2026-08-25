@@ -374,33 +374,25 @@ func callDelete(ctx context.Context, req *HandleDeleteReq) error {
 
 // waitForChanges waits until a long-running operation is done.
 // It returns the latest JSON response from the API so it can be used to update the response state.
-type waitCapture struct {
-	lastJSON  map[string]any
-	lastState string
-}
-
 func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model, hooks any) ([]byte, error) {
 	if len(wait.TargetStates) == 0 {
 		return nil, fmt.Errorf("wait must have at least one target state, pending states: %v", wait.PendingStates)
 	}
-	capture := &waitCapture{}
 	stateConf := retry.StateChangeConf{
 		Target:     wait.TargetStates,
 		Pending:    wait.PendingStates,
 		Timeout:    wait.Timeout,
 		MinTimeout: time.Duration(wait.MinTimeoutSeconds) * time.Second,
 		Delay:      time.Duration(wait.DelaySeconds) * time.Second,
-		Refresh:    refreshFunc(ctx, wait, client, model, hooks, capture),
+		Refresh:    refreshFunc(ctx, wait, client, model, hooks),
 	}
 	bodyResp, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		var timeoutErr *retry.TimeoutError
 		if errors.As(err, &timeoutErr) {
 			return nil, DefaultFormatWaitFailure(wait, WaitFailure{
-				LastJSON:   capture.lastJSON,
 				Model:      model,
 				TimeoutErr: err,
-				LastState:  capture.lastState,
 			})
 		}
 		return nil, err
@@ -413,7 +405,7 @@ func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBCl
 
 // refreshFunc retries until a target state or error happens.
 // It uses a special state value of "DELETED" when the API returns 404 or empty object
-func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model, hooks any, capture *waitCapture) retry.StateRefreshFunc {
+func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model, hooks any) retry.StateRefreshFunc {
 	return func() (result any, state string, err error) {
 		callParams := wait.CallParams(model)
 		callResult := callReadWithHooks(ctx, client, *callParams, HandleReadReq{
@@ -423,7 +415,7 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 		}, hooks)
 		if notFound(callResult.Body, callResult.Resp) {
 			// if "artificial" states continue to grow we can evaluate using a prefix to clearly separate states coming from API and those defined by refreshFunc
-			return waitRefreshResult(wait, model, capture, emptyJSON, retrystrategy.RetryStrategyDeletedState, nil)
+			return waitRefreshResult(wait, model, emptyJSON, retrystrategy.RetryStrategyDeletedState, nil)
 		}
 		if callResult.Err != nil {
 			return nil, "", callResult.Err
@@ -440,13 +432,11 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 		if !ok {
 			return nil, "", fmt.Errorf("wait state attribute value is not a string, attribute name: %s, value: %s", wait.StateProperty, stateValAny)
 		}
-		return waitRefreshResult(wait, model, capture, callResult.Body, stateValStr, objJSON)
+		return waitRefreshResult(wait, model, callResult.Body, stateValStr, objJSON)
 	}
 }
 
-func waitRefreshResult(wait *WaitReq, model any, capture *waitCapture, body []byte, stateValStr string, objJSON map[string]any) (result any, state string, err error) {
-	capture.lastJSON = objJSON
-	capture.lastState = stateValStr
+func waitRefreshResult(wait *WaitReq, model any, body []byte, stateValStr string, objJSON map[string]any) (result any, state string, err error) {
 	if IsWaitContinueState(wait.PendingStates, wait.TargetStates, stateValStr) {
 		return body, stateValStr, nil
 	}
