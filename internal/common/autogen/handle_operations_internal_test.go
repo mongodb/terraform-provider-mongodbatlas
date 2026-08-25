@@ -7,11 +7,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/stretchr/testify/assert"
@@ -204,6 +206,67 @@ func TestHandleRead(t *testing.T) {
 		var model testReadModel
 		require.False(t, state.Get(context.Background(), &model).HasError())
 		assert.Equal(t, "updated", model.Name.ValueString())
+	})
+}
+
+type testListResultModel struct {
+	Name types.String `tfsdk:"name"`
+}
+
+type testListModel struct {
+	Results customtypes.NestedListValue[testListResultModel] `tfsdk:"results" autogen:"omitjson"`
+}
+
+func testListReadRequest(t *testing.T, handler http.Handler) (HandleReadReq, *tfsdk.State, *diag.Diagnostics) {
+	t.Helper()
+	ctx := context.Background()
+	testSchema := dsschema.Schema{Attributes: map[string]dsschema.Attribute{
+		"results": dsschema.ListNestedAttribute{
+			Computed:   true,
+			CustomType: customtypes.NewNestedListType[testListResultModel](ctx),
+			NestedObject: dsschema.NestedAttributeObject{
+				Attributes: map[string]dsschema.Attribute{
+					"name": dsschema.StringAttribute{Computed: true},
+				},
+			},
+		},
+	}}
+	state := &tfsdk.State{
+		Raw:    tftypes.NewValue(testSchema.Type().TerraformType(ctx), nil),
+		Schema: testSchema,
+	}
+	diags := &diag.Diagnostics{}
+	return HandleReadReq{
+		State:      &testListModel{},
+		RespState:  state,
+		Client:     testClient(t, handler),
+		CallParams: &config.APICallParams{RelativePath: "/api/test", Method: http.MethodGet},
+		RespDiags:  diags,
+	}, state, diags
+}
+
+func TestHandleDataSourceReadList(t *testing.T) {
+	t.Run("500 reports the API error", func(t *testing.T) {
+		req, _, diags := testListReadRequest(t, atlasError(http.StatusInternalServerError, "server error"))
+		HandleDataSourceReadList(context.Background(), req)
+		require.True(t, diags.HasError(), "expected a diagnostics error")
+		assert.Contains(t, diags.Errors()[0].Detail(), "server error")
+	})
+
+	t.Run("200 empty JSON reports resource not found", func(t *testing.T) {
+		req, _, diags := testListReadRequest(t, jsonResponse(http.StatusOK, `{}`))
+		HandleDataSourceReadList(context.Background(), req)
+		require.True(t, diags.HasError(), "expected a diagnostics error")
+		assert.Contains(t, diags.Errors()[0].Detail(), "resource not found")
+	})
+
+	t.Run("200 with results sets state", func(t *testing.T) {
+		req, state, diags := testListReadRequest(t, jsonResponse(http.StatusOK, `{"results":[{"name":"one"}],"totalCount":1}`))
+		HandleDataSourceReadList(context.Background(), req)
+		require.False(t, diags.HasError(), "unexpected diagnostics: %#v", diags.Errors())
+		var model testListModel
+		require.False(t, state.Get(context.Background(), &model).HasError())
+		assert.Len(t, model.Results.Elements(), 1)
 	})
 }
 

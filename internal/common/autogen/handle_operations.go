@@ -392,7 +392,7 @@ func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBCl
 }
 
 // refreshFunc retries until a target state or error happens.
-// It uses a special state value of "DELETED" when the API returns 404 or empty object
+// It uses a special state value of "DELETED" when the API returns 404 or a hook signals ErrNotFound.
 func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model, hooks any) retry.StateRefreshFunc {
 	return func() (result any, state string, err error) {
 		callParams := wait.CallParams(model)
