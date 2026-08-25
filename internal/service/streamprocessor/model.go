@@ -143,7 +143,7 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, w
 		State:         types.StringPointerValue(&apiResp.State),
 		Stats:         statsTF,
 		Tier:          types.StringPointerValue(apiResp.Tier),
-		EffectiveTier: effectiveTierFromResp(apiResp.EffectiveTier, apiResp.Tier),
+		EffectiveTier: types.StringValue(apiResp.EffectiveTier),
 	}
 
 	if workspaceName != "" {
@@ -192,7 +192,7 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName, w
 		State:           types.StringPointerValue(&apiResp.State),
 		Stats:           statsTF,
 		Tier:            types.StringPointerValue(apiResp.Tier),
-		EffectiveTier:   effectiveTierFromResp(apiResp.EffectiveTier, apiResp.Tier),
+		EffectiveTier:   types.StringValue(apiResp.EffectiveTier),
 		FailoverEnabled: types.BoolValue(apiResp.GetFailoverEnabled()),
 	}
 

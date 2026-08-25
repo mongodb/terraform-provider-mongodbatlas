@@ -79,16 +79,6 @@ func resolveAutoscalingForUpdate(ctx context.Context, plan, state *TFStreamProce
 	return nil, nil
 }
 
-// effectiveTierFromResp derives the read-only `effective_tier` from the API response.
-// Falls back to the baseline `tier` when the API does not return an explicit
-// effectiveTier (they are equal whenever autoscaling is disabled).
-func effectiveTierFromResp(effectiveTier string, tier *string) types.String {
-	if effectiveTier != "" {
-		return types.StringValue(effectiveTier)
-	}
-	return types.StringPointerValue(tier)
-}
-
 // convertAutoscalingToTF converts the SDK response type into a TF object.
 func convertAutoscalingToTF(ctx context.Context, autoscaling *admin.StreamsAutoscaling) (types.Object, diag.Diagnostics) {
 	if autoscaling == nil {
