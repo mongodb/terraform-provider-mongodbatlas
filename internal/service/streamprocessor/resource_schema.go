@@ -100,7 +100,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							"min_tier": schema.StringAttribute{
 								Optional:            true,
 								Computed:            true,
-								MarkdownDescription: "Tier floor for autoscaling (scale-down limit). When not set, it defaults to the workspace default tier.",
+								MarkdownDescription: "Tier floor for autoscaling (scale-down limit). When not set, it defaults to the lower of the processor `tier` and the workspace default tier.",
 							},
 							"max_tier": schema.StringAttribute{
 								Optional:            true,

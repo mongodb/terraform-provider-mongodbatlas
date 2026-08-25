@@ -171,7 +171,7 @@ Read-Only:
 Read-Only:
 
 - `max_tier` (String) Tier ceiling for autoscaling (scale-up limit). When not set, it defaults to the workspace maximum tier.
-- `min_tier` (String) Tier floor for autoscaling (scale-down limit). When not set, it defaults to the workspace default tier.
+- `min_tier` (String) Tier floor for autoscaling (scale-down limit). When not set, it defaults to the lower of the processor `tier` and the workspace default tier.
 
 
 <a id="nestedatt--options--dlq"></a>
