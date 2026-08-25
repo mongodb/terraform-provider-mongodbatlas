@@ -28,26 +28,6 @@ func testWaitModel() *fakeWaitModel {
 	}
 }
 
-func TestResourceID_joinsIdAttributesInOrder(t *testing.T) {
-	id := autogen.ResourceID(testWaitModel(), []string{"project_id", "cluster_name", "job_id"})
-	assert.Equal(t, "proj/cluster/job1", id)
-}
-
-func TestResourceID_keepsEmptySlots(t *testing.T) {
-	model := &fakeWaitModel{
-		ProjectID:   types.StringValue("proj"),
-		ClusterName: types.StringValue(""),
-		JobID:       types.StringValue("job1"),
-	}
-	id := autogen.ResourceID(model, []string{"project_id", "cluster_name", "job_id"})
-	assert.Equal(t, "proj//job1", id)
-}
-
-func TestResourceID_skipsNonStringFields(t *testing.T) {
-	id := autogen.ResourceID(testWaitModel(), []string{"project_id", "count", "job_id"})
-	assert.Equal(t, "proj/job1", id)
-}
-
 func TestDefaultFormatWaitFailure_withErrorDescription(t *testing.T) {
 	wait := &autogen.WaitReq{
 		ErrorDescriptionProperty: "errorMessage",

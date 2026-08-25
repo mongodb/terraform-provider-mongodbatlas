@@ -66,20 +66,6 @@ func resourceIDPairs(model any, idAttrs []string) []idAttrPair {
 	return pairs
 }
 
-// ResourceID joins id attribute values from the in-memory model in import order.
-// Non-string fields are skipped. Empty or unknown strings still occupy their slot.
-func ResourceID(model any, idAttrs []string) string {
-	pairs := resourceIDPairs(model, idAttrs)
-	if len(pairs) == 0 {
-		return ""
-	}
-	parts := make([]string, 0, len(pairs))
-	for _, p := range pairs {
-		parts = append(parts, p.value)
-	}
-	return strings.Join(parts, "/")
-}
-
 func waitFailureIDPrefix(model any, idAttrs []string) string {
 	pairs := resourceIDPairs(model, idAttrs)
 	if len(pairs) == 0 {
