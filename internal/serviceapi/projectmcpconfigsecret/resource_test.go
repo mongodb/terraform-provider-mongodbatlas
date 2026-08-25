@@ -76,7 +76,7 @@ func TestAccProjectMcpConfigSecret_rotate(t *testing.T) {
 				),
 			},
 			{
-				// rotate the first secret. 
+				// rotate the first secret.
 				// `taint` is deprecated in favor of -replace (https://developer.hashicorp.com/terraform/cli/commands/taint)
 				// but testing plugin doesn't support -replace so using taint instead.
 				Taint:  []string{resourceName},
