@@ -69,8 +69,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					" When a Stream Processor is created without specifying the state, it will default to `CREATED` state. When a Stream Processor is updated without specifying the state, it will default to the Previous state. \n\n**NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.",
 			},
 			"options": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Optional configuration for the stream processor.",
+				Optional: true,
+				Validators: []validator.Object{
+					OptionsValidator(),
+				},
+				MarkdownDescription: "Optional configuration for the stream processor. Empty `options` objects are not supported.",
 				Attributes: map[string]schema.Attribute{
 					"dlq": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
