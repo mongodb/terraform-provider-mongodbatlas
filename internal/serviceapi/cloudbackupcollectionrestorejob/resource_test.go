@@ -38,6 +38,8 @@ const (
 func TestAccCloudBackupCollectionRestoreJob_snapshotSameClusterDatabaseRename(t *testing.T) {
 	fixture := acc.CloudBackupCollectionRestoreFixture(t)
 	renamedDB := acc.RandomName()
+	moviesNS := acc.CollectionRestoreSeedDatabase + "." + acc.CollectionRestoreSeedCollectionName
+	restaurantsNS := acc.CollectionRestoreSeedRestaurantsNS
 	cfg := restoreJobConfig{
 		prefixHCL:         sourceClusterHCL(t, fixture),
 		snapshotID:        fixture.SnapshotID,
@@ -45,9 +47,10 @@ func TestAccCloudBackupCollectionRestoreJob_snapshotSameClusterDatabaseRename(t 
 		targetClusterName: sourceClusterNameRef,
 		databaseSource:    acc.CollectionRestoreSeedDatabase,
 		databaseTarget:    renamedDB,
-		collectionSource:  acc.CollectionRestoreSeedRestaurantsNS,
+		collectionSource:  restaurantsNS,
 		withDataSources:   true,
 	}
+	filtered := cfg.withCollectionsFilter(restaurantsNS)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -65,15 +68,23 @@ func TestAccCloudBackupCollectionRestoreJob_snapshotSameClusterDatabaseRename(t 
 					acc.PluralResultCheck(pluralDataSourceName, "target_cluster_name", knownvalue.StringExact(fixture.ClusterName), map[string]knownvalue.Check{
 						"state": knownvalue.StringExact(stateSuccessful),
 					}),
-					acc.PluralResultCheck(collectionsDSName, "source_namespace", knownvalue.StringExact(acc.CollectionRestoreSeedDatabase+"."+acc.CollectionRestoreSeedCollectionName), map[string]knownvalue.Check{
+					acc.PluralResultCheck(collectionsDSName, "source_namespace", knownvalue.StringExact(moviesNS), map[string]knownvalue.Check{
 						"effective_target_namespace": knownvalue.StringExact(renamedDB + "." + acc.CollectionRestoreSeedCollectionName),
 						"state":                      knownvalue.StringExact(stateSuccessful),
 					}),
-					acc.PluralResultCheck(collectionsDSName, "source_namespace", knownvalue.StringExact(acc.CollectionRestoreSeedRestaurantsNS), map[string]knownvalue.Check{
+					acc.PluralResultCheck(collectionsDSName, "source_namespace", knownvalue.StringExact(restaurantsNS), map[string]knownvalue.Check{
 						"effective_target_namespace": knownvalue.StringRegexp(regexp.MustCompile(`^sample_restaurants\.restaurants`)),
 						"state":                      knownvalue.StringExact(stateSuccessful),
 					}),
 				},
+			},
+			{
+				Config: filtered.HCL(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(collectionsDSName, "results.#", "1"),
+					resource.TestCheckResourceAttr(collectionsDSName, "source_namespace", restaurantsNS),
+					resource.TestCheckResourceAttr(collectionsDSName, "results.0.source_namespace", restaurantsNS),
+				),
 			},
 		},
 	})
@@ -171,18 +182,25 @@ func TestAccCloudBackupCollectionRestoreJob_createTimeoutPlanCreate(t *testing.T
 }
 
 type restoreJobConfig struct {
-	prefixHCL         string
-	snapshotID        string
-	targetProjectID   string
-	targetClusterName string
-	databaseSource    string
-	databaseTarget    string
-	collectionSource  string
-	databaseSuffix    string
-	collectionSuffix  string
-	createTimeout     string
-	pointInTime       int64
-	withDataSources   bool
+	prefixHCL               string
+	snapshotID              string
+	targetProjectID         string
+	targetClusterName       string
+	databaseSource          string
+	databaseTarget          string
+	collectionSource        string
+	databaseSuffix          string
+	collectionSuffix        string
+	createTimeout           string
+	collectionsSourceFilter string
+	pointInTime             int64
+	withDataSources         bool
+}
+
+func (c *restoreJobConfig) withCollectionsFilter(ns string) restoreJobConfig {
+	out := *c
+	out.collectionsSourceFilter = ns
+	return out
 }
 
 func (c *restoreJobConfig) HCL() string {
@@ -225,7 +243,11 @@ func (c *restoreJobConfig) HCL() string {
 
 	ds := ""
 	if c.withDataSources {
-		ds = `
+		collectionsDSFilter := ""
+		if c.collectionsSourceFilter != "" {
+			collectionsDSFilter = fmt.Sprintf("\n\t\tsource_namespace = %q", c.collectionsSourceFilter)
+		}
+		ds = fmt.Sprintf(`
 	data "mongodbatlas_cloud_backup_collection_restore_job" "test" {
 		project_id   = mongodbatlas_cloud_backup_collection_restore_job.test.project_id
 		cluster_name = mongodbatlas_cloud_backup_collection_restore_job.test.cluster_name
@@ -241,8 +263,8 @@ func (c *restoreJobConfig) HCL() string {
 	data "mongodbatlas_cloud_backup_collection_restore_job_collections" "test" {
 		project_id   = mongodbatlas_cloud_backup_collection_restore_job.test.project_id
 		cluster_name = mongodbatlas_cloud_backup_collection_restore_job.test.cluster_name
-		job_id       = mongodbatlas_cloud_backup_collection_restore_job.test.job_id
-	}`
+		job_id       = mongodbatlas_cloud_backup_collection_restore_job.test.job_id%s
+	}`, collectionsDSFilter)
 	}
 
 	return fmt.Sprintf(`
