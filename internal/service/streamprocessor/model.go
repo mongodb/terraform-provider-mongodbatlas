@@ -3,6 +3,7 @@ package streamprocessor
 import (
 	"context"
 	"encoding/json"
+	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -18,6 +19,24 @@ func GetWorkspaceOrInstanceName(workspaceName, instanceName types.String) string
 		return workspaceName.ValueString()
 	}
 	return instanceName.ValueString()
+}
+
+// IsAliasOnlyTransition reports whether a plan changes only the spelling of the
+// workspace identifier while preserving the same known workspace and every other
+// resource attribute.
+func IsAliasOnlyTransition(plan, state TFStreamProcessorRSModel) bool {
+	if plan.WorkspaceName.IsUnknown() || plan.InstanceName.IsUnknown() || state.WorkspaceName.IsUnknown() || state.InstanceName.IsUnknown() {
+		return false
+	}
+
+	if GetWorkspaceOrInstanceName(plan.WorkspaceName, plan.InstanceName) != GetWorkspaceOrInstanceName(state.WorkspaceName, state.InstanceName) {
+		return false
+	}
+
+	planWithoutAliases := plan
+	planWithoutAliases.WorkspaceName = state.WorkspaceName
+	planWithoutAliases.InstanceName = state.InstanceName
+	return !plan.WorkspaceName.Equal(state.WorkspaceName) && reflect.DeepEqual(planWithoutAliases, state)
 }
 
 func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessor, diag.Diagnostics) {

@@ -176,6 +176,11 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
+	if IsAliasOnlyTransition(plan, state) {
+		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+		return
+	}
+
 	plannedState := plan.State.ValueString()
 	if plannedState == "" {
 		plannedState = state.State.ValueString()
