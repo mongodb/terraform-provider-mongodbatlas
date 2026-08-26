@@ -22,9 +22,14 @@ data "mongodbatlas_cloud_backup_collection_restore_job_collections" "this" {
   job_id       = local.job_id
 }
 
+locals {
+  collections      = coalesce(data.mongodbatlas_cloud_backup_collection_restore_job_collections.this.results, [])
+  source_namespace = coalesce(var.source_namespace, length(local.collections) > 0 ? local.collections[length(local.collections) - 1].source_namespace : null)
+}
+
 output "collection_states" {
   description = "Per-collection state for the resolved job."
-  value = [for c in data.mongodbatlas_cloud_backup_collection_restore_job_collections.this.results : {
+  value = [for c in local.collections : {
     source_namespace           = c.source_namespace
     target_namespace           = c.target_namespace
     effective_target_namespace = c.effective_target_namespace
@@ -32,11 +37,6 @@ output "collection_states" {
     index_status               = c.index_status
     documents                  = "${c.restored_documents} / ${c.total_documents}"
   }]
-}
-
-locals {
-  collections      = data.mongodbatlas_cloud_backup_collection_restore_job_collections.this.results
-  source_namespace = coalesce(var.source_namespace, length(local.collections) > 0 ? local.collections[length(local.collections) - 1].source_namespace : null)
 }
 
 data "mongodbatlas_cloud_backup_collection_restore_job_collection" "this" {
@@ -70,6 +70,9 @@ output "collection_state" {
 ### Read-Only
 
 - `results` (Attributes List) List of returned documents that MongoDB Cloud provides when completing this request. (see [below for nested schema](#nestedatt--results))
+- `source_namespace` (String) Source namespace to filter by (e.g. `db.collection`).
+- `state` (String) Collection-level state to filter by.
+- `target_namespace` (String) Target namespace to filter by (e.g. `db.collection`).
 
 <a id="nestedatt--results"></a>
 ### Nested Schema for `results`

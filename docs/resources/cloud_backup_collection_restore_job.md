@@ -62,6 +62,11 @@ output "job_state" {
   value       = mongodbatlas_cloud_backup_collection_restore_job.this.state
 }
 
+output "job_id" {
+  description = "ID of the collection restore job."
+  value       = mongodbatlas_cloud_backup_collection_restore_job.this.job_id
+}
+
 data "mongodbatlas_cloud_backup_collection_restore_job_collections" "this" {
   project_id   = mongodbatlas_cloud_backup_collection_restore_job.this.project_id
   cluster_name = mongodbatlas_cloud_backup_collection_restore_job.this.cluster_name
