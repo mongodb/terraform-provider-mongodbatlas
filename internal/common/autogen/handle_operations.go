@@ -126,15 +126,13 @@ func HandleDataSourceRead(ctx context.Context, req HandleReadReq) {
 // The onNotFound callback handles the not-found scenario differently:
 //   - Resource: silently removes from state (standard Terraform refresh behavior)
 //   - Data source: returns an error (resource must exist)
-//
-// The setState callback sets the response state with the unmarshalled model.
 func handleReadCore(
 	ctx context.Context,
 	req HandleReadReq,
 	onNotFound func(),
 ) {
 	callResult := callReadWithHooks(ctx, req.Client, *req.CallParams, req, req.Hooks)
-	if notFound(callResult.Body, callResult.Resp) {
+	if notFound(callResult) {
 		onNotFound()
 		return
 	}
@@ -169,11 +167,10 @@ func HandleDataSourceReadList(ctx context.Context, req HandleReadReq) {
 			Method:        req.CallParams.Method,
 		}
 		callResult := callReadWithHooksWithOptions(ctx, req.Client, paginatedParams, req, req.Hooks)
+		// Err covers every failure including not-found, as UntypedAPICall returns an error for any status >= 300.
+		// An ok response with an empty body is parsed below as a page without results.
 		if callResult.Err != nil {
 			return nil, callResult.Resp, callResult.Err
-		}
-		if notFound(callResult.Body, callResult.Resp) {
-			return nil, callResult.Resp, fmt.Errorf("resource not found")
 		}
 		lastResp = callResult.Resp
 
@@ -309,7 +306,7 @@ func handleWaitCreateUpdate(ctx context.Context, wait *WaitReq, client *config.M
 		return nil
 	}
 	bodyResp, err := waitForChanges(ctx, wait, client, model, hooks)
-	if err != nil || isEmptyJSON(bodyResp) {
+	if err != nil || IsEmptyJSON(bodyResp) {
 		return err
 	}
 	if err := Unmarshal(bodyResp, model); err != nil {
@@ -364,7 +361,7 @@ func callAPIWithoutBody(ctx context.Context, client *config.MongoDBClient, callP
 // Returns nil if the resource is not found (already deleted).
 func callDelete(ctx context.Context, req *HandleDeleteReq) error {
 	callResult := callDeleteWithHooks(ctx, req.Client, *req.CallParams, req, req.Hooks)
-	if notFound(callResult.Body, callResult.Resp) { // Resource is already deleted, don't fail.
+	if notFound(callResult) { // Resource is already deleted, don't fail.
 		return nil
 	}
 	return callResult.Err
@@ -405,7 +402,7 @@ func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBCl
 }
 
 // refreshFunc retries until a target state or error happens.
-// It uses a special state value of "DELETED" when the API returns 404 or empty object
+// It uses a special state value of "DELETED" when the API returns 404 or a hook signals ErrNotFound.
 func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model, hooks any) retry.StateRefreshFunc {
 	return func() (result any, state string, err error) {
 		callParams := wait.CallParams(model)
@@ -414,7 +411,7 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 			State:      model,
 			CallParams: callParams,
 		}, hooks)
-		if notFound(callResult.Body, callResult.Resp) {
+		if notFound(callResult) {
 			// if "artificial" states continue to grow we can evaluate using a prefix to clearly separate states coming from API and those defined by refreshFunc
 			return waitRefreshResult(wait, model, emptyJSON, retrystrategy.RetryStrategyDeletedState, nil)
 		}
@@ -437,7 +434,7 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 	}
 }
 
-// waitRefreshResult continues on pending/target states (including 404 mapped to DELETED).
+// waitRefreshResult continues on pending/target states (including not-found mapped to DELETED).
 // Any other state returns DefaultFormatWaitFailure: named id, state/target, then API errorMessage when present. Avoids SDK UnexpectedStateError (`%!s(<nil>)`).
 func waitRefreshResult(wait *WaitReq, model any, body []byte, stateValStr string, objJSON map[string]any) (result any, state string, err error) {
 	if IsWaitContinueState(wait.PendingStates, wait.TargetStates, stateValStr) {
@@ -450,13 +447,20 @@ func waitRefreshResult(wait *WaitReq, model any, body []byte, stateValStr string
 	})
 }
 
-// notFound returns if the resource is not found (API response is 404 or response body is empty JSON).
-// That is because some resources like search_deployment can return an ok status code with empty json when resource doesn't exist.
-func notFound(bodyResp []byte, apiResp *http.Response) bool {
-	return validate.StatusNotFound(apiResp) || isEmptyJSON(bodyResp)
+// ErrNotFound can be returned (wrapped) by custom hooks to signal that the resource does not exist
+// when the API cannot express it as an HTTP 404. Examples: reads implemented as a LIST call where
+// the hook searches for the element (service account secrets), or APIs that return an ok status code
+// with an empty JSON body for missing resources (search deployment).
+var ErrNotFound = errors.New("resource not found")
+
+// notFound returns true if the API result indicates the resource does not exist, either because
+// the API responded with an HTTP 404 or because a hook signaled it via ErrNotFound.
+func notFound(callResult APICallResult) bool {
+	return validate.StatusNotFound(callResult.Resp) || errors.Is(callResult.Err, ErrNotFound)
 }
 
-func isEmptyJSON(raw []byte) bool {
+// IsEmptyJSON returns true if the response body is empty or an empty JSON object.
+func IsEmptyJSON(raw []byte) bool {
 	return len(raw) == 0 || bytes.Equal(raw, emptyJSON)
 }
 
