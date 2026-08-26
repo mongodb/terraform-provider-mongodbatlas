@@ -165,10 +165,8 @@ func HandleDataSourceReadList(ctx context.Context, req HandleReadReq) {
 			VersionHeader: req.CallParams.VersionHeader,
 			RelativePath:  req.CallParams.RelativePath,
 			PathParams:    req.CallParams.PathParams,
-			QueryParams: map[string]string{
-				"pageNum": fmt.Sprintf("%d", pageNum),
-			},
-			Method: req.CallParams.Method,
+			QueryParams:   WithPageNum(req.CallParams.QueryParams, pageNum),
+			Method:        req.CallParams.Method,
 		}
 		callResult := callReadWithHooksWithOptions(ctx, req.Client, paginatedParams, req, req.Hooks)
 		if callResult.Err != nil {
