@@ -32,18 +32,21 @@ func (e ipAccessListEntry) hclStr() string {
 	return ""
 }
 
-func (e ipAccessListEntry) attrMap() map[string]string {
+func (e ipAccessListEntry) setChecks(targetName string) []resource.TestCheckFunc {
 	if e.cidr == "" && e.ip == "" {
-		return nil
+		return []resource.TestCheckFunc{resource.TestCheckResourceAttr(targetName, "ip_access_list.#", "0")}
 	}
-	result := map[string]string{"ip_access_list.#": "1"}
+	elem := map[string]string{}
 	if e.cidr != "" {
-		result["ip_access_list.0.cidr_block"] = e.cidr
+		elem["cidr_block"] = e.cidr
 	}
 	if e.ip != "" {
-		result["ip_access_list.0.ip_address"] = e.ip
+		elem["ip_address"] = e.ip
 	}
-	return result
+	return []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(targetName, "ip_access_list.#", "1"),
+		resource.TestCheckTypeSetElemNestedAttrs(targetName, "ip_access_list.*", elem),
+	}
 }
 
 func TestAccMcpConfig_basic(t *testing.T) {
@@ -118,8 +121,10 @@ func configBasic(orgID, name string, roles []string, entry ipAccessListEntry) st
 
 func checkBasic(entry ipAccessListEntry) resource.TestCheckFunc {
 	commonAttrsSet := []string{"mcp_config_id", "client_id", "egress_client_id"}
-	checks := acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName), commonAttrsSet, entry.attrMap(), checkExists(resourceName))
-	return checks
+	extra := []resource.TestCheckFunc{checkExists(resourceName)}
+	extra = append(extra, entry.setChecks(resourceName)...)
+	extra = append(extra, entry.setChecks(dataSourceName)...)
+	return acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName), commonAttrsSet, nil, extra...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {

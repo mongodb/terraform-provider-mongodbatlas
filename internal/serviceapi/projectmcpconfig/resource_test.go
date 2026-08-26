@@ -33,20 +33,21 @@ func (e ipAccessListEntry) hclStr() string {
 	return ""
 }
 
-func ipAccessListAttrMap(entries []ipAccessListEntry) map[string]string {
-	if len(entries) == 0 {
-		return nil
+func (e ipAccessListEntry) elemAttrs() map[string]string {
+	if e.cidr != "" {
+		return map[string]string{"cidr_block": e.cidr}
 	}
-	result := map[string]string{"ip_access_list.#": fmt.Sprintf("%d", len(entries))}
-	for i, e := range entries {
-		if e.cidr != "" {
-			result[fmt.Sprintf("ip_access_list.%d.cidr_block", i)] = e.cidr
-		}
-		if e.ip != "" {
-			result[fmt.Sprintf("ip_access_list.%d.ip_address", i)] = e.ip
-		}
+	return map[string]string{"ip_address": e.ip}
+}
+
+func ipAccessListSetChecks(targetName string, entries []ipAccessListEntry) []resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(targetName, "ip_access_list.#", fmt.Sprintf("%d", len(entries))),
 	}
-	return result
+	for _, e := range entries {
+		checks = append(checks, resource.TestCheckTypeSetElemNestedAttrs(targetName, "ip_access_list.*", e.elemAttrs()))
+	}
+	return checks
 }
 
 func TestAccProjectMcpConfig_basic(t *testing.T) {
@@ -131,13 +132,11 @@ func configBasic(projectID, name string, roles []string, entries []ipAccessListE
 
 func checkBasic(roles []string, entries []ipAccessListEntry) resource.TestCheckFunc {
 	commonAttrsSet := []string{"mcp_config_id", "client_id", "egress_client_id"}
-	attrsMap := ipAccessListAttrMap(entries)
-	if attrsMap == nil {
-		attrsMap = map[string]string{}
-	}
-	attrsMap["roles.#"] = fmt.Sprintf("%d", len(roles))
-	checks := acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName), commonAttrsSet, attrsMap, checkExists(resourceName))
-	return checks
+	attrsMap := map[string]string{"roles.#": fmt.Sprintf("%d", len(roles))}
+	extra := []resource.TestCheckFunc{checkExists(resourceName)}
+	extra = append(extra, ipAccessListSetChecks(resourceName, entries)...)
+	extra = append(extra, ipAccessListSetChecks(dataSourceName, entries)...)
+	return acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName), commonAttrsSet, attrsMap, extra...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
