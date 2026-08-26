@@ -253,11 +253,13 @@ func TestHandleDataSourceReadList(t *testing.T) {
 		assert.Contains(t, diags.Errors()[0].Detail(), "server error")
 	})
 
-	t.Run("200 empty JSON reports resource not found", func(t *testing.T) {
-		req, _, diags := testListReadRequest(t, jsonResponse(http.StatusOK, `{}`))
+	t.Run("200 empty JSON sets empty results", func(t *testing.T) {
+		req, state, diags := testListReadRequest(t, jsonResponse(http.StatusOK, `{}`))
 		HandleDataSourceReadList(context.Background(), req)
-		require.True(t, diags.HasError(), "expected a diagnostics error")
-		assert.Contains(t, diags.Errors()[0].Detail(), "resource not found")
+		require.False(t, diags.HasError(), "unexpected diagnostics: %#v", diags.Errors())
+		var model testListModel
+		require.False(t, state.Get(context.Background(), &model).HasError())
+		assert.Empty(t, model.Results.Elements())
 	})
 
 	t.Run("200 with results sets state", func(t *testing.T) {
@@ -278,10 +280,22 @@ func TestHandleDataSourceRead(t *testing.T) {
 		assert.Contains(t, diags.Errors()[0].Detail(), "server error")
 	})
 
-	t.Run("404 reports resource not found", func(t *testing.T) {
-		req, _, diags := testReadRequest(t, atlasError(http.StatusNotFound, "not found"))
+	t.Run("404 reports the API error", func(t *testing.T) {
+		req, _, diags := testReadRequest(t, atlasError(http.StatusNotFound, "resource does not exist in Atlas"))
 		HandleDataSourceRead(context.Background(), req)
 		require.True(t, diags.HasError(), "expected a diagnostics error")
-		assert.Equal(t, "Resource not found", diags.Errors()[0].Summary())
+		assert.Contains(t, diags.Errors()[0].Detail(), "resource does not exist in Atlas")
+	})
+
+	t.Run("hook signaling not found reports the hook error", func(t *testing.T) {
+		req, _, diags := testReadRequest(t, jsonResponse(http.StatusOK, `{"secrets":[]}`))
+		req.Hooks = &testPostReadHook{
+			postRead: func(_ HandleReadReq, result APICallResult) APICallResult {
+				return APICallResult{Err: fmt.Errorf("secret not found in response: %w", ErrNotFound)}
+			},
+		}
+		HandleDataSourceRead(context.Background(), req)
+		require.True(t, diags.HasError(), "expected a diagnostics error")
+		assert.Contains(t, diags.Errors()[0].Detail(), "secret not found in response")
 	})
 }

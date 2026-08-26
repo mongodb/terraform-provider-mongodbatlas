@@ -113,26 +113,20 @@ func HandleRead(ctx context.Context, req HandleReadReq) {
 
 // HandleDataSourceRead handles the read operation for a data source.
 func HandleDataSourceRead(ctx context.Context, req HandleReadReq) {
-	handleReadCore(
-		ctx,
-		req,
-		func() { req.RespDiags.AddError("Resource not found", "The requested resource does not exist") }, // Data source: return error
-	)
+	handleReadCore(ctx, req, nil) // Data source: not-found is reported as any other API error
 }
 
 // handleReadCore contains the shared read logic for both resources and data sources.
-// The onNotFound callback handles the not-found scenario differently:
+// The onNotFound callback handles the not-found scenario:
 //   - Resource: silently removes from state (standard Terraform refresh behavior)
-//   - Data source: returns an error (resource must exist)
-//
-// The setState callback sets the response state with the unmarshalled model.
+//   - Data source: nil, the underlying error (e.g. HTTP 404) is surfaced to the user
 func handleReadCore(
 	ctx context.Context,
 	req HandleReadReq,
 	onNotFound func(),
 ) {
 	callResult := callReadWithHooks(ctx, req.Client, *req.CallParams, req, req.Hooks)
-	if notFound(callResult) {
+	if onNotFound != nil && notFound(callResult) {
 		onNotFound()
 		return
 	}
@@ -169,11 +163,10 @@ func HandleDataSourceReadList(ctx context.Context, req HandleReadReq) {
 			Method: req.CallParams.Method,
 		}
 		callResult := callReadWithHooksWithOptions(ctx, req.Client, paginatedParams, req, req.Hooks)
+		// Err covers every failure including not-found, as UntypedAPICall returns an error for any status >= 300.
+		// An ok response with an empty body is parsed below as a page without results.
 		if callResult.Err != nil {
 			return nil, callResult.Resp, callResult.Err
-		}
-		if IsEmptyJSON(callResult.Body) {
-			return nil, callResult.Resp, fmt.Errorf("resource not found")
 		}
 		lastResp = callResult.Resp
 
