@@ -278,6 +278,8 @@ func destClusterInfo(t *testing.T, projectID string) acc.ClusterInfo {
 	return acc.GetClusterInfo(t, &acc.ClusterRequest{
 		ProjectID:      projectID,
 		ResourceSuffix: "dest",
+		// Collection restore POST fails with COLLECTION_RESTORE_INSUFFICIENT_DISK_SPACE on default M10 disk (source cluster might have auto-scaled).
+		DiskSizeGb: 40,
 		ReplicationSpecs: []acc.ReplicationSpecRequest{
 			{Region: acc.NextCollectionRestoreDestRegion()},
 		},
