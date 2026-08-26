@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_stream_processor: Avoids resending already persisted autoscaling configuration when starting a stream processor
-```

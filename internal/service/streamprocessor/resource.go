@@ -111,8 +111,6 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		if plan.Tier.ValueString() != "" {
 			startWithOptions.SetTier(plan.Tier.ValueString())
 		}
-		// Autoscaling is persisted through the preceding Create request. Do not repeat
-		// it in :startWith: that endpoint treats it as a new autoscaling modification.
 		_, err := connV2.StreamsAPI.StartStreamProcessorWith(ctx, projectID, workspaceOrInstanceName, processorName, startWithOptions).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(errorCreateStart, err.Error())
@@ -241,8 +239,6 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		if plan.Tier.ValueString() != "" {
 			startWithOptions.SetTier(plan.Tier.ValueString())
 		}
-		// Autoscaling is persisted through the preceding PATCH request. Do not repeat
-		// it in :startWith: that endpoint treats it as a new autoscaling modification.
 		_, err := r.Client.AtlasV2.StreamsAPI.StartStreamProcessorWith(ctx, projectID, workspaceOrInstanceName, processorName, startWithOptions).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("Error starting stream processor", err.Error())
