@@ -112,11 +112,11 @@ func TestAccProjectServiceAccountSecret_dataSourceErrors(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configDataSourceInvalidClientID(projectID, name),
-				ExpectError: regexp.MustCompile("Error calling API in Read"),
+				ExpectError: regexp.MustCompile("The requested resource does not exist"),
 			},
 			{
 				Config:      configDataSourceInvalidSecretID(projectID, name),
-				ExpectError: regexp.MustCompile("secret not found in service account response"),
+				ExpectError: regexp.MustCompile("The requested resource does not exist"),
 			},
 		},
 	})

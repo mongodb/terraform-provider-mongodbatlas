@@ -113,20 +113,24 @@ func HandleRead(ctx context.Context, req HandleReadReq) {
 
 // HandleDataSourceRead handles the read operation for a data source.
 func HandleDataSourceRead(ctx context.Context, req HandleReadReq) {
-	handleReadCore(ctx, req, nil) // Data source: not-found is reported as any other API error
+	handleReadCore(
+		ctx,
+		req,
+		func() { req.RespDiags.AddError("Resource not found", "The requested resource does not exist") }, // Data source: return error
+	)
 }
 
 // handleReadCore contains the shared read logic for both resources and data sources.
-// The onNotFound callback handles the not-found scenario:
+// The onNotFound callback handles the not-found scenario differently:
 //   - Resource: silently removes from state (standard Terraform refresh behavior)
-//   - Data source: nil, the underlying error (e.g. HTTP 404) is surfaced to the user
+//   - Data source: returns an error (resource must exist)
 func handleReadCore(
 	ctx context.Context,
 	req HandleReadReq,
 	onNotFound func(),
 ) {
 	callResult := callReadWithHooks(ctx, req.Client, *req.CallParams, req, req.Hooks)
-	if onNotFound != nil && notFound(callResult) {
+	if notFound(callResult) {
 		onNotFound()
 		return
 	}

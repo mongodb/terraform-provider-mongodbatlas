@@ -280,14 +280,14 @@ func TestHandleDataSourceRead(t *testing.T) {
 		assert.Contains(t, diags.Errors()[0].Detail(), "server error")
 	})
 
-	t.Run("404 reports the API error", func(t *testing.T) {
-		req, _, diags := testReadRequest(t, atlasError(http.StatusNotFound, "resource does not exist in Atlas"))
+	t.Run("404 reports resource not found", func(t *testing.T) {
+		req, _, diags := testReadRequest(t, atlasError(http.StatusNotFound, "not found"))
 		HandleDataSourceRead(context.Background(), req)
 		require.True(t, diags.HasError(), "expected a diagnostics error")
-		assert.Contains(t, diags.Errors()[0].Detail(), "resource does not exist in Atlas")
+		assert.Equal(t, "Resource not found", diags.Errors()[0].Summary())
 	})
 
-	t.Run("hook signaling not found reports the hook error", func(t *testing.T) {
+	t.Run("hook signaling not found reports resource not found", func(t *testing.T) {
 		req, _, diags := testReadRequest(t, jsonResponse(http.StatusOK, `{"secrets":[]}`))
 		req.Hooks = &testPostReadHook{
 			postRead: func(_ HandleReadReq, result APICallResult) APICallResult {
@@ -296,6 +296,6 @@ func TestHandleDataSourceRead(t *testing.T) {
 		}
 		HandleDataSourceRead(context.Background(), req)
 		require.True(t, diags.HasError(), "expected a diagnostics error")
-		assert.Contains(t, diags.Errors()[0].Detail(), "secret not found in response")
+		assert.Equal(t, "Resource not found", diags.Errors()[0].Summary())
 	})
 }
