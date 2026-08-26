@@ -390,6 +390,9 @@ func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBCl
 	if err != nil {
 		var timeoutErr *retry.TimeoutError
 		if errors.As(err, &timeoutErr) {
+			// WaitForStateContext returns a bare *retry.TimeoutError on timeout.
+			// refreshFunc never sees that: a pending poll must return err == nil.
+			// Wrap here for the id prefix; keep TimeoutError in the chain (delete_on_create_timeout).
 			return nil, DefaultFormatWaitFailure(wait, WaitFailure{
 				Model:      model,
 				TimeoutErr: err,
