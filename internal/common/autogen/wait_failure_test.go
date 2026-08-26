@@ -1,0 +1,148 @@
+package autogen_test
+
+import (
+	"fmt"
+	"testing"
+	"time"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+type fakeWaitModel struct {
+	ProjectID   types.String
+	ClusterName types.String
+	JobID       types.String
+}
+
+func testWaitModel() *fakeWaitModel {
+	return &fakeWaitModel{
+		ProjectID:   types.StringValue("proj"),
+		ClusterName: types.StringValue("cluster"),
+		JobID:       types.StringValue("job1"),
+	}
+}
+
+func testFormatID(model any) string {
+	m := model.(*fakeWaitModel)
+	return fmt.Sprintf("project_id=%q, cluster_name=%q, job_id=%q",
+		m.ProjectID.ValueString(), m.ClusterName.ValueString(), m.JobID.ValueString())
+}
+
+func TestDefaultFormatWaitFailure_withErrorDescription(t *testing.T) {
+	wait := &autogen.WaitReq{
+		ErrorDescriptionProperty: "errorMessage",
+		FormatID:                 testFormatID,
+		TargetStates:             []string{"SUCCESSFUL"},
+	}
+	req := autogen.WaitFailure{
+		LastJSON: map[string]any{
+			"state":        "FAILED",
+			"errorMessage": "The restore could not complete because 1 collection was not found",
+		},
+		Model:     testWaitModel(),
+		LastState: "FAILED",
+	}
+
+	err := autogen.DefaultFormatWaitFailure(wait, req)
+
+	require.Error(t, err)
+	assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": Operation failed with state "FAILED", wanted target "SUCCESSFUL". The restore could not complete because 1 collection was not found`, err.Error())
+}
+
+func TestDefaultFormatWaitFailure_includesTargetStates(t *testing.T) {
+	wait := &autogen.WaitReq{
+		FormatID:     testFormatID,
+		TargetStates: []string{"SUCCESSFUL"},
+	}
+	err := autogen.DefaultFormatWaitFailure(wait, autogen.WaitFailure{
+		Model:     testWaitModel(),
+		LastState: "FAILED",
+	})
+	require.Error(t, err)
+	assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": Operation failed with state "FAILED", wanted target "SUCCESSFUL"`, err.Error())
+}
+
+func TestDefaultFormatWaitFailure_withoutErrorDescription(t *testing.T) {
+	wait := &autogen.WaitReq{
+		ErrorDescriptionProperty: "errorMessage",
+		FormatID:                 testFormatID,
+	}
+
+	t.Run("property missing", func(t *testing.T) {
+		err := autogen.DefaultFormatWaitFailure(wait, autogen.WaitFailure{
+			LastJSON:  map[string]any{"state": "FAILED"},
+			Model:     testWaitModel(),
+			LastState: "FAILED",
+		})
+		require.Error(t, err)
+		assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": Operation failed with state "FAILED"`, err.Error())
+	})
+
+	t.Run("property empty", func(t *testing.T) {
+		err := autogen.DefaultFormatWaitFailure(wait, autogen.WaitFailure{
+			LastJSON:  map[string]any{"errorMessage": ""},
+			Model:     testWaitModel(),
+			LastState: "FAILED",
+		})
+		require.Error(t, err)
+		assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": Operation failed with state "FAILED"`, err.Error())
+	})
+
+	t.Run("property not a string", func(t *testing.T) {
+		err := autogen.DefaultFormatWaitFailure(wait, autogen.WaitFailure{
+			LastJSON:  map[string]any{"errorMessage": 12},
+			Model:     testWaitModel(),
+			LastState: "FAILED",
+		})
+		require.Error(t, err)
+		assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": Operation failed with state "FAILED"`, err.Error())
+	})
+}
+
+func TestDefaultFormatWaitFailure_timeoutWrapsSDKError(t *testing.T) {
+	timeoutErr := &retry.TimeoutError{
+		LastState:     "INITIALIZING",
+		Timeout:       time.Minute,
+		ExpectedState: []string{"SUCCESSFUL"},
+	}
+	wait := &autogen.WaitReq{
+		FormatID: testFormatID,
+	}
+
+	err := autogen.DefaultFormatWaitFailure(wait, autogen.WaitFailure{
+		Model:      testWaitModel(),
+		TimeoutErr: timeoutErr,
+		LastState:  "INITIALIZING",
+	})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), `project_id="proj", cluster_name="cluster", job_id="job1":`)
+	assert.Contains(t, err.Error(), "timeout while waiting")
+	var got *retry.TimeoutError
+	require.ErrorAs(t, err, &got)
+	assert.Equal(t, timeoutErr, got)
+}
+
+func TestIsWaitContinueState(t *testing.T) {
+	pending := []string{"INITIALIZING", "IN_PROGRESS"}
+	target := []string{"SUCCESSFUL"}
+
+	assert.True(t, autogen.IsWaitContinueState(pending, target, "INITIALIZING"))
+	assert.True(t, autogen.IsWaitContinueState(pending, target, "SUCCESSFUL"))
+	assert.False(t, autogen.IsWaitContinueState(pending, target, "FAILED"))
+	assert.False(t, autogen.IsWaitContinueState(pending, target, "CANCELED"))
+}
+
+func TestDefaultFormatWaitFailure_timeoutPrefixWithoutID(t *testing.T) {
+	timeoutErr := fmt.Errorf("timeout while waiting")
+	err := autogen.DefaultFormatWaitFailure(&autogen.WaitReq{}, autogen.WaitFailure{
+		TimeoutErr: timeoutErr,
+		LastState:  "INITIALIZING",
+	})
+	require.Error(t, err)
+	assert.Equal(t, "timeout while waiting", err.Error())
+}
