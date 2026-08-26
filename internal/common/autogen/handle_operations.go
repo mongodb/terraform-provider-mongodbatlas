@@ -427,13 +427,13 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 // with an empty JSON body for missing resources (search deployment).
 var ErrNotFound = errors.New("resource not found")
 
-// notFound returns if the API result indicates the resource is not found:
-// an HTTP 404 response, or a hook signaling it via ErrNotFound.
+// notFound returns true if the API result indicates the resource does not exist, either because
+// the API responded with an HTTP 404 or because a hook signaled it via ErrNotFound.
 func notFound(callResult APICallResult) bool {
 	return validate.StatusNotFound(callResult.Resp) || errors.Is(callResult.Err, ErrNotFound)
 }
 
-// IsEmptyJSON returns if the response body is empty or an empty JSON object.
+// IsEmptyJSON returns true if the response body is empty or an empty JSON object.
 func IsEmptyJSON(raw []byte) bool {
 	return len(raw) == 0 || bytes.Equal(raw, emptyJSON)
 }

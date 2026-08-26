@@ -773,7 +773,7 @@ resources:
         <<: *search-deployment-create-wait
         min_timeout_seconds: 30
         pending_states: ["IDLE", "UPDATING", "PAUSED"]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404
+        target_states: ["DELETED"] # DELETED is a special state value when the resource is not found: API returns 404, or the read hook maps the empty JSON body response to autogen.ErrNotFound
     version_header: application/vnd.atlas.2025-03-12+json
 
   search_index_api:
