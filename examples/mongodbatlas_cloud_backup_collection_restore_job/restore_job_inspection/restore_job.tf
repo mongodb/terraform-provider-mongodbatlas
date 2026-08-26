@@ -4,18 +4,18 @@ data "mongodbatlas_cloud_backup_collection_restore_jobs" "this" {
   cluster_name = var.cluster_name
 }
 
+locals {
+  jobs   = coalesce(data.mongodbatlas_cloud_backup_collection_restore_jobs.this.results, [])
+  job_id = coalesce(var.job_id, length(local.jobs) > 0 ? local.jobs[length(local.jobs) - 1].job_id : null)
+}
+
 output "restore_jobs" {
   description = "Trimmed list of collection restore jobs on the cluster."
-  value = [for j in data.mongodbatlas_cloud_backup_collection_restore_jobs.this.results : {
+  value = [for j in local.jobs : {
     job_id     = j.job_id
     state      = j.state
     created_at = j.created_at
   }]
-}
-
-locals {
-  jobs   = data.mongodbatlas_cloud_backup_collection_restore_jobs.this.results
-  job_id = coalesce(var.job_id, length(local.jobs) > 0 ? local.jobs[length(local.jobs) - 1].job_id : null)
 }
 
 output "job_id" {
