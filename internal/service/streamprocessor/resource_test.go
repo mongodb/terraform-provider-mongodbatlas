@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/assert"
@@ -51,6 +52,38 @@ func importStep() resource.TestStep {
 
 func TestAccStreamProcessor_basic(t *testing.T) {
 	resource.Test(t, *basicTestCase(t))
+}
+
+func TestAccStreamProcessor_workspaceNameAliasMigration(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		randomSuffix            = acctest.RandString(5)
+		processorName           = "alias-migration-" + randomSuffix
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: configMigration(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
+				Check:  composeStreamProcessorChecksMigration(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+			},
+			{
+				Config: config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+				},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+					resource.TestCheckNoResourceAttr(resourceName, "instance_name"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccStreamProcessor_withFailoverEnabled(t *testing.T) {

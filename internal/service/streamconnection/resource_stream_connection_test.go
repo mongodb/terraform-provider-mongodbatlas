@@ -150,6 +150,10 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 	}
 }
 
+func TestAccStreamRSStreamConnection_workspaceNameAliasMigration(t *testing.T) {
+	resource.Test(t, *testCaseKafkaPlaintextMigration(t))
+}
+
 func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
@@ -170,11 +174,15 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 				),
 			},
 			{
-				Config: dataSourceConfigMigration + dataSourcePluralConfigWithPageMigration + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user2", "otherpassword", "", "", "", "", "", ""), "localhost:9093", "latest", kafkaNetworkingPublic, false),
+				Config: dataSourceConfigMigration + dataSourcePluralConfigMigration + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+				},
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkKafkaAttributesMigration(resourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
-					checkKafkaAttributesMigration(dataSourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, false),
-					streamConnectionsAttributeChecksMigration(pluralDataSourceName, new(2), new(1)),
+					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
+					resource.TestCheckNoResourceAttr(resourceName, "instance_name"),
 				),
 			},
 			{
