@@ -152,8 +152,6 @@ func TestAccStreamProcessor_withOptionsDLQAutoscaling(t *testing.T) {
 				),
 			},
 			{
-				// Starts a configured autoscaling processor through the top-level
-				// autoscaling field of the :startWith request.
 				Config: configWithOptionsDLQAutoscaling(t, projectID, workspaceName, clusterName, processorName, streamProcessorOptionsConfig{
 					includeDLQ:         true,
 					autoscalingMinTier: "SP10",
@@ -192,6 +190,38 @@ func TestAccStreamProcessor_withOptionsDLQAutoscaling(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
 					resource.TestCheckResourceAttrSet(resourceName, "options.dlq.connection_name"),
 					resource.TestCheckNoResourceAttr(resourceName, "options.autoscaling"),
+				),
+			},
+			importStep(),
+		}})
+}
+
+func TestAccStreamProcessor_withOptionsDLQAutoscalingCreateStarted(t *testing.T) {
+	var (
+		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		_, clusterName           = acc.ClusterNameExecution(t, false)
+		randomSuffix             = acctest.RandString(5)
+		processorName            = "new-processor-autoscaling-started-" + randomSuffix
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithOptionsDLQAutoscaling(t, projectID, workspaceName, clusterName, processorName, streamProcessorOptionsConfig{
+					includeDLQ:         true,
+					autoscalingMinTier: "SP10",
+					autoscalingMaxTier: "SP50",
+					state:              streamprocessor.StartedState,
+				}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
+					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.min_tier", "SP10"),
+					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.max_tier", "SP50"),
+					resource.TestCheckResourceAttrSet(resourceName, "effective_tier"),
 				),
 			},
 			importStep(),
