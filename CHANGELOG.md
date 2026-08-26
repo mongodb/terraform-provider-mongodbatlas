@@ -6,8 +6,11 @@ ENHANCEMENTS:
 * data-source/mongodbatlas_stream_connections: Adds `authentication.aws` attribute ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
 * data-source/mongodbatlas_stream_privatelink_endpoint: Adds `authentication_scheme` attribute ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
 * data-source/mongodbatlas_stream_privatelink_endpoints: Adds `authentication_scheme` attribute ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
+* data-source/mongodbatlas_stream_processor: Adds `options.autoscaling` block and read-only `effective_tier` attribute ([#4665](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4665))
+* data-source/mongodbatlas_stream_processors: Adds `options.autoscaling` block and read-only `effective_tier` attribute ([#4665](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4665))
 * resource/mongodbatlas_stream_connection: Adds support for IAM (`AWS_MSK_IAM`) authentication for Kafka connections via the new `authentication.aws` attribute ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
 * resource/mongodbatlas_stream_privatelink_endpoint: Adds `authentication_scheme` attribute to support `SASL_SCRAM`, `TLS`, and `IAM` authentication for MSK Private Link connections ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
+* resource/mongodbatlas_stream_processor: Adds independently optional `options.autoscaling` and `options.dlq` blocks plus read-only `effective_tier` attribute to support vertical autoscaling ([#4665](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4665))
 
 BUG FIXES:
 
