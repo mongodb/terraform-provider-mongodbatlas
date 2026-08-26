@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 )
 
 // WaitFailure is the last poll snapshot when a wait ends badly.
@@ -43,12 +44,16 @@ func DefaultFormatWaitFailure(wait *WaitReq, req WaitFailure) error {
 }
 
 func unexpectedStateMessage(wait *WaitReq, req WaitFailure) string {
+	msg := fmt.Sprintf("Operation failed with state %q", req.LastState)
+	if wait != nil && len(wait.TargetStates) > 0 {
+		msg = fmt.Sprintf("%s, wanted target %q", msg, strings.Join(wait.TargetStates, ", "))
+	}
 	if wait != nil && wait.ErrorDescriptionProperty != "" && req.LastJSON != nil {
-		if msg, ok := req.LastJSON[wait.ErrorDescriptionProperty].(string); ok && msg != "" {
-			return msg
+		if desc, ok := req.LastJSON[wait.ErrorDescriptionProperty].(string); ok && desc != "" {
+			return msg + ". " + desc
 		}
 	}
-	return fmt.Sprintf("operation failed with state %q", req.LastState)
+	return msg
 }
 
 // IsWaitContinueState reports whether the polled state should keep waiting.

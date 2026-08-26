@@ -437,7 +437,7 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 }
 
 // waitRefreshResult continues on pending/target states (including 404 mapped to DELETED).
-// Any other state returns DefaultFormatWaitFailure: named id plus API errorMessage, or `operation failed with state "FAILED"`. Avoids SDK UnexpectedStateError (`%!s(<nil>)`).
+// Any other state returns DefaultFormatWaitFailure: named id, state/target, then API errorMessage when present. Avoids SDK UnexpectedStateError (`%!s(<nil>)`).
 func waitRefreshResult(wait *WaitReq, model any, body []byte, stateValStr string, objJSON map[string]any) (result any, state string, err error) {
 	if IsWaitContinueState(wait.PendingStates, wait.TargetStates, stateValStr) {
 		return body, stateValStr, nil

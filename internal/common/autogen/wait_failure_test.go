@@ -36,6 +36,7 @@ func TestDefaultFormatWaitFailure_withErrorDescription(t *testing.T) {
 	wait := &autogen.WaitReq{
 		ErrorDescriptionProperty: "errorMessage",
 		FormatID:                 testFormatID,
+		TargetStates:             []string{"SUCCESSFUL"},
 	}
 	req := autogen.WaitFailure{
 		LastJSON: map[string]any{
@@ -49,7 +50,20 @@ func TestDefaultFormatWaitFailure_withErrorDescription(t *testing.T) {
 	err := autogen.DefaultFormatWaitFailure(wait, req)
 
 	require.Error(t, err)
-	assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": The restore could not complete because 1 collection was not found`, err.Error())
+	assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": Operation failed with state "FAILED", wanted target "SUCCESSFUL". The restore could not complete because 1 collection was not found`, err.Error())
+}
+
+func TestDefaultFormatWaitFailure_includesTargetStates(t *testing.T) {
+	wait := &autogen.WaitReq{
+		FormatID:     testFormatID,
+		TargetStates: []string{"SUCCESSFUL"},
+	}
+	err := autogen.DefaultFormatWaitFailure(wait, autogen.WaitFailure{
+		Model:     testWaitModel(),
+		LastState: "FAILED",
+	})
+	require.Error(t, err)
+	assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": Operation failed with state "FAILED", wanted target "SUCCESSFUL"`, err.Error())
 }
 
 func TestDefaultFormatWaitFailure_withoutErrorDescription(t *testing.T) {
@@ -65,7 +79,7 @@ func TestDefaultFormatWaitFailure_withoutErrorDescription(t *testing.T) {
 			LastState: "FAILED",
 		})
 		require.Error(t, err)
-		assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": operation failed with state "FAILED"`, err.Error())
+		assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": Operation failed with state "FAILED"`, err.Error())
 	})
 
 	t.Run("property empty", func(t *testing.T) {
@@ -75,7 +89,7 @@ func TestDefaultFormatWaitFailure_withoutErrorDescription(t *testing.T) {
 			LastState: "FAILED",
 		})
 		require.Error(t, err)
-		assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": operation failed with state "FAILED"`, err.Error())
+		assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": Operation failed with state "FAILED"`, err.Error())
 	})
 
 	t.Run("property not a string", func(t *testing.T) {
@@ -85,7 +99,7 @@ func TestDefaultFormatWaitFailure_withoutErrorDescription(t *testing.T) {
 			LastState: "FAILED",
 		})
 		require.Error(t, err)
-		assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": operation failed with state "FAILED"`, err.Error())
+		assert.Equal(t, `project_id="proj", cluster_name="cluster", job_id="job1": Operation failed with state "FAILED"`, err.Error())
 	})
 }
 
