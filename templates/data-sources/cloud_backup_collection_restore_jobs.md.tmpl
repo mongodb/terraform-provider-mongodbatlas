@@ -1,0 +1,25 @@
+---
+subcategory: "Cloud Backups"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes all collection restore jobs for a cluster.
+
+To use this data source, the requesting Service Account or API Key must have the Backup Manager or Project Owner role.
+
+## Example Usage
+
+The following example lists collection restore jobs on a cluster, then reads one job by `job_id`. When `job_id` is omitted, the example defaults to the last job from the plural data source.
+
+{{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/restore_job_inspection/restore_job.tf" }}
+
+### Further Examples
+- [Restore job inspection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/restore_job_inspection)
+- [Snapshot restore](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_restore)
+- [Point-in-time restore](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/pit_restore)
+- [Snapshot discovery](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_discovery)
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas - Restore from Selected Databases and Collections](https://www.mongodb.com/docs/atlas/backup/cloud-backup/restore-from-db-coll/) Documentation.
