@@ -8,6 +8,33 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestIsWorkspaceNameAliasReversion(t *testing.T) {
+	testCases := map[string]struct {
+		stateWorkspaceName types.String
+		planWorkspaceName  types.String
+		planInstanceName   types.String
+		reverted           bool
+	}{
+		"canonical_to_legacy_is_rejected": {
+			stateWorkspaceName: types.StringValue("workspace"),
+			planWorkspaceName:  types.StringNull(),
+			planInstanceName:   types.StringValue("workspace"),
+			reverted:           true,
+		},
+		"legacy_to_canonical_is_allowed": {
+			stateWorkspaceName: types.StringNull(),
+			planWorkspaceName:  types.StringValue("workspace"),
+			planInstanceName:   types.StringNull(),
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.reverted, IsWorkspaceNameAliasReversion(tc.stateWorkspaceName, tc.planWorkspaceName, tc.planInstanceName))
+		})
+	}
+}
+
 func TestIsAliasOnlyTransition(t *testing.T) {
 	legacyState := TFStreamProcessorRSModel{
 		InstanceName:  types.StringValue("workspace"),

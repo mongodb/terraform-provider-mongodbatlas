@@ -186,11 +186,16 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 				),
 			},
 			{
+				Config:      dataSourceConfigMigration + dataSourcePluralConfigMigration + configureKafkaMigration(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile("Cannot revert stream workspace alias"),
+			},
+			{
 				ResourceName:            resourceName,
 				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"authentication.password"},
+				ImportStateVerifyIgnore: []string{"authentication.password", "instance_name", "workspace_name"},
 			},
 		},
 	}

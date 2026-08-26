@@ -82,6 +82,11 @@ func TestAccStreamProcessor_workspaceNameAliasMigration(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "instance_name"),
 				),
 			},
+			{
+				Config:      configMigration(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile("Cannot revert stream workspace alias"),
+			},
 		},
 	})
 }
@@ -213,7 +218,7 @@ func basicTestCaseMigration(t *testing.T) *resource.TestCase {
 				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"stats"},
+				ImportStateVerifyIgnore: []string{"instance_name", "workspace_name", "stats"},
 			},
 		}}
 }

@@ -24,6 +24,14 @@ func GetWorkspaceOrInstanceName(workspaceName, instanceName types.String) string
 // IsAliasOnlyTransition reports whether a plan changes only the spelling of the
 // workspace identifier while preserving the same known workspace and every other
 // resource attribute.
+// IsWorkspaceNameAliasReversion reports whether a resource that already uses
+// workspace_name in state is being changed back to the deprecated instance_name.
+func IsWorkspaceNameAliasReversion(stateWorkspaceName, planWorkspaceName, planInstanceName types.String) bool {
+	return !stateWorkspaceName.IsNull() && !stateWorkspaceName.IsUnknown() &&
+		planWorkspaceName.IsNull() &&
+		!planInstanceName.IsNull() && !planInstanceName.IsUnknown()
+}
+
 func IsAliasOnlyTransition(plan, state TFStreamProcessorRSModel) bool {
 	if plan.WorkspaceName.IsUnknown() || plan.InstanceName.IsUnknown() || state.WorkspaceName.IsUnknown() || state.InstanceName.IsUnknown() {
 		return false

@@ -7,6 +7,38 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestIsWorkspaceNameAliasReversion(t *testing.T) {
+	testCases := map[string]struct {
+		stateWorkspaceName types.String
+		planWorkspaceName  types.String
+		planInstanceName   types.String
+		reverted           bool
+	}{
+		"canonical_to_legacy_is_rejected": {
+			stateWorkspaceName: types.StringValue("workspace"),
+			planWorkspaceName:  types.StringNull(),
+			planInstanceName:   types.StringValue("workspace"),
+			reverted:           true,
+		},
+		"legacy_to_canonical_is_allowed": {
+			stateWorkspaceName: types.StringNull(),
+			planWorkspaceName:  types.StringValue("workspace"),
+			planInstanceName:   types.StringNull(),
+		},
+		"unknown_instance_name_is_not_rejected": {
+			stateWorkspaceName: types.StringValue("workspace"),
+			planWorkspaceName:  types.StringNull(),
+			planInstanceName:   types.StringUnknown(),
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.reverted, isWorkspaceNameAliasReversion(tc.stateWorkspaceName, tc.planWorkspaceName, tc.planInstanceName))
+		})
+	}
+}
+
 func TestRequiresWorkspaceNameReplacement(t *testing.T) {
 	testCases := map[string]struct {
 		stateWorkspaceName types.String

@@ -32,9 +32,24 @@ func (m WorkspaceNameRequiresReplace) PlanModifyString(ctx context.Context, req 
 		return
 	}
 
+	if req.Path.Equal(path.Root("instance_name")) && isWorkspaceNameAliasReversion(stateWorkspaceName, planWorkspaceName, planInstanceName) {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("instance_name"),
+			"Cannot revert stream workspace alias",
+			"This resource already uses workspace_name in state. Use workspace_name instead of the deprecated instance_name attribute.",
+		)
+		return
+	}
+
 	if requiresWorkspaceNameReplacement(stateWorkspaceName, stateInstanceName, planWorkspaceName, planInstanceName) {
 		resp.RequiresReplace = true
 	}
+}
+
+func isWorkspaceNameAliasReversion(stateWorkspaceName, planWorkspaceName, planInstanceName types.String) bool {
+	return !stateWorkspaceName.IsNull() && !stateWorkspaceName.IsUnknown() &&
+		planWorkspaceName.IsNull() &&
+		!planInstanceName.IsNull() && !planInstanceName.IsUnknown()
 }
 
 func requiresWorkspaceNameReplacement(stateWorkspaceName, stateInstanceName, planWorkspaceName, planInstanceName types.String) bool {
