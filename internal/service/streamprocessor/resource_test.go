@@ -138,22 +138,8 @@ func TestAccStreamProcessor_withOptionsDLQAutoscaling(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithOptionsDLQAutoscaling(t, projectID, workspaceName, clusterName, processorName, streamProcessorOptionsConfig{
-					includeDLQ:         true,
-					autoscalingMinTier: "SP10",
-					autoscalingMaxTier: "SP50",
-					state:              streamprocessor.CreatedState,
-				}),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.min_tier", "SP10"),
-					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.max_tier", "SP50"),
-					resource.TestCheckResourceAttrSet(resourceName, "effective_tier"),
-				),
-			},
-			{
-				// Starts a configured autoscaling processor through the top-level
-				// autoscaling field of the :startWith request.
+				// Autoscaling is persisted by Create before the provider starts the
+				// processor. The subsequent :startWith request does not repeat it.
 				Config: configWithOptionsDLQAutoscaling(t, projectID, workspaceName, clusterName, processorName, streamProcessorOptionsConfig{
 					includeDLQ:         true,
 					autoscalingMinTier: "SP10",
@@ -161,6 +147,7 @@ func TestAccStreamProcessor_withOptionsDLQAutoscaling(t *testing.T) {
 					state:              streamprocessor.StartedState,
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
 					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.min_tier", "SP10"),
 					resource.TestCheckResourceAttr(resourceName, "options.autoscaling.max_tier", "SP50"),
