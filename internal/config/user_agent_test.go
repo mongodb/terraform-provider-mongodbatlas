@@ -116,3 +116,11 @@ func TestAddUserAgentExtra(t *testing.T) {
 	assert.Equal(t, "NewName", ua.Name)
 	assert.Equal(t, "FromOther", ua.Operation)
 }
+
+func TestUserAgent_TerraformVersionPerCall(t *testing.T) {
+	first := config.UserAgent("1.10.0")
+	second := config.UserAgent("1.11.0")
+
+	assert.Contains(t, first, "Terraform/1.10.0")
+	assert.Contains(t, second, "Terraform/1.11.0")
+}
