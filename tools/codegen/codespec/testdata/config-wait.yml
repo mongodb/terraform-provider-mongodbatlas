@@ -1,0 +1,22 @@
+resources:
+  test_resource_no_schema_opts:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResource
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResource
+      method: POST
+      wait:
+        state_property: state
+        error_description_property: errorMessage
+        pending_states: ["PENDING"]
+        target_states: ["IDLE"]
+        timeout_seconds: 300
+        min_timeout_seconds: 60
+        delay_seconds: 10
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResource
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResource
+      method: DELETE

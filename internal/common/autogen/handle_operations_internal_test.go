@@ -88,6 +88,7 @@ func TestRefreshFunc(t *testing.T) {
 			client := testClient(t, tc.handler)
 			wait := &WaitReq{
 				StateProperty: "stateName",
+				PendingStates: []string{"IDLE"},
 				TargetStates:  []string{retrystrategy.RetryStrategyDeletedState},
 				CallParams: func(model any) *config.APICallParams {
 					return &config.APICallParams{RelativePath: "/api/test", Method: http.MethodGet}

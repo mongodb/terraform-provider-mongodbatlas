@@ -2440,3 +2440,17 @@ func TestConvertToProviderSpec_withTagsAndLabelsAsMapType(t *testing.T) {
 		assert.Equal(t, codespec.SendNullAsEmptyOnUpdate, attr.ReqBodyUsage, "Attribute %s should have correct ReqBodyUsage", attr.TFSchemaName)
 	}
 }
+
+func TestConvertToProviderSpec_mapsWaitErrorDescriptionProperty(t *testing.T) {
+	resourceName := "test_resource_no_schema_opts"
+	result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, "testdata/config-wait.yml", &resourceName, nil)
+	require.NoError(t, err)
+	require.Len(t, result.Resources, 1)
+
+	wait := result.Resources[0].Operations.Create.Wait
+	require.NotNil(t, wait)
+	assert.Equal(t, "errorMessage", wait.ErrorDescriptionProperty)
+	assert.Equal(t, "state", wait.StateProperty)
+	assert.Equal(t, []string{"PENDING"}, wait.PendingStates)
+	assert.Equal(t, []string{"IDLE"}, wait.TargetStates)
+}

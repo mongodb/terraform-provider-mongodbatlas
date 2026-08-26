@@ -35,13 +35,15 @@ const (
 )
 
 type WaitReq struct {
-	CallParams        func(model any) *config.APICallParams
-	StateProperty     string
-	PendingStates     []string
-	TargetStates      []string
-	Timeout           time.Duration
-	MinTimeoutSeconds int
-	DelaySeconds      int
+	CallParams               func(model any) *config.APICallParams
+	FormatID                 func(model any) string
+	StateProperty            string
+	ErrorDescriptionProperty string // camelCase JSON key in the API response body, e.g. "errorMessage"
+	PendingStates            []string
+	TargetStates             []string
+	Timeout                  time.Duration
+	MinTimeoutSeconds        int
+	DelaySeconds             int
 }
 type HandleCreateReq struct {
 	Hooks                 any
@@ -161,10 +163,8 @@ func HandleDataSourceReadList(ctx context.Context, req HandleReadReq) {
 			VersionHeader: req.CallParams.VersionHeader,
 			RelativePath:  req.CallParams.RelativePath,
 			PathParams:    req.CallParams.PathParams,
-			QueryParams: map[string]string{
-				"pageNum": fmt.Sprintf("%d", pageNum),
-			},
-			Method: req.CallParams.Method,
+			QueryParams:   WithPageNum(req.CallParams.QueryParams, pageNum),
+			Method:        req.CallParams.Method,
 		}
 		callResult := callReadWithHooksWithOptions(ctx, req.Client, paginatedParams, req, req.Hooks)
 		// Err covers every failure including not-found, as UntypedAPICall returns an error for any status >= 300.
@@ -382,10 +382,23 @@ func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBCl
 		Refresh:    refreshFunc(ctx, wait, client, model, hooks),
 	}
 	bodyResp, err := stateConf.WaitForStateContext(ctx)
-	if err != nil || bodyResp == nil {
+	if err != nil {
+		var timeoutErr *retry.TimeoutError
+		if errors.As(err, &timeoutErr) {
+			// WaitForStateContext returns a bare *retry.TimeoutError on timeout.
+			// refreshFunc never sees that: a pending poll must return err == nil.
+			// Wrap here for the id prefix; keep TimeoutError in the chain (delete_on_create_timeout).
+			return nil, DefaultFormatWaitFailure(wait, WaitFailure{
+				Model:      model,
+				TimeoutErr: err,
+			})
+		}
 		return nil, err
 	}
-	return bodyResp.([]byte), err
+	if bodyResp == nil {
+		return nil, nil
+	}
+	return bodyResp.([]byte), nil
 }
 
 // refreshFunc retries until a target state or error happens.
@@ -400,7 +413,7 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 		}, hooks)
 		if notFound(callResult) {
 			// if "artificial" states continue to grow we can evaluate using a prefix to clearly separate states coming from API and those defined by refreshFunc
-			return emptyJSON, retrystrategy.RetryStrategyDeletedState, nil
+			return waitRefreshResult(wait, model, emptyJSON, retrystrategy.RetryStrategyDeletedState, nil)
 		}
 		if callResult.Err != nil {
 			return nil, "", callResult.Err
@@ -417,8 +430,21 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 		if !ok {
 			return nil, "", fmt.Errorf("wait state attribute value is not a string, attribute name: %s, value: %s", wait.StateProperty, stateValAny)
 		}
-		return callResult.Body, stateValStr, nil
+		return waitRefreshResult(wait, model, callResult.Body, stateValStr, objJSON)
 	}
+}
+
+// waitRefreshResult continues on pending/target states (including not-found mapped to DELETED).
+// Any other state returns DefaultFormatWaitFailure: named id, state/target, then API errorMessage when present. Avoids SDK UnexpectedStateError (`%!s(<nil>)`).
+func waitRefreshResult(wait *WaitReq, model any, body []byte, stateValStr string, objJSON map[string]any) (result any, state string, err error) {
+	if IsWaitContinueState(wait.PendingStates, wait.TargetStates, stateValStr) {
+		return body, stateValStr, nil
+	}
+	return nil, "", DefaultFormatWaitFailure(wait, WaitFailure{
+		LastJSON:  objJSON,
+		Model:     model,
+		LastState: stateValStr,
+	})
 }
 
 // ErrNotFound can be returned (wrapped) by custom hooks to signal that the resource does not exist

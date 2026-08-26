@@ -175,6 +175,11 @@ func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID
 // When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined it will be used instead of creating resources. This is useful for local execution but not intended for CI executions.
 func ClusterNameExecution(tb testing.TB, populateSampleData bool) (projectID, clusterName string) {
 	tb.Helper()
+	return clusterNameExecution(tb, populateSampleData, false, false)
+}
+
+func clusterNameExecution(tb testing.TB, populateSampleData, backupEnabled, pitEnabled bool) (projectID, clusterName string) {
+	tb.Helper()
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "sharedInfo not initialized, use acc.Run() to run tests that require shared resources")
 
@@ -191,7 +196,7 @@ func ClusterNameExecution(tb testing.TB, populateSampleData bool) (projectID, cl
 	if sharedInfo.clusterName == "" {
 		name := RandomClusterName()
 		tb.Logf("Creating execution cluster: %s\n", name)
-		sharedInfo.clusterName = createCluster(tb, projectID, name)
+		sharedInfo.clusterName = createCluster(tb, projectID, name, backupEnabled, pitEnabled)
 
 		if populateSampleData {
 			err := PopulateWithSampleData(projectID, sharedInfo.clusterName)
