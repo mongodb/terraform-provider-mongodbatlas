@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -34,6 +36,7 @@ func (r *rs) ResourceSchema(ctx context.Context, s schema.Schema) schema.Schema 
 		))
 		ipAccessList.NestedObject.Attributes["cidr_block"] = cidrBlock
 	}
+	ipAccessList.PlanModifiers = append(ipAccessList.PlanModifiers, ipAccessListPlanModifier{})
 	s.Attributes["ip_access_list"] = ipAccessList
 	return s
 }
@@ -67,4 +70,59 @@ func stripEchoedIPAccessListFields(bodyReq []byte) []byte {
 		return bodyReq
 	}
 	return updated
+}
+
+type ipAccessListPlanModifier struct{}
+
+func (m ipAccessListPlanModifier) Description(context.Context) string {
+	return "Marks computed ip_access_list sub-fields as unknown on updates, since the API recreates all entries on every update."
+}
+
+func (m ipAccessListPlanModifier) MarkdownDescription(ctx context.Context) string {
+	return m.Description(ctx)
+}
+
+func (m ipAccessListPlanModifier) PlanModifySet(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+	if req.PlanValue.IsNull() || req.PlanValue.IsUnknown() || req.StateValue.IsNull() {
+		return
+	}
+	if req.Plan.Raw.Equal(req.State.Raw) {
+		return
+	}
+
+	var planEntries []TFIpAccessListModel
+	if diags := req.PlanValue.ElementsAs(ctx, &planEntries, false); diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	changed := false
+	for i := range planEntries {
+		if !planEntries[i].CreatedAt.IsUnknown() {
+			planEntries[i].CreatedAt = types.StringUnknown()
+			changed = true
+		}
+		if !planEntries[i].LastUsedAddress.IsUnknown() {
+			planEntries[i].LastUsedAddress = types.StringUnknown()
+			changed = true
+		}
+		if !planEntries[i].LastUsedAt.IsUnknown() {
+			planEntries[i].LastUsedAt = types.StringUnknown()
+			changed = true
+		}
+		if !planEntries[i].RequestCount.IsUnknown() {
+			planEntries[i].RequestCount = types.Int64Unknown()
+			changed = true
+		}
+	}
+	if !changed {
+		return
+	}
+
+	newSet, diags := types.SetValueFrom(ctx, req.PlanValue.ElementType(ctx), planEntries)
+	resp.Diagnostics.Append(diags...)
+	if diags.HasError() {
+		return
+	}
+	resp.PlanValue = newSet
 }

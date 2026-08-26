@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -52,7 +51,7 @@ func ipAccessListAttrMap(entries []ipAccessListEntry) map[string]string {
 
 func TestAccProjectMcpConfig_basic(t *testing.T) {
 	var (
-		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID = acc.ProjectIDExecution(t)
 		name1     = acc.RandomName()
 		name2     = fmt.Sprintf("%s-updated", name1)
 	)
