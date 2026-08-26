@@ -66,16 +66,6 @@ data "mongodbatlas_stream_connections" "test" {
 		depends_on = [mongodbatlas_stream_connection.test]
 }
 `
-
-	dataSourcePluralConfigWithPageMigration = `
-data "mongodbatlas_stream_connections" "test" {
-		project_id = mongodbatlas_stream_connection.test.project_id
-		instance_name = mongodbatlas_stream_connection.test.instance_name
-		page_num = 2 # no specific reason for 2, just to test pagination
-		items_per_page = 1
-		depends_on = [mongodbatlas_stream_connection.test]
-}
-`
 )
 
 var (

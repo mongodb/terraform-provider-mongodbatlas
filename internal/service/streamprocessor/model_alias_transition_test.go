@@ -1,4 +1,4 @@
-package streamprocessor
+package streamprocessor_test
 
 import (
 	"testing"
@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 )
 
 func TestIsWorkspaceNameAliasReversion(t *testing.T) {
@@ -30,13 +32,13 @@ func TestIsWorkspaceNameAliasReversion(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.reverted, IsWorkspaceNameAliasReversion(tc.stateWorkspaceName, tc.planWorkspaceName, tc.planInstanceName))
+			assert.Equal(t, tc.reverted, streamprocessor.IsWorkspaceNameAliasReversion(tc.stateWorkspaceName, tc.planWorkspaceName, tc.planInstanceName))
 		})
 	}
 }
 
 func TestIsAliasOnlyTransition(t *testing.T) {
-	legacyState := TFStreamProcessorRSModel{
+	legacyState := streamprocessor.TFStreamProcessorRSModel{
 		InstanceName:  types.StringValue("workspace"),
 		WorkspaceName: types.StringNull(),
 		ProjectID:     types.StringValue("project"),
@@ -47,13 +49,13 @@ func TestIsAliasOnlyTransition(t *testing.T) {
 	}
 
 	testCases := map[string]struct {
-		plan                TFStreamProcessorRSModel
-		state               TFStreamProcessorRSModel
+		plan                streamprocessor.TFStreamProcessorRSModel
+		state               streamprocessor.TFStreamProcessorRSModel
 		aliasOnlyTransition bool
 	}{
 		"legacy_to_canonical": {
 			state: legacyState,
-			plan: TFStreamProcessorRSModel{
+			plan: streamprocessor.TFStreamProcessorRSModel{
 				InstanceName:  types.StringNull(),
 				WorkspaceName: types.StringValue("workspace"),
 				ProjectID:     types.StringValue("project"),
@@ -64,7 +66,7 @@ func TestIsAliasOnlyTransition(t *testing.T) {
 		},
 		"computed_values_unknown_in_plan": {
 			state: legacyState,
-			plan: TFStreamProcessorRSModel{
+			plan: streamprocessor.TFStreamProcessorRSModel{
 				InstanceName:  types.StringNull(),
 				WorkspaceName: types.StringValue("workspace"),
 				ProjectID:     types.StringValue("project"),
@@ -77,7 +79,7 @@ func TestIsAliasOnlyTransition(t *testing.T) {
 		},
 		"different_workspace": {
 			state: legacyState,
-			plan: TFStreamProcessorRSModel{
+			plan: streamprocessor.TFStreamProcessorRSModel{
 				InstanceName:  types.StringNull(),
 				WorkspaceName: types.StringValue("different-workspace"),
 				ProjectID:     types.StringValue("project"),
@@ -87,7 +89,7 @@ func TestIsAliasOnlyTransition(t *testing.T) {
 		},
 		"other_attribute_changed": {
 			state: legacyState,
-			plan: TFStreamProcessorRSModel{
+			plan: streamprocessor.TFStreamProcessorRSModel{
 				InstanceName:  types.StringNull(),
 				WorkspaceName: types.StringValue("workspace"),
 				ProjectID:     types.StringValue("project"),
@@ -99,7 +101,7 @@ func TestIsAliasOnlyTransition(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.aliasOnlyTransition, IsAliasOnlyTransition(tc.plan, tc.state))
+			assert.Equal(t, tc.aliasOnlyTransition, streamprocessor.IsAliasOnlyTransition(&tc.plan, &tc.state))
 		})
 	}
 }

@@ -32,7 +32,7 @@ func (m WorkspaceNameRequiresReplace) PlanModifyString(ctx context.Context, req 
 		return
 	}
 
-	if req.Path.Equal(path.Root("instance_name")) && isWorkspaceNameAliasReversion(stateWorkspaceName, planWorkspaceName, planInstanceName) {
+	if req.Path.Equal(path.Root("instance_name")) && IsWorkspaceNameAliasReversion(stateWorkspaceName, planWorkspaceName, planInstanceName) {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("instance_name"),
 			"Cannot revert stream workspace alias",
@@ -41,18 +41,18 @@ func (m WorkspaceNameRequiresReplace) PlanModifyString(ctx context.Context, req 
 		return
 	}
 
-	if requiresWorkspaceNameReplacement(stateWorkspaceName, stateInstanceName, planWorkspaceName, planInstanceName) {
+	if RequiresWorkspaceNameReplacement(stateWorkspaceName, stateInstanceName, planWorkspaceName, planInstanceName) {
 		resp.RequiresReplace = true
 	}
 }
 
-func isWorkspaceNameAliasReversion(stateWorkspaceName, planWorkspaceName, planInstanceName types.String) bool {
+func IsWorkspaceNameAliasReversion(stateWorkspaceName, planWorkspaceName, planInstanceName types.String) bool {
 	return !stateWorkspaceName.IsNull() && !stateWorkspaceName.IsUnknown() &&
 		planWorkspaceName.IsNull() &&
 		!planInstanceName.IsNull() && !planInstanceName.IsUnknown()
 }
 
-func requiresWorkspaceNameReplacement(stateWorkspaceName, stateInstanceName, planWorkspaceName, planInstanceName types.String) bool {
+func RequiresWorkspaceNameReplacement(stateWorkspaceName, stateInstanceName, planWorkspaceName, planInstanceName types.String) bool {
 	stateName, stateKnown := effectiveWorkspaceName(stateWorkspaceName, stateInstanceName)
 	if !stateKnown || stateName == "" {
 		return false

@@ -32,7 +32,7 @@ func IsWorkspaceNameAliasReversion(stateWorkspaceName, planWorkspaceName, planIn
 		!planInstanceName.IsNull() && !planInstanceName.IsUnknown()
 }
 
-func IsAliasOnlyTransition(plan, state TFStreamProcessorRSModel) bool {
+func IsAliasOnlyTransition(plan, state *TFStreamProcessorRSModel) bool {
 	if plan.WorkspaceName.IsUnknown() || plan.InstanceName.IsUnknown() || state.WorkspaceName.IsUnknown() || state.InstanceName.IsUnknown() {
 		return false
 	}
@@ -41,14 +41,14 @@ func IsAliasOnlyTransition(plan, state TFStreamProcessorRSModel) bool {
 		return false
 	}
 
-	planWithoutAliases := plan
+	planWithoutAliases := *plan
 	planWithoutAliases.WorkspaceName = state.WorkspaceName
 	planWithoutAliases.InstanceName = state.InstanceName
 	// id and stats are computed API outputs. They can be unknown in an update
 	// plan even though no configured processor setting has changed.
 	planWithoutAliases.ProcessorID = state.ProcessorID
 	planWithoutAliases.Stats = state.Stats
-	return !plan.WorkspaceName.Equal(state.WorkspaceName) && reflect.DeepEqual(planWithoutAliases, state)
+	return !plan.WorkspaceName.Equal(state.WorkspaceName) && reflect.DeepEqual(planWithoutAliases, *state)
 }
 
 func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessor, diag.Diagnostics) {

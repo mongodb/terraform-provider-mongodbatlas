@@ -1,10 +1,12 @@
-package streamconnection
+package streamconnection_test
 
 import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 )
 
 func TestIsWorkspaceNameAliasReversion(t *testing.T) {
@@ -34,7 +36,7 @@ func TestIsWorkspaceNameAliasReversion(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.reverted, isWorkspaceNameAliasReversion(tc.stateWorkspaceName, tc.planWorkspaceName, tc.planInstanceName))
+			assert.Equal(t, tc.reverted, streamconnection.IsWorkspaceNameAliasReversion(tc.stateWorkspaceName, tc.planWorkspaceName, tc.planInstanceName))
 		})
 	}
 }
@@ -83,7 +85,7 @@ func TestRequiresWorkspaceNameReplacement(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.requiresReplace, requiresWorkspaceNameReplacement(tc.stateWorkspaceName, tc.stateInstanceName, tc.planWorkspaceName, tc.planInstanceName))
+			assert.Equal(t, tc.requiresReplace, streamconnection.RequiresWorkspaceNameReplacement(tc.stateWorkspaceName, tc.stateInstanceName, tc.planWorkspaceName, tc.planInstanceName))
 		})
 	}
 }
