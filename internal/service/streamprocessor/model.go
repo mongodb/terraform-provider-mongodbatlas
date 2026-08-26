@@ -36,6 +36,10 @@ func IsAliasOnlyTransition(plan, state TFStreamProcessorRSModel) bool {
 	planWithoutAliases := plan
 	planWithoutAliases.WorkspaceName = state.WorkspaceName
 	planWithoutAliases.InstanceName = state.InstanceName
+	// id and stats are computed API outputs. They can be unknown in an update
+	// plan even though no configured processor setting has changed.
+	planWithoutAliases.ProcessorID = state.ProcessorID
+	planWithoutAliases.Stats = state.Stats
 	return !plan.WorkspaceName.Equal(state.WorkspaceName) && reflect.DeepEqual(planWithoutAliases, state)
 }
 

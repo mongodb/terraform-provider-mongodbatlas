@@ -14,6 +14,8 @@ func TestIsAliasOnlyTransition(t *testing.T) {
 		WorkspaceName: types.StringNull(),
 		ProjectID:     types.StringValue("project"),
 		ProcessorName: types.StringValue("processor"),
+		ProcessorID:   types.StringValue("processor-id"),
+		Stats:         types.StringValue("{}"),
 		Pipeline:      jsontypes.NewNormalizedValue(`[]`),
 	}
 
@@ -29,6 +31,19 @@ func TestIsAliasOnlyTransition(t *testing.T) {
 				WorkspaceName: types.StringValue("workspace"),
 				ProjectID:     types.StringValue("project"),
 				ProcessorName: types.StringValue("processor"),
+				Pipeline:      jsontypes.NewNormalizedValue(`[]`),
+			},
+			aliasOnlyTransition: true,
+		},
+		"computed_values_unknown_in_plan": {
+			state: legacyState,
+			plan: TFStreamProcessorRSModel{
+				InstanceName:  types.StringNull(),
+				WorkspaceName: types.StringValue("workspace"),
+				ProjectID:     types.StringValue("project"),
+				ProcessorName: types.StringValue("processor"),
+				ProcessorID:   types.StringUnknown(),
+				Stats:         types.StringUnknown(),
 				Pipeline:      jsontypes.NewNormalizedValue(`[]`),
 			},
 			aliasOnlyTransition: true,

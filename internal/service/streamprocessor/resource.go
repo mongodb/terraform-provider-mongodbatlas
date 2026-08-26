@@ -177,7 +177,9 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	if IsAliasOnlyTransition(plan, state) {
-		resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+		state.InstanceName = plan.InstanceName
+		state.WorkspaceName = plan.WorkspaceName
+		resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 		return
 	}
 
