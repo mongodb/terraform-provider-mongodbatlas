@@ -181,7 +181,7 @@ resources:
             "PENDING",
             "DELETING",
           ]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404; APIs returning an ok status with an empty body require a PostReadAPICall hook signaling autogen.ErrNotFound
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404
     version_header: application/vnd.atlas.2023-02-01+json
     schema:
       ignores: ["links", "mongo_db_employee_access_grant.links"]
@@ -388,7 +388,7 @@ resources:
             "PENDING",
             "DELETING",
           ]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404; APIs returning an ok status with an empty body require a PostReadAPICall hook signaling autogen.ErrNotFound
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404
     move_state:
       source_resources: ["mongodbatlas_cluster_old_api"]
     version_header: application/vnd.atlas.2024-08-05+json
@@ -725,7 +725,7 @@ resources:
       wait:
         <<: *pble-create-wait
         pending_states: ["ACTIVE", "INITIATING", "BUCKET_VERIFIED"]
-        target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404; APIs returning an ok status with an empty body require a PostReadAPICall hook signaling autogen.ErrNotFound
+        target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
       ignores: ["links"]
@@ -773,7 +773,7 @@ resources:
         <<: *search-deployment-create-wait
         min_timeout_seconds: 30
         pending_states: ["IDLE", "UPDATING", "PAUSED"]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404; APIs returning an ok status with an empty body require a PostReadAPICall hook signaling autogen.ErrNotFound
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404
     version_header: application/vnd.atlas.2025-03-12+json
 
   search_index_api:
@@ -880,7 +880,7 @@ resources:
       wait:
         <<: *stream-processor-create-wait
         pending_states: ["INIT", "CREATING", "CREATED", "STARTED", "STOPPED"]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404; APIs returning an ok status with an empty body require a PostReadAPICall hook signaling autogen.ErrNotFound
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404
     version_header: application/vnd.atlas.2024-05-30+json
     schema:
       ignores: ["links", "options.links", "options.dlq.links", "_id"]
