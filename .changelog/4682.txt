@@ -1,0 +1,3 @@
+```release-note:new-guide
+Migration Guide: Stream Instance to Stream Workspace
+```
