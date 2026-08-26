@@ -46,10 +46,10 @@ func (r *streamProcessorRS) Schema(ctx context.Context, req resource.SchemaReque
 }
 
 func (r *streamProcessorRS) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	var plan, state TFStreamProcessorRSModel
+	var plan, state *TFStreamProcessorRSModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
+	if resp.Diagnostics.HasError() || plan == nil || state == nil {
 		return
 	}
 
