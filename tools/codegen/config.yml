@@ -16,10 +16,8 @@ variables:
   connection_type_description: &connection_type_description "Connection type."
   db_role_to_execute_description: &db_role_to_execute_description "Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster."
   kafka_config_description: &kafka_config_description "Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters."
-  # ApiAtlasRestoreNamespaceView is shared by databases and collections, so the spec
-  # description ("database name or database.collection") is stamped onto both lists.
-  # MMS validates them differently: database name vs `database.collection`.
-  # TODO: request sibling descriptions on the two parent properties in OpenAPI, then drop these overrides.
+  # TODO(CLOUDP-439020): once the descriptions are corrected upstream, delete these anchors and the
+  # `description` overrides that reference them, then refetch the spec and regenerate.
   collections_source_namespace_description: &collections_source_namespace_description "Collection requested to restore, as `database.collection`."
   collections_target_namespace_description: &collections_target_namespace_description "Requested target collection as `database.collection`; if empty, source namespace is used."
   databases_source_namespace_description: &databases_source_namespace_description "Database name requested to restore."
