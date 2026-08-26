@@ -67,12 +67,15 @@ output "collection_state" {
 - `job_id` (String) Unique 24-hexadecimal digit string that identifies the collection restore job.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
-### Read-Only
+### Optional
 
-- `results` (Attributes List) List of returned documents that MongoDB Cloud provides when completing this request. (see [below for nested schema](#nestedatt--results))
 - `source_namespace` (String) Source namespace to filter by (e.g. `db.collection`).
 - `state` (String) Collection-level state to filter by.
 - `target_namespace` (String) Target namespace to filter by (e.g. `db.collection`).
+
+### Read-Only
+
+- `results` (Attributes List) List of returned documents that MongoDB Cloud provides when completing this request. (see [below for nested schema](#nestedatt--results))
 
 <a id="nestedatt--results"></a>
 ### Nested Schema for `results`
