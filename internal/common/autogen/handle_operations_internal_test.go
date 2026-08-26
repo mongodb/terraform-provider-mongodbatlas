@@ -123,6 +123,29 @@ var emptyJSONAsNotFoundHook = &testPostReadHook{
 	},
 }
 
+// notFoundSignalHook replicates hooks that signal a missing resource via ErrNotFound, e.g. service account secrets.
+var notFoundSignalHook = &testPostReadHook{
+	postRead: func(_ HandleReadReq, _ APICallResult) APICallResult {
+		return APICallResult{Err: fmt.Errorf("secret not found in response: %w", ErrNotFound)}
+	},
+}
+
+func assertDiagError(t *testing.T, diags *diag.Diagnostics, summary, detailContains string) {
+	t.Helper()
+	require.True(t, diags.HasError(), "expected a diagnostics error")
+	if summary != "" {
+		assert.Equal(t, summary, diags.Errors()[0].Summary())
+	}
+	if detailContains != "" {
+		assert.Contains(t, diags.Errors()[0].Detail(), detailContains)
+	}
+}
+
+func assertDiagsOK(t *testing.T, diags *diag.Diagnostics) {
+	t.Helper()
+	require.False(t, diags.HasError(), "unexpected diagnostics: %#v", diags.Errors())
+}
+
 func TestNotFound(t *testing.T) {
 	respWithStatus := func(status int) *http.Response {
 		return &http.Response{StatusCode: status}
@@ -172,41 +195,37 @@ func testReadRequest(t *testing.T, handler http.Handler) (HandleReadReq, *tfsdk.
 }
 
 func TestHandleRead(t *testing.T) {
-	t.Run("500 reports error and keeps state", func(t *testing.T) {
-		req, state, diags := testReadRequest(t, atlasError(http.StatusInternalServerError, "server error"))
-		HandleRead(context.Background(), req)
-		require.True(t, diags.HasError(), "expected a diagnostics error")
-		assert.Contains(t, diags.Errors()[0].Detail(), "server error")
-		assert.False(t, state.Raw.IsNull(), "resource must not be removed from state on API error")
-	})
-
-	t.Run("404 removes resource from state", func(t *testing.T) {
-		req, state, diags := testReadRequest(t, atlasError(http.StatusNotFound, "not found"))
-		HandleRead(context.Background(), req)
-		require.False(t, diags.HasError(), "unexpected diagnostics: %#v", diags.Errors())
-		assert.True(t, state.Raw.IsNull(), "resource must be removed from state on 404")
-	})
-
-	t.Run("hook signaling not found removes resource from state", func(t *testing.T) {
-		req, state, diags := testReadRequest(t, jsonResponse(http.StatusOK, `{"secrets":[]}`))
-		req.Hooks = &testPostReadHook{
-			postRead: func(_ HandleReadReq, result APICallResult) APICallResult {
-				return APICallResult{Err: fmt.Errorf("secret not found in response: %w", ErrNotFound)}
-			},
-		}
-		HandleRead(context.Background(), req)
-		require.False(t, diags.HasError(), "unexpected diagnostics: %#v", diags.Errors())
-		assert.True(t, state.Raw.IsNull(), "resource must be removed from state when a hook signals not found")
-	})
-
-	t.Run("200 sets state", func(t *testing.T) {
-		req, state, diags := testReadRequest(t, jsonResponse(http.StatusOK, `{"name":"updated"}`))
-		HandleRead(context.Background(), req)
-		require.False(t, diags.HasError(), "unexpected diagnostics: %#v", diags.Errors())
-		var model testReadModel
-		require.False(t, state.Get(context.Background(), &model).HasError())
-		assert.Equal(t, "updated", model.Name.ValueString())
-	})
+	testCases := map[string]struct {
+		handler       http.HandlerFunc
+		hooks         any
+		wantErrDetail string
+		wantName      string
+		wantRemoved   bool
+	}{
+		"500 reports error and keeps state":                    {atlasError(http.StatusInternalServerError, "server error"), nil, "server error", "", false},
+		"404 removes resource from state":                      {atlasError(http.StatusNotFound, "not found"), nil, "", "", true},
+		"hook signaling not found removes resource from state": {jsonResponse(http.StatusOK, `{"secrets":[]}`), notFoundSignalHook, "", "", true},
+		"200 sets state":                                       {jsonResponse(http.StatusOK, `{"name":"updated"}`), nil, "", "updated", false},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			req, state, diags := testReadRequest(t, tc.handler)
+			req.Hooks = tc.hooks
+			HandleRead(context.Background(), req)
+			if tc.wantErrDetail != "" {
+				assertDiagError(t, diags, "", tc.wantErrDetail)
+				assert.False(t, state.Raw.IsNull(), "resource must not be removed from state on API error")
+				return
+			}
+			assertDiagsOK(t, diags)
+			assert.Equal(t, tc.wantRemoved, state.Raw.IsNull())
+			if tc.wantName != "" {
+				var model testReadModel
+				require.False(t, state.Get(context.Background(), &model).HasError())
+				assert.Equal(t, tc.wantName, model.Name.ValueString())
+			}
+		})
+	}
 }
 
 type testListResultModel struct {
@@ -247,16 +266,15 @@ func testListReadRequest(t *testing.T, handler http.Handler) (HandleReadReq, *tf
 
 func TestHandleDataSourceReadList(t *testing.T) {
 	t.Run("500 reports the API error", func(t *testing.T) {
-		req, _, diags := testListReadRequest(t, atlasError(http.StatusInternalServerError, "server error"))
+		req, _, diags := testReadRequest(t, atlasError(http.StatusInternalServerError, "server error")) // list schema not needed to assert the error
 		HandleDataSourceReadList(context.Background(), req)
-		require.True(t, diags.HasError(), "expected a diagnostics error")
-		assert.Contains(t, diags.Errors()[0].Detail(), "server error")
+		assertDiagError(t, diags, "", "server error")
 	})
 
 	t.Run("200 empty JSON sets empty results", func(t *testing.T) {
 		req, state, diags := testListReadRequest(t, jsonResponse(http.StatusOK, `{}`))
 		HandleDataSourceReadList(context.Background(), req)
-		require.False(t, diags.HasError(), "unexpected diagnostics: %#v", diags.Errors())
+		assertDiagsOK(t, diags)
 		var model testListModel
 		require.False(t, state.Get(context.Background(), &model).HasError())
 		assert.Empty(t, model.Results.Elements())
@@ -265,7 +283,7 @@ func TestHandleDataSourceReadList(t *testing.T) {
 	t.Run("200 with results sets state", func(t *testing.T) {
 		req, state, diags := testListReadRequest(t, jsonResponse(http.StatusOK, `{"results":[{"name":"one"}],"totalCount":1}`))
 		HandleDataSourceReadList(context.Background(), req)
-		require.False(t, diags.HasError(), "unexpected diagnostics: %#v", diags.Errors())
+		assertDiagsOK(t, diags)
 		var model testListModel
 		require.False(t, state.Get(context.Background(), &model).HasError())
 		assert.Len(t, model.Results.Elements(), 1)
@@ -273,29 +291,22 @@ func TestHandleDataSourceReadList(t *testing.T) {
 }
 
 func TestHandleDataSourceRead(t *testing.T) {
-	t.Run("500 reports the API error instead of not found", func(t *testing.T) {
-		req, _, diags := testReadRequest(t, atlasError(http.StatusInternalServerError, "server error"))
-		HandleDataSourceRead(context.Background(), req)
-		require.True(t, diags.HasError(), "expected a diagnostics error")
-		assert.Contains(t, diags.Errors()[0].Detail(), "server error")
-	})
-
-	t.Run("404 reports resource not found", func(t *testing.T) {
-		req, _, diags := testReadRequest(t, atlasError(http.StatusNotFound, "not found"))
-		HandleDataSourceRead(context.Background(), req)
-		require.True(t, diags.HasError(), "expected a diagnostics error")
-		assert.Equal(t, "Resource not found", diags.Errors()[0].Summary())
-	})
-
-	t.Run("hook signaling not found reports resource not found", func(t *testing.T) {
-		req, _, diags := testReadRequest(t, jsonResponse(http.StatusOK, `{"secrets":[]}`))
-		req.Hooks = &testPostReadHook{
-			postRead: func(_ HandleReadReq, result APICallResult) APICallResult {
-				return APICallResult{Err: fmt.Errorf("secret not found in response: %w", ErrNotFound)}
-			},
-		}
-		HandleDataSourceRead(context.Background(), req)
-		require.True(t, diags.HasError(), "expected a diagnostics error")
-		assert.Equal(t, "Resource not found", diags.Errors()[0].Summary())
-	})
+	testCases := map[string]struct {
+		handler       http.HandlerFunc
+		hooks         any
+		wantSummary   string
+		wantErrDetail string
+	}{
+		"500 reports the API error instead of not found":      {atlasError(http.StatusInternalServerError, "server error"), nil, "", "server error"},
+		"404 reports resource not found":                      {atlasError(http.StatusNotFound, "not found"), nil, "Resource not found", ""},
+		"hook signaling not found reports resource not found": {jsonResponse(http.StatusOK, `{"secrets":[]}`), notFoundSignalHook, "Resource not found", ""},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			req, _, diags := testReadRequest(t, tc.handler)
+			req.Hooks = tc.hooks
+			HandleDataSourceRead(context.Background(), req)
+			assertDiagError(t, diags, tc.wantSummary, tc.wantErrDetail)
+		})
+	}
 }
