@@ -17,22 +17,16 @@ import (
 )
 
 const (
-	resourceName            = "mongodbatlas_cloud_backup_collection_restore_job.test"
-	dataSourceName          = "data.mongodbatlas_cloud_backup_collection_restore_job.test"
-	pluralDataSourceName    = "data.mongodbatlas_cloud_backup_collection_restore_jobs.test"
-	collectionsDSName       = "data.mongodbatlas_cloud_backup_collection_restore_job_collections.test"
-	writeStrategyCreate     = "CREATE_NEW"
-	indexStrategyAll        = "ALL"
-	stateSuccessful         = "SUCCESSFUL"
-	stateCanceled           = "CANCELED"
-	createTimeout1m         = "1m"
-	databaseSuffixPIT       = "_pit"
-	collectionSuffixPIT     = "_restored"
-	sourceProjectIDRef      = "data.mongodbatlas_advanced_cluster.source.project_id"
-	sourceClusterNameRef    = "data.mongodbatlas_advanced_cluster.source.name"
-	destProjectIDRef        = "mongodbatlas_project.dest.id"
-	destClusterNameRef      = "mongodbatlas_advanced_cluster.dest.name"
-	destClusterProjectIDRef = "mongodbatlas_advanced_cluster.dest.project_id"
+	resourceName         = "mongodbatlas_cloud_backup_collection_restore_job.test"
+	dataSourceName       = "data.mongodbatlas_cloud_backup_collection_restore_job.test"
+	pluralDataSourceName = "data.mongodbatlas_cloud_backup_collection_restore_jobs.test"
+	collectionsDSName    = "data.mongodbatlas_cloud_backup_collection_restore_job_collections.test"
+	stateSuccessful      = "SUCCESSFUL"
+	stateCanceled        = "CANCELED"
+	sourceProjectIDRef   = "data.mongodbatlas_advanced_cluster.source.project_id"
+	sourceClusterNameRef = "data.mongodbatlas_advanced_cluster.source.name"
+	destProjectIDRef     = "mongodbatlas_project.dest.id"
+	destClusterNameRef   = "mongodbatlas_advanced_cluster.dest.name"
 )
 
 func TestAccCloudBackupCollectionRestoreJob_snapshotSameClusterDatabaseRename(t *testing.T) {
@@ -40,16 +34,12 @@ func TestAccCloudBackupCollectionRestoreJob_snapshotSameClusterDatabaseRename(t 
 	renamedDB := acc.RandomName()
 	moviesNS := acc.CollectionRestoreSeedDatabase + "." + acc.CollectionRestoreSeedCollectionName
 	restaurantsNS := acc.CollectionRestoreSeedRestaurantsNS
-	cfg := restoreJobConfig{
-		prefixHCL:         sourceClusterHCL(t, fixture),
-		snapshotID:        fixture.SnapshotID,
-		targetProjectID:   sourceProjectIDRef,
-		targetClusterName: sourceClusterNameRef,
-		databaseSource:    acc.CollectionRestoreSeedDatabase,
-		databaseTarget:    renamedDB,
-		collectionSource:  restaurantsNS,
-		withDataSources:   true,
-	}
+	cfg := restoreConfig(t, fixture, nil, "")
+	cfg.snapshotID = fixture.SnapshotID
+	cfg.databaseSource = acc.CollectionRestoreSeedDatabase
+	cfg.databaseTarget = renamedDB
+	cfg.collectionSource = restaurantsNS
+	cfg.withDataSources = true
 	filtered := cfg.withCollectionsFilter(restaurantsNS)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -91,19 +81,19 @@ func TestAccCloudBackupCollectionRestoreJob_snapshotSameClusterDatabaseRename(t 
 }
 
 func TestAccCloudBackupCollectionRestoreJob_pitDestClusterSuffixes(t *testing.T) {
+	const (
+		databaseSuffix   = "_pit"
+		collectionSuffix = "_restored"
+	)
 	fixture := acc.CloudBackupCollectionRestoreFixture(t)
 	destProject := destProjectHCL()
 	dest := destClusterInfo(t, destProjectIDRef)
-	cfg := restoreJobConfig{
-		prefixHCL:         sourceAndDestHCL(t, fixture, &dest, destProject),
-		targetProjectID:   destProjectIDRef,
-		targetClusterName: destClusterNameRef,
-		pointInTime:       fixture.AfterSnapshotUTCSeconds,
-		databaseSource:    acc.CollectionRestoreSeedDatabase,
-		databaseSuffix:    databaseSuffixPIT,
-		collectionSuffix:  collectionSuffixPIT,
-		withDataSources:   true,
-	}
+	cfg := restoreConfig(t, fixture, &dest, destProject)
+	cfg.pointInTime = fixture.AfterSnapshotUTCSeconds
+	cfg.databaseSource = acc.CollectionRestoreSeedDatabase
+	cfg.databaseSuffix = databaseSuffix
+	cfg.collectionSuffix = collectionSuffix
+	cfg.withDataSources = true
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, &dest, "", ""),
@@ -119,7 +109,7 @@ func TestAccCloudBackupCollectionRestoreJob_pitDestClusterSuffixes(t *testing.T)
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					acc.PluralResultCheck(collectionsDSName, "source_namespace", knownvalue.StringExact(acc.CollectionRestoreSeedDatabase+"."+acc.CollectionRestoreSeedCollectionName), map[string]knownvalue.Check{
-						"effective_target_namespace": knownvalue.StringExact(acc.CollectionRestoreSeedDatabase + databaseSuffixPIT + "." + acc.CollectionRestoreSeedCollectionName + collectionSuffixPIT),
+						"effective_target_namespace": knownvalue.StringExact(acc.CollectionRestoreSeedDatabase + databaseSuffix + "." + acc.CollectionRestoreSeedCollectionName + collectionSuffix),
 						"state":                      knownvalue.StringExact(stateSuccessful),
 					}),
 				},
@@ -131,13 +121,9 @@ func TestAccCloudBackupCollectionRestoreJob_pitDestClusterSuffixes(t *testing.T)
 func TestAccCloudBackupCollectionRestoreJob_pitMissingCollection(t *testing.T) {
 	fixture := acc.CloudBackupCollectionRestoreFixture(t)
 	dest := destClusterInfo(t, fixture.ProjectID)
-	cfg := restoreJobConfig{
-		prefixHCL:         sourceAndDestHCL(t, fixture, &dest, ""),
-		targetProjectID:   destClusterProjectIDRef,
-		targetClusterName: destClusterNameRef,
-		pointInTime:       fixture.AfterSnapshotUTCSeconds,
-		collectionSource:  acc.CollectionRestoreMissingCollectionNS,
-	}
+	cfg := restoreConfig(t, fixture, &dest, "")
+	cfg.pointInTime = fixture.AfterSnapshotUTCSeconds
+	cfg.collectionSource = acc.CollectionRestoreMissingCollectionNS
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, &dest, "", ""),
@@ -154,14 +140,10 @@ func TestAccCloudBackupCollectionRestoreJob_pitMissingCollection(t *testing.T) {
 func TestAccCloudBackupCollectionRestoreJob_createTimeoutPlanCreate(t *testing.T) {
 	fixture := acc.CloudBackupCollectionRestoreFixture(t)
 	dest := destClusterInfo(t, fixture.ProjectID)
-	cfg := restoreJobConfig{
-		prefixHCL:         sourceAndDestHCL(t, fixture, &dest, ""),
-		snapshotID:        fixture.SnapshotID,
-		targetProjectID:   destClusterProjectIDRef,
-		targetClusterName: destClusterNameRef,
-		databaseSource:    acc.CollectionRestoreSeedDatabase,
-		createTimeout:     createTimeout1m,
-	}
+	cfg := restoreConfig(t, fixture, &dest, "")
+	cfg.snapshotID = fixture.SnapshotID
+	cfg.databaseSource = acc.CollectionRestoreSeedDatabase
+	cfg.createTimeout = "1m"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, &dest, "", ""),
@@ -274,14 +256,33 @@ func (c *restoreJobConfig) HCL() string {
 		cluster_name        = %[3]s
 		target_project_id   = %[4]s
 		target_cluster_name = %[5]s
-		write_strategy      = %[6]q
-		index_strategy      = %[7]q
+		write_strategy      = "CREATE_NEW"
+		index_strategy      = "ALL"
+		%[6]s
+		%[7]s
 		%[8]s
-		%[9]s
-		%[10]s
 	}
-	%[11]s
-	`, c.prefixHCL, sourceProjectIDRef, sourceClusterNameRef, c.targetProjectID, c.targetClusterName, writeStrategyCreate, indexStrategyAll, optional, databases, collections, ds)
+	%[9]s
+	`, c.prefixHCL, sourceProjectIDRef, sourceClusterNameRef, c.targetProjectID, c.targetClusterName, optional, databases, collections, ds)
+}
+
+func restoreConfig(t *testing.T, fixture *acc.CollectionRestoreFixture, dest *acc.ClusterInfo, destProject string) restoreJobConfig {
+	t.Helper()
+	cfg := restoreJobConfig{
+		prefixHCL: sourceAndDestHCL(t, fixture, dest, destProject),
+	}
+	switch {
+	case dest == nil:
+		cfg.targetProjectID = sourceProjectIDRef
+		cfg.targetClusterName = sourceClusterNameRef
+	case destProject != "":
+		cfg.targetProjectID = destProjectIDRef
+		cfg.targetClusterName = destClusterNameRef
+	default:
+		cfg.targetProjectID = "mongodbatlas_advanced_cluster.dest.project_id"
+		cfg.targetClusterName = destClusterNameRef
+	}
+	return cfg
 }
 
 func sourceClusterHCL(t *testing.T, fixture *acc.CollectionRestoreFixture) string {
