@@ -772,6 +772,8 @@ resources:
           computability:
             optional: true
             computed: true
+          # The API does not preserve submitted entry order
+          type: set
         ip_access_list.cidr_block:
           computability:
             optional: true
@@ -795,6 +797,8 @@ resources:
           org_id:
             description: *org_id_description
           roles:
+            type: set
+          ip_access_list:
             type: set
 
   mcp_config_secret:
@@ -1422,6 +1426,10 @@ resources:
           computability:
             optional: true
             computed: true
+          # The API does not preserve submitted entry order, so an ordered list produces
+          # "Provider produced inconsistent result after apply" errors on any multi-entry change.
+          # A plan modifier in resource_hooks.go resolves computed sub-fields for set elements.
+          type: set
         ip_access_list.cidr_block:
           computability:
             optional: true
@@ -1447,6 +1455,8 @@ resources:
           project_id:
             description: *project_id_description
           roles:
+            type: set
+          ip_access_list:
             type: set
 
   project_service_account:
