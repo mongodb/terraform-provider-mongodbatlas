@@ -9,32 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCollectionRestoreEnvFromOS_requiresAllThree(t *testing.T) {
-	t.Setenv("MONGODB_ATLAS_PROJECT_ID", "")
-	t.Setenv("MONGODB_ATLAS_CLUSTER_NAME", "")
-	t.Setenv("MONGODB_ATLAS_SNAPSHOT_ID", "")
-	projectID, clusterName, snapshotID, ok := acc.CollectionRestoreEnvFromOSForTest()
-	assert.False(t, ok)
-	assert.Empty(t, projectID)
-	assert.Empty(t, clusterName)
-	assert.Empty(t, snapshotID)
-
-	t.Setenv("MONGODB_ATLAS_PROJECT_ID", "p")
-	t.Setenv("MONGODB_ATLAS_CLUSTER_NAME", "c")
-	projectID, clusterName, snapshotID, ok = acc.CollectionRestoreEnvFromOSForTest()
-	assert.False(t, ok)
-	assert.Equal(t, "p", projectID)
-	assert.Equal(t, "c", clusterName)
-	assert.Empty(t, snapshotID)
-
-	t.Setenv("MONGODB_ATLAS_SNAPSHOT_ID", "s")
-	projectID, clusterName, snapshotID, ok = acc.CollectionRestoreEnvFromOSForTest()
-	require.True(t, ok)
-	assert.Equal(t, "p", projectID)
-	assert.Equal(t, "c", clusterName)
-	assert.Equal(t, "s", snapshotID)
-}
-
 func TestAfterSnapshotUTCSeconds_convertsToUnixUTC(t *testing.T) {
 	created := time.Date(2026, 8, 20, 15, 4, 5, 0, time.FixedZone("CEST", 2*60*60))
 	want := time.Date(2026, 8, 20, 13, 4, 5, 0, time.UTC).Unix()

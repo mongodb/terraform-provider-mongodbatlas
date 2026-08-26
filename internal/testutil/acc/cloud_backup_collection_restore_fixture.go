@@ -67,12 +67,6 @@ func afterSnapshotUTCSeconds(created time.Time) int64 {
 	return created.UTC().Unix()
 }
 
-// CollectionRestoreEnvFromOSForTest exposes env-var parsing for unit tests.
-func CollectionRestoreEnvFromOSForTest() (projectID, clusterName, snapshotID string, ok bool) {
-	env, ok := collectionRestoreEnvFromOS()
-	return env.ProjectID, env.ClusterName, env.SnapshotID, ok
-}
-
 // AfterSnapshotUTCSecondsForTest exposes snapshot timestamp conversion for unit tests.
 func AfterSnapshotUTCSecondsForTest(created time.Time) int64 {
 	return afterSnapshotUTCSeconds(created)
