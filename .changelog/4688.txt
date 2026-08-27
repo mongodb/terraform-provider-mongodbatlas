@@ -1,1 +1,3 @@
-Fixes validation of non-IAM Kafka stream connections when the optional `authentication.aws` block is omitted
+```release-note:bug
+resource/mongodbatlas_stream_connection: Fixes validation of non-IAM Kafka stream connections when the optional `authentication.aws` block is omitted
+```

@@ -29,6 +29,7 @@ const (
 )
 
 var _ resource.ResourceWithConfigure = &streamConnectionRS{}
+var _ resource.ResourceWithConfigValidators = &streamConnectionRS{}
 var _ resource.ResourceWithImportState = &streamConnectionRS{}
 
 func Resource() resource.Resource {
@@ -195,6 +196,10 @@ var AzureObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
 	conversion.UpdateSchemaDescription(&resp.Schema)
+}
+
+func (r *streamConnectionRS) ConfigValidators(context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{kafkaIAMAuthenticationValidator{}}
 }
 
 // getWorkspaceOrInstanceName returns the workspace name from workspace_name or instance_name field

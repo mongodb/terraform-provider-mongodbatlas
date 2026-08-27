@@ -56,6 +56,31 @@ resource "mongodbatlas_stream_connection" "example-kafka-plaintext" {
   }
 }
 
+# Kafka connection using SCRAM authentication without AWS MSK IAM.
+resource "mongodbatlas_stream_connection" "example-kafka-scram" {
+  project_id      = var.project_id
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "KafkaSCRAMConnection"
+  type            = "Kafka"
+  authentication = {
+    mechanism = "SCRAM-512"
+    username  = var.kafka_username
+    password  = var.kafka_password
+  }
+  bootstrap_servers = "localhost:9092,localhost:9092"
+  config = {
+    "auto.offset.reset" : "earliest"
+  }
+  security = {
+    protocol = "SASL_PLAINTEXT"
+  }
+  networking = {
+    access = {
+      type = "PUBLIC"
+    }
+  }
+}
+
 resource "mongodbatlas_stream_connection" "example-kafka-oauthbearer" {
   project_id      = var.project_id
   instance_name   = mongodbatlas_stream_instance.example.instance_name

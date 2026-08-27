@@ -128,8 +128,20 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 				),
 			},
 			{
+				// The preceding apply exercises the full Terraform config-to-request mapping
+				// path for non-IAM Kafka authentication without an aws block.
 				Config:   dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
 				PlanOnly: true,
+			},
+			{
+				Config:      configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaIAMAuthenticationConfigWithoutRole(false), "localhost:9092,localhost:9092", "earliest", kafkaNetworkingPublic, true),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile("AWS MSK IAM role ARN is required"),
+			},
+			{
+				Config:      configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaIAMAuthenticationConfigWithoutRole(true), "localhost:9092,localhost:9092", "earliest", kafkaNetworkingPublic, true),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile("AWS MSK IAM role ARN is required"),
 			},
 			{
 				Config: dataSourcesWithPagination + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user2", "otherpassword", "", "", "", "", "", ""), "localhost:9093", "latest", kafkaNetworkingPublic, false),
@@ -946,6 +958,18 @@ func getKafkaIAMAuthenticationConfig(roleARN string) string {
 			role_arn = %[1]q
 		}
 	}`, roleARN)
+}
+
+func getKafkaIAMAuthenticationConfigWithoutRole(includeAWSBlock bool) string {
+	if includeAWSBlock {
+		return `authentication = {
+			mechanism = "AWS_MSK_IAM"
+			aws = {}
+		}`
+	}
+	return `authentication = {
+		mechanism = "AWS_MSK_IAM"
+	}`
 }
 
 func getKafkaAuthenticationConfig(mechanism, username, password, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions, method string) string {
