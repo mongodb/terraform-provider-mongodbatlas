@@ -39,7 +39,7 @@ func Resource() *schema.Resource {
 			},
 			"day_of_week": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
 				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 1 || v > 7 {
@@ -50,7 +50,7 @@ func Resource() *schema.Resource {
 			},
 			"hour_of_day": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
 				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 0 || v > 23 {
