@@ -738,25 +738,49 @@ func TestUnmarshalEmptyJSONAsList(t *testing.T) {
 	ctx := context.Background()
 
 	type modelst struct {
-		AttrTaggedEmpty customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_tagged_empty" autogen:"emptyjsonaslist"`
-		AttrUntagged    customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_untagged"`
+		TaggedList         customtypes.ListValue[types.String]                   `tfsdk:"tagged_list" autogen:"emptyjsonaslist"`
+		UntaggedList       customtypes.ListValue[types.String]                   `tfsdk:"untagged_list"`
+		TaggedSet          customtypes.SetValue[types.String]                    `tfsdk:"tagged_set" autogen:"emptyjsonaslist"`
+		UntaggedSet        customtypes.SetValue[types.String]                    `tfsdk:"untagged_set"`
+		TaggedNestedList   customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"tagged_nested_list" autogen:"emptyjsonaslist"`
+		UntaggedNestedList customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"untagged_nested_list"`
+		TaggedNestedSet    customtypes.NestedSetValue[unmarshalModelCustomType]  `tfsdk:"tagged_nested_set" autogen:"emptyjsonaslist"`
+		UntaggedNestedSet  customtypes.NestedSetValue[unmarshalModelCustomType]  `tfsdk:"untagged_nested_set"`
 	}
 
 	model := modelst{
-		AttrTaggedEmpty: customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
-		AttrUntagged:    customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
+		TaggedList:         customtypes.NewListValueNull[types.String](ctx),
+		UntaggedList:       customtypes.NewListValueNull[types.String](ctx),
+		TaggedSet:          customtypes.NewSetValueNull[types.String](ctx),
+		UntaggedSet:        customtypes.NewSetValueNull[types.String](ctx),
+		TaggedNestedList:   customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
+		UntaggedNestedList: customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
+		TaggedNestedSet:    customtypes.NewNestedSetValueNull[unmarshalModelCustomType](ctx),
+		UntaggedNestedSet:  customtypes.NewNestedSetValueNull[unmarshalModelCustomType](ctx),
 	}
 
 	const jsonResp = `
 		{
-			"attrTaggedEmpty": [],
-			"attrUntagged": []
+			"taggedList": [],
+			"untaggedList": [],
+			"taggedSet": [],
+			"untaggedSet": [],
+			"taggedNestedList": [],
+			"untaggedNestedList": [],
+			"taggedNestedSet": [],
+			"untaggedNestedSet": []
 		}
 	`
 
 	modelExpected := modelst{
-		AttrTaggedEmpty: customtypes.NewNestedListValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{}),
-		AttrUntagged:    customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
+		TaggedList:         customtypes.NewListValue[types.String](ctx, []attr.Value{}),
+		UntaggedList:       customtypes.NewListValueNull[types.String](ctx),
+		TaggedSet:          customtypes.NewSetValue[types.String](ctx, []attr.Value{}),
+		UntaggedSet:        customtypes.NewSetValueNull[types.String](ctx),
+		TaggedNestedList:   customtypes.NewNestedListValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{}),
+		UntaggedNestedList: customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
+		TaggedNestedSet:    customtypes.NewNestedSetValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{}),
+		UntaggedNestedSet:  customtypes.NewNestedSetValueNull[unmarshalModelCustomType](ctx),
 	}
 
 	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
