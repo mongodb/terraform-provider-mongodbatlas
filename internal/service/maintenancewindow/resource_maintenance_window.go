@@ -39,24 +39,10 @@ func Resource() *schema.Resource {
 			"day_of_week": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
-					v := val.(int)
-					if v < 1 || v > 7 {
-						errs = append(errs, fmt.Errorf("%q value should be between 1 and 7, got: %d", key, v))
-					}
-					return
-				},
 			},
 			"hour_of_day": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
-					v := val.(int)
-					if v < 0 || v > 23 {
-						errs = append(errs, fmt.Errorf("%q value should be between 0 and 23, got: %d", key, v))
-					}
-					return
-				},
 			},
 			"start_asap": {
 				Type:     schema.TypeBool,
