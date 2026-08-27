@@ -21,7 +21,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"cloud": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Cloud provider scope for this API key. Use \"ANY\" for a cloud-agnostic scope. Additional cloud values will be supported in future API versions.",
+				MarkdownDescription: "Cloud provider scope for this API key. Must be \"ANY\". Additional cloud values will be supported in future API versions.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"created_at": schema.StringAttribute{
@@ -40,7 +40,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"geography": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Geography scope for this API key. Use \"ANY\" for a geography-agnostic scope. Additional geography values will be supported in future API versions.",
+				MarkdownDescription: "Geography scope for this API key. Must be \"ANY\". Additional geography values will be supported in future API versions.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"project_id": schema.StringAttribute{
