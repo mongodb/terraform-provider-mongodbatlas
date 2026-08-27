@@ -210,8 +210,11 @@ func checkDestroy(s *terraform.State) error {
 		if orgID == "" || mcpConfigID == "" || secretID == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetOrgMcpSecret(context.Background(), orgID, mcpConfigID, secretID).Execute()
-		if err == nil {
+		stillExists := func() bool {
+			_, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetOrgMcpSecret(context.Background(), orgID, mcpConfigID, secretID).Execute()
+			return err == nil
+		}
+		if !acc.WaitUntilGone(stillExists) {
 			return fmt.Errorf("mcp config secret (%s/%s/%s) still exists", orgID, mcpConfigID, secretID)
 		}
 	}
