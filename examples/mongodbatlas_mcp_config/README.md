@@ -6,7 +6,7 @@ This example shows how to create an organization-level Remote MCP configuration 
 
 This resource does not manage ingress secrets. Use `mongodbatlas_mcp_config_secret` to create one.
 
-## Variables Required to be set:
+## Required Variables
 - `atlas_client_id`: The MongoDB Atlas Service Account Client ID
 - `atlas_client_secret`: The MongoDB Atlas Service Account Client Secret
 - `org_id`: The organization ID where the MCP configuration will be created

@@ -8,7 +8,7 @@ This resource does not manage ingress secrets. Use [`mongodbatlas_project_mcp_co
 
 Deleting a `mongodbatlas_project_mcp_config` resource unlinks the MCP configuration from the project, but doesn't delete it from the organization. To fully delete it, use the org-level [`mongodbatlas_mcp_config`](../mongodbatlas_mcp_config/README.md) resource.
 
-## Variables Required to be set:
+## Required Variables
 - `atlas_client_id`: The MongoDB Atlas Service Account Client ID
 - `atlas_client_secret`: The MongoDB Atlas Service Account Client Secret
 - `project_id`: The project ID where the MCP configuration will be created
