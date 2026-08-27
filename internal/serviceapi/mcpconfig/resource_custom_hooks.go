@@ -20,7 +20,7 @@ var (
 )
 
 func (r *rs) ResourceSchema(ctx context.Context, s schema.Schema) schema.Schema {
-	ipAccessList, ok := s.Attributes["ip_access_list"].(schema.SetNestedAttribute)
+	ipAccessList, ok := s.Attributes["ip_access_list"].(schema.ListNestedAttribute)
 	if !ok {
 		return s
 	}
@@ -61,7 +61,7 @@ func stripEchoedIPAccessListFields(bodyReq []byte) []byte {
 		}
 		ip, hasIP := entry["ipAddress"].(string)
 		cidr, hasCIDR := entry["cidrBlock"].(string)
-		if hasIP && hasCIDR && ip != "" && cidr == ip+"/32" {
+		if hasIP && hasCIDR && ip != "" && (cidr == ip+"/32" || cidr == ip+"/128") {
 			delete(entry, "cidrBlock")
 		}
 	}
@@ -82,7 +82,7 @@ func (m ipAccessListPlanModifier) MarkdownDescription(ctx context.Context) strin
 	return m.Description(ctx)
 }
 
-func (m ipAccessListPlanModifier) PlanModifySet(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+func (m ipAccessListPlanModifier) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
 	if req.PlanValue.IsNull() || req.PlanValue.IsUnknown() || req.StateValue.IsNull() {
 		return
 	}
@@ -119,10 +119,10 @@ func (m ipAccessListPlanModifier) PlanModifySet(ctx context.Context, req planmod
 		return
 	}
 
-	newSet, diags := types.SetValueFrom(ctx, req.PlanValue.ElementType(ctx), planEntries)
+	newList, diags := types.ListValueFrom(ctx, req.PlanValue.ElementType(ctx), planEntries)
 	resp.Diagnostics.Append(diags...)
 	if diags.HasError() {
 		return
 	}
-	resp.PlanValue = newSet
+	resp.PlanValue = newList
 }

@@ -51,7 +51,7 @@ output "egress_client_id" {
 
 ### Optional
 
-- `ip_access_list` (Attributes Set) List of IP access list entries that define allowed source addresses for this MCP configuration. (see [below for nested schema](#nestedatt--ip_access_list))
+- `ip_access_list` (Attributes List) List of IP access list entries that define allowed source addresses for this MCP configuration. (see [below for nested schema](#nestedatt--ip_access_list))
 
 ### Read-Only
 

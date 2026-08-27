@@ -34,7 +34,7 @@ schema:
           create_only: true
           present_in_any_response: false
           request_only_required_on_create: false
-        - set_nested:
+        - list_nested:
             nested_object:
                 attributes:
                     - string: {}
@@ -106,8 +106,8 @@ schema:
           description: List of IP access list entries that define allowed source addresses for this MCP configuration.
           custom_type:
             name: IpAccessList
-            model: customtypes.NestedSetValue[TFIpAccessListModel]
-            schema: customtypes.NewNestedSetType[TFIpAccessListModel](ctx)
+            model: customtypes.NestedListValue[TFIpAccessListModel]
+            schema: customtypes.NewNestedListType[TFIpAccessListModel](ctx)
             packages:
                 - customtypes
           computed_optional_required: computed_optional
@@ -198,7 +198,7 @@ data_sources:
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
-            - set_nested:
+            - list_nested:
                 nested_object:
                     attributes:
                         - string: {}
@@ -270,8 +270,8 @@ data_sources:
               description: List of IP access list entries that define allowed source addresses for this MCP configuration.
               custom_type:
                 name: IpAccessList
-                model: customtypes.NestedSetValue[TFIpAccessListModel]
-                schema: customtypes.NewNestedSetType[TFIpAccessListModel](ctx)
+                model: customtypes.NestedListValue[TFIpAccessListModel]
+                schema: customtypes.NewNestedListType[TFIpAccessListModel](ctx)
                 packages:
                     - customtypes
               computed_optional_required: computed
@@ -372,7 +372,7 @@ data_sources:
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false
-                        - set_nested:
+                        - list_nested:
                             nested_object:
                                 attributes:
                                     - string: {}
@@ -444,8 +444,8 @@ data_sources:
                           description: List of IP access list entries that define allowed source addresses for this MCP configuration.
                           custom_type:
                             name: ResultsIpAccessList
-                            model: customtypes.NestedSetValue[TFResultsIpAccessListModel]
-                            schema: customtypes.NewNestedSetType[TFResultsIpAccessListModel](ctx)
+                            model: customtypes.NestedListValue[TFResultsIpAccessListModel]
+                            schema: customtypes.NewNestedListType[TFResultsIpAccessListModel](ctx)
                             packages:
                                 - customtypes
                           computed_optional_required: computed

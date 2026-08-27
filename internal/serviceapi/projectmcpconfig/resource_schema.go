@@ -28,11 +28,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
-			"ip_access_list": schema.SetNestedAttribute{
+			"ip_access_list": schema.ListNestedAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "List of IP access list entries that define allowed source addresses for this MCP configuration.",
-				CustomType:          customtypes.NewNestedSetType[TFIpAccessListModel](ctx),
+				CustomType:          customtypes.NewNestedListType[TFIpAccessListModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"cidr_block": schema.StringAttribute{
@@ -83,13 +83,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	ClientId       types.String                                    `tfsdk:"client_id" autogen:"omitjson"`
-	EgressClientId types.String                                    `tfsdk:"egress_client_id" autogen:"omitjson"`
-	ProjectId      types.String                                    `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	IpAccessList   customtypes.NestedSetValue[TFIpAccessListModel] `tfsdk:"ip_access_list"`
-	McpConfigId    types.String                                    `tfsdk:"mcp_config_id" autogen:"omitjson"`
-	McpConfigName  types.String                                    `tfsdk:"mcp_config_name"`
-	Roles          customtypes.SetValue[types.String]              `tfsdk:"roles"`
+	ClientId       types.String                                     `tfsdk:"client_id" autogen:"omitjson"`
+	EgressClientId types.String                                     `tfsdk:"egress_client_id" autogen:"omitjson"`
+	ProjectId      types.String                                     `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	IpAccessList   customtypes.NestedListValue[TFIpAccessListModel] `tfsdk:"ip_access_list"`
+	McpConfigId    types.String                                     `tfsdk:"mcp_config_id" autogen:"omitjson"`
+	McpConfigName  types.String                                     `tfsdk:"mcp_config_name"`
+	Roles          customtypes.SetValue[types.String]               `tfsdk:"roles"`
 }
 type TFIpAccessListModel struct {
 	CidrBlock       types.String `tfsdk:"cidr_block"`
