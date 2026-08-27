@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.17.0 (August 27, 2026)
+
 FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_cloud_backup_collection_restore_job` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
