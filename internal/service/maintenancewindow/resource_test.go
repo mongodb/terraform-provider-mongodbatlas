@@ -206,6 +206,22 @@ func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
+				// create a wave-only window with the schedule omitted.
+				Config: configWaveOnly(orgID, projectName, 1),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "wave_assignment", "1"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "effective_wave_assignment"),
+				),
+			},
+			{
+				// Omitting the schedule must produce an empty plan (guards against a phantom day_of_week/hour_of_day = 0 drift).
+				Config:   configWaveOnly(orgID, projectName, 1),
+				PlanOnly: true,
+			},
+			{
+				// Add a maintenance window to the wave-only resource (day_of_week/hour_of_day now set).
 				Config: configWithWave(orgID, projectName, dayOfWeek, hourOfDay, 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -244,6 +260,21 @@ func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
 			},
 		},
 	})
+}
+
+func configWaveOnly(orgID, projectName string, waveAssignment int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
+		resource "mongodbatlas_maintenance_window" "test" {
+			project_id      = mongodbatlas_project.test.id
+			wave_assignment = %[3]d
+		}
+		data "mongodbatlas_maintenance_window" "test" {
+			project_id = mongodbatlas_maintenance_window.test.project_id
+		}`, orgID, projectName, waveAssignment)
 }
 
 func configWithWave(orgID, projectName string, dayOfWeek, hourOfDay, waveAssignment int) string {
