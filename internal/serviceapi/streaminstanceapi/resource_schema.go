@@ -505,11 +505,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Connections       customtypes.NestedListValue[TFConnectionsModel]     `tfsdk:"connections" autogen:"omitjson"`
+	Connections       customtypes.NestedListValue[TFConnectionsModel]     `tfsdk:"connections" autogen:"emptyjsonaslist,omitjson"`
 	DataProcessRegion customtypes.ObjectValue[TFDataProcessRegionModel]   `tfsdk:"data_process_region" autogen:"omitjsonupdate"`
 	FailoverRegions   customtypes.NestedListValue[TFFailoverRegionsModel] `tfsdk:"failover_regions"`
 	GroupId           types.String                                        `tfsdk:"group_id" autogen:"omitjson"`
-	Hostnames         customtypes.ListValue[types.String]                 `tfsdk:"hostnames" autogen:"omitjson"`
+	Hostnames         customtypes.ListValue[types.String]                 `tfsdk:"hostnames" autogen:"emptyjsonaslist,omitjson"`
 	Name              types.String                                        `tfsdk:"name" autogen:"omitjsonupdate"`
 	ProcessorStatus   customtypes.ObjectValue[TFProcessorStatusModel]     `tfsdk:"processor_status"`
 	SampleConnections customtypes.ObjectValue[TFSampleConnectionsModel]   `tfsdk:"sample_connections" autogen:"omitjsonupdate"`
@@ -533,7 +533,7 @@ type TFConnectionsModel struct {
 	PublicPrivateNetworking      customtypes.ObjectValue[TFConnectionsPublicPrivateNetworkingModel]      `tfsdk:"public_private_networking" autogen:"omitjson"`
 	Region                       types.String                                                            `tfsdk:"region" autogen:"omitjson"`
 	SchemaRegistryAuthentication customtypes.ObjectValue[TFConnectionsSchemaRegistryAuthenticationModel] `tfsdk:"schema_registry_authentication" autogen:"omitjson"`
-	SchemaRegistryUrls           customtypes.SetValue[types.String]                                      `tfsdk:"schema_registry_urls" autogen:"omitjson"`
+	SchemaRegistryUrls           customtypes.SetValue[types.String]                                      `tfsdk:"schema_registry_urls" autogen:"emptyjsonaslist,omitjson"`
 	Security                     customtypes.ObjectValue[TFConnectionsSecurityModel]                     `tfsdk:"security" autogen:"omitjson"`
 	State                        types.String                                                            `tfsdk:"state" autogen:"omitjson"`
 	Type                         types.String                                                            `tfsdk:"type" autogen:"omitjson"`
@@ -555,7 +555,7 @@ type TFConnectionsAuthenticationModel struct {
 	Username                  types.String                                                 `tfsdk:"username" autogen:"omitjson"`
 }
 type TFConnectionsAuthenticationAwsModel struct {
-	Links      customtypes.NestedListValue[TFConnectionsAuthenticationAwsLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	Links      customtypes.NestedListValue[TFConnectionsAuthenticationAwsLinksModel] `tfsdk:"links" autogen:"emptyjsonaslist,omitjson"`
 	RoleArn    types.String                                                          `tfsdk:"role_arn" autogen:"omitjson"`
 	TestBucket types.String                                                          `tfsdk:"test_bucket" autogen:"omitjson"`
 }
@@ -568,7 +568,7 @@ type TFConnectionsAwsModel struct {
 	TestBucket types.String `tfsdk:"test_bucket" autogen:"omitjson"`
 }
 type TFConnectionsAzureModel struct {
-	Links              customtypes.NestedListValue[TFConnectionsAzureLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	Links              customtypes.NestedListValue[TFConnectionsAzureLinksModel] `tfsdk:"links" autogen:"emptyjsonaslist,omitjson"`
 	Region             types.String                                              `tfsdk:"region" autogen:"omitjson"`
 	ServicePrincipalId types.String                                              `tfsdk:"service_principal_id" autogen:"omitjson"`
 	StorageAccountName types.String                                              `tfsdk:"storage_account_name" autogen:"omitjson"`
@@ -582,7 +582,7 @@ type TFConnectionsDbRoleToExecuteModel struct {
 	Type types.String `tfsdk:"type" autogen:"omitjson"`
 }
 type TFConnectionsGcpModel struct {
-	Links            customtypes.NestedListValue[TFConnectionsGcpLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	Links            customtypes.NestedListValue[TFConnectionsGcpLinksModel] `tfsdk:"links" autogen:"emptyjsonaslist,omitjson"`
 	ServiceAccountId types.String                                            `tfsdk:"service_account_id" autogen:"omitjson"`
 }
 type TFConnectionsGcpLinksModel struct {
@@ -600,11 +600,11 @@ type TFConnectionsNetworkingAccessModel struct {
 }
 type TFConnectionsPublicPrivateNetworkingModel struct {
 	Access customtypes.ObjectValue[TFConnectionsPublicPrivateNetworkingAccessModel]    `tfsdk:"access" autogen:"omitjson"`
-	Links  customtypes.NestedListValue[TFConnectionsPublicPrivateNetworkingLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	Links  customtypes.NestedListValue[TFConnectionsPublicPrivateNetworkingLinksModel] `tfsdk:"links" autogen:"emptyjsonaslist,omitjson"`
 }
 type TFConnectionsPublicPrivateNetworkingAccessModel struct {
 	ConnectionId types.String                                                                      `tfsdk:"connection_id" autogen:"omitjson"`
-	Links        customtypes.NestedListValue[TFConnectionsPublicPrivateNetworkingAccessLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	Links        customtypes.NestedListValue[TFConnectionsPublicPrivateNetworkingAccessLinksModel] `tfsdk:"links" autogen:"emptyjsonaslist,omitjson"`
 	Type         types.String                                                                      `tfsdk:"type" autogen:"omitjson"`
 }
 type TFConnectionsPublicPrivateNetworkingAccessLinksModel struct {
@@ -630,7 +630,7 @@ type TFDataProcessRegionModel struct {
 }
 type TFFailoverRegionsModel struct {
 	CloudProvider types.String                                             `tfsdk:"cloud_provider"`
-	Links         customtypes.NestedListValue[TFFailoverRegionsLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	Links         customtypes.NestedListValue[TFFailoverRegionsLinksModel] `tfsdk:"links" autogen:"emptyjsonaslist,omitjson"`
 	Region        types.String                                             `tfsdk:"region"`
 }
 type TFFailoverRegionsLinksModel struct {

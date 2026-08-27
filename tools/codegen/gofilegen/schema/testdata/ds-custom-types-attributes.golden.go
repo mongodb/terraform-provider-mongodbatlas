@@ -50,8 +50,8 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 
 type TFDSModel struct {
 	NestedObjectAttr customtypes.ObjectValue[TFDSNestedObjectAttrModel]   `tfsdk:"nested_object_attr"`
-	StringListAttr   customtypes.ListValue[types.String]                  `tfsdk:"string_list_attr"`
-	NestedListAttr   customtypes.NestedListValue[TFDSNestedListAttrModel] `tfsdk:"nested_list_attr"`
+	StringListAttr   customtypes.ListValue[types.String]                  `tfsdk:"string_list_attr" autogen:"emptyjsonaslist"`
+	NestedListAttr   customtypes.NestedListValue[TFDSNestedListAttrModel] `tfsdk:"nested_list_attr" autogen:"emptyjsonaslist"`
 }
 type TFDSNestedObjectAttrModel struct {
 	StringAttr types.String `tfsdk:"string_attr"`

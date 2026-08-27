@@ -35,5 +35,5 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 type TFDSModel struct {
 	ClientId  types.String                       `tfsdk:"client_id" autogen:"omitjson"`
 	ProjectId types.String                       `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Roles     customtypes.SetValue[types.String] `tfsdk:"roles" autogen:"omitjson"`
+	Roles     customtypes.SetValue[types.String] `tfsdk:"roles" autogen:"emptyjsonaslist,omitjson"`
 }

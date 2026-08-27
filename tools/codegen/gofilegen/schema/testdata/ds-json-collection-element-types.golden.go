@@ -57,8 +57,8 @@ type TFDSModel struct {
 	IndexStatus customtypes.ObjectValue[TFDSIndexStatusModel] `tfsdk:"index_status"`
 }
 type TFDSIndexStatusModel struct {
-	FailedIndexes customtypes.ListValue[jsontypes.Normalized] `tfsdk:"failed_indexes"`
+	FailedIndexes customtypes.ListValue[jsontypes.Normalized] `tfsdk:"failed_indexes" autogen:"emptyjsonaslist"`
 	IndexOptions  customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"index_options"`
-	IndexTags     customtypes.SetValue[jsontypes.Normalized]  `tfsdk:"index_tags"`
+	IndexTags     customtypes.SetValue[jsontypes.Normalized]  `tfsdk:"index_tags" autogen:"emptyjsonaslist"`
 	State         types.String                                `tfsdk:"state"`
 }

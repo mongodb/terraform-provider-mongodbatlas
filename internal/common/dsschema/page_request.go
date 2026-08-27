@@ -12,7 +12,7 @@ type PaginateResponse[T any] interface {
 }
 
 func AllPages[T any](ctx context.Context, listOnPage func(ctx context.Context, pageNum int) (PaginateResponse[T], *http.Response, error)) ([]T, error) {
-	var results []T
+	results := make([]T, 0)
 	for currentPage := 1; ; currentPage++ {
 		resp, _, err := listOnPage(ctx, currentPage)
 		if err != nil {

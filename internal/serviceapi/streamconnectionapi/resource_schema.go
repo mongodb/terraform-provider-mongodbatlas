@@ -499,7 +499,7 @@ type TFAuthenticationModel struct {
 	Username                  types.String                                      `tfsdk:"username"`
 }
 type TFAuthenticationAwsModel struct {
-	Links      customtypes.NestedListValue[TFAuthenticationAwsLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	Links      customtypes.NestedListValue[TFAuthenticationAwsLinksModel] `tfsdk:"links" autogen:"emptyjsonaslist,omitjson"`
 	RoleArn    types.String                                               `tfsdk:"role_arn"`
 	TestBucket types.String                                               `tfsdk:"test_bucket"`
 }
@@ -512,7 +512,7 @@ type TFAwsModel struct {
 	TestBucket types.String `tfsdk:"test_bucket"`
 }
 type TFAzureModel struct {
-	Links              customtypes.NestedListValue[TFAzureLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	Links              customtypes.NestedListValue[TFAzureLinksModel] `tfsdk:"links" autogen:"emptyjsonaslist,omitjson"`
 	Region             types.String                                   `tfsdk:"region"`
 	ServicePrincipalId types.String                                   `tfsdk:"service_principal_id"`
 	StorageAccountName types.String                                   `tfsdk:"storage_account_name"`
@@ -526,7 +526,7 @@ type TFDbRoleToExecuteModel struct {
 	Type types.String `tfsdk:"type"`
 }
 type TFGcpModel struct {
-	Links            customtypes.NestedListValue[TFGcpLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	Links            customtypes.NestedListValue[TFGcpLinksModel] `tfsdk:"links" autogen:"emptyjsonaslist,omitjson"`
 	ServiceAccountId types.String                                 `tfsdk:"service_account_id"`
 }
 type TFGcpLinksModel struct {
@@ -544,11 +544,11 @@ type TFNetworkingAccessModel struct {
 }
 type TFPublicPrivateNetworkingModel struct {
 	Access customtypes.ObjectValue[TFPublicPrivateNetworkingAccessModel]    `tfsdk:"access"`
-	Links  customtypes.NestedListValue[TFPublicPrivateNetworkingLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	Links  customtypes.NestedListValue[TFPublicPrivateNetworkingLinksModel] `tfsdk:"links" autogen:"emptyjsonaslist,omitjson"`
 }
 type TFPublicPrivateNetworkingAccessModel struct {
 	ConnectionId types.String                                                           `tfsdk:"connection_id"`
-	Links        customtypes.NestedListValue[TFPublicPrivateNetworkingAccessLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	Links        customtypes.NestedListValue[TFPublicPrivateNetworkingAccessLinksModel] `tfsdk:"links" autogen:"emptyjsonaslist,omitjson"`
 	Type         types.String                                                           `tfsdk:"type"`
 }
 type TFPublicPrivateNetworkingAccessLinksModel struct {

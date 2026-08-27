@@ -101,7 +101,7 @@ type TFPluralDSModel struct {
 	ClusterName     types.String                                        `tfsdk:"cluster_name" autogen:"omitjson"`
 	JobId           types.String                                        `tfsdk:"job_id" autogen:"omitjson"`
 	ProjectId       types.String                                        `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Results         customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
+	Results         customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"emptyjsonaslist,omitjson"`
 	SourceNamespace types.String                                        `tfsdk:"source_namespace" autogen:"omitjson"`
 	State           types.String                                        `tfsdk:"state" autogen:"omitjson"`
 	TargetNamespace types.String                                        `tfsdk:"target_namespace" autogen:"omitjson"`
@@ -117,6 +117,6 @@ type TFPluralDSResultsModel struct {
 }
 type TFPluralDSResultsIndexStatusModel struct {
 	ErrorMessage  types.String                                `tfsdk:"error_message" autogen:"omitjson"`
-	FailedIndexes customtypes.ListValue[jsontypes.Normalized] `tfsdk:"failed_indexes" autogen:"omitjson"`
+	FailedIndexes customtypes.ListValue[jsontypes.Normalized] `tfsdk:"failed_indexes" autogen:"emptyjsonaslist,omitjson"`
 	State         types.String                                `tfsdk:"state" autogen:"omitjson"`
 }

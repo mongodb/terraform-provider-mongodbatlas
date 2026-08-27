@@ -57,7 +57,7 @@ type TFDSModel struct {
 	Endpoint               types.String                        `tfsdk:"endpoint" autogen:"omitjson"`
 	Geography              types.String                        `tfsdk:"geography" autogen:"omitjson"`
 	ModelGroupName         types.String                        `tfsdk:"model_group_name" autogen:"omitjson"`
-	ModelNames             customtypes.ListValue[types.String] `tfsdk:"model_names" autogen:"omitjson"`
+	ModelNames             customtypes.ListValue[types.String] `tfsdk:"model_names" autogen:"emptyjsonaslist,omitjson"`
 	OrgId                  types.String                        `tfsdk:"org_id" autogen:"omitjson"`
 	RequestsPerMinuteLimit types.Int64                         `tfsdk:"requests_per_minute_limit" autogen:"omitjson"`
 	TokensPerMinuteLimit   types.Int64                         `tfsdk:"tokens_per_minute_limit" autogen:"omitjson"`

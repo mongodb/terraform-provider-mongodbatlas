@@ -63,14 +63,14 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 
 type TFPluralDSModel struct {
 	OrgId   types.String                                        `tfsdk:"org_id" autogen:"omitjson"`
-	Results customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
+	Results customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"emptyjsonaslist,omitjson"`
 }
 type TFPluralDSResultsModel struct {
 	Cloud                  types.String                        `tfsdk:"cloud" autogen:"omitjson"`
 	Endpoint               types.String                        `tfsdk:"endpoint" autogen:"omitjson"`
 	Geography              types.String                        `tfsdk:"geography" autogen:"omitjson"`
 	ModelGroupName         types.String                        `tfsdk:"model_group_name" autogen:"omitjson"`
-	ModelNames             customtypes.ListValue[types.String] `tfsdk:"model_names" autogen:"omitjson"`
+	ModelNames             customtypes.ListValue[types.String] `tfsdk:"model_names" autogen:"emptyjsonaslist,omitjson"`
 	RequestsPerMinuteLimit types.Int64                         `tfsdk:"requests_per_minute_limit" autogen:"omitjson"`
 	TokensPerMinuteLimit   types.Int64                         `tfsdk:"tokens_per_minute_limit" autogen:"omitjson"`
 }

@@ -110,7 +110,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 type TFModel struct {
 	ClusterName              types.String                                       `tfsdk:"cluster_name" autogen:"omitjson"`
 	DefaultNodeCount         types.Int64                                        `tfsdk:"default_node_count"`
-	EffectiveSpecs           customtypes.NestedListValue[TFEffectiveSpecsModel] `tfsdk:"effective_specs" autogen:"omitjson"`
+	EffectiveSpecs           customtypes.NestedListValue[TFEffectiveSpecsModel] `tfsdk:"effective_specs" autogen:"emptyjsonaslist,omitjson"`
 	EncryptionAtRestProvider types.String                                       `tfsdk:"encryption_at_rest_provider" autogen:"omitjson"`
 	GroupId                  types.String                                       `tfsdk:"group_id" autogen:"omitjson"`
 	Id                       types.String                                       `tfsdk:"id" autogen:"omitjson"`

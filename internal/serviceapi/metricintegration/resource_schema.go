@@ -97,7 +97,7 @@ type TFModel struct {
 	Endpoint               types.String                                        `tfsdk:"endpoint"`
 	ProjectId              types.String                                        `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	Headers                customtypes.NestedListValue[TFHeadersModel]         `tfsdk:"headers"`
-	HeadersRedacted        customtypes.NestedListValue[TFHeadersRedactedModel] `tfsdk:"headers_redacted" autogen:"omitjson"`
+	HeadersRedacted        customtypes.NestedListValue[TFHeadersRedactedModel] `tfsdk:"headers_redacted" autogen:"emptyjsonaslist,omitjson"`
 	IntegrationType        types.String                                        `tfsdk:"integration_type"`
 	MetricIntegrationId    types.String                                        `tfsdk:"metric_integration_id" autogen:"omitjson"`
 	MetricSelection        customtypes.SetValue[types.String]                  `tfsdk:"metric_selection"`

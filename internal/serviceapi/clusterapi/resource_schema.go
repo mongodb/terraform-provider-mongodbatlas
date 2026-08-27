@@ -1007,7 +1007,7 @@ type TFModel struct {
 	ConnectionStrings                             customtypes.ObjectValue[TFConnectionStringsModel]             `tfsdk:"connection_strings" autogen:"omitjson"`
 	CreateDate                                    types.String                                                  `tfsdk:"create_date" autogen:"omitjson"`
 	DiskWarmingMode                               types.String                                                  `tfsdk:"disk_warming_mode"`
-	EffectiveReplicationSpecs                     customtypes.NestedListValue[TFEffectiveReplicationSpecsModel] `tfsdk:"effective_replication_specs" autogen:"omitjson"`
+	EffectiveReplicationSpecs                     customtypes.NestedListValue[TFEffectiveReplicationSpecsModel] `tfsdk:"effective_replication_specs" autogen:"emptyjsonaslist,omitjson"`
 	EncryptionAtRestProvider                      types.String                                                  `tfsdk:"encryption_at_rest_provider"`
 	FeatureCompatibilityVersion                   types.String                                                  `tfsdk:"feature_compatibility_version" autogen:"omitjson"`
 	FeatureCompatibilityVersionExpirationDate     types.String                                                  `tfsdk:"feature_compatibility_version_expiration_date" autogen:"omitjson"`
@@ -1049,14 +1049,14 @@ type TFConnectionStringsModel struct {
 	AwsPrivateLink    customtypes.MapValue[types.String]                                   `tfsdk:"aws_private_link" autogen:"omitjson"`
 	AwsPrivateLinkSrv customtypes.MapValue[types.String]                                   `tfsdk:"aws_private_link_srv" autogen:"omitjson"`
 	Private           types.String                                                         `tfsdk:"private" autogen:"omitjson"`
-	PrivateEndpoint   customtypes.NestedListValue[TFConnectionStringsPrivateEndpointModel] `tfsdk:"private_endpoint" autogen:"omitjson"`
+	PrivateEndpoint   customtypes.NestedListValue[TFConnectionStringsPrivateEndpointModel] `tfsdk:"private_endpoint" autogen:"emptyjsonaslist,omitjson"`
 	PrivateSrv        types.String                                                         `tfsdk:"private_srv" autogen:"omitjson"`
 	Standard          types.String                                                         `tfsdk:"standard" autogen:"omitjson"`
 	StandardSrv       types.String                                                         `tfsdk:"standard_srv" autogen:"omitjson"`
 }
 type TFConnectionStringsPrivateEndpointModel struct {
 	ConnectionString                  types.String                                                                  `tfsdk:"connection_string" autogen:"omitjson"`
-	Endpoints                         customtypes.NestedListValue[TFConnectionStringsPrivateEndpointEndpointsModel] `tfsdk:"endpoints" autogen:"omitjson"`
+	Endpoints                         customtypes.NestedListValue[TFConnectionStringsPrivateEndpointEndpointsModel] `tfsdk:"endpoints" autogen:"emptyjsonaslist,omitjson"`
 	SrvConnectionString               types.String                                                                  `tfsdk:"srv_connection_string" autogen:"omitjson"`
 	SrvShardOptimizedConnectionString types.String                                                                  `tfsdk:"srv_shard_optimized_connection_string" autogen:"omitjson"`
 	Type                              types.String                                                                  `tfsdk:"type" autogen:"omitjson"`
@@ -1068,7 +1068,7 @@ type TFConnectionStringsPrivateEndpointEndpointsModel struct {
 }
 type TFEffectiveReplicationSpecsModel struct {
 	Id            types.String                                                               `tfsdk:"id" autogen:"omitjson"`
-	RegionConfigs customtypes.NestedListValue[TFEffectiveReplicationSpecsRegionConfigsModel] `tfsdk:"region_configs" autogen:"omitjson"`
+	RegionConfigs customtypes.NestedListValue[TFEffectiveReplicationSpecsRegionConfigsModel] `tfsdk:"region_configs" autogen:"emptyjsonaslist,omitjson"`
 	ZoneId        types.String                                                               `tfsdk:"zone_id" autogen:"omitjson"`
 	ZoneName      types.String                                                               `tfsdk:"zone_name" autogen:"omitjson"`
 }

@@ -261,9 +261,9 @@ type TFDSModel struct {
 	EventTypeName    types.String                                        `tfsdk:"event_type_name" autogen:"omitjson"`
 	GroupId          types.String                                        `tfsdk:"group_id" autogen:"omitjson"`
 	Id               types.String                                        `tfsdk:"id" apiname:"alertConfigId" autogen:"omitjson"`
-	Matchers         customtypes.NestedListValue[TFDSMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
+	Matchers         customtypes.NestedListValue[TFDSMatchersModel]      `tfsdk:"matchers" autogen:"emptyjsonaslist,omitjson"`
 	MetricThreshold  customtypes.ObjectValue[TFDSMetricThresholdModel]   `tfsdk:"metric_threshold" autogen:"omitjson"`
-	Notifications    customtypes.NestedListValue[TFDSNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
+	Notifications    customtypes.NestedListValue[TFDSNotificationsModel] `tfsdk:"notifications" autogen:"emptyjsonaslist,omitjson"`
 	SeverityOverride types.String                                        `tfsdk:"severity_override" autogen:"omitjson"`
 	Threshold        customtypes.ObjectValue[TFDSThresholdModel]         `tfsdk:"threshold" autogen:"omitjson"`
 	Updated          types.String                                        `tfsdk:"updated" autogen:"omitjson"`
@@ -297,7 +297,7 @@ type TFDSNotificationsModel struct {
 	OpsGenieApiKey           types.String                        `tfsdk:"ops_genie_api_key" autogen:"omitjson"`
 	OpsGenieRegion           types.String                        `tfsdk:"ops_genie_region" autogen:"omitjson"`
 	Region                   types.String                        `tfsdk:"region" autogen:"omitjson"`
-	Roles                    customtypes.ListValue[types.String] `tfsdk:"roles" autogen:"omitjson"`
+	Roles                    customtypes.ListValue[types.String] `tfsdk:"roles" autogen:"emptyjsonaslist,omitjson"`
 	RoomName                 types.String                        `tfsdk:"room_name" autogen:"omitjson"`
 	ServiceKey               types.String                        `tfsdk:"service_key" autogen:"omitjson"`
 	SmsEnabled               types.Bool                          `tfsdk:"sms_enabled" autogen:"omitjson"`

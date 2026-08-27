@@ -96,7 +96,7 @@ type TFModel struct {
 	Name                    types.String                                `tfsdk:"name"`
 	Roles                   customtypes.SetValue[types.String]          `tfsdk:"roles"`
 	SecretExpiresAfterHours types.Int64                                 `tfsdk:"secret_expires_after_hours" autogen:"omitjsonupdate"`
-	Secrets                 customtypes.NestedListValue[TFSecretsModel] `tfsdk:"secrets" autogen:"skipstatelistmerge,omitjson"`
+	Secrets                 customtypes.NestedListValue[TFSecretsModel] `tfsdk:"secrets" autogen:"skipstatelistmerge,emptyjsonaslist,omitjson"`
 }
 type TFSecretsModel struct {
 	CreatedAt         types.String `tfsdk:"created_at" autogen:"omitjson"`

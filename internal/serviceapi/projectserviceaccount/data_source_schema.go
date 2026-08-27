@@ -79,8 +79,8 @@ type TFDSModel struct {
 	Description types.String                                  `tfsdk:"description" autogen:"omitjson"`
 	Name        types.String                                  `tfsdk:"name" autogen:"omitjson"`
 	ProjectId   types.String                                  `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Roles       customtypes.SetValue[types.String]            `tfsdk:"roles" autogen:"omitjson"`
-	Secrets     customtypes.NestedListValue[TFDSSecretsModel] `tfsdk:"secrets" autogen:"omitjson"`
+	Roles       customtypes.SetValue[types.String]            `tfsdk:"roles" autogen:"emptyjsonaslist,omitjson"`
+	Secrets     customtypes.NestedListValue[TFDSSecretsModel] `tfsdk:"secrets" autogen:"emptyjsonaslist,omitjson"`
 }
 type TFDSSecretsModel struct {
 	CreatedAt         types.String `tfsdk:"created_at" autogen:"omitjson"`

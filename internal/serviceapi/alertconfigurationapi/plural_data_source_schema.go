@@ -270,7 +270,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 
 type TFPluralDSModel struct {
 	GroupId types.String                                        `tfsdk:"group_id" autogen:"omitjson"`
-	Results customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
+	Results customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"emptyjsonaslist,omitjson"`
 }
 type TFPluralDSResultsModel struct {
 	Created          types.String                                                     `tfsdk:"created" autogen:"omitjson"`
@@ -278,9 +278,9 @@ type TFPluralDSResultsModel struct {
 	EventTypeName    types.String                                                     `tfsdk:"event_type_name" autogen:"omitjson"`
 	GroupId          types.String                                                     `tfsdk:"group_id" autogen:"omitjson"`
 	Id               types.String                                                     `tfsdk:"id" autogen:"omitjson"`
-	Matchers         customtypes.NestedListValue[TFPluralDSResultsMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
+	Matchers         customtypes.NestedListValue[TFPluralDSResultsMatchersModel]      `tfsdk:"matchers" autogen:"emptyjsonaslist,omitjson"`
 	MetricThreshold  customtypes.ObjectValue[TFPluralDSResultsMetricThresholdModel]   `tfsdk:"metric_threshold" autogen:"omitjson"`
-	Notifications    customtypes.NestedListValue[TFPluralDSResultsNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
+	Notifications    customtypes.NestedListValue[TFPluralDSResultsNotificationsModel] `tfsdk:"notifications" autogen:"emptyjsonaslist,omitjson"`
 	SeverityOverride types.String                                                     `tfsdk:"severity_override" autogen:"omitjson"`
 	Threshold        customtypes.ObjectValue[TFPluralDSResultsThresholdModel]         `tfsdk:"threshold" autogen:"omitjson"`
 	Updated          types.String                                                     `tfsdk:"updated" autogen:"omitjson"`
@@ -314,7 +314,7 @@ type TFPluralDSResultsNotificationsModel struct {
 	OpsGenieApiKey           types.String                        `tfsdk:"ops_genie_api_key" autogen:"omitjson"`
 	OpsGenieRegion           types.String                        `tfsdk:"ops_genie_region" autogen:"omitjson"`
 	Region                   types.String                        `tfsdk:"region" autogen:"omitjson"`
-	Roles                    customtypes.ListValue[types.String] `tfsdk:"roles" autogen:"omitjson"`
+	Roles                    customtypes.ListValue[types.String] `tfsdk:"roles" autogen:"emptyjsonaslist,omitjson"`
 	RoomName                 types.String                        `tfsdk:"room_name" autogen:"omitjson"`
 	ServiceKey               types.String                        `tfsdk:"service_key" autogen:"omitjson"`
 	SmsEnabled               types.Bool                          `tfsdk:"sms_enabled" autogen:"omitjson"`

@@ -125,7 +125,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 type TFPluralDSModel struct {
 	IntegrationType types.String                                        `tfsdk:"integration_type" autogen:"omitjson"`
 	ProjectId       types.String                                        `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Results         customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
+	Results         customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"emptyjsonaslist,omitjson"`
 }
 type TFPluralDSResultsModel struct {
 	ApiKey                 types.String                                                           `tfsdk:"api_key" autogen:"sensitive,omitjson"`
@@ -135,9 +135,9 @@ type TFPluralDSResultsModel struct {
 	IamRoleId              types.String                                                           `tfsdk:"iam_role_id" autogen:"omitjson"`
 	IntegrationId          types.String                                                           `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
 	KmsKey                 types.String                                                           `tfsdk:"kms_key" autogen:"omitjson"`
-	LogTypes               customtypes.SetValue[types.String]                                     `tfsdk:"log_types" autogen:"omitjson"`
+	LogTypes               customtypes.SetValue[types.String]                                     `tfsdk:"log_types" autogen:"emptyjsonaslist,omitjson"`
 	OtelEndpoint           types.String                                                           `tfsdk:"otel_endpoint" autogen:"omitjson"`
-	OtelSuppliedHeaders    customtypes.NestedListValue[TFPluralDSResultsOtelSuppliedHeadersModel] `tfsdk:"otel_supplied_headers" autogen:"sensitive,omitjson"`
+	OtelSuppliedHeaders    customtypes.NestedListValue[TFPluralDSResultsOtelSuppliedHeadersModel] `tfsdk:"otel_supplied_headers" autogen:"sensitive,emptyjsonaslist,omitjson"`
 	PrefixPath             types.String                                                           `tfsdk:"prefix_path" autogen:"omitjson"`
 	Region                 types.String                                                           `tfsdk:"region" autogen:"omitjson"`
 	RoleId                 types.String                                                           `tfsdk:"role_id" autogen:"omitjson"`

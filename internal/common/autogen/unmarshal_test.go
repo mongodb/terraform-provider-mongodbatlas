@@ -734,6 +734,35 @@ func TestUnmarshalCustomMap(t *testing.T) {
 	assert.Equal(t, modelExpected, model)
 }
 
+func TestUnmarshalEmptyJSONAsList(t *testing.T) {
+	ctx := context.Background()
+
+	type modelst struct {
+		AttrTaggedEmpty customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_tagged_empty" autogen:"emptyjsonaslist"`
+		AttrUntagged    customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_untagged"`
+	}
+
+	model := modelst{
+		AttrTaggedEmpty: customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
+		AttrUntagged:    customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
+	}
+
+	const jsonResp = `
+		{
+			"attrTaggedEmpty": [],
+			"attrUntagged": []
+		}
+	`
+
+	modelExpected := modelst{
+		AttrTaggedEmpty: customtypes.NewNestedListValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{}),
+		AttrUntagged:    customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
+	}
+
+	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
+	assert.Equal(t, modelExpected, model)
+}
+
 func TestUnmarshalListAsMap(t *testing.T) {
 	ctx := context.Background()
 

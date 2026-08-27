@@ -371,6 +371,41 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "apiname-tag",
 		},
+		"Emptyjsonaslist tag generation": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: []codespec.Attribute{
+						{
+							TFSchemaName:             "computed_nested_list",
+							TFModelName:              "ComputedNestedList",
+							Description:              new("computed nested list"),
+							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomNestedListType("ComputedNestedList"),
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{stringAttr},
+								},
+							},
+						},
+						{
+							TFSchemaName:             "computed_optional_nested_list",
+							TFModelName:              "ComputedOptionalNestedList",
+							Description:              new("computed optional nested list"),
+							ComputedOptionalRequired: codespec.ComputedOptional,
+							CustomType:               codespec.NewCustomNestedListType("ComputedOptionalNestedList"),
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{stringAttr},
+								},
+							},
+						},
+					},
+				},
+			},
+			goldenFileName: "empty-json-as-list-tag",
+		},
 		"Skipstatelistmerge tag generation": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",

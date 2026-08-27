@@ -117,9 +117,9 @@ type TFDSModel struct {
 	IamRoleId              types.String                                              `tfsdk:"iam_role_id" autogen:"omitjson"`
 	IntegrationId          types.String                                              `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
 	KmsKey                 types.String                                              `tfsdk:"kms_key" autogen:"omitjson"`
-	LogTypes               customtypes.SetValue[types.String]                        `tfsdk:"log_types" autogen:"omitjson"`
+	LogTypes               customtypes.SetValue[types.String]                        `tfsdk:"log_types" autogen:"emptyjsonaslist,omitjson"`
 	OtelEndpoint           types.String                                              `tfsdk:"otel_endpoint" autogen:"omitjson"`
-	OtelSuppliedHeaders    customtypes.NestedListValue[TFDSOtelSuppliedHeadersModel] `tfsdk:"otel_supplied_headers" autogen:"sensitive,omitjson"`
+	OtelSuppliedHeaders    customtypes.NestedListValue[TFDSOtelSuppliedHeadersModel] `tfsdk:"otel_supplied_headers" autogen:"sensitive,emptyjsonaslist,omitjson"`
 	PrefixPath             types.String                                              `tfsdk:"prefix_path" autogen:"omitjson"`
 	ProjectId              types.String                                              `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	Region                 types.String                                              `tfsdk:"region" autogen:"omitjson"`

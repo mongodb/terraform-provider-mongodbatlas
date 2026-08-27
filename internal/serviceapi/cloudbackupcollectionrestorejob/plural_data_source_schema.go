@@ -155,14 +155,14 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 type TFPluralDSModel struct {
 	ClusterName types.String                                        `tfsdk:"cluster_name" autogen:"omitjson"`
 	ProjectId   types.String                                        `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Results     customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
+	Results     customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"emptyjsonaslist,omitjson"`
 }
 type TFPluralDSResultsModel struct {
 	CollectionSuffix      types.String                                                   `tfsdk:"collection_suffix" autogen:"omitjson"`
-	Collections           customtypes.NestedListValue[TFPluralDSResultsCollectionsModel] `tfsdk:"collections" autogen:"omitjson"`
+	Collections           customtypes.NestedListValue[TFPluralDSResultsCollectionsModel] `tfsdk:"collections" autogen:"emptyjsonaslist,omitjson"`
 	CreatedAt             types.String                                                   `tfsdk:"created_at" autogen:"omitjson"`
 	DatabaseSuffix        types.String                                                   `tfsdk:"database_suffix" autogen:"omitjson"`
-	Databases             customtypes.NestedListValue[TFPluralDSResultsDatabasesModel]   `tfsdk:"databases" autogen:"omitjson"`
+	Databases             customtypes.NestedListValue[TFPluralDSResultsDatabasesModel]   `tfsdk:"databases" autogen:"emptyjsonaslist,omitjson"`
 	ErrorMessage          types.String                                                   `tfsdk:"error_message" autogen:"omitjson"`
 	FinishedAt            types.String                                                   `tfsdk:"finished_at" autogen:"omitjson"`
 	JobId                 types.String                                                   `tfsdk:"job_id" apiname:"id" autogen:"omitjson"`

@@ -90,16 +90,16 @@ type TFPluralDSModel struct {
 	IntegrationType types.String                                        `tfsdk:"integration_type" autogen:"omitjson"`
 	ProjectId       types.String                                        `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	ProviderType    types.String                                        `tfsdk:"provider_type" autogen:"omitjson"`
-	Results         customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
+	Results         customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"emptyjsonaslist,omitjson"`
 }
 type TFPluralDSResultsModel struct {
 	AggregationTemporality types.String                                                       `tfsdk:"aggregation_temporality" autogen:"omitjson"`
 	AuthType               types.String                                                       `tfsdk:"auth_type" autogen:"omitjson"`
 	Endpoint               types.String                                                       `tfsdk:"endpoint" autogen:"omitjson"`
-	HeadersRedacted        customtypes.NestedListValue[TFPluralDSResultsHeadersRedactedModel] `tfsdk:"headers_redacted" autogen:"omitjson"`
+	HeadersRedacted        customtypes.NestedListValue[TFPluralDSResultsHeadersRedactedModel] `tfsdk:"headers_redacted" autogen:"emptyjsonaslist,omitjson"`
 	IntegrationType        types.String                                                       `tfsdk:"integration_type" autogen:"omitjson"`
 	MetricIntegrationId    types.String                                                       `tfsdk:"metric_integration_id" autogen:"omitjson"`
-	MetricSelection        customtypes.SetValue[types.String]                                 `tfsdk:"metric_selection" autogen:"omitjson"`
+	MetricSelection        customtypes.SetValue[types.String]                                 `tfsdk:"metric_selection" autogen:"emptyjsonaslist,omitjson"`
 	ProviderType           types.String                                                       `tfsdk:"provider_type" autogen:"omitjson"`
 }
 type TFPluralDSResultsHeadersRedactedModel struct {

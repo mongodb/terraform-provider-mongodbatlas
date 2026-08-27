@@ -121,7 +121,7 @@ func unmarshalAttr(attrObjJSON any, fieldModel reflect.Value, structField *refle
 	}
 
 	valueType := oldVal.Type(context.Background())
-	newValue, err := getTfAttr(attrObjJSON, valueType, oldVal, attrNameModel, tags.SkipStateListMerge)
+	newValue, err := getTfAttr(attrObjJSON, valueType, oldVal, attrNameModel, tags)
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func setAttrTfModel(name string, field reflect.Value, val attr.Value) error {
 	return nil
 }
 
-func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string, skipListMerge bool) (attr.Value, error) {
+func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string, tags PropertyTags) (attr.Value, error) {
 	nameErr := stringcase.ToSnakeCase(name)
 	if _, ok := valueType.(jsontypes.NormalizedType); ok {
 		return getNormalizedJSONAttrValue(value, nameErr)
@@ -185,13 +185,13 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string, s
 	case []any:
 		switch oldVal := oldVal.(type) {
 		case customtypes.ListValueInterface:
-			return getListValueTFAttr(context.Background(), v, oldVal, nameErr)
+			return getListValueTFAttr(context.Background(), v, oldVal, nameErr, tags)
 		case customtypes.NestedListValueInterface:
-			return getNestedListValueTFAttr(context.Background(), v, oldVal, skipListMerge)
+			return getNestedListValueTFAttr(context.Background(), v, oldVal, tags)
 		case customtypes.SetValueInterface:
-			return getSetValueTFAttr(context.Background(), v, oldVal, nameErr)
+			return getSetValueTFAttr(context.Background(), v, oldVal, nameErr, tags)
 		case customtypes.NestedSetValueInterface:
-			return getNestedSetValueTFAttr(context.Background(), v, oldVal)
+			return getNestedSetValueTFAttr(context.Background(), v, oldVal, tags)
 		}
 		return nil, errUnmarshal(valueType, "Array", nameErr)
 	case nil:
@@ -241,7 +241,8 @@ func getMapValueTFAttr(ctx context.Context, mapJSON map[string]any, m customtype
 	elemType := m.ElementType(ctx)
 
 	for key, item := range mapJSON {
-		value, err := getTfAttr(item, elemType, nil, key, false)
+		// Map keys are JSON data, not tagged struct fields; container tags were already applied by the caller.
+		value, err := getTfAttr(item, elemType, nil, key, PropertyTags{})
 		if err != nil {
 			return nil, err
 		}
@@ -298,8 +299,8 @@ func getNestedMapValueTFAttr(ctx context.Context, mapJSON map[string]any, m cust
 	return m.NewNestedMapValue(ctx, mapPtr), nil
 }
 
-func getListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.ListValueInterface, nameErr string) (attr.Value, error) {
-	if len(arrayJSON) == 0 && len(list.Elements()) == 0 {
+func getListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.ListValueInterface, nameErr string, tags PropertyTags) (attr.Value, error) {
+	if len(arrayJSON) == 0 && len(list.Elements()) == 0 && !tags.EmptyJSONAsList {
 		// Keep current list if both model and JSON lists are zero-len (empty or null) so config is preserved.
 		// It avoids inconsistent result after apply when user explicitly sets an empty list in config.
 		return list, nil
@@ -314,8 +315,8 @@ func getListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.L
 	return listNew, nil
 }
 
-func getSetValueTFAttr(ctx context.Context, arrayJSON []any, set customtypes.SetValueInterface, nameErr string) (attr.Value, error) {
-	if len(arrayJSON) == 0 && len(set.Elements()) == 0 {
+func getSetValueTFAttr(ctx context.Context, arrayJSON []any, set customtypes.SetValueInterface, nameErr string, tags PropertyTags) (attr.Value, error) {
+	if len(arrayJSON) == 0 && len(set.Elements()) == 0 && !tags.EmptyJSONAsList {
 		// Keep current set if both model and JSON lists are zero-len (empty or null) so config is preserved.
 		// It avoids inconsistent result after apply when user explicitly sets an empty set in config.
 		return set, nil
@@ -333,7 +334,8 @@ func getArrayTFAttr(arrayJSON []any, elemType attr.Type, nameErr string) ([]attr
 	slice := make([]attr.Value, len(arrayJSON))
 
 	for i, item := range arrayJSON {
-		value, err := getTfAttr(item, elemType, nil, nameErr, false)
+		// Array elements are not tagged struct fields; container tags were already applied by the caller.
+		value, err := getTfAttr(item, elemType, nil, nameErr, PropertyTags{})
 		if err != nil {
 			return nil, err
 		}
@@ -343,7 +345,7 @@ func getArrayTFAttr(arrayJSON []any, elemType attr.Type, nameErr string) ([]attr
 	return slice, nil
 }
 
-func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.NestedListValueInterface, skipListMerge bool) (attr.Value, error) {
+func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.NestedListValueInterface, tags PropertyTags) (attr.Value, error) {
 	oldSlicePtr, diags := list.SlicePtrAsAny(ctx)
 	if diags.HasError() {
 		return nil, fmt.Errorf("unmarshal failed to convert list: %v", diags)
@@ -351,7 +353,7 @@ func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customt
 	oldSliceVal := reflect.ValueOf(oldSlicePtr).Elem()
 	oldSliceLen := oldSliceVal.Len()
 
-	if len(arrayJSON) == 0 && oldSliceLen == 0 {
+	if len(arrayJSON) == 0 && oldSliceLen == 0 && !tags.EmptyJSONAsList {
 		// Keep current list if both model and JSON lists are zero-len (empty or null) so config is preserved.
 		// It avoids inconsistent result after apply when user explicitly sets an empty list in config.
 		return list, nil
@@ -363,7 +365,7 @@ func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customt
 
 	for i, item := range arrayJSON {
 		elementVal := sliceVal.Index(i)
-		if !skipListMerge && i < oldSliceLen {
+		if !tags.SkipStateListMerge && i < oldSliceLen {
 			elementVal.Set(oldSliceVal.Index(i))
 		}
 		elementPtr := elementVal.Addr().Interface()
@@ -380,8 +382,8 @@ func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customt
 	return list.NewNestedListValue(ctx, slicePtr), nil
 }
 
-func getNestedSetValueTFAttr(ctx context.Context, arrayJSON []any, set customtypes.NestedSetValueInterface) (attr.Value, error) {
-	if len(arrayJSON) == 0 && set.Len() == 0 {
+func getNestedSetValueTFAttr(ctx context.Context, arrayJSON []any, set customtypes.NestedSetValueInterface, tags PropertyTags) (attr.Value, error) {
+	if len(arrayJSON) == 0 && set.Len() == 0 && !tags.EmptyJSONAsList {
 		// Keep current set if both model and JSON lists are zero-len (empty or null) so config is preserved.
 		// It avoids inconsistent result after apply when user explicitly sets an empty set in config.
 		return set, nil

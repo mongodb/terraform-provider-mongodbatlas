@@ -100,6 +100,10 @@ func typedModelProperty(attr *codespec.Attribute, isDataSource bool, dsPrefix st
 		autogenTags = append(autogenTags, "skipstatelistmerge")
 	}
 
+	if emptyJSONAsList(attr) {
+		autogenTags = append(autogenTags, "emptyjsonaslist")
+	}
+
 	switch attr.ReqBodyUsage {
 	case codespec.AllRequestBodies:
 	case codespec.OmitAlways:
@@ -116,6 +120,13 @@ func typedModelProperty(attr *codespec.Attribute, isDataSource bool, dsPrefix st
 		tagsStr = fmt.Sprintf(" autogen:%q", strings.Join(autogenTags, ","))
 	}
 	return fmt.Sprintf("%s %s", attr.TFModelName, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.TFSchemaName) + apinameTag + tagsStr + "`"
+}
+
+func emptyJSONAsList(attr *codespec.Attribute) bool {
+	if attr.ComputedOptionalRequired != codespec.Computed {
+		return false
+	}
+	return attr.ListNested != nil || attr.List != nil || attr.SetNested != nil || attr.Set != nil
 }
 
 func attrModelType(attr *codespec.Attribute, isDataSource bool, dsPrefix string) string {

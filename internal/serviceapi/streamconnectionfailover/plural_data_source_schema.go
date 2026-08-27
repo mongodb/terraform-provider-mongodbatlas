@@ -195,7 +195,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 type TFPluralDSModel struct {
 	ConnectionName types.String                                        `tfsdk:"connection_name" autogen:"omitjson"`
 	ProjectId      types.String                                        `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Results        customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
+	Results        customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"emptyjsonaslist,omitjson"`
 	WorkspaceName  types.String                                        `tfsdk:"workspace_name" apiname:"tenantName" autogen:"omitjson"`
 }
 type TFPluralDSResultsModel struct {

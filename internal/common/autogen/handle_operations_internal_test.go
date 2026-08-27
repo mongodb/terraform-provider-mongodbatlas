@@ -234,7 +234,7 @@ type testListResultModel struct {
 }
 
 type testListModel struct {
-	Results customtypes.NestedListValue[testListResultModel] `tfsdk:"results" autogen:"omitjson"`
+	Results customtypes.NestedListValue[testListResultModel] `tfsdk:"results" autogen:"omitjson,emptyjsonaslist"`
 }
 
 func testListReadRequest(t *testing.T, handler http.Handler) (HandleReadReq, *tfsdk.State, *diag.Diagnostics) {
@@ -278,6 +278,16 @@ func TestHandleDataSourceReadList(t *testing.T) {
 		assertDiagsOK(t, diags)
 		var model testListModel
 		require.False(t, state.Get(context.Background(), &model).HasError())
+		assert.Empty(t, model.Results.Elements())
+	})
+
+	t.Run("200 empty page sets empty results list", func(t *testing.T) {
+		req, state, diags := testListReadRequest(t, jsonResponse(http.StatusOK, `{"results":[],"totalCount":0}`))
+		HandleDataSourceReadList(context.Background(), req)
+		assertDiagsOK(t, diags)
+		var model testListModel
+		require.False(t, state.Get(context.Background(), &model).HasError())
+		require.False(t, model.Results.IsNull())
 		assert.Empty(t, model.Results.Elements())
 	})
 

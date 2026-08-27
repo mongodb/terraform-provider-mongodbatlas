@@ -608,14 +608,14 @@ type TFConnectionStringsModel struct {
 	AwsPrivateLink    customtypes.MapValue[types.String]                                   `tfsdk:"aws_private_link" autogen:"omitjson"`
 	AwsPrivateLinkSrv customtypes.MapValue[types.String]                                   `tfsdk:"aws_private_link_srv" autogen:"omitjson"`
 	Private           types.String                                                         `tfsdk:"private" autogen:"omitjson"`
-	PrivateEndpoint   customtypes.NestedListValue[TFConnectionStringsPrivateEndpointModel] `tfsdk:"private_endpoint" autogen:"omitjson"`
+	PrivateEndpoint   customtypes.NestedListValue[TFConnectionStringsPrivateEndpointModel] `tfsdk:"private_endpoint" autogen:"emptyjsonaslist,omitjson"`
 	PrivateSrv        types.String                                                         `tfsdk:"private_srv" autogen:"omitjson"`
 	Standard          types.String                                                         `tfsdk:"standard" autogen:"omitjson"`
 	StandardSrv       types.String                                                         `tfsdk:"standard_srv" autogen:"omitjson"`
 }
 type TFConnectionStringsPrivateEndpointModel struct {
 	ConnectionString                  types.String                                                                  `tfsdk:"connection_string" autogen:"omitjson"`
-	Endpoints                         customtypes.NestedListValue[TFConnectionStringsPrivateEndpointEndpointsModel] `tfsdk:"endpoints" autogen:"omitjson"`
+	Endpoints                         customtypes.NestedListValue[TFConnectionStringsPrivateEndpointEndpointsModel] `tfsdk:"endpoints" autogen:"emptyjsonaslist,omitjson"`
 	SrvConnectionString               types.String                                                                  `tfsdk:"srv_connection_string" autogen:"omitjson"`
 	SrvShardOptimizedConnectionString types.String                                                                  `tfsdk:"srv_shard_optimized_connection_string" autogen:"omitjson"`
 	Type                              types.String                                                                  `tfsdk:"type" autogen:"omitjson"`

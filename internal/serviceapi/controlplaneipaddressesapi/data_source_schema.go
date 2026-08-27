@@ -139,7 +139,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
-	Gateways customtypes.NestedListValue[TFDSGatewaysModel] `tfsdk:"gateways" autogen:"omitjson"`
+	Gateways customtypes.NestedListValue[TFDSGatewaysModel] `tfsdk:"gateways" autogen:"emptyjsonaslist,omitjson"`
 	Inbound  customtypes.ObjectValue[TFDSInboundModel]      `tfsdk:"inbound" autogen:"omitjson"`
 	Outbound customtypes.ObjectValue[TFDSOutboundModel]     `tfsdk:"outbound" autogen:"omitjson"`
 }

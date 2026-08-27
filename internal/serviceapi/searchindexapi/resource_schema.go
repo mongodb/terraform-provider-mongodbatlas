@@ -524,9 +524,9 @@ type TFModel struct {
 	Name                       types.String                                            `tfsdk:"name" autogen:"omitjsonupdate"`
 	Queryable                  types.Bool                                              `tfsdk:"queryable" autogen:"omitjson"`
 	Status                     types.String                                            `tfsdk:"status" autogen:"omitjson"`
-	StatusDetail               customtypes.NestedListValue[TFStatusDetailModel]        `tfsdk:"status_detail" autogen:"omitjson"`
+	StatusDetail               customtypes.NestedListValue[TFStatusDetailModel]        `tfsdk:"status_detail" autogen:"emptyjsonaslist,omitjson"`
 	SynonymMappingStatus       types.String                                            `tfsdk:"synonym_mapping_status" autogen:"omitjson"`
-	SynonymMappingStatusDetail customtypes.ListValue[jsontypes.Normalized]             `tfsdk:"synonym_mapping_status_detail" autogen:"omitjson"`
+	SynonymMappingStatusDetail customtypes.ListValue[jsontypes.Normalized]             `tfsdk:"synonym_mapping_status_detail" autogen:"emptyjsonaslist,omitjson"`
 	Type                       types.String                                            `tfsdk:"type" autogen:"omitjsonupdate"`
 	DeleteOnCreateTimeout      types.Bool                                              `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
 	Timeouts                   timeouts.Value                                          `tfsdk:"timeouts" autogen:"omitjson"`
@@ -568,21 +568,21 @@ type TFDefinitionTypeSetsModel struct {
 }
 type TFLatestDefinitionModel struct {
 	Analyzer       types.String                                                  `tfsdk:"analyzer" autogen:"omitjson"`
-	Analyzers      customtypes.NestedListValue[TFLatestDefinitionAnalyzersModel] `tfsdk:"analyzers" autogen:"omitjson"`
-	Fields         customtypes.ListValue[jsontypes.Normalized]                   `tfsdk:"fields" autogen:"omitjson"`
+	Analyzers      customtypes.NestedListValue[TFLatestDefinitionAnalyzersModel] `tfsdk:"analyzers" autogen:"emptyjsonaslist,omitjson"`
+	Fields         customtypes.ListValue[jsontypes.Normalized]                   `tfsdk:"fields" autogen:"emptyjsonaslist,omitjson"`
 	Mappings       customtypes.ObjectValue[TFLatestDefinitionMappingsModel]      `tfsdk:"mappings" autogen:"omitjson"`
 	NestedRoot     types.String                                                  `tfsdk:"nested_root" autogen:"omitjson"`
 	NumPartitions  types.Int64                                                   `tfsdk:"num_partitions" autogen:"omitjson"`
 	SearchAnalyzer types.String                                                  `tfsdk:"search_analyzer" autogen:"omitjson"`
 	Sort           jsontypes.Normalized                                          `tfsdk:"sort" autogen:"omitjson"`
 	StoredSource   jsontypes.Normalized                                          `tfsdk:"stored_source" autogen:"omitjson"`
-	Synonyms       customtypes.NestedListValue[TFLatestDefinitionSynonymsModel]  `tfsdk:"synonyms" autogen:"omitjson"`
-	TypeSets       customtypes.NestedListValue[TFLatestDefinitionTypeSetsModel]  `tfsdk:"type_sets" autogen:"omitjson"`
+	Synonyms       customtypes.NestedListValue[TFLatestDefinitionSynonymsModel]  `tfsdk:"synonyms" autogen:"emptyjsonaslist,omitjson"`
+	TypeSets       customtypes.NestedListValue[TFLatestDefinitionTypeSetsModel]  `tfsdk:"type_sets" autogen:"emptyjsonaslist,omitjson"`
 }
 type TFLatestDefinitionAnalyzersModel struct {
-	CharFilters  customtypes.ListValue[jsontypes.Normalized] `tfsdk:"char_filters" autogen:"omitjson"`
+	CharFilters  customtypes.ListValue[jsontypes.Normalized] `tfsdk:"char_filters" autogen:"emptyjsonaslist,omitjson"`
 	Name         types.String                                `tfsdk:"name" autogen:"omitjson"`
-	TokenFilters customtypes.ListValue[jsontypes.Normalized] `tfsdk:"token_filters" autogen:"omitjson"`
+	TokenFilters customtypes.ListValue[jsontypes.Normalized] `tfsdk:"token_filters" autogen:"emptyjsonaslist,omitjson"`
 	Tokenizer    customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"tokenizer" autogen:"omitjson"`
 }
 type TFLatestDefinitionMappingsModel struct {
@@ -599,7 +599,7 @@ type TFLatestDefinitionSynonymsSourceModel struct {
 }
 type TFLatestDefinitionTypeSetsModel struct {
 	Name  types.String                                `tfsdk:"name" autogen:"omitjson"`
-	Types customtypes.ListValue[jsontypes.Normalized] `tfsdk:"types" autogen:"omitjson"`
+	Types customtypes.ListValue[jsontypes.Normalized] `tfsdk:"types" autogen:"emptyjsonaslist,omitjson"`
 }
 type TFLatestDefinitionVersionModel struct {
 	CreatedAt types.String `tfsdk:"created_at" autogen:"omitjson"`
@@ -620,7 +620,7 @@ type TFStatusDetailMainIndexModel struct {
 	Status            types.String                                                           `tfsdk:"status" autogen:"omitjson"`
 }
 type TFStatusDetailMainIndexDefinitionModel struct {
-	Fields        customtypes.ListValue[jsontypes.Normalized] `tfsdk:"fields" autogen:"omitjson"`
+	Fields        customtypes.ListValue[jsontypes.Normalized] `tfsdk:"fields" autogen:"emptyjsonaslist,omitjson"`
 	NestedRoot    types.String                                `tfsdk:"nested_root" autogen:"omitjson"`
 	NumPartitions types.Int64                                 `tfsdk:"num_partitions" autogen:"omitjson"`
 	StoredSource  jsontypes.Normalized                        `tfsdk:"stored_source" autogen:"omitjson"`
@@ -637,7 +637,7 @@ type TFStatusDetailStagedIndexModel struct {
 	Status            types.String                                                             `tfsdk:"status" autogen:"omitjson"`
 }
 type TFStatusDetailStagedIndexDefinitionModel struct {
-	Fields        customtypes.ListValue[jsontypes.Normalized] `tfsdk:"fields" autogen:"omitjson"`
+	Fields        customtypes.ListValue[jsontypes.Normalized] `tfsdk:"fields" autogen:"emptyjsonaslist,omitjson"`
 	NestedRoot    types.String                                `tfsdk:"nested_root" autogen:"omitjson"`
 	NumPartitions types.Int64                                 `tfsdk:"num_partitions" autogen:"omitjson"`
 	StoredSource  jsontypes.Normalized                        `tfsdk:"stored_source" autogen:"omitjson"`

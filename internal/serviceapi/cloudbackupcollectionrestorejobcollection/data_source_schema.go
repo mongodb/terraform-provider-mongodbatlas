@@ -90,6 +90,6 @@ type TFDSModel struct {
 }
 type TFDSIndexStatusModel struct {
 	ErrorMessage  types.String                                `tfsdk:"error_message" autogen:"omitjson"`
-	FailedIndexes customtypes.ListValue[jsontypes.Normalized] `tfsdk:"failed_indexes" autogen:"omitjson"`
+	FailedIndexes customtypes.ListValue[jsontypes.Normalized] `tfsdk:"failed_indexes" autogen:"emptyjsonaslist,omitjson"`
 	State         types.String                                `tfsdk:"state" autogen:"omitjson"`
 }

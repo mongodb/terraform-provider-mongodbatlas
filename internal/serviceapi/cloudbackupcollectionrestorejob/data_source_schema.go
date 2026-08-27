@@ -146,10 +146,10 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 type TFDSModel struct {
 	ClusterName           types.String                                      `tfsdk:"cluster_name" autogen:"omitjson"`
 	CollectionSuffix      types.String                                      `tfsdk:"collection_suffix" autogen:"omitjson"`
-	Collections           customtypes.NestedListValue[TFDSCollectionsModel] `tfsdk:"collections" autogen:"omitjson"`
+	Collections           customtypes.NestedListValue[TFDSCollectionsModel] `tfsdk:"collections" autogen:"emptyjsonaslist,omitjson"`
 	CreatedAt             types.String                                      `tfsdk:"created_at" autogen:"omitjson"`
 	DatabaseSuffix        types.String                                      `tfsdk:"database_suffix" autogen:"omitjson"`
-	Databases             customtypes.NestedListValue[TFDSDatabasesModel]   `tfsdk:"databases" autogen:"omitjson"`
+	Databases             customtypes.NestedListValue[TFDSDatabasesModel]   `tfsdk:"databases" autogen:"emptyjsonaslist,omitjson"`
 	ErrorMessage          types.String                                      `tfsdk:"error_message" autogen:"omitjson"`
 	FinishedAt            types.String                                      `tfsdk:"finished_at" autogen:"omitjson"`
 	IndexStatus           customtypes.ObjectValue[TFDSIndexStatusModel]     `tfsdk:"index_status" autogen:"omitjson"`
