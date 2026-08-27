@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/spf13/cast"
 
 	admin "github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -124,8 +123,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	params := new(admin.GroupMaintenanceWindowPreviewUpdateRequest)
 
-	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
-	params.HourOfDay = new(cast.ToInt(d.Get("hour_of_day")))
+	if !d.GetRawConfig().GetAttr("day_of_week").IsNull() {
+		params.DayOfWeek = new(d.Get("day_of_week").(int))
+	}
+	if !d.GetRawConfig().GetAttr("hour_of_day").IsNull() {
+		params.HourOfDay = new(d.Get("hour_of_day").(int))
+	}
 
 	if autoDeferOnceEnabled, ok := d.GetOk("auto_defer_once_enabled"); ok {
 		params.AutoDeferOnceEnabled = new(autoDeferOnceEnabled.(bool))
@@ -259,10 +262,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	params := new(admin.GroupMaintenanceWindowPreviewUpdateRequest)
-	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
-
-	if d.HasChange("hour_of_day") {
-		params.HourOfDay = new(cast.ToInt(d.Get("hour_of_day")))
+	if !d.GetRawConfig().GetAttr("day_of_week").IsNull() {
+		params.DayOfWeek = new(d.Get("day_of_week").(int))
+	}
+	if !d.GetRawConfig().GetAttr("hour_of_day").IsNull() {
+		params.HourOfDay = new(d.Get("hour_of_day").(int))
 	}
 
 	if d.HasChange("auto_defer_once_enabled") {
