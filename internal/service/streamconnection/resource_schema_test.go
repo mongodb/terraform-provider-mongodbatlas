@@ -18,11 +18,6 @@ func TestResourceSchemaAuthenticationAWSRoleARNOptional(t *testing.T) {
 
 	roleARN, ok := aws.Attributes["role_arn"].(schema.StringAttribute)
 	require.True(t, ok)
-	assertRoleARNOptional(t, roleARN)
-}
-
-func assertRoleARNOptional(t *testing.T, roleARN schema.StringAttribute) {
-	t.Helper()
 	require.True(t, roleARN.Optional, "authentication.aws.role_arn must not be required when authentication.aws is omitted")
 	require.False(t, roleARN.Required)
 }
