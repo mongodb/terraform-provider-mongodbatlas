@@ -176,7 +176,7 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 				),
 			},
 			{
-				Config:      dataSourceConfigMigration + dataSourcePluralConfigMigration + configureKafkaMigration(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
+				Config:      configureKafkaMigration(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile("Cannot revert stream workspace alias"),
 			},
