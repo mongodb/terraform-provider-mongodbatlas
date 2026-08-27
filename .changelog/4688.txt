@@ -1,0 +1,1 @@
+Fixes validation of non-IAM Kafka stream connections when the optional `authentication.aws` block is omitted
