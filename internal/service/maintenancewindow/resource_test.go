@@ -211,6 +211,8 @@ func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "1"),
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", "0"),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "wave_assignment", "1"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "effective_wave_assignment"),
 				),
@@ -221,7 +223,7 @@ func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
 				PlanOnly: true,
 			},
 			{
-				// Add a maintenance window to the wave-only resource (day_of_week/hour_of_day now set).
+				// Add a maintenance window to the wave-only resource
 				Config: configWithWave(orgID, projectName, dayOfWeek, hourOfDay, 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
