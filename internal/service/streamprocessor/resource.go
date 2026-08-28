@@ -14,14 +14,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamalias"
 )
 
 const StreamProcessorName = "stream_processor"
 
 var _ resource.ResourceWithConfigure = &streamProcessorRS{}
 var _ resource.ResourceWithImportState = &streamProcessorRS{}
-var _ resource.ResourceWithModifyPlan = &streamProcessorRS{}
 
 const (
 	errorCreateStartActions    = "You need to fix the processor and import the resource or delete it manually and re-run terraform apply."
@@ -44,27 +42,6 @@ type streamProcessorRS struct {
 func (r *streamProcessorRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
 	conversion.UpdateSchemaDescription(&resp.Schema)
-}
-
-func (r *streamProcessorRS) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.State.Raw.IsNull() {
-		return
-	}
-
-	var plan, state TFStreamProcessorRSModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if streamalias.IsWorkspaceNameAliasReversion(state.WorkspaceName, state.InstanceName, plan.WorkspaceName, plan.InstanceName) {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("instance_name"),
-			"Cannot revert stream workspace alias",
-			"This resource already uses workspace_name in state. Use workspace_name instead of the deprecated instance_name attribute.",
-		)
-	}
 }
 
 func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

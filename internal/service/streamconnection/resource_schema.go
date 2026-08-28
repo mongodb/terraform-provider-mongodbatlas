@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamalias"
 )
 
 const (
@@ -40,6 +41,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"instance_name": schema.StringAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
+					streamalias.ReversionPlanModifier{},
 					WorkspaceNameRequiresReplace{},
 				},
 				Validators: []validator.String{

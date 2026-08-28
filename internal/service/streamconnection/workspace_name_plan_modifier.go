@@ -6,8 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamalias"
 )
 
 // WorkspaceNameRequiresReplace requires replacement only when the effective workspace
@@ -31,15 +29,6 @@ func (m WorkspaceNameRequiresReplace) PlanModifyString(ctx context.Context, req 
 	resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("workspace_name"), &stateWorkspaceName)...)
 	resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("instance_name"), &stateInstanceName)...)
 	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if req.Path.Equal(path.Root("instance_name")) && streamalias.IsWorkspaceNameAliasReversion(stateWorkspaceName, stateInstanceName, planWorkspaceName, planInstanceName) {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("instance_name"),
-			"Cannot revert stream workspace alias",
-			"This resource already uses workspace_name in state. Use workspace_name instead of the deprecated instance_name attribute.",
-		)
 		return
 	}
 
