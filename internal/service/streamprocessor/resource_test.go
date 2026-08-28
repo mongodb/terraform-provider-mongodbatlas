@@ -61,7 +61,7 @@ func TestAccStreamProcessor_workspaceNameAliasMigration(t *testing.T) {
 		processorName           = "alias-migration-" + randomSuffix
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroyStreamProcessor,
