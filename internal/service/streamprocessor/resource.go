@@ -14,6 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamalias"
 )
 
 const StreamProcessorName = "stream_processor"
@@ -57,7 +58,7 @@ func (r *streamProcessorRS) ModifyPlan(ctx context.Context, req resource.ModifyP
 		return
 	}
 
-	if IsWorkspaceNameAliasReversion(state.WorkspaceName, state.InstanceName, plan.WorkspaceName, plan.InstanceName) {
+	if streamalias.IsWorkspaceNameAliasReversion(state.WorkspaceName, state.InstanceName, plan.WorkspaceName, plan.InstanceName) {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("instance_name"),
 			"Cannot revert stream workspace alias",

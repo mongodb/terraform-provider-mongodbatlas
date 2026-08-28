@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamalias"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 )
 
@@ -41,7 +42,7 @@ func TestIsWorkspaceNameAliasReversion(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.reverted, streamprocessor.IsWorkspaceNameAliasReversion(tc.stateWorkspaceName, tc.stateInstanceName, tc.planWorkspaceName, tc.planInstanceName))
+			assert.Equal(t, tc.reverted, streamalias.IsWorkspaceNameAliasReversion(tc.stateWorkspaceName, tc.stateInstanceName, tc.planWorkspaceName, tc.planInstanceName))
 		})
 	}
 }

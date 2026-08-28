@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamalias"
 )
 
 // WorkspaceNameRequiresReplace requires replacement only when the effective workspace
@@ -32,7 +34,7 @@ func (m WorkspaceNameRequiresReplace) PlanModifyString(ctx context.Context, req 
 		return
 	}
 
-	if req.Path.Equal(path.Root("instance_name")) && IsWorkspaceNameAliasReversion(stateWorkspaceName, stateInstanceName, planWorkspaceName, planInstanceName) {
+	if req.Path.Equal(path.Root("instance_name")) && streamalias.IsWorkspaceNameAliasReversion(stateWorkspaceName, stateInstanceName, planWorkspaceName, planInstanceName) {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("instance_name"),
 			"Cannot revert stream workspace alias",
@@ -44,15 +46,6 @@ func (m WorkspaceNameRequiresReplace) PlanModifyString(ctx context.Context, req 
 	if RequiresWorkspaceNameReplacement(stateWorkspaceName, stateInstanceName, planWorkspaceName, planInstanceName) {
 		resp.RequiresReplace = true
 	}
-}
-
-func IsWorkspaceNameAliasReversion(stateWorkspaceName, stateInstanceName, planWorkspaceName, planInstanceName types.String) bool {
-	// Legacy imports populated both aliases. Only workspace_name-only state is
-	// canonical and therefore subject to the one-way migration restriction.
-	return !stateWorkspaceName.IsNull() && !stateWorkspaceName.IsUnknown() &&
-		stateInstanceName.IsNull() &&
-		planWorkspaceName.IsNull() &&
-		!planInstanceName.IsNull() && !planInstanceName.IsUnknown()
 }
 
 func RequiresWorkspaceNameReplacement(stateWorkspaceName, stateInstanceName, planWorkspaceName, planInstanceName types.String) bool {
