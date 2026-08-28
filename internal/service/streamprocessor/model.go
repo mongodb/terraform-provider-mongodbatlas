@@ -3,7 +3,6 @@ package streamprocessor
 import (
 	"context"
 	"encoding/json"
-	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -21,34 +20,43 @@ func GetWorkspaceOrInstanceName(workspaceName, instanceName types.String) string
 	return instanceName.ValueString()
 }
 
-// IsAliasOnlyTransition reports whether a plan changes only the spelling of the
-// workspace identifier while preserving the same known workspace and every other
-// resource attribute.
-// IsWorkspaceNameAliasReversion reports whether a resource that already uses
-// workspace_name in state is being changed back to the deprecated instance_name.
-func IsWorkspaceNameAliasReversion(stateWorkspaceName, planWorkspaceName, planInstanceName types.String) bool {
+// IsWorkspaceNameAliasReversion reports whether a resource with canonical
+// workspace_name-only state is being changed back to deprecated instance_name.
+func IsWorkspaceNameAliasReversion(stateWorkspaceName, stateInstanceName, planWorkspaceName, planInstanceName types.String) bool {
+	// Legacy imports populated both aliases. Only workspace_name-only state is
+	// canonical and therefore subject to the one-way migration restriction.
 	return !stateWorkspaceName.IsNull() && !stateWorkspaceName.IsUnknown() &&
+		stateInstanceName.IsNull() &&
 		planWorkspaceName.IsNull() &&
 		!planInstanceName.IsNull() && !planInstanceName.IsUnknown()
 }
 
+// IsAliasOnlyTransition reports whether a plan preserves the effective workspace
+// and changes no processor configuration other than its alias representation.
 func IsAliasOnlyTransition(plan, state *TFStreamProcessorRSModel) bool {
 	if plan.WorkspaceName.IsUnknown() || plan.InstanceName.IsUnknown() || state.WorkspaceName.IsUnknown() || state.InstanceName.IsUnknown() {
 		return false
 	}
-
+	if plan.WorkspaceName.Equal(state.WorkspaceName) && plan.InstanceName.Equal(state.InstanceName) {
+		return false
+	}
 	if GetWorkspaceOrInstanceName(plan.WorkspaceName, plan.InstanceName) != GetWorkspaceOrInstanceName(state.WorkspaceName, state.InstanceName) {
 		return false
 	}
 
-	planWithoutAliases := *plan
-	planWithoutAliases.WorkspaceName = state.WorkspaceName
-	planWithoutAliases.InstanceName = state.InstanceName
-	// id and stats are computed API outputs. They can be unknown in an update
-	// plan even though no configured processor setting has changed.
-	planWithoutAliases.ProcessorID = state.ProcessorID
-	planWithoutAliases.Stats = state.Stats
-	return !plan.WorkspaceName.Equal(state.WorkspaceName) && reflect.DeepEqual(planWithoutAliases, *state)
+	return plan.Options.Equal(state.Options) &&
+		plan.Pipeline.Equal(state.Pipeline) &&
+		plan.ProcessorName.Equal(state.ProcessorName) &&
+		plan.ProjectID.Equal(state.ProjectID) &&
+		plan.FailoverEnabled.Equal(state.FailoverEnabled) &&
+		equalOptionalComputedString(plan.State, state.State) &&
+		equalOptionalComputedString(plan.Tier, state.Tier)
+}
+
+// equalOptionalComputedString treats an unknown plan value as unchanged because
+// Terraform may defer Optional+Computed attributes during an update plan.
+func equalOptionalComputedString(plan, state types.String) bool {
+	return plan.IsUnknown() || plan.Equal(state)
 }
 
 func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessor, diag.Diagnostics) {

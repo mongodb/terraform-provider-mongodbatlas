@@ -13,26 +13,35 @@ import (
 func TestIsWorkspaceNameAliasReversion(t *testing.T) {
 	testCases := map[string]struct {
 		stateWorkspaceName types.String
+		stateInstanceName  types.String
 		planWorkspaceName  types.String
 		planInstanceName   types.String
 		reverted           bool
 	}{
 		"canonical_to_legacy_is_rejected": {
 			stateWorkspaceName: types.StringValue("workspace"),
+			stateInstanceName:  types.StringNull(),
 			planWorkspaceName:  types.StringNull(),
 			planInstanceName:   types.StringValue("workspace"),
 			reverted:           true,
 		},
 		"legacy_to_canonical_is_allowed": {
 			stateWorkspaceName: types.StringNull(),
+			stateInstanceName:  types.StringValue("workspace"),
 			planWorkspaceName:  types.StringValue("workspace"),
 			planInstanceName:   types.StringNull(),
+		},
+		"legacy_dual_alias_state_is_not_rejected": {
+			stateWorkspaceName: types.StringValue("workspace"),
+			stateInstanceName:  types.StringValue("workspace"),
+			planWorkspaceName:  types.StringNull(),
+			planInstanceName:   types.StringValue("workspace"),
 		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.reverted, streamprocessor.IsWorkspaceNameAliasReversion(tc.stateWorkspaceName, tc.planWorkspaceName, tc.planInstanceName))
+			assert.Equal(t, tc.reverted, streamprocessor.IsWorkspaceNameAliasReversion(tc.stateWorkspaceName, tc.stateInstanceName, tc.planWorkspaceName, tc.planInstanceName))
 		})
 	}
 }
@@ -73,6 +82,36 @@ func TestIsAliasOnlyTransition(t *testing.T) {
 				ProcessorName: types.StringValue("processor"),
 				ProcessorID:   types.StringUnknown(),
 				Stats:         types.StringUnknown(),
+				Pipeline:      jsontypes.NewNormalizedValue(`[]`),
+			},
+			aliasOnlyTransition: true,
+		},
+		"optional_computed_values_unknown_in_plan": {
+			state: legacyState,
+			plan: streamprocessor.TFStreamProcessorRSModel{
+				InstanceName:  types.StringNull(),
+				WorkspaceName: types.StringValue("workspace"),
+				ProjectID:     types.StringValue("project"),
+				ProcessorName: types.StringValue("processor"),
+				Pipeline:      jsontypes.NewNormalizedValue(`[]`),
+				State:         types.StringUnknown(),
+				Tier:          types.StringUnknown(),
+			},
+			aliasOnlyTransition: true,
+		},
+		"legacy_dual_alias_to_canonical": {
+			state: streamprocessor.TFStreamProcessorRSModel{
+				InstanceName:  types.StringValue("workspace"),
+				WorkspaceName: types.StringValue("workspace"),
+				ProjectID:     types.StringValue("project"),
+				ProcessorName: types.StringValue("processor"),
+				Pipeline:      jsontypes.NewNormalizedValue(`[]`),
+			},
+			plan: streamprocessor.TFStreamProcessorRSModel{
+				InstanceName:  types.StringNull(),
+				WorkspaceName: types.StringValue("workspace"),
+				ProjectID:     types.StringValue("project"),
+				ProcessorName: types.StringValue("processor"),
 				Pipeline:      jsontypes.NewNormalizedValue(`[]`),
 			},
 			aliasOnlyTransition: true,

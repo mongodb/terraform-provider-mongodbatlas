@@ -46,14 +46,18 @@ func (r *streamProcessorRS) Schema(ctx context.Context, req resource.SchemaReque
 }
 
 func (r *streamProcessorRS) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	var plan, state *TFStreamProcessorRSModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() || plan == nil || state == nil {
+	if req.State.Raw.IsNull() {
 		return
 	}
 
-	if IsWorkspaceNameAliasReversion(state.WorkspaceName, plan.WorkspaceName, plan.InstanceName) {
+	var plan, state TFStreamProcessorRSModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if IsWorkspaceNameAliasReversion(state.WorkspaceName, state.InstanceName, plan.WorkspaceName, plan.InstanceName) {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("instance_name"),
 			"Cannot revert stream workspace alias",
