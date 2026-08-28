@@ -13,6 +13,8 @@ The templates in [TFplugindocs](https://github.com/hashicorp/terraform-plugin-do
  - Retrieves the resource examples in `examples/{resource_name}/main.tf`
  - Generates the documentation.
 
+Example Usage in a `.md.tmpl` must use `tffile` (or `codefile`) with an explicit path under `examples/`. Do not paste HCL into the tmpl. Grouped use-case directories are valid (`examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_restore/main.tf`). See `.agents/skills/pr-and-documentation-standards`. The `examples/{resource_name}/main.tf` path above is the simple-case default that tfplugindocs also looks up.
+
  
  ### How to generate a new template
  Use [resources/search_deployment.md.tmpl](resources/search_deployment.md.tmpl) and [resources/search_deployment.md.tmpl](data-sources/search_deployment.md.tmpl) as an example to add templates for a resource and data source. 
