@@ -37,12 +37,14 @@ func Resource() *schema.Resource {
 				Required: true,
 			},
 			"day_of_week": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"hour_of_day"},
 			},
 			"hour_of_day": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"day_of_week"},
 			},
 			"start_asap": {
 				Type:     schema.TypeBool,
