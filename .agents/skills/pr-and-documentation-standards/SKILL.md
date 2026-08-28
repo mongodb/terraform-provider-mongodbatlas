@@ -1,6 +1,6 @@
 ---
 name: pr-and-documentation-standards
-description: Standards for pull requests, documentation, and code review in this Terraform provider. Use when creating PRs, writing or editing documentation (schema descriptions, docs markdown, examples), reviewing code, or adding changelog entries. Covers PR structure, docs style guide, example conventions, and changelog practices.
+description: Use when creating PRs, writing or editing documentation (schema descriptions, docs markdown, examples), creating or restructuring examples/, reviewing code, or adding changelog entries.
 ---
 
 # PR and Documentation Standards
@@ -59,22 +59,31 @@ Start data source and resource descriptions with the resource name and a clear o
 
 ## Examples (`examples/` directory)
 
-### Do Not Pin Provider Versions
+The following rules are the default for new provider examples. One user journey (flow) stays a flat root, same shape as `examples/mongodbatlas_ai_model_api_key/`. Two or more flows use sibling directories. Copy `examples/mongodbatlas_cloud_backup_collection_restore_job/` for that layout. Read `example-layout.md` in this skill directory for the canonical tree, Atlas project comment, common mistakes, and exceptions.
 
-Do not pin specific provider versions in examples. This avoids examples becoming outdated and ensures users always get the latest compatible version.
+### Flat vs siblings
 
-### Use Variables Consistently
+- **One flow**: Keep files at `examples/mongodbatlas_<name>/` (`main.tf`, `variables.tf`, `providers.tf`, `versions.tf`, `README.md`).
+- **Two or more flows**: Use a parent `README.md` (index only, no parent `main.tf`) plus sibling directories named for what they do.
 
-All configurable values in examples should use `var.` references with corresponding entries in `variables.tf`. Do not hardcode values that users need to customize.
+### Rules
 
-### Atlas Project Resource Comment
+1. **Use-case directories**: Name each example for what it does (`snapshot_restore`, `pit_restore`). Do not use generic `singular-data-source.tf` / `plural-data-source.tf`.
+2. **Standalone configs**: Each subdirectory is its own root module and depends only on input variables. Do not share Terraform modules across siblings. Do not use `terraform_remote_state`. Document cross-example flow in the grouped README; users copy outputs into `terraform.tfvars`.
+3. **Aligned intro**: Each primary `.tf` file starts with a one- or two-sentence comment stating the goal. Match the sibling README opening line (the first sentence after the H1, not the H1 itself).
+4. **Grouped root README**: Parent `README.md` lists siblings, typical flows, and links to the product doc. Collection restore links to [Restore from Selected Databases and Collections](https://www.mongodb.com/docs/atlas/backup/cloud-backup/restore-from-db-coll/). Other resources link their own product page.
+5. **Docs over duplication**: Keep READMEs operational (prerequisites, defaults, tfvars). Link to official MongoDB docs for product limits and semantics.
+6. **Variables**: Every user-facing value is a `variable` with a `description`. Put defaults in `variables.tf` and document them in the README.
+7. **Outputs**: Expose only useful post-apply values (`job_state`, `collection_states`, discovery IDs). Each output has a `description`.
+8. **Template docs**: Never paste HCL into `templates/**/*.md.tmpl`. Embed with [tffile](https://github.com/hashicorp/terraform-plugin-docs?tab=readme-ov-file#templates) pointing at a real file under `examples/`, for example `{{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_restore/main.tf" }}`. Further Examples links point at sibling directories.
 
-Use a consistent comment for the Atlas project resource block in examples:
+### Provider baseline
 
-```hcl
-# Set up MongoDB Atlas Project access
-resource "mongodbatlas_project" "project" {
-  name   = var.atlas_project_name
-  org_id = var.atlas_org_id
-}
-```
+State once, not per sibling:
+
+- No pinned provider version.
+- Empty `provider "mongodbatlas" {}`. Credentials come from the environment, not from HCL. Do not set `client_id`, `client_secret`, `public_key`, or `private_key` on the provider.
+- README `export` examples use Service Account `MONGODB_ATLAS_CLIENT_ID` / `MONGODB_ATLAS_CLIENT_SECRET`. Prefer those. Programmatic API keys via env also work.
+- `versions.tf` sets `source = "mongodb/mongodbatlas"` and `required_version` only.
+
+New examples use `providers.tf`. Leave existing `provider.tf` names alone.
