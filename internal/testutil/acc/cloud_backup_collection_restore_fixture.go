@@ -79,9 +79,11 @@ func CloudBackupCollectionRestoreFixture(tb testing.TB) *CollectionRestoreFixtur
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "sharedInfo not initialized, use acc.Run() to run tests that require shared resources")
 	collectionRestoreFixtureOnce.Do(func() {
+		// Do not require / FailNow in this callback: Once would still mark done and leave a nil fixture.
 		collectionRestoreFixture, collectionRestoreFixtureErr = initCollectionRestoreFixture(tb)
 	})
 	require.NoError(tb, collectionRestoreFixtureErr)
+	require.NotNil(tb, collectionRestoreFixture, "collection restore fixture is nil after init")
 	return collectionRestoreFixture
 }
 
@@ -105,7 +107,10 @@ func initCollectionRestoreFixture(tb testing.TB) (*CollectionRestoreFixture, err
 		}, nil
 	}
 
-	projectID, clusterName := clusterNameExecution(tb, true, true, true)
+	projectID, clusterName, err := clusterNameExecution(tb, true, true, true)
+	if err != nil {
+		return nil, err
+	}
 	if err := requireCloudBackupAndPIT(ctx, projectID, clusterName); err != nil {
 		return nil, err
 	}
