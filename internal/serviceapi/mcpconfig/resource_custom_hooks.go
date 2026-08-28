@@ -19,6 +19,8 @@ var (
 	_ autogen.PreUpdateAPICallHook = (*rs)(nil)
 )
 
+// ResourceSchema rejects ip_access_list entries that set both ip_address and cidr_block
+// (or neither) at plan time, matching the API's server-side validation.
 func (r *rs) ResourceSchema(ctx context.Context, s schema.Schema) schema.Schema {
 	ipAccessList, ok := s.Attributes["ip_access_list"].(schema.ListNestedAttribute)
 	if !ok {
@@ -41,6 +43,9 @@ func (r *rs) ResourceSchema(ctx context.Context, s schema.Schema) schema.Schema 
 	return s
 }
 
+// PreUpdateAPICall strips the API-echoed cidr_block from update payloads. The API returns
+// both ip_address and the derived cidr_block (/32 or /128) for single-address entries but
+// rejects write requests containing both fields, and the update payload is built from state.
 func (r *rs) PreUpdateAPICall(callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte) {
 	return callParams, stripEchoedIPAccessListFields(bodyReq)
 }
@@ -72,6 +77,9 @@ func stripEchoedIPAccessListFields(bodyReq []byte) []byte {
 	return updated
 }
 
+// ipAccessListPlanModifier marks the server-computed ip_access_list sub-fields as unknown on
+// updates. The API recreates all entries on every update, regenerating these fields, which
+// otherwise fails Terraform's plan/result consistency check.
 type ipAccessListPlanModifier struct{}
 
 func (m ipAccessListPlanModifier) Description(context.Context) string {

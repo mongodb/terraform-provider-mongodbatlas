@@ -6,23 +6,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
-
-// Retries a "still exists" check after delete.
-func WaitUntilGone(stillExists func() bool) bool {
-	for range 5 {
-		if !stillExists() {
-			return true
-		}
-		time.Sleep(3 * time.Second)
-	}
-	return false
-}
 
 func CheckDestroyDeleteOrgMcpConfigs(s *terraform.State) error {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")

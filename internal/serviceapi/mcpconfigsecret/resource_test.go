@@ -214,7 +214,7 @@ func checkDestroy(s *terraform.State) error {
 			_, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetOrgMcpSecret(context.Background(), orgID, mcpConfigID, secretID).Execute()
 			return err == nil
 		}
-		if !acc.WaitUntilGone(stillExists) {
+		if !acc.WaitUntilGoneOk(stillExists) {
 			return fmt.Errorf("mcp config secret (%s/%s/%s) still exists", orgID, mcpConfigID, secretID)
 		}
 	}
