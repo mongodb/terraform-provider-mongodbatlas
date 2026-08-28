@@ -59,6 +59,8 @@ func TestAccStreamProcessor_workspaceNameAliasMigration(t *testing.T) {
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		randomSuffix            = acctest.RandString(5)
 		processorName           = "alias-migration-" + randomSuffix
+		legacyConfig            = configMigration(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil)
+		canonicalConfig         = config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -67,11 +69,11 @@ func TestAccStreamProcessor_workspaceNameAliasMigration(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: configMigration(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
+				Config: legacyConfig,
 				Check:  composeStreamProcessorChecksMigration(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
 			},
 			{
-				Config: config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
+				Config: canonicalConfig,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
@@ -83,7 +85,7 @@ func TestAccStreamProcessor_workspaceNameAliasMigration(t *testing.T) {
 				),
 			},
 			{
-				Config:      configMigration(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
+				Config:      legacyConfig,
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile("Cannot revert stream workspace alias"),
 			},
