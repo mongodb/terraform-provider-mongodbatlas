@@ -59,7 +59,7 @@ Start data source and resource descriptions with the resource name and a clear o
 
 ## Examples (`examples/` directory)
 
-The following rules are the default for new provider examples. One user journey (flow) stays a flat root, same shape as `examples/mongodbatlas_ai_model_api_key/`. Two or more flows use sibling directories. Copy `examples/mongodbatlas_cloud_backup_collection_restore_job/` for that layout. Read `example-layout.md` in this skill directory for the canonical tree, Atlas project comment, common mistakes, and exceptions.
+The following rules are the default for new provider examples. One user journey (flow) stays a flat root with the files listed under Flat vs siblings. Two or more flows use sibling directories. Copy `examples/mongodbatlas_cloud_backup_collection_restore_job/` for that layout. Read `example-layout.md` in this skill directory for the canonical tree, Atlas project comment, common mistakes, and exceptions.
 
 ### Flat vs siblings
 
@@ -74,7 +74,7 @@ The following rules are the default for new provider examples. One user journey 
 4. **Grouped root README**: Parent `README.md` lists siblings, typical flows, and links to the product doc. Collection restore links to [Restore from Selected Databases and Collections](https://www.mongodb.com/docs/atlas/backup/cloud-backup/restore-from-db-coll/). Other resources link their own product page.
 5. **Docs over duplication**: Keep READMEs operational (prerequisites, defaults, tfvars). Link to official MongoDB docs for product limits and semantics.
 6. **Variables**: Every user-facing value is a `variable` with a `description`. Put defaults in `variables.tf` and document them in the README.
-7. **Outputs**: Expose only useful post-apply values (`job_state`, `collection_states`, discovery IDs). Each output has a `description`.
+7. **Outputs**: Expose only useful post-apply values (`job_state`, `collection_states`, discovery IDs). Place output blocks in the primary `.tf` file or the Terraform file for the surface they describe. Use a dedicated `outputs.tf` only when it makes the example easier to read. Each output has a `description`.
 8. **Template docs**: Never paste HCL into `templates/**/*.md.tmpl`. Embed with [tffile](https://github.com/hashicorp/terraform-plugin-docs?tab=readme-ov-file#templates) pointing at a real file under `examples/`, for example `{{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_restore/main.tf" }}`. Further Examples links point at sibling directories.
 
 ### Provider baseline
