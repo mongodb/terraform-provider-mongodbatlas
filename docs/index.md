@@ -156,6 +156,7 @@ We are committed to clear and proactive communication:
 <!-- MATRIX_PLACEHOLDER_START -->
 | HashiCorp Terraform Release | HashiCorp Terraform Release Date  | HashiCorp Terraform Full Support End Date  | MongoDB Atlas Support End Date |
 |:-------:|:------------:|:------------:|:------------:|
+| 1.16.x | 2026-08-26 | 2028-08-31 | 2028-08-31 |
 | 1.15.x | 2026-04-29 | 2028-04-30 | 2028-04-30 |
 | 1.14.x | 2025-11-19 | 2027-11-30 | 2027-11-30 |
 | 1.13.x | 2025-08-20 | 2027-08-31 | 2027-08-31 |
