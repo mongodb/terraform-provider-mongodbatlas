@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -28,6 +29,14 @@ const (
 	errorSnapshotBackupScheduleUpdate  = "error updating a Cloud Backup Schedule: %s"
 	errorSnapshotBackupScheduleRead    = "error getting a Cloud Backup Schedule for the cluster(%s): %s"
 	errorSnapshotBackupScheduleSetting = "error setting `%s` for Cloud Backup Schedule(%s): %s"
+
+	maxCopyPolicyItems        = 6
+	minLastNumberOfSnapshots  = 1
+	maxLastNumberOfSnapshots  = 500
+	errCopySettingsModes      = "copy_settings entry must set only one of frequencies, copy_policy_items, or last_number_of_snapshots"
+	errCopyPolicyRequiresFlag = "copy_policy_items and last_number_of_snapshots require copy_policy_items_enabled to be true"
+	errFrequenciesWithFlag    = "frequencies cannot be set when copy_policy_items_enabled is true"
+	errDeleteCopyRequiresFlag = "delete_copy_snapshots requires copy_policy_items_enabled to be true"
 )
 
 func Resource() *schema.Resource {
@@ -39,6 +48,7 @@ func Resource() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
+		CustomizeDiff: resourceCustomizeDiff,
 
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -55,6 +65,10 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 			"auto_export_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"copy_policy_items_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -99,6 +113,12 @@ func Resource() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Computed: true,
+						},
+						"copy_policy_items": copyPolicyItemsSchema(false),
+						"last_number_of_snapshots": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(minLastNumberOfSnapshots, maxLastNumberOfSnapshots),
 						},
 					},
 				},
@@ -298,6 +318,14 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"update_copy_snapshots": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"delete_copy_snapshots": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"cluster_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -401,6 +429,10 @@ func setSchemaFields(d *schema.ResourceData, backupSchedule *admin.DiskBackupSna
 
 	if err := d.Set("auto_export_enabled", backupSchedule.GetAutoExportEnabled()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
+	}
+
+	if err := d.Set("copy_policy_items_enabled", backupSchedule.GetCopyPolicyItemsEnabled()); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_policy_items_enabled", clusterName, err)
 	}
 
 	if err := d.Set("export", FlattenExport(backupSchedule)); err != nil {
@@ -533,6 +565,10 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		req.AutoExportEnabled = new(v.(bool))
 	}
 
+	if _, ok := d.GetOkExists("copy_policy_items_enabled"); ok || d.HasChange("copy_policy_items_enabled") {
+		req.CopyPolicyItemsEnabled = new(d.Get("copy_policy_items_enabled").(bool))
+	}
+
 	if v, ok := d.GetOk("export"); ok {
 		req.Export = expandAutoExportPolicy(v.([]any))
 	}
@@ -554,6 +590,12 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 	value := new(d.Get("update_snapshots").(bool))
 	if *value {
 		req.UpdateSnapshots = value
+	}
+	if d.Get("update_copy_snapshots").(bool) {
+		req.UpdateCopySnapshots = new(true)
+	}
+	if d.Get("delete_copy_snapshots").(bool) {
+		req.DeleteCopySnapshots = new(true)
 	}
 
 	resp, _, err := connV2.CloudBackupsAPI.GetBackupSchedule(ctx, projectID, clusterName).Execute()
@@ -579,13 +621,31 @@ func ExpandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting2024080
 		return nil
 	}
 
-	frequencies := conversion.ExpandStringList(tfMap["frequencies"].(*schema.Set).List())
+	var frequencies []string
+	if set, ok := tfMap["frequencies"].(*schema.Set); ok && set != nil {
+		frequencies = conversion.ExpandStringList(set.List())
+	}
+	var copyPolicyItems []any
+	if items, ok := tfMap["copy_policy_items"].([]any); ok {
+		copyPolicyItems = items
+	}
+	lastN, _ := tfMap["last_number_of_snapshots"].(int)
+
 	copySetting := &admin.DiskBackupCopySetting20240805{
 		CloudProvider:    new(tfMap["cloud_provider"].(string)),
-		Frequencies:      &frequencies,
 		RegionName:       new(tfMap["region_name"].(string)),
 		ZoneId:           tfMap["zone_id"].(string),
 		ShouldCopyOplogs: new(tfMap["should_copy_oplogs"].(bool)),
+	}
+
+	expandedItems := ExpandCopyPolicyItems(copyPolicyItems)
+	switch {
+	case expandedItems != nil:
+		copySetting.CopyPolicyItems = expandedItems
+	case lastN > 0:
+		copySetting.LastNumberOfSnapshots = new(lastN)
+	default:
+		copySetting.Frequencies = &frequencies
 	}
 	return copySetting
 }
@@ -658,4 +718,177 @@ func getRequestPolicies(policiesItem []admin.DiskBackupApiPolicyItem, respPolici
 		return []admin.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
 	}
 	return nil
+}
+
+func copyPolicyItemsSchema(computed bool) *schema.Schema {
+	frequencyType := &schema.Schema{
+		Type:     schema.TypeString,
+		Computed: computed,
+	}
+	if !computed {
+		frequencyType.Required = true
+	}
+	retentionUnit := &schema.Schema{
+		Type:     schema.TypeString,
+		Computed: computed,
+	}
+	if !computed {
+		retentionUnit.Optional = true
+	}
+	retentionValue := &schema.Schema{
+		Type:     schema.TypeInt,
+		Computed: computed,
+	}
+	if !computed {
+		retentionValue.Optional = true
+	}
+	s := &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: computed,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"frequency_type":  frequencyType,
+				"retention_unit":  retentionUnit,
+				"retention_value": retentionValue,
+			},
+		},
+	}
+	if !computed {
+		s.Optional = true
+		s.MaxItems = maxCopyPolicyItems
+	}
+	return s
+}
+
+func resourceCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ any) error {
+	return ValidateCopySettingsModes(configAwareDiff{d})
+}
+
+// configAwareDiff wraps ResourceDiff so ValidateCopySettingsModes ignores frequencies
+// that exist only in state. frequencies is Optional+Computed, so Get() keeps the old
+// list when HCL omits it and would otherwise block a one-apply migration to
+// copy_policy_items or last_number_of_snapshots.
+type configAwareDiff struct {
+	*schema.ResourceDiff
+}
+
+func (c configAwareDiff) Get(key string) any {
+	if key != "copy_settings" {
+		return c.ResourceDiff.Get(key)
+	}
+	copySettings, _ := c.ResourceDiff.Get(key).([]any)
+	out := make([]any, 0, len(copySettings))
+	for i, raw := range copySettings {
+		entry, ok := raw.(map[string]any)
+		if !ok {
+			out = append(out, raw)
+			continue
+		}
+		if copySettingAttrInConfig(c.ResourceDiff, i, "frequencies") {
+			out = append(out, entry)
+			continue
+		}
+		cloned := make(map[string]any, len(entry))
+		for k, v := range entry {
+			cloned[k] = v
+		}
+		cloned["frequencies"] = schema.NewSet(schema.HashString, nil)
+		out = append(out, cloned)
+	}
+	return out
+}
+
+func copySettingAttrInConfig(d *schema.ResourceDiff, index int, attr string) bool {
+	cfg := d.GetRawConfig()
+	if !cfg.IsKnown() || cfg.IsNull() {
+		return false
+	}
+	list := cfg.GetAttr("copy_settings")
+	if !list.IsKnown() || list.IsNull() {
+		return false
+	}
+	it := list.ElementIterator()
+	i := 0
+	for it.Next() {
+		_, val := it.Element()
+		if i != index {
+			i++
+			continue
+		}
+		if !val.IsKnown() || val.IsNull() {
+			return false
+		}
+		v := val.GetAttr(attr)
+		if !v.IsKnown() || v.IsNull() {
+			return false
+		}
+		if v.Type().IsSetType() || v.Type().IsListType() || v.Type().IsTupleType() {
+			return v.LengthInt() > 0
+		}
+		return true
+	}
+	return false
+}
+
+type resourceGetter interface {
+	Get(key string) any
+}
+
+func ValidateCopySettingsModes(d resourceGetter) error {
+	enabled, _ := d.Get("copy_policy_items_enabled").(bool)
+	deleteCopy, _ := d.Get("delete_copy_snapshots").(bool)
+	if deleteCopy && !enabled {
+		return errors.New(errDeleteCopyRequiresFlag)
+	}
+
+	copySettings, _ := d.Get("copy_settings").([]any)
+	for _, raw := range copySettings {
+		entry, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+		hasFreq := collectionLen(entry["frequencies"]) > 0
+		hasItems := collectionLen(entry["copy_policy_items"]) > 0
+		lastN, _ := entry["last_number_of_snapshots"].(int)
+		hasLastN := lastN > 0
+
+		modeCount := 0
+		if hasFreq {
+			modeCount++
+		}
+		if hasItems {
+			modeCount++
+		}
+		if hasLastN {
+			modeCount++
+		}
+		if modeCount > 1 {
+			return errors.New(errCopySettingsModes)
+		}
+		if (hasItems || hasLastN) && !enabled {
+			return errors.New(errCopyPolicyRequiresFlag)
+		}
+		if enabled && hasFreq {
+			return errors.New(errFrequenciesWithFlag)
+		}
+	}
+	return nil
+}
+
+func collectionLen(v any) int {
+	switch x := v.(type) {
+	case *schema.Set:
+		if x == nil {
+			return 0
+		}
+		return x.Len()
+	case []any:
+		return len(x)
+	default:
+		return 0
+	}
 }

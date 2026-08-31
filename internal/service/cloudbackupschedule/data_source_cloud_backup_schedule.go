@@ -28,6 +28,10 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"copy_policy_items_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"copy_settings": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -54,6 +58,11 @@ func DataSource() *schema.Resource {
 						},
 						"should_copy_oplogs": {
 							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"copy_policy_items": copyPolicyItemsSchema(true),
+						"last_number_of_snapshots": {
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 					},

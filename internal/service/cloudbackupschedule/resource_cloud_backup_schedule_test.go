@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
@@ -369,6 +370,189 @@ func TestAccBackupRSCloudBackupSchedule_copySettings_zoneId(t *testing.T) {
 	})
 }
 
+func TestAccBackupRSCloudBackupSchedule_copySettingsModesValidation(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_policy_items_enabled = true
+					copy_settings {
+						cloud_provider = "AWS"
+						region_name    = "US_EAST_1"
+						zone_id        = "111111111111111111111111"
+						frequencies    = ["DAILY"]
+						copy_policy_items {
+							frequency_type  = "daily"
+							retention_unit  = "days"
+							retention_value = 7
+						}
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`only one of frequencies, copy_policy_items, or last_number_of_snapshots`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_policy_items_enabled = true
+					copy_settings {
+						cloud_provider           = "AWS"
+						region_name              = "US_EAST_1"
+						zone_id                  = "111111111111111111111111"
+						frequencies              = ["DAILY"]
+						last_number_of_snapshots = 5
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`only one of frequencies, copy_policy_items, or last_number_of_snapshots`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_settings {
+						cloud_provider = "AWS"
+						region_name    = "US_EAST_1"
+						zone_id        = "111111111111111111111111"
+						copy_policy_items {
+							frequency_type  = "daily"
+							retention_unit  = "days"
+							retention_value = 7
+						}
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`require copy_policy_items_enabled to be true`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_policy_items_enabled = false
+					copy_settings {
+						cloud_provider           = "AWS"
+						region_name              = "US_EAST_1"
+						zone_id                  = "111111111111111111111111"
+						last_number_of_snapshots = 5
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`require copy_policy_items_enabled to be true`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_settings {
+						cloud_provider           = "AWS"
+						region_name              = "US_EAST_1"
+						zone_id                  = "111111111111111111111111"
+						last_number_of_snapshots = 5
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`require copy_policy_items_enabled to be true`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_policy_items_enabled = true
+					copy_settings {
+						cloud_provider           = "AWS"
+						region_name              = "US_EAST_1"
+						zone_id                  = "111111111111111111111111"
+						last_number_of_snapshots = 0
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`to be in the range \(1 - 500\)`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_policy_items_enabled = true
+					copy_settings {
+						cloud_provider           = "AWS"
+						region_name              = "US_EAST_1"
+						zone_id                  = "111111111111111111111111"
+						last_number_of_snapshots = 501
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`to be in the range \(1 - 500\)`),
+			},
+		},
+	})
+}
+
+func TestAccBackupRSCloudBackupSchedule_copyPolicyItems(t *testing.T) {
+	var (
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
+			CloudBackup: true,
+			ReplicationSpecs: []acc.ReplicationSpecRequest{
+				{Region: "US_EAST_2"},
+			},
+			PitEnabled: true,
+		})
+		clusterName         = clusterInfo.Name
+		terraformStr        = clusterInfo.TerraformStr
+		clusterResourceName = clusterInfo.ResourceName
+		projectID           = clusterInfo.ProjectID
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configCopyPolicyItems(terraformStr, projectID, clusterResourceName, 7, false, false, 0, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "copy_policy_items_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.frequencies.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.0.frequency_type", "daily"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.0.retention_value", "7"),
+					resource.TestCheckResourceAttrSet(resourceName, "copy_settings.0.copy_policy_items.0.id"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.1.frequency_type", "ondemand"),
+					resource.TestCheckResourceAttrSet(resourceName, "copy_settings.0.copy_policy_items.1.id"),
+					resource.TestCheckResourceAttr(dataSourceName, "copy_policy_items_enabled", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "copy_settings.0.copy_policy_items.#", "2"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "copy_settings.0.copy_policy_items.0.id"),
+					resource.TestCheckResourceAttr(dataSourceName, "copy_settings.0.frequencies.#", "0"),
+				),
+			},
+			{
+				Config: configCopyPolicyItems(terraformStr, projectID, clusterResourceName, 3, true, false, 0, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.0.retention_value", "3"),
+					resource.TestCheckResourceAttr(resourceName, "update_copy_snapshots", "true"),
+				),
+			},
+			{
+				Config: configCopyPolicyItems(terraformStr, projectID, clusterResourceName, 3, true, false, 0, true),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+			},
+			{
+				Config: configCopyPolicyItems(terraformStr, projectID, clusterResourceName, 3, false, true, 0, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.0.frequency_type", "daily"),
+					resource.TestCheckResourceAttr(resourceName, "delete_copy_snapshots", "true"),
+				),
+			},
+			{
+				Config: configCopyPolicyItems(terraformStr, projectID, clusterResourceName, 0, false, false, 5, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "copy_policy_items_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.last_number_of_snapshots", "5"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.frequencies.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "copy_settings.0.last_number_of_snapshots", "5"),
+					resource.TestCheckResourceAttr(dataSourceName, "copy_settings.0.copy_policy_items.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
@@ -545,6 +729,99 @@ func checkDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func configCopySettingsPlanOnly(extra string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+			project_id   = "111111111111111111111111"
+			cluster_name = "test-cluster"
+			%s
+		}
+	`, extra)
+}
+
+func configCopyPolicyItems(terraformStr, projectID, clusterResourceName string, dailyRetention int, updateCopy, deleteCopy bool, lastN int, includeOndemand bool) string {
+	var extraFlags strings.Builder
+	extraFlags.WriteString("\n\t\t\tcopy_policy_items_enabled = true")
+	if updateCopy {
+		extraFlags.WriteString("\n\t\t\tupdate_copy_snapshots     = true")
+	}
+	if deleteCopy {
+		extraFlags.WriteString("\n\t\t\tdelete_copy_snapshots     = true")
+	}
+
+	var copyBody strings.Builder
+	fmt.Fprintf(&copyBody, `
+			copy_settings {
+				cloud_provider     = "AWS"
+				region_name        = "US_EAST_1"
+				zone_id            = %s.replication_specs.*.zone_id[0]
+				should_copy_oplogs = true
+`, clusterResourceName)
+	if lastN > 0 {
+		fmt.Fprintf(&copyBody, "\t\t\t\tlast_number_of_snapshots = %d\n", lastN)
+	} else {
+		fmt.Fprintf(&copyBody, `
+				copy_policy_items {
+					frequency_type  = "daily"
+					retention_unit  = "days"
+					retention_value = %d
+				}
+`, dailyRetention)
+		if includeOndemand {
+			copyBody.WriteString(`
+				copy_policy_items {
+					frequency_type = "ondemand"
+				}
+`)
+		}
+	}
+	copyBody.WriteString("\t\t\t}")
+
+	return fmt.Sprintf(`
+		%[1]s
+		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+			project_id               = %[2]q
+			cluster_name             = %[3]s.name
+			reference_hour_of_day    = 3
+			reference_minute_of_hour = 45
+			restore_window_days      = 1
+			%[4]s
+
+			policy_item_hourly {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 1
+			}
+			policy_item_daily {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 2
+			}
+			policy_item_weekly {
+				frequency_interval = 4
+				retention_unit     = "weeks"
+				retention_value    = 3
+			}
+			policy_item_monthly {
+				frequency_interval = 5
+				retention_unit     = "months"
+				retention_value    = 4
+			}
+			policy_item_yearly {
+				frequency_interval = 1
+				retention_unit     = "years"
+				retention_value    = 1
+			}
+			%[5]s
+		}
+
+		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+			cluster_name = mongodbatlas_cloud_backup_schedule.schedule_test.cluster_name
+			project_id   = mongodbatlas_cloud_backup_schedule.schedule_test.project_id
+		}
+	`, terraformStr, projectID, clusterResourceName, extraFlags.String(), copyBody.String())
 }
 
 func configNoPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule20240805) string {

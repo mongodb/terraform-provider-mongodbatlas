@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
 	"go.mongodb.org/atlas-sdk/v20250312024/admin"
@@ -120,6 +121,85 @@ func TestFlattenCopySettings(t *testing.T) {
 			settings: []admin.DiskBackupCopySetting20240805{},
 			expected: []map[string]any{},
 		},
+		{
+			name: "Copy policy items with id",
+			settings: []admin.DiskBackupCopySetting20240805{
+				{
+					CloudProvider:    conversion.StringPtr("AWS"),
+					RegionName:       conversion.StringPtr("US_WEST_1"),
+					ZoneId:           "12345",
+					ShouldCopyOplogs: new(true),
+					CopyPolicyItems: &[]admin.DiskBackupCopyPolicyItem{
+						{
+							FrequencyType:  "daily",
+							Id:             conversion.StringPtr("item-1"),
+							RetentionUnit:  conversion.StringPtr("days"),
+							RetentionValue: new(7),
+						},
+					},
+				},
+			},
+			expected: []map[string]any{
+				{
+					"cloud_provider":     "AWS",
+					"frequencies":        []string(nil),
+					"region_name":        "US_WEST_1",
+					"zone_id":            "12345",
+					"should_copy_oplogs": true,
+					"copy_policy_items": []map[string]any{
+						{"id": "item-1", "frequency_type": "daily", "retention_unit": "days", "retention_value": 7},
+					},
+				},
+			},
+		},
+		{
+			name: "Copy policy items without id",
+			settings: []admin.DiskBackupCopySetting20240805{
+				{
+					CloudProvider:    conversion.StringPtr("AWS"),
+					RegionName:       conversion.StringPtr("US_WEST_1"),
+					ZoneId:           "12345",
+					ShouldCopyOplogs: new(false),
+					CopyPolicyItems: &[]admin.DiskBackupCopyPolicyItem{
+						{FrequencyType: "ondemand"},
+					},
+				},
+			},
+			expected: []map[string]any{
+				{
+					"cloud_provider":     "AWS",
+					"frequencies":        []string(nil),
+					"region_name":        "US_WEST_1",
+					"zone_id":            "12345",
+					"should_copy_oplogs": false,
+					"copy_policy_items": []map[string]any{
+						{"id": "", "frequency_type": "ondemand", "retention_unit": "", "retention_value": 0},
+					},
+				},
+			},
+		},
+		{
+			name: "Last number of snapshots",
+			settings: []admin.DiskBackupCopySetting20240805{
+				{
+					CloudProvider:         conversion.StringPtr("AWS"),
+					RegionName:            conversion.StringPtr("US_WEST_1"),
+					ZoneId:                "12345",
+					ShouldCopyOplogs:      new(false),
+					LastNumberOfSnapshots: new(5),
+				},
+			},
+			expected: []map[string]any{
+				{
+					"cloud_provider":           "AWS",
+					"frequencies":              []string(nil),
+					"region_name":              "US_WEST_1",
+					"zone_id":                  "12345",
+					"should_copy_oplogs":       false,
+					"last_number_of_snapshots": 5,
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -161,4 +241,154 @@ func TestExpandPolicyItems(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestExpandCopySetting(t *testing.T) {
+	testCases := []struct {
+		expected *admin.DiskBackupCopySetting20240805
+		tfMap    map[string]any
+		name     string
+	}{
+		{
+			name: "Frequencies only",
+			tfMap: map[string]any{
+				"cloud_provider":     "AWS",
+				"region_name":        "US_WEST_1",
+				"zone_id":            "12345",
+				"should_copy_oplogs": true,
+				"frequencies":        testFreqSet("DAILY"),
+			},
+			expected: &admin.DiskBackupCopySetting20240805{
+				CloudProvider:    new("AWS"),
+				RegionName:       new("US_WEST_1"),
+				ZoneId:           "12345",
+				ShouldCopyOplogs: new(true),
+				Frequencies:      &[]string{"DAILY"},
+			},
+		},
+		{
+			name: "Copy policy items with id",
+			tfMap: map[string]any{
+				"cloud_provider":     "AWS",
+				"region_name":        "US_WEST_1",
+				"zone_id":            "12345",
+				"should_copy_oplogs": true,
+				"frequencies":        testFreqSet(),
+				"copy_policy_items": []any{
+					map[string]any{
+						"id":              "item-1",
+						"frequency_type":  "daily",
+						"retention_unit":  "days",
+						"retention_value": 7,
+					},
+				},
+			},
+			expected: &admin.DiskBackupCopySetting20240805{
+				CloudProvider:    new("AWS"),
+				RegionName:       new("US_WEST_1"),
+				ZoneId:           "12345",
+				ShouldCopyOplogs: new(true),
+				CopyPolicyItems: &[]admin.DiskBackupCopyPolicyItem{
+					{
+						Id:             conversion.StringPtr("item-1"),
+						FrequencyType:  "daily",
+						RetentionUnit:  conversion.StringPtr("days"),
+						RetentionValue: new(7),
+					},
+				},
+			},
+		},
+		{
+			name: "Copy policy items without id",
+			tfMap: map[string]any{
+				"cloud_provider":     "AWS",
+				"region_name":        "US_WEST_1",
+				"zone_id":            "12345",
+				"should_copy_oplogs": false,
+				"copy_policy_items": []any{
+					map[string]any{"frequency_type": "ondemand"},
+				},
+			},
+			expected: &admin.DiskBackupCopySetting20240805{
+				CloudProvider:    new("AWS"),
+				RegionName:       new("US_WEST_1"),
+				ZoneId:           "12345",
+				ShouldCopyOplogs: new(false),
+				CopyPolicyItems: &[]admin.DiskBackupCopyPolicyItem{
+					{FrequencyType: "ondemand"},
+				},
+			},
+		},
+		{
+			name: "Last number of snapshots",
+			tfMap: map[string]any{
+				"cloud_provider":           "AWS",
+				"region_name":              "US_WEST_1",
+				"zone_id":                  "12345",
+				"should_copy_oplogs":       false,
+				"last_number_of_snapshots": 5,
+				"frequencies":              testFreqSet(),
+			},
+			expected: &admin.DiskBackupCopySetting20240805{
+				CloudProvider:         new("AWS"),
+				RegionName:            new("US_WEST_1"),
+				ZoneId:                "12345",
+				ShouldCopyOplogs:      new(false),
+				LastNumberOfSnapshots: new(5),
+			},
+		},
+		{
+			name: "Empty copy policy items list uses frequencies",
+			tfMap: map[string]any{
+				"cloud_provider":     "AWS",
+				"region_name":        "US_WEST_1",
+				"zone_id":            "12345",
+				"should_copy_oplogs": false,
+				"frequencies":        testFreqSet("HOURLY"),
+				"copy_policy_items":  []any{},
+			},
+			expected: &admin.DiskBackupCopySetting20240805{
+				CloudProvider:    new("AWS"),
+				RegionName:       new("US_WEST_1"),
+				ZoneId:           "12345",
+				ShouldCopyOplogs: new(false),
+				Frequencies:      &[]string{"HOURLY"},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := cloudbackupschedule.ExpandCopySetting(tc.tfMap)
+			if !reflect.DeepEqual(result, tc.expected) {
+				t.Errorf("Test %s failed: expected %+v, got %+v", tc.name, tc.expected, result)
+			}
+			assertUnusedCopySettingModes(t, result)
+		})
+	}
+}
+
+func assertUnusedCopySettingModes(t *testing.T, setting *admin.DiskBackupCopySetting20240805) {
+	t.Helper()
+	modes := 0
+	if setting.Frequencies != nil {
+		modes++
+	}
+	if setting.CopyPolicyItems != nil {
+		modes++
+	}
+	if setting.LastNumberOfSnapshots != nil {
+		modes++
+	}
+	if modes != 1 {
+		t.Errorf("expected exactly one copy mode pointer to be set, got frequencies=%v copyPolicyItems=%v lastNumberOfSnapshots=%v", setting.Frequencies != nil, setting.CopyPolicyItems != nil, setting.LastNumberOfSnapshots != nil)
+	}
+}
+
+func testFreqSet(items ...string) *schema.Set {
+	raw := make([]any, len(items))
+	for i, item := range items {
+		raw[i] = item
+	}
+	return schema.NewSet(schema.HashString, raw)
 }
