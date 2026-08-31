@@ -178,7 +178,7 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 			{
 				Config:      configureKafkaMigration(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
 				PlanOnly:    true,
-				ExpectError: regexp.MustCompile("Cannot revert stream workspace alias"),
+				ExpectError: regexp.MustCompile("Cannot revert deprecated attribute alias"),
 			},
 			{
 				ResourceName:            resourceName,
@@ -774,7 +774,7 @@ func TestAccStreamRSStreamConnection_SchemaRegistry(t *testing.T) {
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = acc.RandomName()
-		schemaRegistryURLs      = []string{"https://schemaregistry.example.com", "https://schemaregistry2.example.com"}
+		schemaRegistryURLs      = []string{"https://schemaregistry.example.com:8081", "https://schemaregistry2.example.com:8081"}
 		username                = "user"
 		password                = "password"
 	)
@@ -843,7 +843,7 @@ func TestAccStreamRSStreamConnection_SchemaRegistrySASLInherit(t *testing.T) {
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = acc.RandomName()
-		schemaRegistryURLs      = []string{"https://schemaregistry.example.com"}
+		schemaRegistryURLs      = []string{"https://schemaregistry.example.com:8081"}
 	)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },

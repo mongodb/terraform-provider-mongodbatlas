@@ -87,7 +87,7 @@ func TestAccStreamProcessor_workspaceNameAliasMigration(t *testing.T) {
 			{
 				Config:      legacyConfig,
 				PlanOnly:    true,
-				ExpectError: regexp.MustCompile("Cannot revert stream workspace alias"),
+				ExpectError: regexp.MustCompile("Cannot revert deprecated attribute alias"),
 			},
 		},
 	})
