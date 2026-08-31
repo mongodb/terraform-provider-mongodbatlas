@@ -11,7 +11,7 @@ You can retrieve it using (**warning**: this prints the secret to your terminal)
 terraform output -raw secret
 ```
 
-## Variables Required to be set:
+## Required Variables
 - `atlas_client_id`: The MongoDB Atlas Service Account Client ID
 - `atlas_client_secret`: The MongoDB Atlas Service Account Client Secret
 - `project_id`: The project ID where the MCP configuration will be created
