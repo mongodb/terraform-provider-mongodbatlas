@@ -436,11 +436,13 @@ func TestAccBackupRSCloudBackupSchedule_copyPolicyItems(t *testing.T) {
 			RestoreWindowDays:     new(1),
 		}
 
-		configFrequencies = configCopySettings(terraformStr, projectID, clusterResourceName,
+		/* Copy dest must differ from the source cluster region. CI creates US_EAST_2;
+		   local reuse via MONGODB_ATLAS_PROJECT_ID / MONGODB_ATLAS_CLUSTER_NAME may be US_EAST_1. */
+		configFrequencies = strings.ReplaceAll(configCopySettings(terraformStr, projectID, clusterResourceName,
 			false, // emptyCopySettings
 			false, // useRepSpecID (zone_id instead)
 			frequenciesSchedule,
-		)
+		), `region_name = "US_EAST_1"`, `region_name = "US_WEST_1"`)
 		configDailyAndOndemand = configCopyPolicyItems(terraformStr, projectID, clusterResourceName,
 			7,     // daily retention days
 			false, // update_copy_snapshots
@@ -514,6 +516,7 @@ func TestAccBackupRSCloudBackupSchedule_copyPolicyItems(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "update_copy_snapshots", "true"),
 				),
 			},
+			// update_copy_snapshots is config-only (GET omits it). Re-plan the same HCL so Read does not invent a false -> true diff.
 			{
 				Config: configUpdateCopies,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -783,7 +786,7 @@ func configCopyPolicyItems(terraformStr, projectID, clusterResourceName string, 
 			policy_item_daily {
 				frequency_interval = 1
 				retention_unit     = "days"
-				retention_value    = 2
+				retention_value    = 7
 			}
 			policy_item_weekly {
 				frequency_interval = 4
@@ -802,7 +805,7 @@ func configCopyPolicyItems(terraformStr, projectID, clusterResourceName string, 
 			}
 			copy_settings {
 				cloud_provider     = "AWS"
-				region_name        = "US_EAST_1"
+				region_name        = "US_WEST_1"
 				zone_id            = %[3]s.replication_specs.*.zone_id[0]
 				should_copy_oplogs = true
 				%[6]s
