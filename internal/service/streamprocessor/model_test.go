@@ -715,62 +715,71 @@ func TestNewStreamProcessorUpdateReqAutoscaling(t *testing.T) {
 }
 
 // TestNewStreamProcessorUpdateReqResumeFromCheckpoint checks that options.resume_from_checkpoint is
-// only sent when the pipeline changes. Leaving the value in the configuration must not discard the
-// checkpoint when unrelated attributes change.
+// only sent for the changes the API rejects while resuming from a checkpoint, so that a value left
+// in the configuration cannot discard the checkpoint on an unrelated update.
 func TestNewStreamProcessorUpdateReqResumeFromCheckpoint(t *testing.T) {
-	statePipeline := jsontypes.NewNormalizedValue(`[{"$source":{"connectionName":"sample_stream_solar"}},{"$emit":{"connectionName":"__testLog"}}]`)
-	// Same pipeline, different formatting: must not count as a change.
-	reformattedPipeline := jsontypes.NewNormalizedValue(`[{"$source": {"connectionName": "sample_stream_solar"}}, {"$emit": {"connectionName": "__testLog"}}]`)
-	changedPipeline := jsontypes.NewNormalizedValue(`[{"$source":{"connectionName":"other_source"}},{"$emit":{"connectionName":"__testLog"}}]`)
-	nullOptions := types.ObjectNull(streamprocessor.OptionsObjectType.AttributeTypes())
+	const (
+		statePipeline = `[{"$source":{"connectionName":"src","config":{"pipeline":[{"$match":{"operationType":"insert"}}]}}},{"$match":{"amount":{"$gt":100}}},{"$emit":{"connectionName":"__testLog"}}]`
+		// Same pipeline, different formatting.
+		reformatted = `[{"$source": {"connectionName": "src", "config": {"pipeline": [{"$match": {"operationType": "insert"}}]}}}, {"$match": {"amount": {"$gt": 100}}}, {"$emit": {"connectionName": "__testLog"}}]`
+		// $source connection replaced.
+		sourceConnChanged = `[{"$source":{"connectionName":"other","config":{"pipeline":[{"$match":{"operationType":"insert"}}]}}},{"$match":{"amount":{"$gt":100}}},{"$emit":{"connectionName":"__testLog"}}]`
+		// $source config filter changed.
+		sourceFilterChanged = `[{"$source":{"connectionName":"src","config":{"pipeline":[{"$match":{"operationType":"update"}}]}}},{"$match":{"amount":{"$gt":100}}},{"$emit":{"connectionName":"__testLog"}}]`
+		// Only a downstream $match changed: compatible with the existing checkpoint.
+		matchChanged = `[{"$source":{"connectionName":"src","config":{"pipeline":[{"$match":{"operationType":"insert"}}]}}},{"$match":{"amount":{"$gt":200}}},{"$emit":{"connectionName":"__testLog"}}]`
+
+		stateWindow          = `[{"$source":{"connectionName":"src"}},{"$tumblingWindow":{"interval":{"size":10,"unit":"second"},"pipeline":[{"$group":{"_id":"$k"}}]}},{"$emit":{"connectionName":"__testLog"}}]`
+		windowIntervalChange = `[{"$source":{"connectionName":"src"}},{"$tumblingWindow":{"interval":{"size":30,"unit":"second"},"pipeline":[{"$group":{"_id":"$k"}}]}},{"$emit":{"connectionName":"__testLog"}}]`
+		windowInnerChange    = `[{"$source":{"connectionName":"src"}},{"$tumblingWindow":{"interval":{"size":10,"unit":"second"},"pipeline":[{"$group":{"_id":"$other"}}]}},{"$emit":{"connectionName":"__testLog"}}]`
+		windowRemoved        = `[{"$source":{"connectionName":"src"}},{"$emit":{"connectionName":"__testLog"}}]`
+	)
 
 	testCases := map[string]struct {
-		planOptions         types.Object
-		planPipeline        jsontypes.Normalized
-		planState           types.String
-		stateState          types.String
-		expectOptionsSet    bool
-		expectDlqSet        bool
-		expectResumeSet     bool
-		expectedResumeValue bool
+		statePipeline   string
+		planPipeline    string
+		resume          types.Bool
+		expectResumeSet bool
 	}{
-		"pipeline change with false sends false": {
-			planPipeline:        changedPipeline,
-			planOptions:         optionsToTFModelWithResume(t, nil, types.BoolValue(false)),
-			expectOptionsSet:    true,
-			expectResumeSet:     true,
-			expectedResumeValue: false,
+		"source connection change sends the flag": {
+			statePipeline: statePipeline, planPipeline: sourceConnChanged,
+			resume: types.BoolValue(false), expectResumeSet: true,
 		},
-		"pipeline change with true sends true": {
-			planPipeline:        changedPipeline,
-			planOptions:         optionsToTFModelWithResume(t, nil, types.BoolValue(true)),
-			expectOptionsSet:    true,
-			expectResumeSet:     true,
-			expectedResumeValue: true,
+		"source config filter change sends the flag": {
+			statePipeline: statePipeline, planPipeline: sourceFilterChanged,
+			resume: types.BoolValue(false), expectResumeSet: true,
 		},
-		"pipeline change with omitted sends nothing": {
-			planPipeline:     changedPipeline,
-			planOptions:      nullOptions,
-			expectOptionsSet: false,
+		"explicit true is sent for a source change": {
+			statePipeline: statePipeline, planPipeline: sourceConnChanged,
+			resume: types.BoolValue(true), expectResumeSet: true,
 		},
-		"dlq only change with false omits the field": {
-			planPipeline:     statePipeline,
-			planOptions:      optionsToTFModelWithResume(t, &streamOptionsExample, types.BoolValue(false)),
-			expectOptionsSet: true,
-			expectDlqSet:     true,
-			expectResumeSet:  false,
+		"downstream match change does not send a stale flag": {
+			statePipeline: statePipeline, planPipeline: matchChanged,
+			resume: types.BoolValue(false), expectResumeSet: false,
 		},
-		"state only change with false omits the field": {
-			planPipeline:     statePipeline,
-			planOptions:      optionsToTFModelWithResume(t, nil, types.BoolValue(false)),
-			planState:        types.StringValue(stateStarted),
-			stateState:       types.StringValue(stateCreated),
-			expectOptionsSet: false,
+		"no pipeline change does not send the flag": {
+			statePipeline: statePipeline, planPipeline: statePipeline,
+			resume: types.BoolValue(false), expectResumeSet: false,
 		},
-		"reformatted pipeline is not a change so the field is omitted": {
-			planPipeline:     reformattedPipeline,
-			planOptions:      optionsToTFModelWithResume(t, nil, types.BoolValue(false)),
-			expectOptionsSet: false,
+		"reformatting the pipeline does not send the flag": {
+			statePipeline: statePipeline, planPipeline: reformatted,
+			resume: types.BoolValue(false), expectResumeSet: false,
+		},
+		"omitted flag is never sent even for a source change": {
+			statePipeline: statePipeline, planPipeline: sourceConnChanged,
+			resume: types.BoolNull(), expectResumeSet: false,
+		},
+		"window interval change sends the flag": {
+			statePipeline: stateWindow, planPipeline: windowIntervalChange,
+			resume: types.BoolValue(false), expectResumeSet: true,
+		},
+		"removing a window sends the flag": {
+			statePipeline: stateWindow, planPipeline: windowRemoved,
+			resume: types.BoolValue(false), expectResumeSet: true,
+		},
+		"window inner pipeline change does not send the flag": {
+			statePipeline: stateWindow, planPipeline: windowInnerChange,
+			resume: types.BoolValue(false), expectResumeSet: false,
 		},
 	}
 
@@ -779,43 +788,33 @@ func TestNewStreamProcessorUpdateReqResumeFromCheckpoint(t *testing.T) {
 			plan := &streamprocessor.TFStreamProcessorRSModel{
 				WorkspaceName: types.StringValue(workspaceName),
 				InstanceName:  types.StringNull(),
-				Pipeline:      tc.planPipeline,
+				Pipeline:      jsontypes.NewNormalizedValue(tc.planPipeline),
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
-				Options:       tc.planOptions,
-				State:         tc.planState,
+				Options:       optionsToTFModelWithResume(t, nil, tc.resume),
 			}
 			state := &streamprocessor.TFStreamProcessorRSModel{
 				WorkspaceName: types.StringValue(workspaceName),
 				InstanceName:  types.StringNull(),
-				Pipeline:      statePipeline,
+				Pipeline:      jsontypes.NewNormalizedValue(tc.statePipeline),
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
-				Options:       nullOptions,
-				State:         tc.stateState,
+				Options:       types.ObjectNull(streamprocessor.OptionsObjectType.AttributeTypes()),
 			}
 
 			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), plan, state)
 			require.False(t, diags.HasError())
 
 			apiOptions := updateReq.StreamsModifyStreamProcessor.Options
-			if !tc.expectOptionsSet {
-				assert.Nil(t, apiOptions)
+			if !tc.expectResumeSet {
+				if apiOptions != nil {
+					assert.Nil(t, apiOptions.ResumeFromCheckpoint)
+				}
 				return
 			}
 			require.NotNil(t, apiOptions)
-
-			if tc.expectDlqSet {
-				require.NotNil(t, apiOptions.Dlq)
-				assert.Equal(t, "testColl", apiOptions.Dlq.GetColl())
-			}
-
-			if tc.expectResumeSet {
-				require.NotNil(t, apiOptions.ResumeFromCheckpoint)
-				assert.Equal(t, tc.expectedResumeValue, *apiOptions.ResumeFromCheckpoint)
-			} else {
-				assert.Nil(t, apiOptions.ResumeFromCheckpoint)
-			}
+			require.NotNil(t, apiOptions.ResumeFromCheckpoint)
+			assert.Equal(t, tc.resume.ValueBool(), *apiOptions.ResumeFromCheckpoint)
 		})
 	}
 }

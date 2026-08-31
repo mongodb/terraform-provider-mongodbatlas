@@ -3,13 +3,14 @@ package streamprocessor
 import (
 	"context"
 	"encoding/json"
+	"reflect"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
@@ -103,15 +104,77 @@ func ResumeFromCheckpointFromOptions(ctx context.Context, options *types.Object)
 	return optionsModel.ResumeFromCheckpoint, nil
 }
 
-// pipelineChanged reports whether the plan changes the pipeline, comparing semantically so that
-// formatting-only differences in the JSON string are not treated as a change. Without prior state
-// there is nothing to compare, so it reports no change and the caller omits resume_from_checkpoint,
-// the safer default for a flag that discards checkpoints.
-func pipelineChanged(plan, state *TFStreamProcessorRSModel) bool {
+// checkpointIncompatibleChange reports whether the plan changes something the API refuses to modify
+// while resuming from a checkpoint: the $source stage, or a window's type, interval, hopSize or
+// allowedLateness, including adding or removing a window. Any other edit, for example to a $match or
+// $emit stage, can resume from the existing checkpoint, so resume_from_checkpoint is not sent for it
+// and a value left in the configuration cannot discard the checkpoint again.
+//
+// When the change cannot be determined it reports true, so that an explicitly configured
+// resume_from_checkpoint is still sent rather than silently dropped. This is defensive: the plan
+// pipeline is already valid JSON by the time it gets here, both from the jsontypes.Normalized
+// attribute type and from convertPipelineToSdk above.
+func checkpointIncompatibleChange(plan, state *TFStreamProcessorRSModel) bool {
 	if state == nil {
-		return false
+		return true
 	}
-	return !schemafunc.EqualJSON(state.Pipeline.ValueString(), plan.Pipeline.ValueString(), "stream processor pipeline")
+	planStages, ok := unmarshalPipelineStages(plan.Pipeline.ValueString())
+	if !ok {
+		return true
+	}
+	stateStages, ok := unmarshalPipelineStages(state.Pipeline.ValueString())
+	if !ok {
+		return true
+	}
+	if !reflect.DeepEqual(sourceStage(planStages), sourceStage(stateStages)) {
+		return true
+	}
+	return !reflect.DeepEqual(windowStages(planStages), windowStages(stateStages))
+}
+
+func unmarshalPipelineStages(pipeline string) (stages []any, ok bool) {
+	if pipeline == "" {
+		return nil, false
+	}
+	if err := json.Unmarshal([]byte(pipeline), &stages); err != nil {
+		return nil, false
+	}
+	return stages, true
+}
+
+// sourceStage returns the $source stage, always the first stage of a stream processor pipeline.
+func sourceStage(stages []any) any {
+	if len(stages) == 0 {
+		return nil
+	}
+	return stages[0]
+}
+
+// windowStages projects the window stages down to the fields the API rejects a checkpoint resume
+// for, so that changes to a window's inner pipeline are not mistaken for incompatible ones. Window
+// operators are matched by name suffix to cover $tumblingWindow, $hoppingWindow and any later
+// addition.
+func windowStages(stages []any) []any {
+	var windows []any
+	for _, stage := range stages {
+		obj, ok := stage.(map[string]any)
+		if !ok {
+			continue
+		}
+		for name, value := range obj {
+			if !strings.HasSuffix(name, "Window") {
+				continue
+			}
+			config, _ := value.(map[string]any)
+			windows = append(windows, map[string]any{
+				"name":            name,
+				"interval":        config["interval"],
+				"hopSize":         config["hopSize"],
+				"allowedLateness": config["allowedLateness"],
+			})
+		}
+	}
+	return windows
 }
 
 func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProcessorRSModel) (*admin.UpdateStreamProcessorApiParams, diag.Diagnostics) {
@@ -150,12 +213,12 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProce
 	if diags.HasError() {
 		return nil, diags
 	}
-	// resume_from_checkpoint is only sent when the pipeline changes, the only updates the API rejects
-	// for a checkpoint incompatible with the new pipeline. Omitting it for other updates, for example a
-	// tier or dlq change, avoids discarding the checkpoint when the value is left in the
-	// configuration. A configured value is sent as-is, including true; when the attribute is not set
-	// nothing is sent, so the API applies its own default rather than the provider assuming one.
-	sendResumeFromCheckpoint := !resumeFromCheckpoint.IsNull() && !resumeFromCheckpoint.IsUnknown() && pipelineChanged(plan, state)
+	// resume_from_checkpoint is only sent for the changes the API rejects while resuming from a
+	// checkpoint, see checkpointIncompatibleChange. Omitting it otherwise means a value left in the
+	// configuration cannot discard the checkpoint on an unrelated update. A configured value is sent
+	// as-is, including true; when the attribute is not set nothing is sent, so the API applies its own
+	// default rather than the provider assuming one.
+	sendResumeFromCheckpoint := !resumeFromCheckpoint.IsNull() && !resumeFromCheckpoint.IsUnknown() && checkpointIncompatibleChange(plan, state)
 
 	if autoscaling != nil || clearAutoscaling || dlq != nil || clearDLQ || sendResumeFromCheckpoint {
 		options := &admin.StreamsModifyStreamProcessorOptions{

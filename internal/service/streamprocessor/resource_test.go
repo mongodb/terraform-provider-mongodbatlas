@@ -138,6 +138,12 @@ func TestAccStreamProcessor_resumeFromCheckpoint(t *testing.T) {
 		processorName          = "new-processor-resume-" + randomSuffix
 	)
 
+	// The API rejects a $source change that cannot resume from the stored checkpoint with
+	// "resumeFromCheckpoint must be false to modify a stream processor's $source stage". Only the
+	// shared prefix is matched: the full sentence is 79 characters, which Terraform wraps across
+	// lines with "| " continuations, so a longer pattern would not match reliably.
+	checkpointRejected := regexp.MustCompile(`resumeFromCheckpoint must be false`)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -158,12 +164,12 @@ func TestAccStreamProcessor_resumeFromCheckpoint(t *testing.T) {
 				// The same $source change without resume_from_checkpoint is rejected by the API, since it
 				// defaults to true and the existing checkpoint is incompatible with the new $source.
 				Config:      configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", nil),
-				ExpectError: regexp.MustCompile("resumeFromCheckpoint must be false"),
+				ExpectError: checkpointRejected,
 			},
 			{
 				// resume_from_checkpoint = true is rejected the same way as omitting it.
 				Config:      configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", new(true)),
-				ExpectError: regexp.MustCompile("resumeFromCheckpoint must be false"),
+				ExpectError: checkpointRejected,
 			},
 			{
 				// Setting it to false discards the checkpoint and allows the $source change.
