@@ -221,18 +221,31 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
     needs: [ release-config, release ]
     if: >-
       !cancelled()
       && needs.release.result == 'success'
       && needs.release-config.outputs.is_official_release == 'true'
     env:
+      ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
+      ECR_ROLE_ARN: ${{ vars.ECR_ROLE_ARN }}
       SILKBOMB_IMG: ${{ vars.SILKBOMB_IMG }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.version_number }}
+      - name: Configure AWS credentials for DevProd Platforms ECR
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
+        with:
+          role-to-assume: ${{ env.ECR_ROLE_ARN }}
+          aws-region: us-east-1
+      - name: Authenticate Docker to DevProd Platforms ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 |
+            docker login --username AWS --password-stdin "${ECR_REGISTRY}"
+          docker pull "${SILKBOMB_IMG}"
       - name: Generate SBOM
         run: make gen-purls generate-sbom
       - name: Upload SBOM to Kondukto

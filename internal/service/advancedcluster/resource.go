@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -397,25 +397,12 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, p
 	return result
 }
 
-// clearAdaptiveCapacity sends a PATCH with `adaptiveCapacity: null` via UntypedAPICall.
-// Needed because the SDK field is *string with omitempty, so a nil pointer would be omitted instead of serialized as null.
-// Once CLOUDP-315290 adds SDK-level null support in PATCH payloads, this special case can be removed.
+// clearAdaptiveCapacity sends a PATCH with `adaptiveCapacity: null` to clear the value.
+// SetAdaptiveCapacityNil is used so a nil pointer is serialized as null instead of omitted.
 func clearAdaptiveCapacity(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
-	body := []byte(`{"adaptiveCapacity":null}`)
-	_, err := client.UntypedAPICall(ctx, config.APICallParams{
-		VersionHeader: "application/vnd.atlas.2024-08-05+json",
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{name}",
-		PathParams: map[string]string{
-			"groupId": waitParams.ProjectID,
-			"name":    waitParams.ClusterName,
-		},
-		Method: "PATCH",
-	}, body)
-	if err != nil {
-		addErrorDiag(diags, operationUpdate, defaultAPIErrorDetails(waitParams.ClusterName, err))
-		return nil
-	}
-	return AwaitChanges(ctx, client, waitParams, operationUpdate, diags)
+	patchReq := &admin.ClusterDescription20240805{}
+	patchReq.SetAdaptiveCapacityNil()
+	return updateCluster(ctx, diags, client, patchReq, waitParams, operationUpdate)
 }
 
 func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {

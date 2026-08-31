@@ -5,7 +5,7 @@ import (
 	"errors"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -111,7 +111,6 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		if plan.Tier.ValueString() != "" {
 			startWithOptions.SetTier(plan.Tier.ValueString())
 		}
-
 		_, err := connV2.StreamsAPI.StartStreamProcessorWith(ctx, projectID, workspaceOrInstanceName, processorName, startWithOptions).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(errorCreateStart, err.Error())
@@ -223,7 +222,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// modify the stream processor
-	modifyAPIRequestParams, diags := NewStreamProcessorUpdateReq(ctx, &plan)
+	modifyAPIRequestParams, diags := NewStreamProcessorUpdateReq(ctx, &plan, &state)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -240,7 +239,6 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		if plan.Tier.ValueString() != "" {
 			startWithOptions.SetTier(plan.Tier.ValueString())
 		}
-
 		_, err := r.Client.AtlasV2.StreamsAPI.StartStreamProcessorWith(ctx, projectID, workspaceOrInstanceName, processorName, startWithOptions).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("Error starting stream processor", err.Error())

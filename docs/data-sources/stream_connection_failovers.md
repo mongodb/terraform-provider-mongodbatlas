@@ -40,9 +40,9 @@ output "failover_regions" {
 Read-Only:
 
 - `failover_connection_id` (String) Unique identifier of the connection.
-- `region` (String) The connection's region.
-- `state` (String) The state of the connection.
-- `type` (String) Type of the connection.
+- `region` (String) Connection region.
+- `state` (String) Connection state.
+- `type` (String) Connection type.
 
 <!-- polymorphic attributes restructured by docpostprocess -->
 The following attributes depend on the value of `type`:
@@ -51,13 +51,13 @@ The following attributes depend on the value of `type`:
 
 - `cluster_name` (String) Name of the cluster configured for this connection.
 - `cluster_project_id` (String) Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.
-- `db_role_to_execute` (Attributes) The name of a Built in or Custom DB Role to connect to an Atlas Cluster. (see [below for nested schema](#nestedatt--results--db_role_to_execute))
+- `db_role_to_execute` (Attributes) Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster. (see [below for nested schema](#nestedatt--results--db_role_to_execute))
 
 #### `Kafka`
 
 - `authentication` (Attributes) User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode. (see [below for nested schema](#nestedatt--results--authentication))
 - `bootstrap_servers` (String) Comma separated list of server addresses.
-- `config` (Map of String) A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
+- `config` (Map of String) Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters.
 - `networking` (Attributes) Networking configuration for Streams connections. (see [below for nested schema](#nestedatt--results--networking))
 - `security` (Attributes) Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. (see [below for nested schema](#nestedatt--results--security))
 
@@ -69,13 +69,13 @@ Read-Only:
 - `client_id` (String) OIDC client identifier for authentication to the Kafka cluster.
 - `client_secret` (String, Sensitive) OIDC client secret for authentication to the Kafka cluster.
 - `mechanism` (String) Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.
-- `method` (String) SASL OAUTHBEARER authentication method. Can only be OIDC currently.
+- `method` (String) SASL OAUTHBEARER authentication method. Currently, only OIDC is supported.
 - `password` (String, Sensitive) Password of the account to connect to the Kafka cluster.
 - `sasl_oauthbearer_extensions` (String) SASL OAUTHBEARER extensions parameter for additional OAuth2 configuration.
 - `scope` (String) OIDC scope parameter defining the access permissions requested.
 - `ssl_certificate` (String) SSL certificate for client authentication to Kafka.
-- `ssl_key` (String) SSL key for client authentication to Kafka.
-- `ssl_key_password` (String) Password for the SSL key, if it is password protected.
+- `ssl_key` (String, Sensitive) SSL key for client authentication to Kafka.
+- `ssl_key_password` (String, Sensitive) Password for the SSL key, if it is password protected.
 - `token_endpoint_url` (String) OIDC token endpoint URL for obtaining access tokens.
 - `username` (String) Username of the account to connect to the Kafka cluster.
 

@@ -185,9 +185,10 @@ schema:
             element_type: 4
           description: Array of log types exported by this integration.
           custom_type:
-            package: customtypes
             model: customtypes.SetValue[types.String]
             schema: customtypes.NewSetType[types.String](ctx)
+            packages:
+                - customtypes
           computed_optional_required: required
           tf_schema_name: log_types
           tf_model_name: LogTypes
@@ -235,10 +236,11 @@ schema:
                       request_only_required_on_create: false
           description: 'Required for type: OTEL_LOG_EXPORT. HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.'
           custom_type:
-            package: customtypes
             name: OtelSuppliedHeaders
             model: customtypes.NestedListValue[TFOtelSuppliedHeadersModel]
             schema: customtypes.NewNestedListType[TFOtelSuppliedHeadersModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: otel_supplied_headers
           tf_model_name: OtelSuppliedHeaders
@@ -516,9 +518,10 @@ data_sources:
                 element_type: 4
               description: Array of log types exported by this integration.
               custom_type:
-                package: customtypes
                 model: customtypes.SetValue[types.String]
                 schema: customtypes.NewSetType[types.String](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: log_types
               tf_model_name: LogTypes
@@ -566,10 +569,11 @@ data_sources:
                           request_only_required_on_create: false
               description: 'Applies to type: OTEL_LOG_EXPORT. HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.'
               custom_type:
-                package: customtypes
                 name: OtelSuppliedHeaders
                 model: customtypes.NestedListValue[TFOtelSuppliedHeadersModel]
                 schema: customtypes.NewNestedListType[TFOtelSuppliedHeadersModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: otel_supplied_headers
               tf_model_name: OtelSuppliedHeaders
@@ -868,9 +872,10 @@ data_sources:
                             element_type: 4
                           description: Array of log types exported by this integration.
                           custom_type:
-                            package: customtypes
                             model: customtypes.SetValue[types.String]
                             schema: customtypes.NewSetType[types.String](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: log_types
                           tf_model_name: LogTypes
@@ -918,10 +923,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: 'Applies to type: OTEL_LOG_EXPORT. HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.'
                           custom_type:
-                            package: customtypes
                             name: ResultsOtelSuppliedHeaders
                             model: customtypes.NestedListValue[TFResultsOtelSuppliedHeadersModel]
                             schema: customtypes.NewNestedListType[TFResultsOtelSuppliedHeadersModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: otel_supplied_headers
                           tf_model_name: OtelSuppliedHeaders
@@ -1010,10 +1016,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List of returned documents that MongoDB Cloud provides when completing this request.
               custom_type:
-                package: customtypes
                 name: Results
                 model: customtypes.NestedListValue[TFResultsModel]
                 schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: results
               tf_model_name: Results

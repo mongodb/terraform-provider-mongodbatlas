@@ -2,6 +2,7 @@ package autogen_test
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
@@ -954,4 +955,90 @@ func TestUnmarshalAnonymousNonStruct(t *testing.T) {
 	require.Error(t, err)
 	require.ErrorContains(t, err, "unmarshal unsupported anonymous field")
 	assert.ErrorContains(t, err, "expected struct")
+}
+
+func TestUnmarshalLargeIntegers(t *testing.T) {
+	ctx := context.Background()
+
+	type modelst struct {
+		AttrFloat        types.Float64                      `tfsdk:"attr_float"`
+		AttrListInt      customtypes.ListValue[types.Int64] `tfsdk:"attr_list_int"`
+		AttrSetInt       customtypes.SetValue[types.Int64]  `tfsdk:"attr_set_int"`
+		AttrMapInt       customtypes.MapValue[types.Int64]  `tfsdk:"attr_map_int"`
+		AttrDynamicJSON  jsontypes.Normalized               `tfsdk:"attr_dynamic_json"`
+		AttrIntBig       types.Int64                        `tfsdk:"attr_int_big"`
+		AttrIntMax       types.Int64                        `tfsdk:"attr_int_max"`
+		AttrIntWithFloat types.Int64                        `tfsdk:"attr_int_with_float"`
+	}
+
+	var model modelst
+	const jsonResp = `
+		{
+			"attrIntBig": 9007199254740993,
+			"attrIntMax": 9223372036854775807,
+			"attrIntWithFloat": 10.6,
+			"attrFloat": 1.234,
+			"attrDynamicJSON": {"bigInt": 9007199254740993, "nested": {"list": [9007199254740993]}},
+			"attrListInt": [9007199254740993],
+			"attrSetInt": [9007199254740993],
+			"attrMapInt": {"key1": 9007199254740993}
+		}
+	`
+
+	modelExpected := modelst{
+		AttrIntBig:       types.Int64Value(9007199254740993),    // 2^53+1, corrupted to 9007199254740992 if decoded as float64
+		AttrIntMax:       types.Int64Value(9223372036854775807), // math.MaxInt64
+		AttrIntWithFloat: types.Int64Value(10),                  // response floats stored in model ints have their decimals stripped
+		AttrFloat:        types.Float64Value(1.234),
+		AttrDynamicJSON:  jsontypes.NewNormalizedValue(`{"bigInt":9007199254740993,"nested":{"list":[9007199254740993]}}`),
+		AttrListInt: customtypes.NewListValue[types.Int64](ctx, []attr.Value{
+			types.Int64Value(9007199254740993),
+		}),
+		AttrSetInt: customtypes.NewSetValue[types.Int64](ctx, []attr.Value{
+			types.Int64Value(9007199254740993),
+		}),
+		AttrMapInt: customtypes.NewMapValue[types.Int64](ctx, map[string]attr.Value{
+			"key1": types.Int64Value(9007199254740993),
+		}),
+	}
+
+	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
+	assert.Equal(t, modelExpected, model)
+}
+
+func TestDecode(t *testing.T) {
+	var obj map[string]any
+	require.NoError(t, autogen.Decode([]byte(`{"big": 9007199254740993, "float": 1.5}`), &obj))
+
+	num, ok := obj["big"].(json.Number)
+	require.True(t, ok, "expected json.Number, got %T", obj["big"])
+	i, err := num.Int64()
+	require.NoError(t, err)
+	assert.Equal(t, int64(9007199254740993), i)
+
+	f, err := obj["float"].(json.Number).Float64()
+	require.NoError(t, err)
+	assert.InEpsilon(t, 1.5, f, epsilon)
+}
+
+func TestDecodeTrailingData(t *testing.T) {
+	testCases := map[string]struct {
+		raw       string
+		expectErr bool
+	}{
+		"concatenated JSON values are rejected": {`{"a": 1} {"b": 2}`, true},
+		"trailing garbage is rejected":          {`{"a": 1} garbage`, true},
+		"trailing whitespace is allowed":        {"{\"a\": 1}\n  ", false},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			var obj map[string]any
+			err := autogen.Decode([]byte(tc.raw), &obj)
+			if tc.expectErr {
+				require.ErrorContains(t, err, "unexpected data after JSON value")
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }

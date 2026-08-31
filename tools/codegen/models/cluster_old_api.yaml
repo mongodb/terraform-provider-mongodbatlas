@@ -23,9 +23,10 @@ schema:
                         element_type: 4
                       description: The custom OpenSSL cipher suite list for TLS 1.2. Requires `tlsCipherConfigMode` = `CUSTOM`; when `tlsCipherConfigMode` is omitted, supplying a non-empty list infers `CUSTOM`.
                       custom_type:
-                        package: customtypes
                         model: customtypes.ListValue[types.String]
                         schema: customtypes.NewListType[types.String](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed_optional
                       tf_schema_name: custom_openssl_cipher_config_tls12
                       tf_model_name: CustomOpensslCipherConfigTls12
@@ -39,9 +40,10 @@ schema:
                         element_type: 4
                       description: The custom OpenSSL cipher suite list for TLS 1.3. Requires `tlsCipherConfigMode` = `CUSTOM`; when `tlsCipherConfigMode` is omitted, supplying a non-empty list infers `CUSTOM`.
                       custom_type:
-                        package: customtypes
                         model: customtypes.ListValue[types.String]
                         schema: customtypes.NewListType[types.String](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: optional
                       tf_schema_name: custom_openssl_cipher_config_tls13
                       tf_model_name: CustomOpensslCipherConfigTls13
@@ -75,10 +77,11 @@ schema:
                       request_only_required_on_create: false
           description: Group of settings that configures a subset of the advanced configuration details.
           custom_type:
-            package: customtypes
             name: AdvancedConfiguration
             model: customtypes.ObjectValue[TFAdvancedConfigurationModel]
             schema: customtypes.NewObjectType[TFAdvancedConfigurationModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed_optional
           tf_schema_name: advanced_configuration
           tf_model_name: AdvancedConfiguration
@@ -127,10 +130,11 @@ schema:
                       request_only_required_on_create: false
           description: Settings needed to configure the MongoDB Connector for Business Intelligence for this cluster.
           custom_type:
-            package: customtypes
             name: BiConnector
             model: customtypes.ObjectValue[TFBiConnectorModel]
             schema: customtypes.NewObjectType[TFBiConnectorModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed_optional
           tf_schema_name: bi_connector
           tf_model_name: BiConnector
@@ -181,9 +185,10 @@ schema:
                         element_type: 4
                       description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names.
                       custom_type:
-                        package: customtypes
                         model: customtypes.MapValue[types.String]
                         schema: customtypes.NewMapType[types.String](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: aws_private_link
                       tf_model_name: AwsPrivateLink
@@ -197,9 +202,10 @@ schema:
                         element_type: 4
                       description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present.
                       custom_type:
-                        package: customtypes
                         model: customtypes.MapValue[types.String]
                         schema: customtypes.NewMapType[types.String](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: aws_private_link_srv
                       tf_model_name: AwsPrivateLinkSrv
@@ -272,10 +278,11 @@ schema:
                                               request_only_required_on_create: false
                                   description: List that contains the private endpoints through which you connect to MongoDB Cloud when you use `connectionStrings.privateEndpoint[n].connectionString` or `connectionStrings.privateEndpoint[n].srvConnectionString`.
                                   custom_type:
-                                    package: customtypes
                                     name: ConnectionStringsPrivateEndpointEndpoints
                                     model: customtypes.NestedListValue[TFConnectionStringsPrivateEndpointEndpointsModel]
                                     schema: customtypes.NewNestedListType[TFConnectionStringsPrivateEndpointEndpointsModel](ctx)
+                                    packages:
+                                        - customtypes
                                   computed_optional_required: computed
                                   tf_schema_name: endpoints
                                   tf_model_name: Endpoints
@@ -320,10 +327,11 @@ schema:
                                   request_only_required_on_create: false
                       description: List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes.
                       custom_type:
-                        package: customtypes
                         name: ConnectionStringsPrivateEndpoint
                         model: customtypes.NestedListValue[TFConnectionStringsPrivateEndpointModel]
                         schema: customtypes.NewNestedListType[TFConnectionStringsPrivateEndpointModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: private_endpoint
                       tf_model_name: PrivateEndpoint
@@ -368,10 +376,11 @@ schema:
                       request_only_required_on_create: false
           description: Collection of Uniform Resource Locators that point to the MongoDB database.
           custom_type:
-            package: customtypes
             name: ConnectionStrings
             model: customtypes.ObjectValue[TFConnectionStringsModel]
             schema: customtypes.NewObjectType[TFConnectionStringsModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed
           tf_schema_name: connection_strings
           tf_model_name: ConnectionStrings
@@ -499,9 +508,10 @@ schema:
             Cluster labels are deprecated and will be removed in a future release. We strongly recommend that you use Resource tags instead.
           deprecation_message: This attribute has been deprecated
           custom_type:
-            package: customtypes
             model: customtypes.MapValue[types.String]
             schema: customtypes.NewMapType[types.String](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: labels
           tf_model_name: Labels
@@ -517,37 +527,38 @@ schema:
                 attributes:
                     - string: {}
                       description: Expiration date for the employee access grant. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-                      computed_optional_required: required
+                      computed_optional_required: computed
                       tf_schema_name: expiration_time
                       tf_model_name: ExpirationTime
                       api_name: expirationTime
-                      req_body_usage: all_request_bodies
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
                       description: Level of access to grant to MongoDB Employees.
-                      computed_optional_required: required
+                      computed_optional_required: computed
                       tf_schema_name: grant_type
                       tf_model_name: GrantType
                       api_name: grantType
-                      req_body_usage: all_request_bodies
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
           description: MongoDB employee granted access level and expiration for a cluster.
           custom_type:
-            package: customtypes
             name: MongoDBEmployeeAccessGrant
             model: customtypes.ObjectValue[TFMongoDBEmployeeAccessGrantModel]
             schema: customtypes.NewObjectType[TFMongoDBEmployeeAccessGrantModel](ctx)
-          computed_optional_required: optional
+            packages:
+                - customtypes
+          computed_optional_required: computed
           tf_schema_name: mongo_db_employee_access_grant
           tf_model_name: MongoDBEmployeeAccessGrant
           api_name: mongoDBEmployeeAccessGrant
-          req_body_usage: all_request_bodies
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
           present_in_any_response: true
@@ -757,10 +768,11 @@ schema:
                                                           request_only_required_on_create: false
                                               description: Options that determine how this cluster handles CPU scaling.
                                               custom_type:
-                                                package: customtypes
                                                 name: ReplicationSpecsRegionConfigsAnalyticsAutoScalingCompute
                                                 model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel]
                                                 schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel](ctx)
+                                                packages:
+                                                    - customtypes
                                               computed_optional_required: optional
                                               tf_schema_name: compute
                                               tf_model_name: Compute
@@ -786,10 +798,11 @@ schema:
                                                           request_only_required_on_create: false
                                               description: Setting that enables disk auto-scaling.
                                               custom_type:
-                                                package: customtypes
                                                 name: ReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGB
                                                 model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel]
                                                 schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel](ctx)
+                                                packages:
+                                                    - customtypes
                                               computed_optional_required: optional
                                               tf_schema_name: disk_gb
                                               tf_model_name: DiskGB
@@ -801,10 +814,11 @@ schema:
                                               request_only_required_on_create: false
                                   description: 'Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.'
                                   custom_type:
-                                    package: customtypes
                                     name: ReplicationSpecsRegionConfigsAnalyticsAutoScaling
                                     model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingModel]
                                     schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingModel](ctx)
+                                    packages:
+                                        - customtypes
                                   computed_optional_required: optional
                                   tf_schema_name: analytics_auto_scaling
                                   tf_model_name: AnalyticsAutoScaling
@@ -883,10 +897,11 @@ schema:
                                               request_only_required_on_create: false
                                   description: 'Optional for provider_name: AWS, AZURE, GCP. Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don''t specify this parameter, no read-only nodes are deployed to the region.'
                                   custom_type:
-                                    package: customtypes
                                     name: ReplicationSpecsRegionConfigsAnalyticsSpecs
                                     model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsSpecsModel]
                                     schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsSpecsModel](ctx)
+                                    packages:
+                                        - customtypes
                                   computed_optional_required: computed_optional
                                   tf_schema_name: analytics_specs
                                   tf_model_name: AnalyticsSpecs
@@ -952,10 +967,11 @@ schema:
                                                           request_only_required_on_create: false
                                               description: Options that determine how this cluster handles CPU scaling.
                                               custom_type:
-                                                package: customtypes
                                                 name: ReplicationSpecsRegionConfigsAutoScalingCompute
                                                 model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingComputeModel]
                                                 schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAutoScalingComputeModel](ctx)
+                                                packages:
+                                                    - customtypes
                                               computed_optional_required: computed_optional
                                               tf_schema_name: compute
                                               tf_model_name: Compute
@@ -981,10 +997,11 @@ schema:
                                                           request_only_required_on_create: false
                                               description: Setting that enables disk auto-scaling.
                                               custom_type:
-                                                package: customtypes
                                                 name: ReplicationSpecsRegionConfigsAutoScalingDiskGB
                                                 model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel]
                                                 schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel](ctx)
+                                                packages:
+                                                    - customtypes
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_gb
                                               tf_model_name: DiskGB
@@ -996,10 +1013,11 @@ schema:
                                               request_only_required_on_create: false
                                   description: 'Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.'
                                   custom_type:
-                                    package: customtypes
                                     name: ReplicationSpecsRegionConfigsAutoScaling
                                     model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingModel]
                                     schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAutoScalingModel](ctx)
+                                    packages:
+                                        - customtypes
                                   computed_optional_required: computed_optional
                                   tf_schema_name: auto_scaling
                                   tf_model_name: AutoScaling
@@ -1100,10 +1118,11 @@ schema:
                                               request_only_required_on_create: false
                                   description: Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region.
                                   custom_type:
-                                    package: customtypes
                                     name: ReplicationSpecsRegionConfigsElectableSpecs
                                     model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsElectableSpecsModel]
                                     schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsElectableSpecsModel](ctx)
+                                    packages:
+                                        - customtypes
                                   computed_optional_required: optional
                                   tf_schema_name: electable_specs
                                   tf_model_name: ElectableSpecs
@@ -1207,10 +1226,11 @@ schema:
                                               request_only_required_on_create: false
                                   description: 'Optional for provider_name: AWS, AZURE, GCP. Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don''t specify this parameter, no read-only nodes are deployed to the region.'
                                   custom_type:
-                                    package: customtypes
                                     name: ReplicationSpecsRegionConfigsReadOnlySpecs
                                     model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsReadOnlySpecsModel]
                                     schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsReadOnlySpecsModel](ctx)
+                                    packages:
+                                        - customtypes
                                   computed_optional_required: computed_optional
                                   tf_schema_name: read_only_specs
                                   tf_model_name: ReadOnlySpecs
@@ -1238,10 +1258,11 @@ schema:
 
                         If you set `replicationSpecs[n].regionConfigs[m].analyticsSpecs.instanceSize` : `M30`, set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M30` if you have electable nodes and `replicationSpecs[n].regionConfigs[m].readOnlySpecs.instanceSize` : `M30` if you have read-only nodes.
                       custom_type:
-                        package: customtypes
                         name: ReplicationSpecsRegionConfigs
                         model: customtypes.NestedListValue[TFReplicationSpecsRegionConfigsModel]
                         schema: customtypes.NewNestedListType[TFReplicationSpecsRegionConfigsModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: optional
                       tf_schema_name: region_configs
                       tf_model_name: RegionConfigs
@@ -1275,10 +1296,11 @@ schema:
                       request_only_required_on_create: false
           description: List of settings that configure your cluster regions. For Global Clusters, each object in the array represents a zone where your clusters nodes deploy. For non-Global sharded clusters and replica sets, this array has one object representing where your clusters nodes deploy.
           custom_type:
-            package: customtypes
             name: ReplicationSpecs
             model: customtypes.NestedListValue[TFReplicationSpecsModel]
             schema: customtypes.NewNestedListType[TFReplicationSpecsModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: replication_specs
           tf_model_name: ReplicationSpecs
@@ -1322,9 +1344,10 @@ schema:
             element_type: 4
           description: List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.
           custom_type:
-            package: customtypes
             model: customtypes.MapValue[types.String]
             schema: customtypes.NewMapType[types.String](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: tags
           tf_model_name: Tags

@@ -98,7 +98,7 @@ output "actual_instance_size" {
 }
 ```
 
-**For module authors:** See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete examples of using `use_effective_fields` and effective specs in reusable Terraform modules.
+**For module authors:** See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete examples of using `use_effective_fields` and effective specs in reusable Terraform modules.
 
 ### Example Tenant Cluster
 
@@ -494,37 +494,37 @@ output "endpoint_service_connection_string" {
 # Example return string: connection_string = "mongodb+srv://cluster-atlas-pl-0.ygo1m.mongodb.net"
 ```
 Refer to the following for full privatelink endpoint connection string examples:
-* [GCP Private Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
-* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_privatelink_endpoint/azure)
-* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
-* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
+* [GCP Private Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
+* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_privatelink_endpoint/azure)
+* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
 
 
 ### Further Examples
 
 **Target Examples (Recommended Starting Points):**
-- [Free Tier (M0)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/free-tier)
-- [Simple M10 Replica Set](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/m10-replicaset)
-- [M10 High-Availability Replica Set (2-2-1)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/m10-high-availability)
-- [Simple M30 Single-Shard Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/m30-single-shard)
-- [M30 Multi-Shard Cluster (2 Shards)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/m30-multi-shard)
+- [Free Tier (M0)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/free-tier)
+- [Simple M10 Replica Set](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/m10-replicaset)
+- [M10 High-Availability Replica Set (2-2-1)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/m10-high-availability)
+- [Simple M30 Single-Shard Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/m30-single-shard)
+- [M30 Multi-Shard Cluster (2 Shards)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/m30-multi-shard)
 
 **Cluster Types:**
-- [Replicaset](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/replicaset)
-- [Symmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster)
-- [Asymmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster)
-- [Global Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/global-cluster)
-- [Multi-Cloud](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/multi-cloud)
+- [Replicaset](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/replicaset)
+- [Symmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster)
+- [Asymmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster)
+- [Global Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/global-cluster)
+- [Multi-Cloud](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/multi-cloud)
 
 **Auto-scaling:**
-- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard)
-- [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/effective_fields)
+- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard)
+- [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/effective_fields)
 
 **Upgrades & Migrations:**
-- [Tenant Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/tenant-upgrade)
-- [Flex Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/flex-upgrade)
-- [Version Upgrade with Pinned FCV](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/version-upgrade-with-pinned-fcv)
-- [Migrate Cluster to Advanced Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/migrate_cluster_to_advanced_cluster/basic)
+- [Tenant Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/tenant-upgrade)
+- [Flex Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/flex-upgrade)
+- [Version Upgrade with Pinned FCV](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/version-upgrade-with-pinned-fcv)
+- [Migrate Cluster to Advanced Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/migrate_cluster_to_advanced_cluster/basic)
 
 ## Argument Reference
 
@@ -729,6 +729,8 @@ replication_specs = [
 
 -> **NOTE:** To enable extended storage sizes on certain M40+ dedicated clusters, use the `is_extended_storage_sizes_enabled` parameter in the [mongodbatlas_project resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project). This setting should only be used for temporary relief from disk size limits; consider sharding if more storage is required.
 
+~> **IMPORTANT:** When several `region_configs` entries in the same `replication_specs` share the same `priority`, Atlas returns them sorted by `region_name` in reverse alphabetical (descending) order. The provider matches your configuration entries to the returned entries by position, not by region name, so list same-priority `region_configs` in reverse alphabetical order by `region_name` in your configuration. Otherwise, you might see a `Provider produced inconsistent result after apply` or `Provider produced inconsistent final plan` error. For example, list `US_WEST_2` before `US_EAST_1` when both have `priority = 7`.
+
 * `analytics_specs` - (Optional) Hardware specifications for [analytics nodes](https://www.mongodb.com/docs/atlas/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. Analytics nodes handle analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only and can never become the [primary](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-primary). If you don't specify this parameter, no analytics nodes deploy to this region. See [below](#analytics_specs).
 * `auto_scaling` - (Optional) Configuration for the collection of settings that configures auto-scaling information for the cluster. The values for the `auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#auto_scaling).
 * `analytics_auto_scaling` - (Optional) Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. The values for the `analytics_auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#analytics_auto_scaling).
@@ -740,6 +742,7 @@ replication_specs = [
 * `priority` - (Optional)  Election priority of the region. For regions with only read-only nodes, set this value to 0.
   * If you have multiple `region_configs` objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is 7.
   * If your region has set `region_configs[#].electable_specs.node_count` to 1 or higher, it must have a priority of exactly one (1) less than another region in the `replication_specs[#].region_configs[#]` array. The highest-priority region must have a priority of 7. The lowest possible priority is 1.
+  * If several `region_configs` objects share the same priority, such as regions with only read-only or analytics nodes that have a priority of 0, list them in reverse alphabetical order by `region_name`. See the note at the beginning of this section.
 * `provider_name` - (Optional) Cloud service provider on which the servers are provisioned.
   The possible values are:
   - `AWS` - Amazon AWS
@@ -1028,7 +1031,7 @@ The same process applies to the [`analytics_auto_scaling`](#analytics_auto_scali
 
 ### Terraform Modules
 
-`use_effective_fields` is particularly valuable for reusable Terraform modules. Without it, separate module implementations are required (one with lifecycle blocks for auto-scaling, one without). With `use_effective_fields`, a single module handles both scenarios without lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
+`use_effective_fields` is particularly valuable for reusable Terraform modules. Without it, separate module implementations are required (one with lifecycle blocks for auto-scaling, one without). With `use_effective_fields`, a single module handles both scenarios without lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
 
 ### Migration path and version 3.x
 

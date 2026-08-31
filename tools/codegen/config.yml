@@ -2,8 +2,130 @@ variables:
   # API descriptions mention using the /orgs and /groups endpoints to fetch user's orgs/projects, removing that part.
   org_id_description: &org_id_description "Unique 24-hexadecimal digit string that identifies the organization that contains your projects."
   project_id_description: &project_id_description "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation."
+  # Copy corrections requested in the mongodbatlas_stream_connection_failover review (PR #4617).
+  # These descriptions come from the shared Streams schemas in the API spec (StreamsConnection,
+  # DBRoleToExecute, StreamsKafkaConnection), so the same wording is also used by the public API
+  # reference, the SDK, and the hand-written mongodbatlas_stream_connection docs. These overrides are
+  # a stopgap that applies the copy to the generated failover schema only.
+  # TODO(CLOUDP-431787): once the descriptions are corrected upstream, delete these anchors and the
+  # `description` overrides that reference them (in both the resource and datasources blocks of
+  # stream_connection_failover), then refetch the spec and regenerate so the descriptions track the
+  # spec again. The hand-written mongodbatlas_stream_connection docs need a manual sync at that point.
+  connection_region_description: &connection_region_description "Connection region."
+  connection_state_description: &connection_state_description "Connection state."
+  connection_type_description: &connection_type_description "Connection type."
+  db_role_to_execute_description: &db_role_to_execute_description "Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster."
+  kafka_config_description: &kafka_config_description "Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters."
+  # TODO(CLOUDP-439020): once the descriptions are corrected upstream, delete these anchors and the
+  # `description` overrides that reference them, then refetch the spec and regenerate.
+  collections_source_namespace_description: &collections_source_namespace_description "Collection requested to restore, as `database.collection`."
+  collections_target_namespace_description: &collections_target_namespace_description "Requested target collection as `database.collection`; if empty, source namespace is used."
+  databases_source_namespace_description: &databases_source_namespace_description "Database name requested to restore."
+  databases_target_namespace_description: &databases_target_namespace_description "Requested target database name; if empty, source database name is used."
 
 resources:
+  ai_model_api_key:
+    create:
+      path: &ai_model_api_key_collection_path /api/atlas/v2/groups/{groupId}/aiModelApiKeys
+      method: POST
+    read: &ai-model-api-key-read-op
+      path: &ai_model_api_key_item_path /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}
+      method: GET
+    update:
+      path: *ai_model_api_key_item_path
+      method: PATCH
+    delete:
+      path: *ai_model_api_key_item_path
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema: &ai_model_api_key_schema
+      aliases:
+        groupId: projectId
+        results.groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+        created_at:
+          immutable_computed: true # Reduces plan verbosity.
+        created_by:
+          immutable_computed: true # Reduces plan verbosity.
+        masked_secret:
+          immutable_computed: true # Reduces plan verbosity.
+        secret:
+          immutable_computed: true # Preserves value in state across updates, reduces plan verbosity.
+    datasources:
+      read: *ai-model-api-key-read-op
+      list:
+        path: *ai_model_api_key_collection_path
+        method: GET
+      schema:
+        <<: *ai_model_api_key_schema
+        ignores: ["secret", "results.secret"]
+
+  ai_model_org_api_key:
+    version_header: application/vnd.atlas.2025-03-12+json
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/aiModelApiKeys/{apiKeyId}
+        method: GET
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/aiModelApiKeys
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+          results.groupId: projectId
+        overrides:
+          org_id:
+            description: *org_id_description
+          project_id:
+            description: *project_id_description
+        ignores: ["secret", "results.secret"]
+
+  ai_model_org_rate_limit:
+    version_header: application/vnd.atlas.2025-03-12+json
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits
+        method: GET
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/aiModelApiRateLimits
+        method: GET
+      schema:
+        overrides:
+          org_id:
+            description: *org_id_description
+
+  # PATCH is used for Create and Update, reset custom method for Delete.
+  ai_model_rate_limit:
+    create:
+      path: &ai_model_rate_limit_item_path /api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits
+      method: PATCH
+    read: &ai_model_rate_limit_read_op
+      path: *ai_model_rate_limit_item_path
+      method: GET
+    update:
+      path: *ai_model_rate_limit_item_path
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits:reset
+      method: POST
+      resets_to_defaults: true
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema: &ai_model_rate_limit_schema
+      aliases:
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+    datasources:
+      read: *ai_model_rate_limit_read_op
+      list:
+        path: /api/atlas/v2/groups/{groupId}/aiModelApiRateLimits
+        method: GET
+      schema:
+        <<: *ai_model_rate_limit_schema
+
   # Singleton resource in project.
   # Create, Delete and Update uses PATCH.
   auditing_api:
@@ -65,7 +187,7 @@ resources:
             "PENDING",
             "DELETING",
           ]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404
     version_header: application/vnd.atlas.2023-02-01+json
     schema:
       ignores: ["links", "mongo_db_employee_access_grant.links"]
@@ -272,7 +394,7 @@ resources:
             "PENDING",
             "DELETING",
           ]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404
     move_state:
       source_resources: ["mongodbatlas_cluster_old_api"]
     version_header: application/vnd.atlas.2024-08-05+json
@@ -651,7 +773,7 @@ resources:
       wait:
         <<: *pble-create-wait
         pending_states: ["ACTIVE", "INITIATING", "BUCKET_VERIFIED"]
-        target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404 or empty object
+        target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
       ignores: ["links"]
@@ -699,7 +821,7 @@ resources:
         <<: *search-deployment-create-wait
         min_timeout_seconds: 30
         pending_states: ["IDLE", "UPDATING", "PAUSED"]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
+        target_states: ["DELETED"] # DELETED is a special state value when the resource is not found: API returns 404, or the read hook maps the empty JSON body response to autogen.ErrNotFound
     version_header: application/vnd.atlas.2025-03-12+json
 
   search_index_api:
@@ -806,7 +928,7 @@ resources:
       wait:
         <<: *stream-processor-create-wait
         pending_states: ["INIT", "CREATING", "CREATED", "STARTED", "STOPPED"]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404
     version_header: application/vnd.atlas.2024-05-30+json
     schema:
       ignores: ["links", "options.links", "options.dlq.links", "_id"]
@@ -970,28 +1092,12 @@ resources:
           # The failover connection's own `name` equals the parent `connectionName` (a path param),
           # so it is redundant in the schema and would collide with connection_name.
           "name",
-          # Failover connections only support the Kafka and Cluster connection types, so fields that
-          # apply exclusively to other types are dropped from the schema (the underlying spec is a
-          # shared DTO covering every stream connection type).
-          "aws", # AWSKinesisDataStreams, AWSLambda, S3
-          "azure", # AzureBlobStorage
-          "gcp", # GCPPubSub
-          "headers", # Https
-          "url", # Https
-          "public_private_networking", # AzureBlobStorage, GCPPubSub
-          "provider", # SchemaRegistry (aliased to schema_registry_provider; ignore the source name)
-          "schema_registry_authentication", # SchemaRegistry
-          "schema_registry_urls", # SchemaRegistry
         ]
       aliases:
         id: failoverConnectionId
         groupId: projectId
         tenantName: workspaceName
         clusterGroupId: clusterProjectId
-      # The endpoint reuses the shared StreamsConnection schema (discriminator covers every connection
-      # type), but failover connections only support Kafka and Cluster. Restrict the discriminator so
-      # the docs/prefixes/validation don't advertise inapplicable types.
-      discriminator_types: [Kafka, Cluster]
       overrides:
         project_id:
           description: *project_id_description
@@ -1000,25 +1106,28 @@ resources:
         # mongodbatlas_stream_connection resource clears maps the same way on this endpoint.
         config:
           request_body_usage: send_null_as_empty_on_update
+          description: *kafka_config_description
         connection_name:
           computability:
             required: true
         region:
           computability:
             required: true
+          description: *connection_region_description
+        state:
+          description: *connection_state_description
         type:
           computability:
             required: true
+          description: *connection_type_description
+        db_role_to_execute:
+          description: *db_role_to_execute_description
         db_role_to_execute.role:
           computability:
             required: true
         db_role_to_execute.type:
           computability:
             required: true
-        authentication.ssl_key_password:
-          sensitive: true
-        authentication.ssl_key:
-          sensitive: true
         # API returns a default networking (PUBLIC) even when not set in config; must be
         # optional+computed to avoid null->value drift. Child attributes follow the parent.
         networking:
@@ -1041,11 +1150,9 @@ resources:
         path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections
         method: GET
       schema:
-        # Mirror the resource: drop the shared-schema fields that don't apply to failover connections
-        # (both the singular shape and the plural `results.` shape). `name` is dropped because a
-        # failover connection's name always equals its parent `connection_name`, so it is redundant.
-        # TODO(CLOUDP-421992): once the API spec gives failover its own Kafka/Cluster schema, this
-        # ignores block (and the resource's) can be removed entirely.
+        # Mirror the resource: drop `links` and `name` in both the singular shape and the plural
+        # `results.` shape. `name` is dropped because a failover connection's name always equals its
+        # parent `connection_name`, so it is redundant.
         ignores:
           [
             "links",
@@ -1055,15 +1162,6 @@ resources:
             "networking.links",
             "networking.access.links",
             "security.links",
-            "aws",
-            "azure",
-            "gcp",
-            "headers",
-            "url",
-            "public_private_networking",
-            "provider",
-            "schema_registry_authentication",
-            "schema_registry_urls",
             "results.links",
             "results.name",
             "results.authentication.links",
@@ -1071,15 +1169,6 @@ resources:
             "results.networking.links",
             "results.networking.access.links",
             "results.security.links",
-            "results.aws",
-            "results.azure",
-            "results.gcp",
-            "results.headers",
-            "results.url",
-            "results.public_private_networking",
-            "results.provider",
-            "results.schema_registry_authentication",
-            "results.schema_registry_urls",
           ]
         aliases:
           id: failoverConnectionId
@@ -1088,12 +1177,33 @@ resources:
           clusterGroupId: clusterProjectId
           results.id: failoverConnectionId
           results.clusterGroupId: clusterProjectId
-        discriminator_types: [Kafka, Cluster]
         overrides:
           # Use the curated description; the raw spec one has a relative markdown link
           # ([/groups](#tag/...)) that the docs link-checker flags as a broken fragment.
           project_id:
             description: *project_id_description
+          # Mirror the resource's copy corrections in both the singular and plural (`results.`)
+          # shapes. Stopgap; removed with the anchors under TODO(CLOUDP-431787).
+          region:
+            description: *connection_region_description
+          state:
+            description: *connection_state_description
+          type:
+            description: *connection_type_description
+          db_role_to_execute:
+            description: *db_role_to_execute_description
+          config:
+            description: *kafka_config_description
+          results.region:
+            description: *connection_region_description
+          results.state:
+            description: *connection_state_description
+          results.type:
+            description: *connection_type_description
+          results.db_role_to_execute:
+            description: *db_role_to_execute_description
+          results.config:
+            description: *kafka_config_description
 
   alert_configuration_api:
     read:
@@ -1566,3 +1676,205 @@ resources:
             description: *project_id_description
           otel_supplied_headers:
             sensitive: true
+
+  metric_integration:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: PUT
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        groupId: projectId
+      ignores: ["links"]
+      overrides:
+        project_id:
+          description: *project_id_description
+        headers.value:
+          sensitive: true
+        headers:
+          description: "Required for auth_type: HEADER. HTTP headers for authentication and configuration. Total size limit 2KB."
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+        ignores: ["links", "results.links"]
+        overrides:
+          project_id:
+            description: *project_id_description
+
+  # Collection-level restore (GA 2025-03-12). Jobs are immutable and have no public DELETE/cancel.
+  cloud_backup_collection_restore_job:
+    read: &cloud-backup-collection-restore-job-read
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs
+      method: POST
+      wait: &collection-restore-create-wait
+        state_property: state
+        pending_states: [INITIALIZING, IN_PROGRESS, FINALIZING]
+        target_states: [SUCCESSFUL]
+        error_description_property: errorMessage
+        timeout_seconds: 10800 # 3 hours
+        min_timeout_seconds: 60
+        delay_seconds: 30
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        groupId: projectId
+        id: jobId
+        targetGroupId: targetProjectId
+      overrides:
+        project_id:
+          description: *project_id_description
+        target_project_id:
+          description: *project_id_description
+        job_id:
+          immutable_computed: true # Reduces plan verbosity.
+        created_at:
+          immutable_computed: true # Reduces plan verbosity.
+        collection_suffix:
+          # Atlas returns "" when the suffix is omitted.
+          computability:
+            optional: true
+            computed: true
+        database_suffix:
+          # Atlas returns "" when the suffix is omitted.
+          computability:
+            optional: true
+            computed: true
+        collections:
+          # Atlas returns [] when the list is omitted.
+          computability:
+            optional: true
+            computed: true
+        databases:
+          # Atlas returns [] when the list is omitted.
+          computability:
+            optional: true
+            computed: true
+        collections.source_namespace:
+          description: *collections_source_namespace_description
+        collections.target_namespace:
+          # Nested optional child of optional+computed list; Atlas echoes "" when unused.
+          computability:
+            optional: true
+            computed: true
+          description: *collections_target_namespace_description
+        databases.source_namespace:
+          description: *databases_source_namespace_description
+        databases.target_namespace:
+          # Nested optional child of optional+computed list; Atlas echoes "" when unused.
+          computability:
+            optional: true
+            computed: true
+          description: *databases_target_namespace_description
+        snapshot_id:
+          # Atlas fills the PIT-base snapshot when the client sends only PIT fields.
+          computability:
+            optional: true
+            computed: true
+        oplog_ts:
+          # Atlas copies pointInTimeUtcSeconds into oplogTs when omitted.
+          computability:
+            optional: true
+            computed: true
+        oplog_inc:
+          # Atlas defaults to 0 when PIT is specified via pointInTimeUtcSeconds only.
+          computability:
+            optional: true
+            computed: true
+        point_in_time_utc_seconds:
+          # Atlas copies oplogTs into pointInTimeUtcSeconds when omitted.
+          computability:
+            optional: true
+            computed: true
+    datasources:
+      read: *cloud-backup-collection-restore-job-read
+      list:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+          id: jobId
+          targetGroupId: targetProjectId
+          results.id: jobId
+          results.targetGroupId: targetProjectId
+        ignores: [results.links]
+        overrides:
+          project_id:
+            description: *project_id_description
+          target_project_id:
+            description: *project_id_description
+          collections.source_namespace:
+            description: *collections_source_namespace_description
+          collections.target_namespace:
+            description: *collections_target_namespace_description
+          databases.source_namespace:
+            description: *databases_source_namespace_description
+          databases.target_namespace:
+            description: *databases_target_namespace_description
+
+  cloud_backup_collection_restore_job_collection:
+    version_header: application/vnd.atlas.2025-03-12+json
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}/collections/{sourceNamespace}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}/collections
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+          id: jobId
+        ignores: [results.links]
+        overrides:
+          project_id:
+            description: *project_id_description
+
+  # Snapshot namespace discovery for collection restore. PIT has no snapshot id; these DS are snapshot-only.
+  # List-only: singular GET body is just `name`, a duplicate of the path param.
+  cloud_backup_snapshot_database:
+    version_header: application/vnd.atlas.2025-03-12+json
+    datasources:
+      list:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+        ignores: [results.links]
+        overrides:
+          project_id:
+            description: *project_id_description
+
+  cloud_backup_snapshot_database_collection:
+    version_header: application/vnd.atlas.2025-03-12+json
+    datasources:
+      list:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}/collections
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+        ignores: [results.links]
+        overrides:
+          project_id:
+            description: *project_id_description

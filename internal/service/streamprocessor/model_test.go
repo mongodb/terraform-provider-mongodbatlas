@@ -6,12 +6,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
 var (
@@ -37,6 +38,23 @@ var (
 			Coll:           conversion.StringPtr("testColl"),
 			ConnectionName: conversion.StringPtr("testConnection"),
 			Db:             conversion.StringPtr("testDB"),
+		},
+	}
+	streamOptionsWithAutoscaling = admin.StreamsOptions{
+		Dlq: &admin.StreamsDLQ{
+			Coll:           conversion.StringPtr("testColl"),
+			ConnectionName: conversion.StringPtr("testConnection"),
+			Db:             conversion.StringPtr("testDB"),
+		},
+		Autoscaling: &admin.StreamsAutoscaling{
+			MinTier: conversion.StringPtr("SP10"),
+			MaxTier: conversion.StringPtr("SP50"),
+		},
+	}
+	streamOptionsAutoscalingOnly = admin.StreamsOptions{
+		Autoscaling: &admin.StreamsAutoscaling{
+			MinTier: conversion.StringPtr("SP10"),
+			MaxTier: conversion.StringPtr("SP50"),
 		},
 	}
 )
@@ -90,7 +108,7 @@ var statsExample = `
 func streamProcessorWithStats(t *testing.T, options *admin.StreamsOptions) *admin.StreamsProcessorWithStats {
 	t.Helper()
 	processor := admin.NewStreamsProcessorWithStats(
-		processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateStarted,
+		processorID, "SP10", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateStarted,
 	)
 	var stats any
 	err := json.Unmarshal([]byte(statsExample), &stats)
@@ -113,6 +131,7 @@ func streamProcessorDSTFModel(t *testing.T, state, stats string, options types.O
 		ProjectID:       types.StringValue(projectID),
 		State:           conversion.StringNullIfEmpty(state),
 		Stats:           conversion.StringNullIfEmpty(stats),
+		EffectiveTier:   types.StringValue("SP10"),
 		FailoverEnabled: types.BoolValue(false),
 	}
 }
@@ -128,6 +147,7 @@ func streamProcessorDSTFModelWithInstanceName(t *testing.T, state, stats string,
 		ProjectID:       types.StringValue(projectID),
 		State:           conversion.StringNullIfEmpty(state),
 		Stats:           conversion.StringNullIfEmpty(stats),
+		EffectiveTier:   types.StringValue("SP10"),
 		FailoverEnabled: types.BoolValue(false),
 	}
 }
@@ -148,7 +168,7 @@ func TestDSSDKToTFModel(t *testing.T) {
 	}{
 		"afterCreate": {
 			sdkModel: admin.NewStreamsProcessorWithStats(
-				processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
+				processorID, "SP10", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 			),
 			expectedTFModel: streamProcessorDSTFModel(t, stateCreated, "", optionsToTFModel(t, nil)),
 		},
@@ -162,7 +182,7 @@ func TestDSSDKToTFModel(t *testing.T) {
 		},
 		"withFailoverEnabled": {
 			sdkModel: func() *admin.StreamsProcessorWithStats {
-				p := admin.NewStreamsProcessorWithStats(processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated)
+				p := admin.NewStreamsProcessorWithStats(processorID, "SP10", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated)
 				p.FailoverEnabled = &failoverEnabled
 				return p
 			}(),
@@ -202,7 +222,7 @@ func TestDSSDKToTFModelInstanceName(t *testing.T) {
 	}{
 		"afterCreate": {
 			sdkModel: admin.NewStreamsProcessorWithStats(
-				processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
+				processorID, "SP10", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 			),
 			expectedTFModel: streamProcessorDSTFModelWithInstanceName(t, stateCreated, "", optionsToTFModel(t, nil)),
 		},
@@ -244,7 +264,7 @@ func TestSDKToTFModel(t *testing.T) {
 	}{
 		"afterCreate": {
 			sdkModel: admin.NewStreamsProcessorWithStats(
-				processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED",
+				processorID, "SP10", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED",
 			),
 			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
 				InstanceName:  types.StringValue(workspaceName),
@@ -255,6 +275,7 @@ func TestSDKToTFModel(t *testing.T) {
 				ProjectID:     types.StringValue(projectID),
 				State:         types.StringValue("CREATED"),
 				Stats:         types.StringNull(),
+				EffectiveTier: types.StringValue("SP10"),
 			},
 		},
 		"afterStarted": {
@@ -268,6 +289,7 @@ func TestSDKToTFModel(t *testing.T) {
 				ProjectID:     types.StringValue(projectID),
 				State:         types.StringValue("STARTED"),
 				Stats:         types.StringValue(statsExample),
+				EffectiveTier: types.StringValue("SP10"),
 			},
 		},
 		"withOptions": {
@@ -281,10 +303,11 @@ func TestSDKToTFModel(t *testing.T) {
 				ProjectID:     types.StringValue(projectID),
 				State:         types.StringValue("STARTED"),
 				Stats:         types.StringNull(),
+				EffectiveTier: types.StringValue("SP10"),
 			},
 		},
 		"withFailoverEnabled": {
-			sdkModel:        admin.NewStreamsProcessorWithStats(processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED"),
+			sdkModel:        admin.NewStreamsProcessorWithStats(processorID, "SP10", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED"),
 			failoverEnabled: func() *types.Bool { v := types.BoolValue(true); return &v }(),
 			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
 				InstanceName:    types.StringValue(workspaceName),
@@ -295,6 +318,7 @@ func TestSDKToTFModel(t *testing.T) {
 				ProjectID:       types.StringValue(projectID),
 				State:           types.StringValue("CREATED"),
 				Stats:           types.StringNull(),
+				EffectiveTier:   types.StringValue("SP10"),
 				FailoverEnabled: types.BoolValue(true),
 			},
 		},
@@ -340,7 +364,7 @@ func TestPluralDSSDKToTFModel(t *testing.T) {
 		"oneResult_with_workspace_name": {
 			sdkModel: &admin.PaginatedApiStreamsStreamProcessorWithStats{
 				Results: []admin.StreamsProcessorWithStats{*admin.NewStreamsProcessorWithStats(
-					processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
+					processorID, "SP10", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 				)},
 				TotalCount: new(1),
 			},
@@ -384,7 +408,7 @@ func TestPluralDSSDKToTFModelWithInstanceName(t *testing.T) {
 		}},
 		"oneResult": {sdkModel: &admin.PaginatedApiStreamsStreamProcessorWithStats{
 			Results: []admin.StreamsProcessorWithStats{*admin.NewStreamsProcessorWithStats(
-				processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
+				processorID, "SP10", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 			)},
 			TotalCount: new(1),
 		}, expectedTFModel: &streamprocessor.TFStreamProcessorsDSModel{
@@ -501,7 +525,7 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), tc.model)
+			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), tc.model, &streamprocessor.TFStreamProcessorRSModel{})
 			assert.False(t, diags.HasError())
 			assert.Equal(t, tc.expectedTenantName, updateReq.TenantName)
 			if tc.expectedFailoverSet {
@@ -512,6 +536,168 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConvertOptionsToTFAutoscaling(t *testing.T) {
+	ctx := t.Context()
+
+	t.Run("round-trips autoscaling through options", func(t *testing.T) {
+		optionsTF, diags := streamprocessor.ConvertOptionsToTF(ctx, &streamOptionsWithAutoscaling)
+		require.False(t, diags.HasError())
+		require.NotNil(t, optionsTF)
+
+		optionsModel := &streamprocessor.TFOptionsModel{}
+		diags = optionsTF.As(ctx, optionsModel, basetypes.ObjectAsOptions{})
+		require.False(t, diags.HasError())
+		require.False(t, optionsModel.Autoscaling.IsNull())
+
+		autoscalingModel := &streamprocessor.TFAutoscalingModel{}
+		diags = optionsModel.Autoscaling.As(ctx, autoscalingModel, basetypes.ObjectAsOptions{})
+		require.False(t, diags.HasError())
+		assert.Equal(t, "SP10", autoscalingModel.MinTier.ValueString())
+		assert.Equal(t, "SP50", autoscalingModel.MaxTier.ValueString())
+	})
+
+	t.Run("autoscaling is null when absent from response", func(t *testing.T) {
+		optionsTF, diags := streamprocessor.ConvertOptionsToTF(ctx, &streamOptionsExample)
+		require.False(t, diags.HasError())
+		optionsModel := &streamprocessor.TFOptionsModel{}
+		diags = optionsTF.As(ctx, optionsModel, basetypes.ObjectAsOptions{})
+		require.False(t, diags.HasError())
+		assert.True(t, optionsModel.Autoscaling.IsNull())
+	})
+}
+
+func TestNewStreamProcessorReqAutoscaling(t *testing.T) {
+	ctx := t.Context()
+	validPipeline := jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}}]")
+	optionsWithAutoscaling := optionsToTFModel(t, &streamOptionsWithAutoscaling)
+	optionsAutoscalingOnly := optionsToTFModel(t, &streamOptionsAutoscalingOnly)
+
+	plan := &streamprocessor.TFStreamProcessorRSModel{
+		WorkspaceName: types.StringValue(workspaceName),
+		Pipeline:      validPipeline,
+		ProcessorName: types.StringValue(processorName),
+		ProjectID:     types.StringValue(projectID),
+		Tier:          types.StringValue("SP10"),
+		Options:       optionsWithAutoscaling,
+	}
+	req, diags := streamprocessor.NewStreamProcessorReq(ctx, plan)
+	require.False(t, diags.HasError())
+	require.NotNil(t, req.Options)
+	require.NotNil(t, req.Options.Autoscaling)
+	assert.True(t, req.Options.Autoscaling.GetEnabled())
+	assert.Equal(t, "SP10", req.Options.Autoscaling.GetMinTier())
+	assert.Equal(t, "SP50", req.Options.Autoscaling.GetMaxTier())
+	assert.Equal(t, "SP10", req.GetTier())
+
+	plan.Options = optionsAutoscalingOnly
+	req, diags = streamprocessor.NewStreamProcessorReq(ctx, plan)
+	require.False(t, diags.HasError())
+	require.NotNil(t, req.Options)
+	assert.Nil(t, req.Options.Dlq)
+	require.NotNil(t, req.Options.Autoscaling)
+}
+
+func TestNewStreamProcessorUpdateReqAutoscaling(t *testing.T) {
+	ctx := t.Context()
+	validPipeline := jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}}]")
+	optionsWithAutoscaling := optionsToTFModel(t, &streamOptionsWithAutoscaling)
+	optionsAutoscalingOnly := optionsToTFModel(t, &streamOptionsAutoscalingOnly)
+	optionsDlqOnly := optionsToTFModel(t, &streamOptionsExample)
+	optionsNull := types.ObjectNull(streamprocessor.OptionsObjectType.AttributeTypes())
+
+	base := func(options types.Object) *streamprocessor.TFStreamProcessorRSModel {
+		return &streamprocessor.TFStreamProcessorRSModel{
+			WorkspaceName: types.StringValue(workspaceName),
+			Pipeline:      validPipeline,
+			ProcessorName: types.StringValue(processorName),
+			ProjectID:     types.StringValue(projectID),
+			Options:       options,
+		}
+	}
+
+	t.Run("plan configures autoscaling => sent as configured", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsWithAutoscaling), base(optionsDlqOnly))
+		require.False(t, diags.HasError())
+		require.NotNil(t, req.StreamsModifyStreamProcessor.Options.Autoscaling)
+		assert.True(t, req.StreamsModifyStreamProcessor.Options.Autoscaling.GetEnabled())
+	})
+
+	t.Run("autoscaling-only options omit DLQ when absent in state", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsAutoscalingOnly), base(optionsAutoscalingOnly))
+		require.False(t, diags.HasError())
+		require.NotNil(t, req.StreamsModifyStreamProcessor.Options)
+		assert.Nil(t, req.StreamsModifyStreamProcessor.Options.Dlq)
+		require.NotNil(t, req.StreamsModifyStreamProcessor.Options.Autoscaling)
+	})
+
+	t.Run("autoscaling removed but present in state => explicit null", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsDlqOnly), base(optionsWithAutoscaling))
+		require.False(t, diags.HasError())
+		options := req.StreamsModifyStreamProcessor.Options
+		require.NotNil(t, options)
+		assert.Nil(t, options.Autoscaling)
+		assert.Contains(t, options.NullFields, "Autoscaling")
+		body, err := json.Marshal(req.StreamsModifyStreamProcessor)
+		require.NoError(t, err)
+		var payload map[string]any
+		require.NoError(t, json.Unmarshal(body, &payload))
+		assert.Nil(t, payload["options"].(map[string]any)["autoscaling"])
+	})
+
+	t.Run("whole options block removed but autoscaling in state => explicit null", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsNull), base(optionsWithAutoscaling))
+		require.False(t, diags.HasError())
+		options := req.StreamsModifyStreamProcessor.Options
+		require.NotNil(t, options)
+		assert.Nil(t, options.Autoscaling)
+		assert.Contains(t, options.NullFields, "Autoscaling")
+		body, err := json.Marshal(req.StreamsModifyStreamProcessor)
+		require.NoError(t, err)
+		var payload map[string]any
+		require.NoError(t, json.Unmarshal(body, &payload))
+		assert.Nil(t, payload["options"].(map[string]any)["autoscaling"])
+	})
+
+	t.Run("DLQ removed but present in state => explicit empty object", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsAutoscalingOnly), base(optionsWithAutoscaling))
+		require.False(t, diags.HasError())
+		options := req.StreamsModifyStreamProcessor.Options
+		require.NotNil(t, options)
+		require.NotNil(t, options.Dlq)
+		assert.Nil(t, options.Dlq.Coll)
+		assert.Nil(t, options.Dlq.ConnectionName)
+		assert.Nil(t, options.Dlq.Db)
+		body, err := json.Marshal(req.StreamsModifyStreamProcessor)
+		require.NoError(t, err)
+		var payload map[string]any
+		require.NoError(t, json.Unmarshal(body, &payload))
+		dlq, ok := payload["options"].(map[string]any)["dlq"]
+		require.True(t, ok)
+		assert.Empty(t, dlq)
+	})
+
+	t.Run("whole options block removed but DLQ present in state => explicit empty object", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsNull), base(optionsDlqOnly))
+		require.False(t, diags.HasError())
+		options := req.StreamsModifyStreamProcessor.Options
+		require.NotNil(t, options)
+		require.NotNil(t, options.Dlq)
+		body, err := json.Marshal(req.StreamsModifyStreamProcessor)
+		require.NoError(t, err)
+		var payload map[string]any
+		require.NoError(t, json.Unmarshal(body, &payload))
+		dlq, ok := payload["options"].(map[string]any)["dlq"]
+		require.True(t, ok)
+		assert.Empty(t, dlq)
+	})
+
+	t.Run("autoscaling and DLQ absent in plan and state => no options operation", func(t *testing.T) {
+		req, diags := streamprocessor.NewStreamProcessorUpdateReq(ctx, base(optionsNull), base(optionsNull))
+		require.False(t, diags.HasError())
+		assert.Nil(t, req.StreamsModifyStreamProcessor.Options)
+	})
 }
 
 func TestGetWorkspaceOrInstanceName(t *testing.T) {
@@ -555,4 +741,37 @@ func TestGetWorkspaceOrInstanceName(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPipelineFieldOrderPreserved(t *testing.T) {
+	// MongoDB documents are ordered, so the pipeline Atlas receives must carry the fields in the
+	// order the practitioner authored them. Byte equality is asserted on purpose: assert.JSONEq
+	// is order-blind and would pass against an alphabetized pipeline.
+	const pipeline = `[{"$addFields":{"location":{"region":"$region","city":"$city"}}},` +
+		`{"$merge":{"into":{"connectionName":"ClusterConnection","db":"demo","coll":"out"}}}]`
+
+	model := &streamprocessor.TFStreamProcessorRSModel{
+		ProjectID:     types.StringValue(projectID),
+		WorkspaceName: types.StringValue(workspaceName),
+		ProcessorName: types.StringValue(processorName),
+		Pipeline:      jsontypes.NewNormalizedValue(pipeline),
+	}
+
+	// The whole request body is marshaled, not just the pipeline, so the assertion covers the
+	// final SDK serialization, including the structs' own MarshalJSON, which the client invokes
+	// via json.Encoder and which delegates to encoding/json when no fields are explicitly null.
+	wantCreateBody := `{"name":"` + processorName + `","pipeline":` + pipeline + `}`
+	wantUpdateBody := `{"name":"` + processorName + `","pipeline":` + pipeline + `}`
+
+	createReq, diags := streamprocessor.NewStreamProcessorReq(t.Context(), model)
+	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
+	createBody, err := json.Marshal(createReq)
+	require.NoError(t, err)
+	assert.Equal(t, wantCreateBody, string(createBody))
+
+	updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), model, &streamprocessor.TFStreamProcessorRSModel{})
+	require.False(t, diags.HasError(), "unexpected diagnostics: %v", diags)
+	updateBody, err := json.Marshal(updateReq.StreamsModifyStreamProcessor)
+	require.NoError(t, err)
+	assert.Equal(t, wantUpdateBody, string(updateBody))
 }

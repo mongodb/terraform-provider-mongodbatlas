@@ -4,6 +4,195 @@ data_sources:
     singular:
         description: Returns all control plane IP addresses.
         attributes:
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - single_nested:
+                            nested_object:
+                                attributes:
+                                    - single_nested:
+                                        nested_object:
+                                            attributes:
+                                                - map:
+                                                    element_type: 4
+                                                  description: Control plane IP addresses in AWS. Each key identifies an Amazon Web Services (AWS) region. Each value identifies control plane IP addresses in the AWS region.
+                                                  custom_type:
+                                                    model: customtypes.MapValue[types.String]
+                                                    schema: customtypes.NewMapType[types.String](ctx)
+                                                    packages:
+                                                        - customtypes
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: aws
+                                                  tf_model_name: Aws
+                                                  api_name: aws
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - map:
+                                                    element_type: 4
+                                                  description: Control plane IP addresses in Azure. Each key identifies an Azure region. Each value identifies control plane IP addresses in the Azure region.
+                                                  custom_type:
+                                                    model: customtypes.MapValue[types.String]
+                                                    schema: customtypes.NewMapType[types.String](ctx)
+                                                    packages:
+                                                        - customtypes
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: azure
+                                                  tf_model_name: Azure
+                                                  api_name: azure
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - map:
+                                                    element_type: 4
+                                                  description: Control plane IP addresses in GCP. Each key identifies a Google Cloud (GCP) region. Each value identifies control plane IP addresses in the GCP region.
+                                                  custom_type:
+                                                    model: customtypes.MapValue[types.String]
+                                                    schema: customtypes.NewMapType[types.String](ctx)
+                                                    packages:
+                                                        - customtypes
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: gcp
+                                                  tf_model_name: Gcp
+                                                  api_name: gcp
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                      description: List of inbound IP addresses to the Atlas control plane, categorized by cloud provider. If your application allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your API requests can reach the Atlas control plane.
+                                      custom_type:
+                                        name: GatewaysIpsInbound
+                                        model: customtypes.ObjectValue[TFGatewaysIpsInboundModel]
+                                        schema: customtypes.NewObjectType[TFGatewaysIpsInboundModel](ctx)
+                                        packages:
+                                            - customtypes
+                                      computed_optional_required: computed
+                                      tf_schema_name: inbound
+                                      tf_model_name: Inbound
+                                      api_name: inbound
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - single_nested:
+                                        nested_object:
+                                            attributes:
+                                                - map:
+                                                    element_type: 4
+                                                  description: Control plane IP addresses in AWS. Each key identifies an Amazon Web Services (AWS) region. Each value identifies control plane IP addresses in the AWS region.
+                                                  custom_type:
+                                                    model: customtypes.MapValue[types.String]
+                                                    schema: customtypes.NewMapType[types.String](ctx)
+                                                    packages:
+                                                        - customtypes
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: aws
+                                                  tf_model_name: Aws
+                                                  api_name: aws
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - map:
+                                                    element_type: 4
+                                                  description: Control plane IP addresses in Azure. Each key identifies an Azure region. Each value identifies control plane IP addresses in the Azure region.
+                                                  custom_type:
+                                                    model: customtypes.MapValue[types.String]
+                                                    schema: customtypes.NewMapType[types.String](ctx)
+                                                    packages:
+                                                        - customtypes
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: azure
+                                                  tf_model_name: Azure
+                                                  api_name: azure
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - map:
+                                                    element_type: 4
+                                                  description: Control plane IP addresses in GCP. Each key identifies a Google Cloud (GCP) region. Each value identifies control plane IP addresses in the GCP region.
+                                                  custom_type:
+                                                    model: customtypes.MapValue[types.String]
+                                                    schema: customtypes.NewMapType[types.String](ctx)
+                                                    packages:
+                                                        - customtypes
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: gcp
+                                                  tf_model_name: Gcp
+                                                  api_name: gcp
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                      description: List of outbound IP addresses from the Atlas control plane, categorized by cloud provider. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that Atlas can communicate with your webhooks and KMS.
+                                      custom_type:
+                                        name: GatewaysIpsOutbound
+                                        model: customtypes.ObjectValue[TFGatewaysIpsOutboundModel]
+                                        schema: customtypes.NewObjectType[TFGatewaysIpsOutboundModel](ctx)
+                                        packages:
+                                            - customtypes
+                                      computed_optional_required: computed
+                                      tf_schema_name: outbound
+                                      tf_model_name: Outbound
+                                      api_name: outbound
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: IP addresses for a specific gateway, organized by direction and cloud provider.
+                          custom_type:
+                            name: GatewaysIps
+                            model: customtypes.ObjectValue[TFGatewaysIpsModel]
+                            schema: customtypes.NewObjectType[TFGatewaysIpsModel](ctx)
+                            packages:
+                                - customtypes
+                          computed_optional_required: computed
+                          tf_schema_name: ips
+                          tf_model_name: Ips
+                          api_name: ips
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Name of the service that this gateway represents.
+                          computed_optional_required: computed
+                          tf_schema_name: name
+                          tf_model_name: Name
+                          api_name: name
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of gateways, each representing a group of service-specific IP addresses that customers can add to their allow lists independently. Includes the Atlas Gateway (data plane) group when present.
+              custom_type:
+                name: Gateways
+                model: customtypes.NestedListValue[TFGatewaysModel]
+                schema: customtypes.NewNestedListType[TFGatewaysModel](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: gateways
+              tf_model_name: Gateways
+              api_name: gateways
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
             - single_nested:
                 nested_object:
                     attributes:
@@ -11,9 +200,10 @@ data_sources:
                             element_type: 4
                           description: Control plane IP addresses in AWS. Each key identifies an Amazon Web Services (AWS) region. Each value identifies control plane IP addresses in the AWS region.
                           custom_type:
-                            package: customtypes
                             model: customtypes.MapValue[types.String]
                             schema: customtypes.NewMapType[types.String](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: aws
                           tf_model_name: Aws
@@ -27,9 +217,10 @@ data_sources:
                             element_type: 4
                           description: Control plane IP addresses in Azure. Each key identifies an Azure region. Each value identifies control plane IP addresses in the Azure region.
                           custom_type:
-                            package: customtypes
                             model: customtypes.MapValue[types.String]
                             schema: customtypes.NewMapType[types.String](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: azure
                           tf_model_name: Azure
@@ -43,9 +234,10 @@ data_sources:
                             element_type: 4
                           description: Control plane IP addresses in GCP. Each key identifies a Google Cloud (GCP) region. Each value identifies control plane IP addresses in the GCP region.
                           custom_type:
-                            package: customtypes
                             model: customtypes.MapValue[types.String]
                             schema: customtypes.NewMapType[types.String](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: gcp
                           tf_model_name: Gcp
@@ -57,10 +249,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List of inbound IP addresses to the Atlas control plane, categorized by cloud provider. If your application allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your API requests can reach the Atlas control plane.
               custom_type:
-                package: customtypes
                 name: Inbound
                 model: customtypes.ObjectValue[TFInboundModel]
                 schema: customtypes.NewObjectType[TFInboundModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: inbound
               tf_model_name: Inbound
@@ -77,9 +270,10 @@ data_sources:
                             element_type: 4
                           description: Control plane IP addresses in AWS. Each key identifies an Amazon Web Services (AWS) region. Each value identifies control plane IP addresses in the AWS region.
                           custom_type:
-                            package: customtypes
                             model: customtypes.MapValue[types.String]
                             schema: customtypes.NewMapType[types.String](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: aws
                           tf_model_name: Aws
@@ -93,9 +287,10 @@ data_sources:
                             element_type: 4
                           description: Control plane IP addresses in Azure. Each key identifies an Azure region. Each value identifies control plane IP addresses in the Azure region.
                           custom_type:
-                            package: customtypes
                             model: customtypes.MapValue[types.String]
                             schema: customtypes.NewMapType[types.String](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: azure
                           tf_model_name: Azure
@@ -109,9 +304,10 @@ data_sources:
                             element_type: 4
                           description: Control plane IP addresses in GCP. Each key identifies a Google Cloud (GCP) region. Each value identifies control plane IP addresses in the GCP region.
                           custom_type:
-                            package: customtypes
                             model: customtypes.MapValue[types.String]
                             schema: customtypes.NewMapType[types.String](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: gcp
                           tf_model_name: Gcp
@@ -123,10 +319,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List of outbound IP addresses from the Atlas control plane, categorized by cloud provider. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that Atlas can communicate with your webhooks and KMS.
               custom_type:
-                package: customtypes
                 name: Outbound
                 model: customtypes.ObjectValue[TFOutboundModel]
                 schema: customtypes.NewObjectType[TFOutboundModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: outbound
               tf_model_name: Outbound

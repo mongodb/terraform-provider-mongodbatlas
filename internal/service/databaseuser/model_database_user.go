@@ -8,10 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
-func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescriptionValue types.String, plan *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
+func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescriptionValue types.String, statePasswordWoVersion types.Int64, plan *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
 	var rolesModel []*TfRoleModel
 	var labelsModel []*TfLabelModel
 	var scopesModel []*TfScopeModel
@@ -45,7 +45,11 @@ func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescri
 		Scopes:       NewMongoDBAtlasScopes(scopesModel),
 	}
 
-	if statePasswordValue != plan.Password {
+	if !plan.PasswordWo.IsNull() {
+		if statePasswordWoVersion.IsNull() || statePasswordWoVersion.ValueInt64() != plan.PasswordWoVersion.ValueInt64() {
+			result.Password = plan.PasswordWo.ValueStringPointer()
+		}
+	} else if statePasswordValue != plan.Password {
 		// Password value has been modified or no previous state was present. Password is only updated if changed in the terraform configuration CLOUDP-235738
 		result.Password = plan.Password.ValueStringPointer()
 	}
@@ -94,13 +98,15 @@ func NewTfDatabaseUserModel(ctx context.Context, inModel *TfDatabaseUserModel, d
 		Scopes:           scopesSet,
 	}
 
-	if inModel != nil && inModel.Password.ValueString() != "" {
-		// The Password is not retuned from the endpoint so we use the one provided in the model
-		outModel.Password = inModel.Password
-	}
-	if inModel != nil && outModel.Description.Equal(types.StringValue("")) && inModel.Description.IsNull() {
-		// null != "" in TPF:  Error: Provider produced inconsistent result after apply. .description: was null, but now cty.StringVal("")
-		outModel.Description = types.StringNull()
+	if inModel != nil {
+		if inModel.Password.ValueString() != "" {
+			// Password is not returned from the endpoint so we use the one provided in the model.
+			outModel.Password = inModel.Password
+		}
+		outModel.PasswordWoVersion = inModel.PasswordWoVersion
+		if outModel.Description.Equal(types.StringValue("")) && inModel.Description.IsNull() {
+			outModel.Description = types.StringNull()
+		}
 	}
 	return outModel, nil
 }

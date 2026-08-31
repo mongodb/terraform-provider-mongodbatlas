@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
+      ECR_ROLE_ARN: ${{ vars.ECR_ROLE_ARN }}
       KONDUKTO_TOKEN: ${{ secrets.KONDUKTO_TOKEN }}
       KONDUKTO_REPO: ${{ vars.KONDUKTO_REPO }}
       KONDUKTO_BRANCH_PREFIX: ${{ vars.KONDUKTO_BRANCH_PREFIX }}
@@ -24,6 +26,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Configure AWS credentials for DevProd Platforms ECR
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
+        with:
+          role-to-assume: ${{ env.ECR_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Authenticate Docker to DevProd Platforms ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 |
+            docker login --username AWS --password-stdin "${ECR_REGISTRY}"
+          docker pull "${SILKBOMB_IMG}"
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
         with:

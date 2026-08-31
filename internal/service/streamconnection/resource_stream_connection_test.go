@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -120,10 +121,15 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 			{
 				Config: dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr(resourceName, "authentication.aws"),
 					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
 					checkKafkaAttributesAcceptance(dataSourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
 					streamConnectionsAttributeChecksAcceptance(pluralDataSourceName, nil, nil),
 				),
+			},
+			{
+				Config:   dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
+				PlanOnly: true,
 			},
 			{
 				Config: dataSourcesWithPagination + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user2", "otherpassword", "", "", "", "", "", ""), "localhost:9093", "latest", kafkaNetworkingPublic, false),
@@ -266,7 +272,10 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck: func() {
+			acc.PreCheckBasic(t)
+			acc.PreCheckPeeringEnvAWS(t)
+		},
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
@@ -278,8 +287,28 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 				),
 			},
 			{
-				Config:      networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
-				ExpectError: regexp.MustCompile("STREAM_NETWORKING_CANNOT_BE_MODIFIED"),
+				Config: networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(
+							resourceName,
+							plancheck.ResourceActionDestroyBeforeCreate,
+						),
+					},
+				},
+				// Confirm the replacement actually has VPC networking.
+				Check: checkKafkaAttributesAcceptance(
+					resourceName,
+					instanceName,
+					"kafka-conn-ssl",
+					"user",
+					"rawpassword",
+					"localhost:9092",
+					"earliest",
+					networkingTypeVPC,
+					true,
+					true,
+				),
 			},
 			{
 				ResourceName:            resourceName,
@@ -287,6 +316,106 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"authentication.password"},
+			},
+		},
+	})
+}
+
+func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		vpcID                   = os.Getenv("AWS_VPC_ID")
+		vpcCIDRBlock            = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID            = os.Getenv("AWS_ACCOUNT_ID")
+		peerRegion              = os.Getenv("AWS_REGION")
+		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
+		providerName            = "AWS"
+		networkPeeringConfig    = configNetworkPeeringAWS(
+			projectID,
+			providerName,
+			vpcID,
+			awsAccountID,
+			vpcCIDRBlock,
+			containerRegion,
+			peerRegion,
+		)
+		connectionName = "kafka-conn-public-to-vpc"
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			acc.PreCheckBasic(t)
+			acc.PreCheckPeeringEnvAWS(t)
+		},
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				// Create the connection with PUBLIC networking.
+				Config: configureKafka(
+					fmt.Sprintf("%q", projectID),
+					instanceName,
+					connectionName,
+					getKafkaAuthenticationConfig(
+						"PLAIN",
+						"user",
+						"rawpassword",
+						"",
+						"",
+						"",
+						"",
+						"",
+						"",
+					),
+					"localhost:9092",
+					"earliest",
+					kafkaNetworkingPublic,
+					true,
+				),
+				Check: checkKafkaAttributesAcceptance(
+					resourceName,
+					instanceName,
+					connectionName,
+					"user",
+					"rawpassword",
+					"localhost:9092",
+					"earliest",
+					networkingTypePublic,
+					true,
+					true,
+				),
+			},
+			{
+				// Changing networking from PUBLIC to VPC must replace
+				// the stream connection rather than update it in place.
+				Config: networkPeeringConfig + configureKafka(
+					"mongodbatlas_network_peering.test.project_id",
+					instanceName,
+					connectionName,
+					getKafkaAuthenticationConfig(
+						"PLAIN",
+						"user",
+						"rawpassword",
+						"",
+						"",
+						"",
+						"",
+						"",
+						"",
+					),
+					"localhost:9092",
+					"earliest",
+					kafkaNetworkingVPC,
+					true,
+				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(
+							resourceName,
+							plancheck.ResourceActionDestroyBeforeCreate,
+						),
+					},
+				},
 			},
 		},
 	})
@@ -767,6 +896,58 @@ func checkSchemaRegistrySASLInheritAttributes(resourceName, workspaceName, conne
 	return acc.CheckRSAndDS(resourceName, conversion.StringPtr(dataSourceName), nil, setChecks, mapChecks, extra...)
 }
 
+func TestAccStreamRSStreamConnection_kafkaIAM(t *testing.T) {
+	acc.SkipTestForCI(t) // needs a manually configured Atlas-authorized MSK IAM role and bootstrap servers
+
+	var (
+		projectID           = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		_, instanceName     = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName      = "kafka-conn-iam"
+		roleARN             = os.Getenv("AWS_ROLE_ARN")
+		bootstrapServersEnv = os.Getenv("MONGODB_ATLAS_STREAM_KAFKA_MSK_BOOTSTRAP_SERVERS")
+	)
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			acc.PreCheckBasic(t)
+			if projectID == "" || roleARN == "" || bootstrapServersEnv == "" {
+				t.Skip("MONGODB_ATLAS_PROJECT_ID, AWS_ROLE_ARN, and MONGODB_ATLAS_STREAM_KAFKA_MSK_BOOTSTRAP_SERVERS must be set for Kafka IAM acceptance test")
+			}
+		},
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: configureKafkaIAM(projectID, instanceName, connectionName, roleARN, bootstrapServersEnv),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "AWS_MSK_IAM"),
+					resource.TestCheckResourceAttr(resourceName, "authentication.aws.role_arn", roleARN),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// configureKafkaIAM uses the pre-authorized role from AWS_ROLE_ARN. The role must
+// already be registered through Atlas Cloud Provider Access in MONGODB_ATLAS_PROJECT_ID.
+func configureKafkaIAM(projectID, workspaceName, connectionName, roleARN, bootstrapServers string) string {
+	return configureKafka(fmt.Sprintf("%q", projectID), workspaceName, connectionName, getKafkaIAMAuthenticationConfig(roleARN), bootstrapServers, "earliest", "", true)
+}
+
+func getKafkaIAMAuthenticationConfig(roleARN string) string {
+	return fmt.Sprintf(`authentication = {
+		mechanism = "AWS_MSK_IAM"
+		aws = {
+			role_arn = %[1]q
+		}
+	}`, roleARN)
+}
+
 func getKafkaAuthenticationConfig(mechanism, username, password, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions, method string) string {
 	if mechanism == "PLAIN" {
 		return fmt.Sprintf(`authentication = {
@@ -1149,55 +1330,59 @@ func configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCI
 `, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer)
 }
 
-func configureAWSLambda(projectID, instanceName, connectionName, awsIamRoleName string) string {
-	config := fmt.Sprintf(`
-		resource "aws_iam_role" "test_role" {
-			name = %[4]q
-	  
-			assume_role_policy = jsonencode({
-				"Version" : "2012-10-17",
-				"Statement" : [
-					{
-						"Effect" : "Allow",
-						"Principal" : {
-							"AWS" : "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_aws_account_arn}"
-						},
-						"Action" : "sts:AssumeRole",
-						"Condition" : {
-							"StringEquals" : {
-								"sts:ExternalId" : "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_assumed_role_external_id}"
-							}
-						}
-					}
-				]
-			})
-		}
-
+// configureAWSCloudProviderAccessRole creates an AWS role that Atlas can assume and
+// registers it with the project. Callers can append service-specific IAM policies
+// and resources that consume mongodbatlas_cloud_provider_access_authorization.auth_role.
+func configureAWSCloudProviderAccessRole(projectID, awsIAMRoleName string) string {
+	return fmt.Sprintf(`
 		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
 			project_id    = %[1]q
 			provider_name = "AWS"
 		}
-	  
+
+		resource "aws_iam_role" "test_role" {
+			name = %[2]q
+
+			assume_role_policy = jsonencode({
+				"Version" : "2012-10-17",
+				"Statement" : [{
+					"Effect" : "Allow",
+					"Principal" : {
+						"AWS" : "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_aws_account_arn}"
+					},
+					"Action" : "sts:AssumeRole",
+					"Condition" : {
+						"StringEquals" : {
+							"sts:ExternalId" : "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_assumed_role_external_id}"
+						}
+					}
+				}]
+			})
+		}
+
 		resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 			project_id = %[1]q
 			role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
-	  
+
 			aws {
 				iam_assumed_role_arn = aws_iam_role.test_role.arn
 			}
 		}
+	`, projectID, awsIAMRoleName)
+}
 
+func configureAWSLambda(projectID, instanceName, connectionName, awsIAMRoleName string) string {
+	return configureAWSCloudProviderAccessRole(projectID, awsIAMRoleName) + fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
-		    project_id = %[1]q
-			workspace_name = %[2]q
-		 	connection_name = %[3]q
-		 	type = "AWSLambda"
-            aws = {
+			project_id      = %[1]q
+			workspace_name  = %[2]q
+			connection_name = %[3]q
+			type            = "AWSLambda"
+			aws = {
 				role_arn = mongodbatlas_cloud_provider_access_authorization.auth_role.aws[0].iam_assumed_role_arn
 			}
 		}
-	`, projectID, instanceName, connectionName, awsIamRoleName)
-	return config
+	`, projectID, instanceName, connectionName)
 }
 
 func configureAWSLambdaPrivateLink(projectID, workspaceName, clusterName, connectionName, awsIamRoleName, region string) string {
@@ -1228,48 +1413,12 @@ func configureAWSLambdaPrivateLink(projectID, workspaceName, clusterName, connec
 			}
 		}
 
-		resource "aws_iam_role" "test_role" {
-			name = %[5]q
-
-			assume_role_policy = jsonencode({
-				"Version" : "2012-10-17",
-				"Statement" : [
-					{
-						"Effect" : "Allow",
-						"Principal" : {
-							"AWS" : "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_aws_account_arn}"
-						},
-						"Action" : "sts:AssumeRole",
-						"Condition" : {
-							"StringEquals" : {
-								"sts:ExternalId" : "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_assumed_role_external_id}"
-							}
-						}
-					}
-				]
-			})
-		}
-
-		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-			project_id    = %[1]q
-			provider_name = "AWS"
-		}
-
-		resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-			project_id = %[1]q
-			role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
-
-			aws {
-				iam_assumed_role_arn = aws_iam_role.test_role.arn
-			}
-		}
-
 		resource "mongodbatlas_stream_privatelink_endpoint" "test" {
 			project_id          = %[1]q
 			provider_name       = "AWS"
 			vendor              = "LAMBDA"
-			region              = %[6]q
-			service_endpoint_id = "com.amazonaws.%[6]s.lambda"
+			region              = %[5]q
+			service_endpoint_id = "com.amazonaws.%[5]s.lambda"
 			depends_on          = [mongodbatlas_advanced_cluster.test]
 		}
 
@@ -1288,7 +1437,7 @@ func configureAWSLambdaPrivateLink(projectID, workspaceName, clusterName, connec
 				}
 			}
 		}
-	`, projectID, workspaceName, clusterName, connectionName, awsIamRoleName, region)
+	`, projectID, workspaceName, clusterName, connectionName, region) + configureAWSCloudProviderAccessRole(projectID, awsIamRoleName)
 }
 
 func checkAWSLambdaPrivateLinkAttributes(resourceName, workspaceName, connectionName string) resource.TestCheckFunc {
