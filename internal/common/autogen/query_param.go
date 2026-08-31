@@ -3,6 +3,7 @@ package autogen
 import (
 	"context"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -58,6 +59,17 @@ func BuildQueryParamMap(ctx context.Context, args []QueryParamArg) map[string]st
 	}
 
 	return result
+}
+
+// WithPageNum copies queryParams and sets pageNum on the copy so pagination
+// does not mutate CallParams.QueryParams across pages.
+func WithPageNum(queryParams map[string]string, pageNum int) map[string]string {
+	out := maps.Clone(queryParams)
+	if out == nil {
+		out = make(map[string]string, 1)
+	}
+	out["pageNum"] = fmt.Sprintf("%d", pageNum)
+	return out
 }
 
 // extractListValue extracts values from a types.List and joins them with commas.

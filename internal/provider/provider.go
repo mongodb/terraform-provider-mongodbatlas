@@ -61,6 +61,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgratelimit"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelratelimit"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejob"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejobcollection"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabase"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabasecollection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive"
 	autogenprojectipaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectipaccesslist"
@@ -346,6 +350,12 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		logintegration.PluralDataSource,
 		metricintegration.DataSource,
 		metricintegration.PluralDataSource,
+		cloudbackupcollectionrestorejob.DataSource,
+		cloudbackupcollectionrestorejob.PluralDataSource,
+		cloudbackupcollectionrestorejobcollection.DataSource,
+		cloudbackupcollectionrestorejobcollection.PluralDataSource,
+		cloudbackupsnapshotdatabase.PluralDataSource,
+		cloudbackupsnapshotdatabasecollection.PluralDataSource,
 		privatelinkendpointservicedatafederationonlinearchive.DataSource,
 		privatelinkendpointservicedatafederationonlinearchive.PluralDataSource,
 		aimodelapikey.DataSource,
@@ -379,6 +389,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		projectmcpconfig.Resource,
 		projectmcpconfigsecret.Resource,
 		metricintegration.Resource,
+		cloudbackupcollectionrestorejob.Resource,
 		project.Resource,
 		logintegration.Resource,
 		encryptionatrest.Resource,

@@ -2,6 +2,7 @@ package projectserviceaccountaccesslistentry_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -12,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
 const (
@@ -233,10 +234,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
-	err := acc.CheckDestroyDeleteProjectSAs(s)
-	if err != nil {
-		return err
-	}
+	var errs []error
 	for name, rs := range s.RootModule().Resources {
 		if !strings.HasPrefix(name, resourceName) {
 			continue
@@ -247,15 +245,20 @@ func checkDestroy(s *terraform.State) error {
 		cidrOrIP := getCidrOrIP(rs)
 
 		if projectID == "" || clientID == "" || cidrOrIP == "" {
-			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
+			errs = append(errs, fmt.Errorf("checkExists, attributes not found for: %s", resourceName))
+			break
 		}
 
 		entry, _ := getEntry(projectID, clientID, cidrOrIP)
 		if entry != nil {
-			return fmt.Errorf("access list entry (%s/%s/%s) still exists", projectID, clientID, cidrOrIP)
+			errs = append(errs, fmt.Errorf("access list entry (%s/%s/%s) still exists", projectID, clientID, cidrOrIP))
+			break
 		}
 	}
-	return nil
+	if err := acc.CheckDestroyDeleteProjectSAs(s); err != nil {
+		errs = append(errs, err)
+	}
+	return errors.Join(errs...)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {

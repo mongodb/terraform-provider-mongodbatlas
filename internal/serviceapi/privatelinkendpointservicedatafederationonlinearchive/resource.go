@@ -4,6 +4,7 @@ package privatelinkendpointservicedatafederationonlinearchive
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -76,6 +77,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      10,
 			CallParams:        readAPICallParams,
+			FormatID:          formatIDAttributes,
 		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)
@@ -135,6 +137,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      10,
 			CallParams:        readAPICallParams,
+			FormatID:          formatIDAttributes,
 		},
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
@@ -160,6 +163,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		MinTimeoutSeconds: 60,
 		DelaySeconds:      10,
 		CallParams:        readAPICallParams,
+		FormatID:          formatIDAttributes,
 	}
 	autogen.HandleDelete(ctx, *reqHandle)
 }
@@ -181,6 +185,14 @@ func readAPICallParams(model any) *config.APICallParams {
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
+}
+
+func formatIDAttributes(model any) string {
+	m := model.(*TFModel)
+	return fmt.Sprintf("project_id=%q, endpoint_id=%q",
+		m.ProjectId.ValueString(),
+		m.EndpointId.ValueString(),
+	)
 }
 
 func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {

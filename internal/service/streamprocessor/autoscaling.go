@@ -1,0 +1,92 @@
+package streamprocessor
+
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
+)
+
+type TFAutoscalingModel struct {
+	MinTier types.String `tfsdk:"min_tier"`
+	MaxTier types.String `tfsdk:"max_tier"`
+}
+
+var AutoscalingObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"min_tier": types.StringType,
+	"max_tier": types.StringType,
+}}
+
+// newAutoscalingReq converts the TF autoscaling object into the SDK request type.
+// Returns nil when the block is not configured (unset), which the API treats as
+// "keep persisted config" on update and "no autoscaling" on create.
+func newAutoscalingReq(ctx context.Context, autoscaling types.Object) (*admin.StreamsAutoscaling, diag.Diagnostics) {
+	if autoscaling.IsNull() || autoscaling.IsUnknown() {
+		return nil, nil
+	}
+	tfModel := &TFAutoscalingModel{}
+	if diags := autoscaling.As(ctx, tfModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return nil, diags
+	}
+	// Block presence is Terraform's enablement signal. The API requires this
+	// transport field for create/PATCH semantics, but it is not exposed in state.
+	req := &admin.StreamsAutoscaling{Enabled: new(true)}
+	if !tfModel.MinTier.IsNull() && !tfModel.MinTier.IsUnknown() {
+		req.MinTier = tfModel.MinTier.ValueStringPointer()
+	}
+	if !tfModel.MaxTier.IsNull() && !tfModel.MaxTier.IsUnknown() {
+		req.MaxTier = tfModel.MaxTier.ValueStringPointer()
+	}
+	return req, nil
+}
+
+// autoscalingFromOptions extracts the autoscaling SDK request from a Terraform
+// `options` object, for endpoints (e.g. :startWith) that take autoscaling top-level.
+// Returns nil when options or the autoscaling block is unset.
+func autoscalingFromOptions(ctx context.Context, options types.Object) (*admin.StreamsAutoscaling, diag.Diagnostics) {
+	if options.IsNull() || options.IsUnknown() {
+		return nil, nil
+	}
+	optionsModel := &TFOptionsModel{}
+	if diags := options.As(ctx, optionsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return nil, diags
+	}
+	return newAutoscalingReq(ctx, optionsModel.Autoscaling)
+}
+
+// resolveAutoscalingForUpdate applies the PATCH tri-state semantics: it returns the
+// plan's autoscaling request when configured; clear=true when the block was removed
+// from the plan but was present in prior state; or no operation when autoscaling is
+// absent from both, so the API preserves whatever is persisted.
+func resolveAutoscalingForUpdate(ctx context.Context, plan, state *TFStreamProcessorRSModel) (*admin.StreamsAutoscaling, bool, diag.Diagnostics) {
+	planAutoscaling, diags := autoscalingFromOptions(ctx, plan.Options)
+	if diags.HasError() {
+		return nil, false, diags
+	}
+	if planAutoscaling != nil {
+		return planAutoscaling, false, nil
+	}
+	stateAutoscaling, diags := autoscalingFromOptions(ctx, state.Options)
+	if diags.HasError() {
+		return nil, false, diags
+	}
+	if stateAutoscaling != nil {
+		return nil, true, nil
+	}
+	return nil, false, nil
+}
+
+// convertAutoscalingToTF converts the SDK response type into a TF object.
+func convertAutoscalingToTF(ctx context.Context, autoscaling *admin.StreamsAutoscaling) (types.Object, diag.Diagnostics) {
+	if autoscaling == nil {
+		return types.ObjectNull(AutoscalingObjectType.AttributeTypes()), nil
+	}
+	tfModel := TFAutoscalingModel{
+		MinTier: types.StringPointerValue(autoscaling.MinTier),
+		MaxTier: types.StringPointerValue(autoscaling.MaxTier),
+	}
+	return types.ObjectValueFrom(ctx, AutoscalingObjectType.AttributeTypes(), tfModel)
+}

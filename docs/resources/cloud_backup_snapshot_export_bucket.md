@@ -37,8 +37,8 @@ resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
 ```
 
 ### Further Examples
-- [AWS Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.16.0/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/aws)
-- [Azure Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.16.0/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/azure)
+- [AWS Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/aws)
+- [Azure Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/azure)
 
 ## Argument Reference
 

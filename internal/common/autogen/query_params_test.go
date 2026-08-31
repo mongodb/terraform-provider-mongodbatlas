@@ -169,3 +169,70 @@ func TestBuildQueryParamMap(t *testing.T) {
 		})
 	}
 }
+
+func TestWithPageNum(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		expected map[string]string
+		input    map[string]string
+		name     string
+		pageNum  int
+	}{
+		{
+			name:     "nil map",
+			input:    nil,
+			pageNum:  1,
+			expected: map[string]string{"pageNum": "1"},
+		},
+		{
+			name:     "empty map",
+			input:    map[string]string{},
+			pageNum:  2,
+			expected: map[string]string{"pageNum": "2"},
+		},
+		{
+			name: "preserves existing filters",
+			input: map[string]string{
+				"sourceNamespace": "db.coll",
+				"state":           "SUCCESSFUL",
+			},
+			pageNum: 3,
+			expected: map[string]string{
+				"sourceNamespace": "db.coll",
+				"state":           "SUCCESSFUL",
+				"pageNum":         "3",
+			},
+		},
+		{
+			name: "overwrites existing pageNum",
+			input: map[string]string{
+				"pageNum": "99",
+				"state":   "FAILED",
+			},
+			pageNum: 4,
+			expected: map[string]string{
+				"pageNum": "4",
+				"state":   "FAILED",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tc.expected, autogen.WithPageNum(tc.input, tc.pageNum))
+		})
+	}
+}
+
+func TestWithPageNum_doesNotMutateInput(t *testing.T) {
+	t.Parallel()
+	input := map[string]string{"state": "SUCCESSFUL"}
+	out := autogen.WithPageNum(input, 1)
+	assert.Equal(t, "1", out["pageNum"])
+	_, hasPageNum := input["pageNum"]
+	assert.False(t, hasPageNum)
+	out["state"] = "FAILED"
+	assert.Equal(t, "SUCCESSFUL", input["state"])
+}
