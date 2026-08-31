@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -30,9 +29,6 @@ const (
 	errorSnapshotBackupScheduleRead    = "error getting a Cloud Backup Schedule for the cluster(%s): %s"
 	errorSnapshotBackupScheduleSetting = "error setting `%s` for Cloud Backup Schedule(%s): %s"
 
-	maxCopyPolicyItems        = 6
-	minLastNumberOfSnapshots  = 1
-	maxLastNumberOfSnapshots  = 500
 	errCopySettingsModes      = "copy_settings entry must set only one of frequencies, copy_policy_items, or last_number_of_snapshots"
 	errCopyPolicyRequiresFlag = "copy_policy_items and last_number_of_snapshots require copy_policy_items_enabled to be true"
 	errFrequenciesWithFlag    = "frequencies cannot be set when copy_policy_items_enabled is true"
@@ -116,9 +112,8 @@ func Resource() *schema.Resource {
 						},
 						"copy_policy_items": copyPolicyItemsSchema(false),
 						"last_number_of_snapshots": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(minLastNumberOfSnapshots, maxLastNumberOfSnapshots),
+							Type:     schema.TypeInt,
+							Optional: true,
 						},
 					},
 				},
@@ -759,79 +754,12 @@ func copyPolicyItemsSchema(computed bool) *schema.Schema {
 	}
 	if !computed {
 		s.Optional = true
-		s.MaxItems = maxCopyPolicyItems
 	}
 	return s
 }
 
 func resourceCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ any) error {
-	return ValidateCopySettingsModes(configAwareDiff{d})
-}
-
-// configAwareDiff wraps ResourceDiff so ValidateCopySettingsModes ignores frequencies
-// that exist only in state. frequencies is Optional+Computed, so Get() keeps the old
-// list when HCL omits it and would otherwise block a one-apply migration to
-// copy_policy_items or last_number_of_snapshots.
-type configAwareDiff struct {
-	*schema.ResourceDiff
-}
-
-func (c configAwareDiff) Get(key string) any {
-	if key != "copy_settings" {
-		return c.ResourceDiff.Get(key)
-	}
-	copySettings, _ := c.ResourceDiff.Get(key).([]any)
-	out := make([]any, 0, len(copySettings))
-	for i, raw := range copySettings {
-		entry, ok := raw.(map[string]any)
-		if !ok {
-			out = append(out, raw)
-			continue
-		}
-		if copySettingAttrInConfig(c.ResourceDiff, i, "frequencies") {
-			out = append(out, entry)
-			continue
-		}
-		cloned := make(map[string]any, len(entry))
-		for k, v := range entry {
-			cloned[k] = v
-		}
-		cloned["frequencies"] = schema.NewSet(schema.HashString, nil)
-		out = append(out, cloned)
-	}
-	return out
-}
-
-func copySettingAttrInConfig(d *schema.ResourceDiff, index int, attr string) bool {
-	cfg := d.GetRawConfig()
-	if !cfg.IsKnown() || cfg.IsNull() {
-		return false
-	}
-	list := cfg.GetAttr("copy_settings")
-	if !list.IsKnown() || list.IsNull() {
-		return false
-	}
-	it := list.ElementIterator()
-	i := 0
-	for it.Next() {
-		_, val := it.Element()
-		if i != index {
-			i++
-			continue
-		}
-		if !val.IsKnown() || val.IsNull() {
-			return false
-		}
-		v := val.GetAttr(attr)
-		if !v.IsKnown() || v.IsNull() {
-			return false
-		}
-		if v.Type().IsSetType() || v.Type().IsListType() || v.Type().IsTupleType() {
-			return v.LengthInt() > 0
-		}
-		return true
-	}
-	return false
+	return ValidateCopySettingsModes(d)
 }
 
 type resourceGetter interface {
@@ -856,23 +784,14 @@ func ValidateCopySettingsModes(d resourceGetter) error {
 		lastN, _ := entry["last_number_of_snapshots"].(int)
 		hasLastN := lastN > 0
 
-		modeCount := 0
-		if hasFreq {
-			modeCount++
-		}
-		if hasItems {
-			modeCount++
-		}
-		if hasLastN {
-			modeCount++
-		}
-		if modeCount > 1 {
+		if hasItems && hasLastN {
 			return errors.New(errCopySettingsModes)
 		}
 		if (hasItems || hasLastN) && !enabled {
 			return errors.New(errCopyPolicyRequiresFlag)
 		}
-		if enabled && hasFreq {
+		// Leftover Optional+Computed frequencies are ignored when another mode is set so a frequencies config can switch in one apply.
+		if enabled && hasFreq && !hasItems && !hasLastN {
 			return errors.New(errFrequenciesWithFlag)
 		}
 	}

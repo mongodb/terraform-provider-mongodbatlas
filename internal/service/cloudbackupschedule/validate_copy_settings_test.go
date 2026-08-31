@@ -55,7 +55,7 @@ func TestValidateCopySettingsModes(t *testing.T) {
 			},
 		},
 		{
-			name: "frequencies and copy policy items",
+			name: "copy policy items ignore leftover frequencies",
 			getter: testGetter{
 				"copy_policy_items_enabled": true,
 				"copy_settings": []any{
@@ -67,15 +67,28 @@ func TestValidateCopySettingsModes(t *testing.T) {
 					},
 				},
 			},
-			wantErr: "only one of frequencies, copy_policy_items, or last_number_of_snapshots",
 		},
 		{
-			name: "last N and frequencies",
+			name: "last N ignores leftover frequencies",
 			getter: testGetter{
 				"copy_policy_items_enabled": true,
 				"copy_settings": []any{
 					map[string]any{
 						"frequencies":              testFreqSet("DAILY"),
+						"last_number_of_snapshots": 5,
+					},
+				},
+			},
+		},
+		{
+			name: "copy policy items and last N",
+			getter: testGetter{
+				"copy_policy_items_enabled": true,
+				"copy_settings": []any{
+					map[string]any{
+						"copy_policy_items": []any{
+							map[string]any{"frequency_type": "daily"},
+						},
 						"last_number_of_snapshots": 5,
 					},
 				},

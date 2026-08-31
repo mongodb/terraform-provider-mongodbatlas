@@ -150,6 +150,6 @@ In addition to all arguments above, the following attributes are exported:
 * `retention_value` - Value to associate with `retention_unit`.
 * `id` - Unique identifier of the copy policy item.
 
-**Note** The write-only array `deleteCopiedBackups` is not supported in Terraform. Use the Atlas Admin API or Atlas CLI to manage that array. It is not the same as the request-level bool `delete_copy_snapshots` on the resource.
+**Note** The write-only array `deleteCopiedBackups` is not supported in Terraform. Use the Atlas Admin API or Atlas CLI to manage that array. It is not the same as `delete_copy_snapshots` on the resource.
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/schedule/get-all-schedules/).
