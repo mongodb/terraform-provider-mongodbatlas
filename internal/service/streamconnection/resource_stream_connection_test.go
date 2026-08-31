@@ -185,7 +185,7 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"authentication.password", "instance_name", "workspace_name"},
+				ImportStateVerifyIgnore: []string{"authentication.password"},
 			},
 		},
 	}
