@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -326,7 +327,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings_zoneId(t *testing.T) {
 		copySettingsChecks = map[string]string{
 			"copy_settings.#":                    "1",
 			"copy_settings.0.cloud_provider":     "AWS",
-			"copy_settings.0.region_name":        "US_EAST_1",
+			"copy_settings.0.region_name":        "US_WEST_1",
 			"copy_settings.0.should_copy_oplogs": "true",
 		}
 		emptyCopySettingsChecks = map[string]string{
@@ -426,13 +427,12 @@ func TestAccBackupRSCloudBackupSchedule_copyPolicyItems(t *testing.T) {
 			},
 			PitEnabled: true,
 		})
-		clusterName            = clusterInfo.Name
 		base                   = newCopyScheduleConfig(&clusterInfo)
-		configFrequencies      = base.withFrequencies().HCL()
-		configDailyAndOndemand = base.withDaily(7).withOndemand().HCL()
-		configUpdateCopies     = base.withDaily(3).withOndemand().withUpdateCopies().HCL()
-		configDeleteOndemand   = base.withDaily(3).withDeleteCopies().HCL()
-		configLastN            = base.withLastN(5).HCL()
+		configFrequencies      = base.withFrequencies()
+		configDailyAndOndemand = base.withDaily(7).withOndemand()
+		configUpdateCopies     = base.withDaily(3).withOndemand().withUpdateCopies()
+		configDeleteOndemand   = base.withDaily(3).withDeleteCopies()
+		configLastN            = base.withLastN(5)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -441,46 +441,20 @@ func TestAccBackupRSCloudBackupSchedule_copyPolicyItems(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configFrequencies,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "copy_policy_items_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.frequencies.#", "6"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.#", "0"),
-				),
+				Config: configFrequencies.HCL(),
+				Check:  configFrequencies.check(),
 			},
 			{
-				Config: configDailyAndOndemand,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "copy_policy_items_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.frequencies.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.0.frequency_type", "daily"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.0.retention_unit", "days"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.0.retention_value", "7"),
-					resource.TestCheckResourceAttrSet(resourceName, "copy_settings.0.copy_policy_items.0.id"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.1.frequency_type", "ondemand"),
-					resource.TestCheckResourceAttrSet(resourceName, "copy_settings.0.copy_policy_items.1.id"),
-					resource.TestCheckResourceAttr(dataSourceName, "copy_policy_items_enabled", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "copy_settings.0.copy_policy_items.#", "2"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "copy_settings.0.copy_policy_items.0.id"),
-					resource.TestCheckResourceAttr(dataSourceName, "copy_settings.0.frequencies.#", "0"),
-				),
+				Config: configDailyAndOndemand.HCL(),
+				Check:  configDailyAndOndemand.check(),
 			},
 			{
-				Config: configUpdateCopies,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.0.retention_value", "3"),
-					resource.TestCheckResourceAttr(resourceName, "update_copy_snapshots", "true"),
-				),
+				Config: configUpdateCopies.HCL(),
+				Check:  configUpdateCopies.check(),
 			},
 			// update_copy_snapshots is config-only (GET omits it). Re-plan the same HCL so Read does not invent a false -> true diff.
 			{
-				Config: configUpdateCopies,
+				Config: configUpdateCopies.HCL(),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectEmptyPlan(),
@@ -488,25 +462,12 @@ func TestAccBackupRSCloudBackupSchedule_copyPolicyItems(t *testing.T) {
 				},
 			},
 			{
-				Config: configDeleteOndemand,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.0.frequency_type", "daily"),
-					resource.TestCheckResourceAttr(resourceName, "delete_copy_snapshots", "true"),
-				),
+				Config: configDeleteOndemand.HCL(),
+				Check:  configDeleteOndemand.check(),
 			},
 			{
-				Config: configLastN,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "copy_policy_items_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.last_number_of_snapshots", "5"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.copy_policy_items.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.frequencies.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "copy_settings.0.last_number_of_snapshots", "5"),
-					resource.TestCheckResourceAttr(dataSourceName, "copy_settings.0.copy_policy_items.#", "0"),
-				),
+				Config: configLastN.HCL(),
+				Check:  configLastN.check(),
 			},
 		},
 	})
@@ -840,6 +801,44 @@ func (c copyScheduleConfig) copySettingsInner() string {
 	return inner
 }
 
+func (c copyScheduleConfig) check() resource.TestCheckFunc {
+	attrs := map[string]string{
+		"cluster_name":                        c.info.Name,
+		"copy_policy_items_enabled":           "true",
+		"copy_settings.#":                     "1",
+		"copy_settings.0.frequencies.#":       "0",
+		"copy_settings.0.copy_policy_items.#": "0",
+	}
+	var setAttrs []string
+	switch {
+	case c.useFrequencies:
+		attrs["copy_policy_items_enabled"] = "false"
+		attrs["copy_settings.0.frequencies.#"] = "6"
+	case c.lastN != 0:
+		attrs["copy_settings.0.last_number_of_snapshots"] = strconv.Itoa(c.lastN)
+	default:
+		itemCount := 1
+		attrs["copy_settings.0.copy_policy_items.0.frequency_type"] = "daily"
+		attrs["copy_settings.0.copy_policy_items.0.retention_unit"] = "days"
+		attrs["copy_settings.0.copy_policy_items.0.retention_value"] = strconv.Itoa(c.dailyRetention)
+		setAttrs = append(setAttrs, "copy_settings.0.copy_policy_items.0.id")
+		if c.includeOndemand {
+			itemCount++
+			attrs["copy_settings.0.copy_policy_items.1.frequency_type"] = "ondemand"
+			setAttrs = append(setAttrs, "copy_settings.0.copy_policy_items.1.id")
+		}
+		attrs["copy_settings.0.copy_policy_items.#"] = strconv.Itoa(itemCount)
+	}
+	extra := []resource.TestCheckFunc{checkExists(resourceName)}
+	if c.updateCopy {
+		extra = append(extra, resource.TestCheckResourceAttr(resourceName, "update_copy_snapshots", "true"))
+	}
+	if c.deleteCopy {
+		extra = append(extra, resource.TestCheckResourceAttr(resourceName, "delete_copy_snapshots", "true"))
+	}
+	return acc.CheckRSAndDS(resourceName, &dataSourceName, nil, setAttrs, attrs, extra...)
+}
+
 func configNoPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule20240805) string {
 	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
@@ -917,7 +916,7 @@ func configCopySettings(terraformStr, projectID, clusterResourceName string, emp
 							"MONTHLY",
 							"YEARLY",
 							"ON_DEMAND"]
-				region_name = "US_EAST_1"
+				region_name = "US_WEST_1"
 				replication_spec_id = %[1]s.replication_specs.*.id[0]
 				should_copy_oplogs = true
 			}`, clusterResourceName)
@@ -936,7 +935,7 @@ func configCopySettings(terraformStr, projectID, clusterResourceName string, emp
 							"MONTHLY",
 							"YEARLY",
 							"ON_DEMAND"]
-				region_name = "US_EAST_1"
+				region_name = "US_WEST_1"
 				zone_id = %[1]s.replication_specs.*.zone_id[0]
 				should_copy_oplogs = true
 			}`, clusterResourceName)
