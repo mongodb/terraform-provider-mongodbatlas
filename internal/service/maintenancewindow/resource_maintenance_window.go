@@ -269,10 +269,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.HasChange("wave_assignment") {
 		// SDKv2 GetOk() cannot distinguish an explicit value (including 0) from an unset field,
 		// since TypeInt treats 0 and absent identically. GetRawConfig() allows to distinguish between the two.
-		if !d.GetRawConfig().GetAttr("wave_assignment").IsNull() {
-			params.SetWaveAssignment(d.Get("wave_assignment").(int))
-		} else {
+		if d.GetRawConfig().GetAttr("wave_assignment").IsNull() {
 			params.SetWaveAssignmentNil()
+		} else {
+			params.SetWaveAssignment(d.Get("wave_assignment").(int))
 		}
 	}
 
