@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
@@ -88,6 +89,31 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 	return streamProcessor, nil
 }
 
+// ResumeFromCheckpointFromOptions returns options.resume_from_checkpoint, or a null Bool when it is
+// not set. The Atlas Admin API never returns this value, so it is carried over from configuration or
+// prior state rather than read from the API response.
+func ResumeFromCheckpointFromOptions(ctx context.Context, options *types.Object) (types.Bool, diag.Diagnostics) {
+	if options == nil || options.IsNull() || options.IsUnknown() {
+		return types.BoolNull(), nil
+	}
+	optionsModel := &TFOptionsModel{}
+	if diags := options.As(ctx, optionsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return types.BoolNull(), diags
+	}
+	return optionsModel.ResumeFromCheckpoint, nil
+}
+
+// pipelineChanged reports whether the plan changes the pipeline, comparing semantically so that
+// formatting-only differences in the JSON string are not treated as a change. Without prior state
+// there is nothing to compare, so it reports no change and the caller omits resume_from_checkpoint,
+// the safer default for a flag that discards checkpoints.
+func pipelineChanged(plan, state *TFStreamProcessorRSModel) bool {
+	if state == nil {
+		return false
+	}
+	return !schemafunc.EqualJSON(state.Pipeline.ValueString(), plan.Pipeline.ValueString(), "stream processor pipeline")
+}
+
 func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProcessorRSModel) (*admin.UpdateStreamProcessorApiParams, diag.Diagnostics) {
 	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
 	if diags != nil {
@@ -120,7 +146,17 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProce
 		return nil, diags
 	}
 
-	if autoscaling != nil || clearAutoscaling || dlq != nil || clearDLQ {
+	resumeFromCheckpoint, diags := ResumeFromCheckpointFromOptions(ctx, &plan.Options)
+	if diags.HasError() {
+		return nil, diags
+	}
+	// resume_from_checkpoint is only sent when the pipeline changes, the only updates the API rejects
+	// for a checkpoint incompatible with the new pipeline. Omitting it for other updates, for example a
+	// tier or dlq change, avoids discarding the checkpoint when the value is left in the
+	// configuration. The field is never sent as true either, omission lets the API apply its default.
+	sendResumeFromCheckpoint := !resumeFromCheckpoint.IsNull() && !resumeFromCheckpoint.IsUnknown() && pipelineChanged(plan, state)
+
+	if autoscaling != nil || clearAutoscaling || dlq != nil || clearDLQ || sendResumeFromCheckpoint {
 		options := &admin.StreamsModifyStreamProcessorOptions{
 			Dlq:         dlq,
 			Autoscaling: autoscaling,
@@ -131,6 +167,9 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProce
 		if clearDLQ {
 			// SPM uses an empty object (rather than null) as the DLQ clear signal.
 			options.Dlq = &admin.StreamsDLQ{}
+		}
+		if sendResumeFromCheckpoint {
+			options.ResumeFromCheckpoint = resumeFromCheckpoint.ValueBoolPointer()
 		}
 		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = options
 	}
@@ -144,7 +183,10 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProce
 	return streamProcessorAPIParams, nil
 }
 
-func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, workspaceName string, apiResp *admin.StreamsProcessorWithStats, timeout *timeouts.Value, deleteOnCreateTimeout, failoverEnabled *types.Bool) (*TFStreamProcessorRSModel, diag.Diagnostics) {
+// NewStreamProcessorWithStats builds the resource model from the API response. configOptions is the
+// options object from the plan or prior state, needed to preserve resume_from_checkpoint which the
+// API does not return.
+func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, workspaceName string, apiResp *admin.StreamsProcessorWithStats, timeout *timeouts.Value, deleteOnCreateTimeout, failoverEnabled *types.Bool, configOptions *types.Object) (*TFStreamProcessorRSModel, diag.Diagnostics) {
 	if apiResp == nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("streamProcessor API response is nil", "")}
 	}
@@ -156,7 +198,11 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, w
 	if diags.HasError() {
 		return nil, diags
 	}
-	optionsTF, diags := ConvertOptionsToTF(ctx, apiResp.Options)
+	resumeFromCheckpoint, diags := ResumeFromCheckpointFromOptions(ctx, configOptions)
+	if diags.HasError() {
+		return nil, diags
+	}
+	optionsTF, diags := ConvertOptionsToTF(ctx, apiResp.Options, resumeFromCheckpoint)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -205,7 +251,7 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName, w
 	if diags.HasError() {
 		return nil, diags
 	}
-	optionsTF, diags := ConvertOptionsToTF(ctx, apiResp.Options)
+	optionsTF, diags := ConvertOptionsToTFDS(ctx, apiResp.Options)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -248,9 +294,10 @@ func newDlqReq(ctx context.Context, dlq types.Object) (*admin.StreamsDLQ, diag.D
 	}, nil
 }
 
-func ConvertOptionsToTF(ctx context.Context, options *admin.StreamsOptions) (*types.Object, diag.Diagnostics) {
+// ConvertOptionsToTFDS builds the data source options object, which has no resume_from_checkpoint.
+func ConvertOptionsToTFDS(ctx context.Context, options *admin.StreamsOptions) (*types.Object, diag.Diagnostics) {
 	if options == nil || (!options.HasDlq() && options.Autoscaling == nil) {
-		return new(types.ObjectNull(OptionsObjectType.AttributeTypes())), nil
+		return new(types.ObjectNull(DSOptionsObjectType.AttributeTypes())), nil
 	}
 	dlqTF, diags := convertDlqToTF(ctx, options.Dlq)
 	if diags.HasError() {
@@ -260,9 +307,40 @@ func ConvertOptionsToTF(ctx context.Context, options *admin.StreamsOptions) (*ty
 	if diags.HasError() {
 		return nil, diags
 	}
-	optionsTF := &TFOptionsModel{
+	optionsObject, diags := types.ObjectValueFrom(ctx, DSOptionsObjectType.AttributeTypes(), &TFDSOptionsModel{
 		Dlq:         *dlqTF,
 		Autoscaling: autoscalingTF,
+	})
+	if diags.HasError() {
+		return nil, diags
+	}
+	return &optionsObject, nil
+}
+
+// ConvertOptionsToTF builds the resource options object. resumeFromCheckpoint is not returned by the
+// API, so callers pass the value from configuration or prior state to preserve it.
+func ConvertOptionsToTF(ctx context.Context, options *admin.StreamsOptions, resumeFromCheckpoint types.Bool) (*types.Object, diag.Diagnostics) {
+	hasOptions := options != nil && (options.HasDlq() || options.Autoscaling != nil)
+	if !hasOptions && resumeFromCheckpoint.IsNull() {
+		return new(types.ObjectNull(OptionsObjectType.AttributeTypes())), nil
+	}
+	dlqTF := new(types.ObjectNull(DlqObjectType.AttributeTypes()))
+	autoscalingTF := types.ObjectNull(AutoscalingObjectType.AttributeTypes())
+	if hasOptions {
+		var diags diag.Diagnostics
+		dlqTF, diags = convertDlqToTF(ctx, options.Dlq)
+		if diags.HasError() {
+			return nil, diags
+		}
+		autoscalingTF, diags = convertAutoscalingToTF(ctx, options.Autoscaling)
+		if diags.HasError() {
+			return nil, diags
+		}
+	}
+	optionsTF := &TFOptionsModel{
+		Dlq:                  *dlqTF,
+		Autoscaling:          autoscalingTF,
+		ResumeFromCheckpoint: resumeFromCheckpoint,
 	}
 	optionsObject, diags := types.ObjectValueFrom(ctx, OptionsObjectType.AttributeTypes(), optionsTF)
 	if diags.HasError() {
