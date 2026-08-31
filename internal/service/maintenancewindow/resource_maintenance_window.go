@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/spf13/cast"
 
 	admin "github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -38,26 +37,14 @@ func Resource() *schema.Resource {
 				Required: true,
 			},
 			"day_of_week": {
-				Type:     schema.TypeInt,
-				Required: true,
-				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
-					v := val.(int)
-					if v < 1 || v > 7 {
-						errs = append(errs, fmt.Errorf("%q value should be between 1 and 7, got: %d", key, v))
-					}
-					return
-				},
+				Type:         schema.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"hour_of_day"},
 			},
 			"hour_of_day": {
-				Type:     schema.TypeInt,
-				Required: true,
-				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
-					v := val.(int)
-					if v < 0 || v > 23 {
-						errs = append(errs, fmt.Errorf("%q value should be between 0 and 23, got: %d", key, v))
-					}
-					return
-				},
+				Type:         schema.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"day_of_week"},
 			},
 			"start_asap": {
 				Type:     schema.TypeBool,
@@ -124,8 +111,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	params := new(admin.GroupMaintenanceWindowPreviewUpdateRequest)
 
-	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
-	params.HourOfDay = new(cast.ToInt(d.Get("hour_of_day")))
+	if !d.GetRawConfig().GetAttr("day_of_week").IsNull() {
+		params.DayOfWeek = new(d.Get("day_of_week").(int))
+	}
+	if !d.GetRawConfig().GetAttr("hour_of_day").IsNull() {
+		params.HourOfDay = new(d.Get("hour_of_day").(int))
+	}
 
 	if autoDeferOnceEnabled, ok := d.GetOk("auto_defer_once_enabled"); ok {
 		params.AutoDeferOnceEnabled = new(autoDeferOnceEnabled.(bool))
@@ -242,10 +233,14 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	params := new(admin.GroupMaintenanceWindowPreviewUpdateRequest)
-	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
-
-	if d.HasChange("hour_of_day") {
-		params.HourOfDay = new(cast.ToInt(d.Get("hour_of_day")))
+	// TODO(CLOUDP-440317): omitting day_of_week/hour_of_day leaves them out of the PATCH rather than
+	// clearing them, so removing an existing schedule to go wave-only does not converge. Send them as
+	// explicit null (SetDayOfWeekNil/SetHourOfDayNil) once the API honors null unset (CLOUDP-439562).
+	if !d.GetRawConfig().GetAttr("day_of_week").IsNull() {
+		params.DayOfWeek = new(d.Get("day_of_week").(int))
+	}
+	if !d.GetRawConfig().GetAttr("hour_of_day").IsNull() {
+		params.HourOfDay = new(d.Get("hour_of_day").(int))
 	}
 
 	if d.HasChange("auto_defer_once_enabled") {

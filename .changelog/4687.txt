@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_maintenance_window: Makes `day_of_week` and `hour_of_day` optional so a `wave_assignment` can be set without a maintenance window
+```
