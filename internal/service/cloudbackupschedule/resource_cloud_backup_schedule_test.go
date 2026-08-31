@@ -426,51 +426,13 @@ func TestAccBackupRSCloudBackupSchedule_copyPolicyItems(t *testing.T) {
 			},
 			PitEnabled: true,
 		})
-		clusterName         = clusterInfo.Name
-		terraformStr        = clusterInfo.TerraformStr
-		clusterResourceName = clusterInfo.ResourceName
-		projectID           = clusterInfo.ProjectID
-		frequenciesSchedule = &admin.DiskBackupSnapshotSchedule20240805{
-			ReferenceHourOfDay:    new(3),
-			ReferenceMinuteOfHour: new(45),
-			RestoreWindowDays:     new(1),
-		}
-
-		/* Copy dest must differ from the source cluster region. CI creates US_EAST_2;
-		   local reuse via MONGODB_ATLAS_PROJECT_ID / MONGODB_ATLAS_CLUSTER_NAME may be US_EAST_1. */
-		configFrequencies = strings.ReplaceAll(configCopySettings(terraformStr, projectID, clusterResourceName,
-			false, // emptyCopySettings
-			false, // useRepSpecID (zone_id instead)
-			frequenciesSchedule,
-		), `region_name = "US_EAST_1"`, `region_name = "US_WEST_1"`)
-		configDailyAndOndemand = configCopyPolicyItems(terraformStr, projectID, clusterResourceName,
-			7,     // daily retention days
-			false, // update_copy_snapshots
-			false, // delete_copy_snapshots
-			0,     // last_number_of_snapshots
-			true,  // include ondemand item
-		)
-		configUpdateCopies = configCopyPolicyItems(terraformStr, projectID, clusterResourceName,
-			3,     // daily retention days
-			true,  // update_copy_snapshots
-			false, // delete_copy_snapshots
-			0,     // last_number_of_snapshots
-			true,  // include ondemand item
-		)
-		configDeleteOndemand = configCopyPolicyItems(terraformStr, projectID, clusterResourceName,
-			3,     // daily retention days
-			false, // update_copy_snapshots
-			true,  // delete_copy_snapshots
-			0,     // last_number_of_snapshots
-			false, // include ondemand item
-		)
-		configLastN = configCopyPolicyItems(terraformStr, projectID, clusterResourceName,
-			0,     // daily retention days (unused when last N is set)
-			false, // update_copy_snapshots
-			false, // delete_copy_snapshots
-			5,     // last_number_of_snapshots
-			false, // include ondemand item
-		)
+		clusterName            = clusterInfo.Name
+		base                   = newCopyScheduleConfig(&clusterInfo)
+		configFrequencies      = base.withFrequencies().HCL()
+		configDailyAndOndemand = base.withDaily(7).withOndemand().HCL()
+		configUpdateCopies     = base.withDaily(3).withOndemand().withUpdateCopies().HCL()
+		configDeleteOndemand   = base.withDaily(3).withDeleteCopies().HCL()
+		configLastN            = base.withLastN(5).HCL()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -738,32 +700,67 @@ func configCopySettingsPlanOnly(extra string) string {
 	`, extra)
 }
 
-func configCopyPolicyItems(terraformStr, projectID, clusterResourceName string, dailyRetention int, updateCopy, deleteCopy bool, lastN int, includeOndemand bool) string {
+// Copy dest must differ from the source cluster region. CI creates US_EAST_2;
+// local reuse via MONGODB_ATLAS_PROJECT_ID / MONGODB_ATLAS_CLUSTER_NAME may be US_EAST_1.
+type copyScheduleConfig struct {
+	info            *acc.ClusterInfo
+	regionName      string
+	dailyRetention  int
+	lastN           int
+	includeOndemand bool
+	updateCopy      bool
+	deleteCopy      bool
+	useFrequencies  bool
+}
+
+func newCopyScheduleConfig(info *acc.ClusterInfo) copyScheduleConfig {
+	return copyScheduleConfig{info: info, regionName: "US_WEST_1"}
+}
+
+func (c copyScheduleConfig) withDaily(days int) copyScheduleConfig {
+	c.dailyRetention = days
+	return c
+}
+
+func (c copyScheduleConfig) withOndemand() copyScheduleConfig {
+	c.includeOndemand = true
+	return c
+}
+
+func (c copyScheduleConfig) withLastN(n int) copyScheduleConfig {
+	c.lastN = n
+	return c
+}
+
+func (c copyScheduleConfig) withUpdateCopies() copyScheduleConfig {
+	c.updateCopy = true
+	return c
+}
+
+func (c copyScheduleConfig) withDeleteCopies() copyScheduleConfig {
+	c.deleteCopy = true
+	return c
+}
+
+func (c copyScheduleConfig) withFrequencies() copyScheduleConfig {
+	c.useFrequencies = true
+	return c
+}
+
+func (c copyScheduleConfig) HCL() string {
+	enabled := ""
+	sourceDailyRetention := 2
+	if !c.useFrequencies {
+		enabled = "copy_policy_items_enabled = true"
+		sourceDailyRetention = 7
+	}
 	updateFlag := ""
-	if updateCopy {
+	if c.updateCopy {
 		updateFlag = "update_copy_snapshots = true"
 	}
 	deleteFlag := ""
-	if deleteCopy {
+	if c.deleteCopy {
 		deleteFlag = "delete_copy_snapshots = true"
-	}
-
-	copyMode := fmt.Sprintf("last_number_of_snapshots = %d", lastN)
-	if lastN == 0 {
-		copyMode = fmt.Sprintf(`
-				copy_policy_items {
-					frequency_type  = "daily"
-					retention_unit  = "days"
-					retention_value = %d
-				}
-`, dailyRetention)
-		if includeOndemand {
-			copyMode += `
-				copy_policy_items {
-					frequency_type = "ondemand"
-				}
-`
-		}
 	}
 
 	return fmt.Sprintf(`
@@ -774,9 +771,9 @@ func configCopyPolicyItems(terraformStr, projectID, clusterResourceName string, 
 			reference_hour_of_day     = 3
 			reference_minute_of_hour  = 45
 			restore_window_days       = 1
-			copy_policy_items_enabled = true
 			%[4]s
 			%[5]s
+			%[6]s
 
 			policy_item_hourly {
 				frequency_interval = 1
@@ -786,7 +783,7 @@ func configCopyPolicyItems(terraformStr, projectID, clusterResourceName string, 
 			policy_item_daily {
 				frequency_interval = 1
 				retention_unit     = "days"
-				retention_value    = 7
+				retention_value    = %[7]d
 			}
 			policy_item_weekly {
 				frequency_interval = 4
@@ -805,10 +802,10 @@ func configCopyPolicyItems(terraformStr, projectID, clusterResourceName string, 
 			}
 			copy_settings {
 				cloud_provider     = "AWS"
-				region_name        = "US_WEST_1"
+				region_name        = %[8]q
 				zone_id            = %[3]s.replication_specs.*.zone_id[0]
 				should_copy_oplogs = true
-				%[6]s
+				%[9]s
 			}
 		}
 
@@ -816,7 +813,31 @@ func configCopyPolicyItems(terraformStr, projectID, clusterResourceName string, 
 			cluster_name = mongodbatlas_cloud_backup_schedule.schedule_test.cluster_name
 			project_id   = mongodbatlas_cloud_backup_schedule.schedule_test.project_id
 		}
-	`, terraformStr, projectID, clusterResourceName, updateFlag, deleteFlag, copyMode)
+	`, c.info.TerraformStr, c.info.ProjectID, c.info.ResourceName, enabled, updateFlag, deleteFlag, sourceDailyRetention, c.regionName, c.copySettingsInner())
+}
+
+func (c copyScheduleConfig) copySettingsInner() string {
+	if c.useFrequencies {
+		return `frequencies = ["HOURLY", "DAILY", "WEEKLY", "MONTHLY", "YEARLY", "ON_DEMAND"]`
+	}
+	if c.lastN != 0 {
+		return fmt.Sprintf("last_number_of_snapshots = %d", c.lastN)
+	}
+	inner := fmt.Sprintf(`
+				copy_policy_items {
+					frequency_type  = "daily"
+					retention_unit  = "days"
+					retention_value = %d
+				}
+`, c.dailyRetention)
+	if c.includeOndemand {
+		inner += `
+				copy_policy_items {
+					frequency_type = "ondemand"
+				}
+`
+	}
+	return inner
 }
 
 func configNoPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule20240805) string {
