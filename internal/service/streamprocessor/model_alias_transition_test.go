@@ -7,45 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamalias"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 )
-
-func TestIsWorkspaceNameAliasReversion(t *testing.T) {
-	testCases := map[string]struct {
-		stateWorkspaceName types.String
-		stateInstanceName  types.String
-		planWorkspaceName  types.String
-		planInstanceName   types.String
-		reverted           bool
-	}{
-		"canonical_to_legacy_is_rejected": {
-			stateWorkspaceName: types.StringValue("workspace"),
-			stateInstanceName:  types.StringNull(),
-			planWorkspaceName:  types.StringNull(),
-			planInstanceName:   types.StringValue("workspace"),
-			reverted:           true,
-		},
-		"legacy_to_canonical_is_allowed": {
-			stateWorkspaceName: types.StringNull(),
-			stateInstanceName:  types.StringValue("workspace"),
-			planWorkspaceName:  types.StringValue("workspace"),
-			planInstanceName:   types.StringNull(),
-		},
-		"legacy_dual_alias_state_is_not_rejected": {
-			stateWorkspaceName: types.StringValue("workspace"),
-			stateInstanceName:  types.StringValue("workspace"),
-			planWorkspaceName:  types.StringNull(),
-			planInstanceName:   types.StringValue("workspace"),
-		},
-	}
-
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.reverted, streamalias.IsWorkspaceNameAliasReversion(tc.stateWorkspaceName, tc.stateInstanceName, tc.planWorkspaceName, tc.planInstanceName))
-		})
-	}
-}
 
 func TestIsAliasOnlyTransition(t *testing.T) {
 	legacyState := streamprocessor.TFStreamProcessorRSModel{

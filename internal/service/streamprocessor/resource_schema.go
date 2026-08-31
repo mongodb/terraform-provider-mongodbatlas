@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamalias"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -32,7 +31,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"instance_name": schema.StringAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					streamalias.ReversionPlanModifier{},
+					customplanmodifier.AliasReversion("workspace_name", "instance_name"),
 				},
 				MarkdownDescription: "Label that identifies the stream processing workspace.",
 				DeprecationMessage:  fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
