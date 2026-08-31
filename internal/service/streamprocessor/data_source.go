@@ -39,18 +39,15 @@ func (d *StreamProccesorDS) Schema(ctx context.Context, req datasource.SchemaReq
 	})
 }
 
-// dataSourceOptionsOverridenField redefines options for the data sources, omitting
-// resume_from_checkpoint: it only applies to updates and is never returned by the API, so it would
-// always be null here. The nil trick used for top-level attributes cannot remove a nested one, hence
-// the copy.
+// dataSourceOptionsOverridenField redefines options for the data sources without
+// resume_from_checkpoint, which is request-only and never returned by the API.
 //
-// IMPORTANT: this must be kept in sync with the options attribute in ResourceSchema, except for
-// resume_from_checkpoint.
+// IMPORTANT: keep in sync with the options attribute in ResourceSchema.
 func dataSourceOptionsOverridenField() map[string]dsschema.Attribute {
 	return map[string]dsschema.Attribute{
 		"options": dsschema.SingleNestedAttribute{
 			Computed:            true,
-			MarkdownDescription: "Optional configuration for the stream processor.",
+			MarkdownDescription: "Optional configuration for the stream processor. Empty `options` objects are not supported.",
 			Attributes: map[string]dsschema.Attribute{
 				"dlq": dsschema.SingleNestedAttribute{
 					Computed:            true,

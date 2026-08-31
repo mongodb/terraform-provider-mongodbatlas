@@ -153,7 +153,8 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProce
 	// resume_from_checkpoint is only sent when the pipeline changes, the only updates the API rejects
 	// for a checkpoint incompatible with the new pipeline. Omitting it for other updates, for example a
 	// tier or dlq change, avoids discarding the checkpoint when the value is left in the
-	// configuration. The field is never sent as true either, omission lets the API apply its default.
+	// configuration. A configured value is sent as-is, including true; when the attribute is not set
+	// nothing is sent, so the API applies its own default rather than the provider assuming one.
 	sendResumeFromCheckpoint := !resumeFromCheckpoint.IsNull() && !resumeFromCheckpoint.IsUnknown() && pipelineChanged(plan, state)
 
 	if autoscaling != nil || clearAutoscaling || dlq != nil || clearDLQ || sendResumeFromCheckpoint {
