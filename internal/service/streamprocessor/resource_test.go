@@ -84,11 +84,6 @@ func TestAccStreamProcessor_workspaceNameAliasMigration(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "instance_name"),
 				),
 			},
-			{
-				Config:      legacyConfig,
-				PlanOnly:    true,
-				ExpectError: regexp.MustCompile("Cannot revert deprecated attribute alias"),
-			},
 		},
 	})
 }

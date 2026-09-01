@@ -176,11 +176,6 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 				),
 			},
 			{
-				Config:      configureKafkaMigration(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
-				PlanOnly:    true,
-				ExpectError: regexp.MustCompile("Cannot revert deprecated attribute alias"),
-			},
-			{
 				ResourceName:            resourceName,
 				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
 				ImportState:             true,

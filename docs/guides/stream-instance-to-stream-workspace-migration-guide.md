@@ -88,8 +88,6 @@ resource "mongodbatlas_stream_connection" "example" {
 
 Use the same `instance_name` to `workspace_name` change for stream processors. When both attributes resolve to the same workspace, updating a stream connection is an in-place state migration and does not replace the connection. An alias-only stream processor update also does not stop or restart the processor.
 
-This alias migration is one-way. Once Terraform state uses `workspace_name`, configurations must continue using `workspace_name`; changing back to the deprecated `instance_name` is rejected during planning. Importing a stream connection or processor also stores the canonical `workspace_name` attribute in state.
-
 Run `terraform plan` before applying the configuration. Expect the workspace resource to be moved and dependent resources to be updated in place; do not apply a plan that destroys and recreates an unchanged stream connection.
 
 ## Migration using import
