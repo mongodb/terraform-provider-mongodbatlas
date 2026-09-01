@@ -774,7 +774,7 @@ func TestAccStreamRSStreamConnection_SchemaRegistry(t *testing.T) {
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = acc.RandomName()
-		schemaRegistryURLs      = []string{"https://schemaregistry.example.com:8081", "https://schemaregistry2.example.com:8081"}
+		schemaRegistryURLs      = []string{"https://httpbin.org/anything/schema-registry-1", "https://httpbin.org/anything/schema-registry-2"}
 		username                = "user"
 		password                = "password"
 	)
@@ -843,7 +843,7 @@ func TestAccStreamRSStreamConnection_SchemaRegistrySASLInherit(t *testing.T) {
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = acc.RandomName()
-		schemaRegistryURLs      = []string{"https://schemaregistry.example.com:8081"}
+		schemaRegistryURLs      = []string{"https://httpbin.org/anything/schema-registry"}
 	)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
