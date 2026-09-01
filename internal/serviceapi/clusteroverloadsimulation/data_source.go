@@ -58,7 +58,7 @@ func dataSourceReadAPICallParams(model *TFDSModel) *config.APICallParams {
 		"simulationId": model.SimulationId.ValueString(),
 	}
 	return &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.preview+json",
+		VersionHeader: "application/vnd.atlas.2025-03-12+json",
 		RelativePath:  "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/overloadSimulations/{simulationId}",
 		PathParams:    pathParams,
 		Method:        "GET",
