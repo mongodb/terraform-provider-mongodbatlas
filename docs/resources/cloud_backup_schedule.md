@@ -289,7 +289,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `delete_copy_snapshots` - (Optional) Specify true to delete snapshot copies when their associated `copy_policy_items` are removed. Requires `copy_policy_items_enabled` to be true.
 
   **Note** Atlas does not return `update_snapshots`, `update_copy_snapshots`, or `delete_copy_snapshots`. This is Atlas Admin API behavior, not Terraform. For more details about this resource see [Cloud Backup Schedule](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backups/operation/getBackupSchedule).
-* `copy_policy_items_enabled` - (Optional) Flag that selects copy-policy mode. Set to `true` to use `copy_policy_items` or `last_number_of_snapshots`. When `false` or omitted, use `frequencies`.
+* `copy_policy_items_enabled` - (Optional) Flag that selects copy-policy mode. Set to `true` to use `copy_policy_items` or `last_number_of_snapshots`. When `false` or omitted, use `frequencies`. Atlas cannot change this flag back to `false` after it is `true`.
 
 * `policy_item_hourly` - (Optional) Hourly policy item. See [below](#policy_item_hourly)
 * `policy_item_daily` - (Optional) Daily policy item. See [below](#policy_item_daily)
