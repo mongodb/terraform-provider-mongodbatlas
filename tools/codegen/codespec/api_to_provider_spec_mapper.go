@@ -258,12 +258,13 @@ func waitConfigToModel(waitConfig *config.Wait) *Wait {
 		return nil
 	}
 	return &Wait{
-		StateProperty:     waitConfig.StateProperty,
-		PendingStates:     waitConfig.PendingStates,
-		TargetStates:      waitConfig.TargetStates,
-		TimeoutSeconds:    waitConfig.TimeoutSeconds,
-		MinTimeoutSeconds: waitConfig.MinTimeoutSeconds,
-		DelaySeconds:      waitConfig.DelaySeconds,
+		StateProperty:            waitConfig.StateProperty,
+		ErrorDescriptionProperty: waitConfig.ErrorDescriptionProperty,
+		PendingStates:            waitConfig.PendingStates,
+		TargetStates:             waitConfig.TargetStates,
+		TimeoutSeconds:           waitConfig.TimeoutSeconds,
+		MinTimeoutSeconds:        waitConfig.MinTimeoutSeconds,
+		DelaySeconds:             waitConfig.DelaySeconds,
 	}
 }
 

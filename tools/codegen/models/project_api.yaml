@@ -81,9 +81,10 @@ schema:
             element_type: 4
           description: List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project.
           custom_type:
-            package: customtypes
             model: customtypes.MapValue[types.String]
             schema: customtypes.NewMapType[types.String](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: tags
           tf_model_name: Tags

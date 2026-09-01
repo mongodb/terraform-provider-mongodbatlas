@@ -26,6 +26,38 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Optional for type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.",
 							CustomType:          customtypes.NewObjectType[TFConnectionsAuthenticationModel](ctx),
 							Attributes: map[string]schema.Attribute{
+								"aws": schema.SingleNestedAttribute{
+									Computed:            true,
+									MarkdownDescription: "AWS configurations for AWS-based connection types.",
+									CustomType:          customtypes.NewObjectType[TFConnectionsAuthenticationAwsModel](ctx),
+									Attributes: map[string]schema.Attribute{
+										"links": schema.ListNestedAttribute{
+											Computed:            true,
+											MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
+											CustomType:          customtypes.NewNestedListType[TFConnectionsAuthenticationAwsLinksModel](ctx),
+											NestedObject: schema.NestedAttributeObject{
+												Attributes: map[string]schema.Attribute{
+													"href": schema.StringAttribute{
+														Computed:            true,
+														MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
+													},
+													"rel": schema.StringAttribute{
+														Computed:            true,
+														MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
+													},
+												},
+											},
+										},
+										"role_arn": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.",
+										},
+										"test_bucket": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.",
+										},
+									},
+								},
 								"client_id": schema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "OIDC client identifier for authentication to the Kafka cluster.",
@@ -242,7 +274,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"public_private_networking": schema.SingleNestedAttribute{
 							Computed:            true,
-							MarkdownDescription: "Optional for type: AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC).",
+							MarkdownDescription: "Optional for type: AWSLambda, AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC).",
 							CustomType:          customtypes.NewObjectType[TFConnectionsPublicPrivateNetworkingModel](ctx),
 							Attributes: map[string]schema.Attribute{
 								"access": schema.SingleNestedAttribute{
@@ -508,18 +540,28 @@ type TFConnectionsModel struct {
 	Url                          types.String                                                            `tfsdk:"url" autogen:"omitjson"`
 }
 type TFConnectionsAuthenticationModel struct {
-	ClientId                  types.String `tfsdk:"client_id" autogen:"omitjson"`
-	ClientSecret              types.String `tfsdk:"client_secret" autogen:"sensitive,omitjson"`
-	Mechanism                 types.String `tfsdk:"mechanism" autogen:"omitjson"`
-	Method                    types.String `tfsdk:"method" autogen:"omitjson"`
-	Password                  types.String `tfsdk:"password" autogen:"sensitive,omitjson"`
-	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions" autogen:"omitjson"`
-	Scope                     types.String `tfsdk:"scope" autogen:"omitjson"`
-	SslCertificate            types.String `tfsdk:"ssl_certificate" autogen:"omitjson"`
-	SslKey                    types.String `tfsdk:"ssl_key" autogen:"sensitive,omitjson"`
-	SslKeyPassword            types.String `tfsdk:"ssl_key_password" autogen:"sensitive,omitjson"`
-	TokenEndpointUrl          types.String `tfsdk:"token_endpoint_url" autogen:"omitjson"`
-	Username                  types.String `tfsdk:"username" autogen:"omitjson"`
+	Aws                       customtypes.ObjectValue[TFConnectionsAuthenticationAwsModel] `tfsdk:"aws" autogen:"omitjson"`
+	ClientId                  types.String                                                 `tfsdk:"client_id" autogen:"omitjson"`
+	ClientSecret              types.String                                                 `tfsdk:"client_secret" autogen:"sensitive,omitjson"`
+	Mechanism                 types.String                                                 `tfsdk:"mechanism" autogen:"omitjson"`
+	Method                    types.String                                                 `tfsdk:"method" autogen:"omitjson"`
+	Password                  types.String                                                 `tfsdk:"password" autogen:"sensitive,omitjson"`
+	SaslOauthbearerExtensions types.String                                                 `tfsdk:"sasl_oauthbearer_extensions" autogen:"omitjson"`
+	Scope                     types.String                                                 `tfsdk:"scope" autogen:"omitjson"`
+	SslCertificate            types.String                                                 `tfsdk:"ssl_certificate" autogen:"omitjson"`
+	SslKey                    types.String                                                 `tfsdk:"ssl_key" autogen:"sensitive,omitjson"`
+	SslKeyPassword            types.String                                                 `tfsdk:"ssl_key_password" autogen:"sensitive,omitjson"`
+	TokenEndpointUrl          types.String                                                 `tfsdk:"token_endpoint_url" autogen:"omitjson"`
+	Username                  types.String                                                 `tfsdk:"username" autogen:"omitjson"`
+}
+type TFConnectionsAuthenticationAwsModel struct {
+	Links      customtypes.NestedListValue[TFConnectionsAuthenticationAwsLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	RoleArn    types.String                                                          `tfsdk:"role_arn" autogen:"omitjson"`
+	TestBucket types.String                                                          `tfsdk:"test_bucket" autogen:"omitjson"`
+}
+type TFConnectionsAuthenticationAwsLinksModel struct {
+	Href types.String `tfsdk:"href" autogen:"omitjson"`
+	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
 }
 type TFConnectionsAwsModel struct {
 	RoleArn    types.String `tfsdk:"role_arn" autogen:"omitjson"`
