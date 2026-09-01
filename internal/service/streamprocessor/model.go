@@ -104,17 +104,22 @@ func ResumeFromCheckpointFromOptions(ctx context.Context, options *types.Object)
 	return optionsModel.ResumeFromCheckpoint, nil
 }
 
-// checkpointIncompatibleChange reports whether the plan changes something the API refuses to modify
-// while resuming from a checkpoint: the $source stage, or a window's type, interval, hopSize or
-// allowedLateness, including adding or removing a window. Any other edit, for example to a $match or
-// $emit stage, can resume from the existing checkpoint, so resume_from_checkpoint is not sent for it
-// and a value left in the configuration cannot discard the checkpoint again.
+// shouldSendResumeFromCheckpoint reports whether the update is one the API refuses to apply while
+// resuming from a checkpoint: a change to the $source stage, or to a window's type, interval,
+// hopSize or allowedLateness, including adding or removing a window. Any other edit, for example to
+// a $match or $emit stage, can resume from the existing checkpoint.
+//
+// This is not validation, the API accepts resume_from_checkpoint on any update and never rejects it.
+// It decides whether to send a one-off instruction that lives in persistent configuration: without
+// it, a value left in the configuration would be re-sent on an unrelated update and discard a
+// checkpoint that was still valid. Only the provider can make that call, since it needs the diff
+// between prior state and plan and the API sees a single request.
 //
 // When the change cannot be determined it reports true, so that an explicitly configured
 // resume_from_checkpoint is still sent rather than silently dropped. This is defensive: the plan
 // pipeline is already valid JSON by the time it gets here, both from the jsontypes.Normalized
 // attribute type and from convertPipelineToSdk above.
-func checkpointIncompatibleChange(plan, state *TFStreamProcessorRSModel) bool {
+func shouldSendResumeFromCheckpoint(plan, state *TFStreamProcessorRSModel) bool {
 	if state == nil {
 		return true
 	}
@@ -213,12 +218,9 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProce
 	if diags.HasError() {
 		return nil, diags
 	}
-	// resume_from_checkpoint is only sent for the changes the API rejects while resuming from a
-	// checkpoint, see checkpointIncompatibleChange. Omitting it otherwise means a value left in the
-	// configuration cannot discard the checkpoint on an unrelated update. A configured value is sent
-	// as-is, including true; when the attribute is not set nothing is sent, so the API applies its own
-	// default rather than the provider assuming one.
-	sendResumeFromCheckpoint := !resumeFromCheckpoint.IsNull() && !resumeFromCheckpoint.IsUnknown() && checkpointIncompatibleChange(plan, state)
+	// resume_from_checkpoint is sent only when the configuration sets it, never inferred, and only for
+	// the updates that need it, see shouldSendResumeFromCheckpoint.
+	sendResumeFromCheckpoint := !resumeFromCheckpoint.IsNull() && !resumeFromCheckpoint.IsUnknown() && shouldSendResumeFromCheckpoint(plan, state)
 
 	if autoscaling != nil || clearAutoscaling || dlq != nil || clearDLQ || sendResumeFromCheckpoint {
 		options := &admin.StreamsModifyStreamProcessorOptions{
