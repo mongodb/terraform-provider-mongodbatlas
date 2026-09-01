@@ -131,7 +131,7 @@ jobs:
       mongodb_atlas_metric_integration_api_key: ${{ secrets.MONGODB_ATLAS_METRIC_INTEGRATION_API_KEY }}
 
     with:
-      terraform_version: ${{ inputs.terraform_version || '1.15.x' }}
+      terraform_version: ${{ inputs.terraform_version || '1.16.x' }}
       provider_version: ${{ inputs.provider_version }}
       test_group: ${{ inputs.test_group }}
       test_name: ${{ inputs.test_name }}

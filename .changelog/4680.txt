@@ -1,0 +1,7 @@
+```release-note:bug
+data-source/mongodbatlas_log_integrations: Sends `integration_type` list filter during pagination
+```
+
+```release-note:bug
+data-source/mongodbatlas_metric_integrations: Sends `integration_type` and `provider_type` list filters during pagination
+```

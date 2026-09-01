@@ -57,6 +57,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgratelimit"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelratelimit"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejob"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejobcollection"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabase"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabasecollection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orgmaintenancesettings"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive"
@@ -344,6 +348,12 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		orgmaintenancesettings.DataSource,
 		metricintegration.DataSource,
 		metricintegration.PluralDataSource,
+		cloudbackupcollectionrestorejob.DataSource,
+		cloudbackupcollectionrestorejob.PluralDataSource,
+		cloudbackupcollectionrestorejobcollection.DataSource,
+		cloudbackupcollectionrestorejobcollection.PluralDataSource,
+		cloudbackupsnapshotdatabase.PluralDataSource,
+		cloudbackupsnapshotdatabasecollection.PluralDataSource,
 		privatelinkendpointservicedatafederationonlinearchive.DataSource,
 		privatelinkendpointservicedatafederationonlinearchive.PluralDataSource,
 		aimodelapikey.DataSource,
@@ -365,6 +375,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Resource {
 	resources := []func() resource.Resource{
 		metricintegration.Resource,
+		cloudbackupcollectionrestorejob.Resource,
 		project.Resource,
 		logintegration.Resource,
 		orgmaintenancesettings.Resource,

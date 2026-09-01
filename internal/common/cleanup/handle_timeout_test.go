@@ -3,10 +3,12 @@ package cleanup_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -145,4 +147,38 @@ func TestDeleteOnCreateTimeoutInvalidUpdate(t *testing.T) {
 		expectedMessage := cleanup.DeleteOnCreateTimeoutInvalidErrorMessage
 		assert.Equal(t, expectedMessage, result)
 	})
+}
+
+func TestHandleCreateTimeout_wrappedTimeoutStillCleansUp(t *testing.T) {
+	timeoutErr := &retry.TimeoutError{
+		LastState:     "INITIALIZING",
+		Timeout:       time.Minute,
+		ExpectedState: []string{"SUCCESSFUL"},
+	}
+	wrapped := fmt.Errorf("id proj/cluster/job1: %w", timeoutErr)
+	cleanupCalled := false
+
+	err := cleanup.HandleCreateTimeout(true, wrapped, func(context.Context) error {
+		cleanupCalled = true
+		return nil
+	})
+
+	require.Error(t, err)
+	assert.True(t, cleanupCalled)
+	assert.Contains(t, err.Error(), "will run cleanup because delete_on_create_timeout is true")
+	var got *retry.TimeoutError
+	require.ErrorAs(t, err, &got)
+}
+
+func TestHandleCreateTimeout_nonTimeoutSkipped(t *testing.T) {
+	cleanupCalled := false
+	errWait := errors.New("operation failed with state \"FAILED\"")
+
+	err := cleanup.HandleCreateTimeout(true, errWait, func(context.Context) error {
+		cleanupCalled = true
+		return nil
+	})
+
+	assert.Equal(t, errWait, err)
+	assert.False(t, cleanupCalled)
 }

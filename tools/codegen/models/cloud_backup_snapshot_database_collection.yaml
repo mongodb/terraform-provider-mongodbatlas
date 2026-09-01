@@ -1,0 +1,87 @@
+operations:
+    version_header: application/vnd.atlas.2025-03-12+json
+data_sources:
+    plural:
+        description: Returns the list of collections in the specified database that exist in the snapshot. Use this to discover namespaces before creating a collection restore job.
+        attributes:
+            - string: {}
+              description: Human-readable label that identifies the cluster.
+              computed_optional_required: required
+              tf_schema_name: cluster_name
+              tf_model_name: ClusterName
+              api_name: clusterName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Human-readable label that identifies the database.
+              computed_optional_required: required
+              tf_schema_name: database_name
+              tf_model_name: DatabaseName
+              api_name: databaseName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Human-readable label that identifies the collection in the database within the snapshot.
+                          computed_optional_required: computed
+                          tf_schema_name: name
+                          tf_model_name: Name
+                          api_name: name
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of returned documents that MongoDB Cloud provides when completing this request.
+              custom_type:
+                name: Results
+                model: customtypes.NestedListValue[TFResultsModel]
+                schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: results
+              tf_model_name: Results
+              api_name: results
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies the desired snapshot.
+              computed_optional_required: required
+              tf_schema_name: snapshot_id
+              tf_model_name: SnapshotId
+              api_name: snapshotId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        list:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}/collections
+        version_header: application/vnd.atlas.2025-03-12+json
+name: cloud_backup_snapshot_database_collection
+packageName: cloudbackupsnapshotdatabasecollection
