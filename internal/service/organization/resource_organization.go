@@ -102,6 +102,10 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"operations_contact": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"service_account": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -271,6 +275,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err := d.Set("security_contact", settings.SecurityContact); err != nil {
 		return diag.Errorf("error setting `security_contact` for organization (%s): %s", orgID, err)
 	}
+	if err := d.Set("operations_contact", settings.OperationsContact); err != nil {
+		return diag.Errorf("error setting `operations_contact` for organization (%s): %s", orgID, err)
+	}
 	return nil
 }
 
@@ -298,7 +305,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		d.HasChange("multi_factor_auth_required") ||
 		d.HasChange("restrict_employee_access") ||
 		d.HasChange("gen_ai_features_enabled") ||
-		d.HasChange("security_contact") {
+		d.HasChange("security_contact") ||
+		d.HasChange("operations_contact") {
 		if _, _, err := conn.OrganizationsAPI.UpdateOrgSettings(ctx, orgID, newOrganizationSettings(d)).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization settings: %s", err))
 		}
@@ -367,13 +375,25 @@ func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizat
 }
 
 func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings {
-	return &admin.OrganizationSettings{
+	settings := &admin.OrganizationSettings{
 		ApiAccessListRequired:   new(d.Get("api_access_list_required").(bool)),
 		MultiFactorAuthRequired: new(d.Get("multi_factor_auth_required").(bool)),
 		RestrictEmployeeAccess:  new(d.Get("restrict_employee_access").(bool)),
 		GenAIFeaturesEnabled:    new(d.Get("gen_ai_features_enabled").(bool)),
 		SecurityContact:         new(d.Get("security_contact").(string)),
 	}
+	// SDKv2 Get() cannot distinguish an explicit empty string from an unset field, GetRawConfig() allows to
+	// distinguish between the two. The value in config is always sent so the API validates it, `operationsContact`
+	// is cleared with an explicit null when removed from config, and omitted when it was never set.
+	// SetOperationsContactNil is used so a nil pointer is serialized as null instead of omitted.
+	if d.GetRawConfig().GetAttr("operations_contact").IsNull() {
+		if d.HasChange("operations_contact") {
+			settings.SetOperationsContactNil()
+		}
+	} else {
+		settings.SetOperationsContact(d.Get("operations_contact").(string))
+	}
+	return settings
 }
 
 func ValidateAPIKeyIsOrgOwner(roles []string) error {
