@@ -142,7 +142,7 @@ func TestFlattenCopySettings(t *testing.T) {
 			expected: []map[string]any{
 				{
 					"cloud_provider":     "AWS",
-					"frequencies":        []string(nil),
+					"frequencies":        []string{},
 					"region_name":        "US_WEST_1",
 					"zone_id":            "12345",
 					"should_copy_oplogs": true,
@@ -168,7 +168,7 @@ func TestFlattenCopySettings(t *testing.T) {
 			expected: []map[string]any{
 				{
 					"cloud_provider":     "AWS",
-					"frequencies":        []string(nil),
+					"frequencies":        []string{},
 					"region_name":        "US_WEST_1",
 					"zone_id":            "12345",
 					"should_copy_oplogs": false,
@@ -192,7 +192,7 @@ func TestFlattenCopySettings(t *testing.T) {
 			expected: []map[string]any{
 				{
 					"cloud_provider":           "AWS",
-					"frequencies":              []string(nil),
+					"frequencies":              []string{},
 					"region_name":              "US_WEST_1",
 					"zone_id":                  "12345",
 					"should_copy_oplogs":       false,

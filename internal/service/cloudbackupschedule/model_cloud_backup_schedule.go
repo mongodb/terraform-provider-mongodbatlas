@@ -37,7 +37,7 @@ func FlattenCopySettings(copySettingList []admin.DiskBackupCopySetting20240805) 
 	for _, v := range copySettingList {
 		copySetting := map[string]any{
 			"cloud_provider":     v.GetCloudProvider(),
-			"frequencies":        v.GetFrequencies(),
+			"frequencies":        flattenFrequencies(v.GetFrequencies()),
 			"region_name":        v.GetRegionName(),
 			"zone_id":            v.GetZoneId(),
 			"should_copy_oplogs": v.GetShouldCopyOplogs(),
@@ -51,6 +51,15 @@ func FlattenCopySettings(copySettingList []admin.DiskBackupCopySetting20240805) 
 		copySettings = append(copySettings, copySetting)
 	}
 	return copySettings
+}
+
+// flattenFrequencies returns a non-nil empty slice when GET omits frequencies so d.Set
+// clears Optional+Computed leftover after a switch to copy_policy_items or last-N.
+func flattenFrequencies(freqs []string) []string {
+	if freqs == nil {
+		return []string{}
+	}
+	return freqs
 }
 
 func flattenCopyPolicyItems(items []admin.DiskBackupCopyPolicyItem) []map[string]any {
