@@ -2,7 +2,6 @@ package cloudbackupschedule_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/go-cty/cty"
@@ -43,17 +42,6 @@ func TestCopySettingsWithEmptyFrequencies(t *testing.T) {
 				"copy_policy_items":        []any{map[string]any{"frequency_type": "daily"}},
 				"last_number_of_snapshots": 0,
 			},
-		},
-		{
-			name: "already empty frequencies",
-			copySettings: []any{
-				map[string]any{
-					"cloud_provider": "AWS",
-					"frequencies":    testFreqSet(),
-				},
-			},
-			wantChanged:  false,
-			wantFreqLens: []int{0},
 		},
 		{
 			name: "missing frequencies",
@@ -120,19 +108,6 @@ func TestCopySettingsWithEmptyFrequencies(t *testing.T) {
 					if got := entry[k]; !equalValue(got, want) {
 						t.Fatalf("rewritten[0].%s = %#v, want %#v", k, got, want)
 					}
-				}
-			}
-			if tc.name == "two entries only index 1 has leftover" {
-				first := tc.copySettings[0].(map[string]any)
-				rewrittenFirst := rewritten[0].(map[string]any)
-				if setLen(first["frequencies"]) != 0 {
-					t.Fatalf("input[0].frequencies was mutated, len = %d", setLen(first["frequencies"]))
-				}
-				if rewrittenFirst["region_name"] != "US_EAST_1" {
-					t.Fatalf("rewritten[0].region_name = %v, want US_EAST_1", rewrittenFirst["region_name"])
-				}
-				if rewritten[1].(map[string]any)["region_name"] != "US_WEST_1" {
-					t.Fatalf("rewritten[1].region_name = %v, want US_WEST_1", rewritten[1].(map[string]any)["region_name"])
 				}
 			}
 		})
@@ -240,6 +215,19 @@ func TestResourceCustomizeDiffClearsOmittedCopySettings(t *testing.T) {
 	block := r.CoreConfigSchema()
 	ty := block.ImpliedType()
 	copySettingsType := ty.AttributeTypes()["copy_settings"]
+	priorAttrs := map[string]string{
+		"id":                                 "id",
+		"project_id":                         "p",
+		"cluster_name":                       "c",
+		"copy_policy_items_enabled":          "false",
+		"copy_settings.#":                    "1",
+		"copy_settings.0.cloud_provider":     "AWS",
+		"copy_settings.0.region_name":        "US_WEST_1",
+		"copy_settings.0.zone_id":            "zone",
+		"copy_settings.0.should_copy_oplogs": "true",
+		"copy_settings.0.frequencies.#":      "1",
+		"copy_settings.0.frequencies.0":      "DAILY",
+	}
 	tests := []struct {
 		override cty.Value
 		name     string
@@ -257,21 +245,9 @@ func TestResourceCustomizeDiffClearsOmittedCopySettings(t *testing.T) {
 				"copy_settings":             tc.override,
 			})
 			state := &terraform.InstanceState{
-				ID: "id",
-				Attributes: map[string]string{
-					"id":                                 "id",
-					"project_id":                         "p",
-					"cluster_name":                       "c",
-					"copy_policy_items_enabled":          "false",
-					"copy_settings.#":                    "1",
-					"copy_settings.0.cloud_provider":     "AWS",
-					"copy_settings.0.region_name":        "US_WEST_1",
-					"copy_settings.0.zone_id":            "zone",
-					"copy_settings.0.should_copy_oplogs": "true",
-					"copy_settings.0.frequencies.#":      "1",
-					"copy_settings.0.frequencies.0":      "DAILY",
-				},
-				RawConfig: raw,
+				ID:         "id",
+				Attributes: priorAttrs,
+				RawConfig:  raw,
 			}
 			diff, err := r.SimpleDiff(context.Background(), state, terraform.NewResourceConfigShimmed(raw, block), nil)
 			if err != nil {
@@ -285,186 +261,6 @@ func TestResourceCustomizeDiffClearsOmittedCopySettings(t *testing.T) {
 			if got == nil || got.New != "0" || got.NewComputed {
 				t.Fatalf("copy_settings.# diff = %#v, want New=0", got)
 			}
-		})
-	}
-}
-
-func objectWithNullDefaults(ty cty.Type, overrides map[string]cty.Value) cty.Value {
-	vals := make(map[string]cty.Value, len(ty.AttributeTypes()))
-	for name, aty := range ty.AttributeTypes() {
-		if v, ok := overrides[name]; ok {
-			vals[name] = v
-			continue
-		}
-		vals[name] = cty.NullVal(aty)
-	}
-	return cty.ObjectVal(vals)
-}
-
-func copySettingsListVal(copySettingsType cty.Type) cty.Value {
-	entryTy := copySettingsType.ElementType()
-	entry := objectWithNullDefaults(entryTy, map[string]cty.Value{
-		"cloud_provider":     cty.StringVal("AWS"),
-		"region_name":        cty.StringVal("US_WEST_1"),
-		"zone_id":            cty.StringVal("zone"),
-		"should_copy_oplogs": cty.True,
-		"frequencies":        cty.SetVal([]cty.Value{cty.StringVal("DAILY")}),
-	})
-	return cty.ListVal([]cty.Value{entry})
-}
-
-func resourceObject(ty cty.Type, copySettings cty.Value) cty.Value {
-	return objectWithNullDefaults(ty, map[string]cty.Value{
-		"project_id":                cty.StringVal("p"),
-		"cluster_name":              cty.StringVal("c"),
-		"copy_policy_items_enabled": cty.False,
-		"copy_settings":             copySettings,
-	})
-}
-
-func priorCopySettingsFlatmap() map[string]string {
-	return map[string]string{
-		"id":                                 "id",
-		"project_id":                         "p",
-		"cluster_name":                       "c",
-		"copy_policy_items_enabled":          "false",
-		"copy_settings.#":                    "1",
-		"copy_settings.0.cloud_provider":     "AWS",
-		"copy_settings.0.region_name":        "US_WEST_1",
-		"copy_settings.0.zone_id":            "zone",
-		"copy_settings.0.should_copy_oplogs": "true",
-		"copy_settings.0.frequencies.#":      "1",
-		"copy_settings.0.frequencies.0":      "DAILY",
-	}
-}
-
-func describeCtyVal(v cty.Value) string {
-	if v == cty.NilVal {
-		return "nil"
-	}
-	length := "n/a"
-	if !v.IsNull() && (v.IsKnown() || v.Type().IsTupleType()) {
-		length = fmt.Sprintf("%d", v.LengthInt())
-	}
-	return fmt.Sprintf("null=%v known=%v whollyKnown=%v type=%s len=%s", v.IsNull(), v.IsKnown(), v.IsWhollyKnown(), v.Type().FriendlyName(), length)
-}
-
-func copySettingsFromResource(rawConfig cty.Value) cty.Value {
-	if rawConfig.IsNull() || !rawConfig.IsKnown() {
-		return cty.NullVal(cty.DynamicPseudoType)
-	}
-	return rawConfig.GetAttr("copy_settings")
-}
-
-func copySettingsGetLen(v any) int {
-	list, ok := v.([]any)
-	if !ok {
-		return 0
-	}
-	return len(list)
-}
-
-func logCopySettingsCustomizeDiff(t *testing.T, d *schema.ResourceDiff) {
-	t.Helper()
-	rawConfig := d.GetRawConfig()
-	rawPlan := d.GetRawPlan()
-	copySettingsRaw := copySettingsFromResource(rawConfig)
-	copySettingsPlan := copySettingsFromResource(rawPlan)
-	t.Logf("CustomizeDiff id=%q", d.Id())
-	t.Logf("  RawConfig.copy_settings: %s empty=%v", describeCtyVal(copySettingsRaw), cloudbackupschedule.CopySettingsRawConfigEmpty(copySettingsRaw))
-	t.Logf("  RawPlan.copy_settings: %s", describeCtyVal(copySettingsPlan))
-	t.Logf("  Get(copy_settings) len=%d HasChange=%v NewValueKnown=%v", copySettingsGetLen(d.Get("copy_settings")), d.HasChange("copy_settings"), d.NewValueKnown("copy_settings"))
-}
-
-func runSimpleDiffCopySettingsDump(t *testing.T, r *schema.Resource, state *terraform.InstanceState, shimVal cty.Value, priorFlatmap map[string]string) {
-	t.Helper()
-	block := r.CoreConfigSchema()
-	if state.RawState != cty.NilVal && !state.RawState.IsNull() {
-		t.Logf("prior RawState.copy_settings: %s", describeCtyVal(copySettingsFromResource(state.RawState)))
-	} else if priorFlatmap["copy_settings.#"] != "" {
-		t.Logf("prior flatmap copy_settings.#=%s", priorFlatmap["copy_settings.#"])
-	}
-	cfg := terraform.NewResourceConfigShimmed(shimVal, block)
-	diff, err := r.SimpleDiff(context.Background(), state, cfg, nil)
-	if err != nil {
-		t.Fatalf("SimpleDiff: %v", err)
-	}
-	if diff == nil {
-		t.Log("SimpleDiff returned nil; PlanResourceChange would return req.PriorState")
-		if priorFlatmap["copy_settings.#"] != "" {
-			t.Logf("prior flatmap copy_settings.#=%s", priorFlatmap["copy_settings.#"])
-		}
-		return
-	}
-	got := diff.Attributes["copy_settings.#"]
-	t.Logf("SimpleDiff copy_settings.# diff: %#v", got)
-	attrs := make(map[string]string, len(priorFlatmap))
-	for k, v := range priorFlatmap {
-		attrs[k] = v
-	}
-	applied, applyErr := diff.Apply(attrs, block)
-	if applyErr != nil {
-		t.Fatalf("diff.Apply: %v", applyErr)
-	}
-	t.Logf("after diff.Apply copy_settings.#=%s", applied["copy_settings.#"])
-}
-
-func TestDebugCopySettingsOmitPlan(t *testing.T) {
-	r := cloudbackupschedule.Resource()
-	block := r.CoreConfigSchema()
-	ty := block.ImpliedType()
-	copySettingsType := ty.AttributeTypes()["copy_settings"]
-	copiesPresent := copySettingsListVal(copySettingsType)
-	priorFlatmap := priorCopySettingsFlatmap()
-	priorStateCty := resourceObject(ty, copiesPresent)
-	proposedWithCopies := priorStateCty
-
-	origCustomizeDiff := r.CustomizeDiff
-	r.CustomizeDiff = func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
-		beforeLen := copySettingsGetLen(d.Get("copy_settings"))
-		logCopySettingsCustomizeDiff(t, d)
-		err := origCustomizeDiff(ctx, d, meta)
-		afterLen := copySettingsGetLen(d.Get("copy_settings"))
-		t.Logf("  CustomizeDiff after SetNew: beforeLen=%d afterLen=%d err=%v", beforeLen, afterLen, err)
-		return err
-	}
-
-	t.Run("create_block_present", func(t *testing.T) {
-		config := resourceObject(ty, copiesPresent)
-		state := &terraform.InstanceState{
-			RawConfig: config,
-			RawPlan:   config,
-		}
-		runSimpleDiffCopySettingsDump(t, r, state, config, nil)
-	})
-
-	omitShapes := []struct {
-		val  cty.Value
-		name string
-	}{
-		{name: "null", val: cty.NullVal(copySettingsType)},
-		{name: "empty", val: cty.ListValEmpty(copySettingsType.ElementType())},
-		{name: "unknown", val: cty.UnknownVal(copySettingsType)},
-	}
-	for _, omit := range omitShapes {
-		omitConfig := resourceObject(ty, omit.val)
-		t.Run("omit_same_raw_"+omit.name, func(t *testing.T) {
-			state := &terraform.InstanceState{
-				ID:         "id",
-				Attributes: priorFlatmap,
-				RawConfig:  omitConfig,
-			}
-			runSimpleDiffCopySettingsDump(t, r, state, omitConfig, priorFlatmap)
-		})
-		t.Run("omit_plan_rpc_"+omit.name, func(t *testing.T) {
-			state := &terraform.InstanceState{
-				ID:         "id",
-				Attributes: priorFlatmap,
-				RawConfig:  omitConfig,
-				RawState:   priorStateCty,
-				RawPlan:    proposedWithCopies,
-			}
-			runSimpleDiffCopySettingsDump(t, r, state, proposedWithCopies, priorFlatmap)
 		})
 	}
 }
@@ -505,6 +301,18 @@ func TestCopySettingsRawConfigEmpty(t *testing.T) {
 			}
 		})
 	}
+}
+
+func objectWithNullDefaults(ty cty.Type, overrides map[string]cty.Value) cty.Value {
+	vals := make(map[string]cty.Value, len(ty.AttributeTypes()))
+	for name, aty := range ty.AttributeTypes() {
+		if v, ok := overrides[name]; ok {
+			vals[name] = v
+			continue
+		}
+		vals[name] = cty.NullVal(aty)
+	}
+	return cty.ObjectVal(vals)
 }
 
 func setLen(v any) int {

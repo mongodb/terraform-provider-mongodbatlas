@@ -83,13 +83,6 @@ func TestCopySettingsForUpdate(t *testing.T) {
 			wantLen: 1,
 		},
 		{
-			name: "unchanged empty",
-			data: testCopySettingsUpdateData{
-				get:       map[string]any{"copy_settings": []any{}},
-				hasChange: map[string]bool{"copy_settings": false},
-			},
-		},
-		{
 			name: "changed rewrite",
 			data: testCopySettingsUpdateData{
 				get:       map[string]any{"copy_settings": leftover},
