@@ -181,7 +181,7 @@ Optional:
 - `dlq` (Attributes) Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information. (see [below for nested schema](#nestedatt--options--dlq))
 - `resume_from_checkpoint` (Boolean) Controls checkpoint behavior when the `$source` stage or a window stage of the `pipeline` changes. When `true`, the stream processor resumes from its last checkpoint. Set to `false` to discard the existing checkpoint, which is necessary for those changes because the API rejects them while resuming from an incompatible checkpoint. Defaults to `true` when not set.
 
-**NOTE** This attribute is only applied to updates that change the `$source` stage, or a window's type, `interval`, `hopSize` or `allowedLateness`. It is ignored on create and on any other update, such as a `tier` change or an edit to a `$match` stage, so leaving it set does not discard the checkpoint again. It cannot be imported.
+**NOTE** This attribute is only applied to updates that change the `$source` stage, or a window's type, `interval`, `hopSize` or `allowedLateness`. It is ignored on create and on any other update, such as a `tier` change or an edit to a `$match` stage. Because it is applied to every such change while it remains in the configuration, remove it once the change it was needed for has been applied, otherwise a later `$source` or window change discards the checkpoint without being set again for that change. It cannot be imported.
 
 <a id="nestedatt--options--autoscaling"></a>
 ### Nested Schema for `options.autoscaling`

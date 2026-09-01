@@ -180,6 +180,15 @@ func TestAccStreamProcessor_resumeFromCheckpoint(t *testing.T) {
 				),
 			},
 			{
+				// Unsetting it is how the one-off is cleared. The pipeline is unchanged from the previous
+				// step, so nothing is sent and the processor keeps running.
+				Config: configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", nil),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr(resourceName, "options.resume_from_checkpoint"),
+					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
+				),
+			},
+			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
