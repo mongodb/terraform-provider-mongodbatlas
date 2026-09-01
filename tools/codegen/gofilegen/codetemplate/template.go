@@ -36,8 +36,14 @@ type ResourceFileInputs struct {
 	MoveState     *MoveState
 	PackageName   string
 	ResourceName  string
-	IDAttributes  []string
+	IDAttributes  []IDAttribute
 	APIOperations APIOperations
+	HasWait       bool
+}
+
+type IDAttribute struct {
+	SchemaName     string
+	PascalCaseName string
 }
 
 type APIOperations struct {
@@ -58,12 +64,13 @@ type Operation struct {
 }
 
 type Wait struct {
-	StateProperty     string
-	PendingStates     []string
-	TargetStates      []string
-	TimeoutSeconds    int
-	MinTimeoutSeconds int
-	DelaySeconds      int
+	StateProperty            string
+	ErrorDescriptionProperty string
+	PendingStates            []string
+	TargetStates             []string
+	TimeoutSeconds           int
+	MinTimeoutSeconds        int
+	DelaySeconds             int
 }
 type Param struct {
 	PascalCaseName string

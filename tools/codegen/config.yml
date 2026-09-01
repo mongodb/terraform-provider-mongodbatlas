@@ -16,6 +16,12 @@ variables:
   connection_type_description: &connection_type_description "Connection type."
   db_role_to_execute_description: &db_role_to_execute_description "Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster."
   kafka_config_description: &kafka_config_description "Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters."
+  # TODO(CLOUDP-439020): once the descriptions are corrected upstream, delete these anchors and the
+  # `description` overrides that reference them, then refetch the spec and regenerate.
+  collections_source_namespace_description: &collections_source_namespace_description "Collection requested to restore, as `database.collection`."
+  collections_target_namespace_description: &collections_target_namespace_description "Requested target collection as `database.collection`; if empty, source namespace is used."
+  databases_source_namespace_description: &databases_source_namespace_description "Database name requested to restore."
+  databases_target_namespace_description: &databases_target_namespace_description "Requested target database name; if empty, source database name is used."
 
 resources:
   ai_model_api_key:
@@ -181,7 +187,7 @@ resources:
             "PENDING",
             "DELETING",
           ]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404
     version_header: application/vnd.atlas.2023-02-01+json
     schema:
       ignores: ["links", "mongo_db_employee_access_grant.links"]
@@ -388,7 +394,7 @@ resources:
             "PENDING",
             "DELETING",
           ]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404
     move_state:
       source_resources: ["mongodbatlas_cluster_old_api"]
     version_header: application/vnd.atlas.2024-08-05+json
@@ -725,7 +731,7 @@ resources:
       wait:
         <<: *pble-create-wait
         pending_states: ["ACTIVE", "INITIATING", "BUCKET_VERIFIED"]
-        target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404 or empty object
+        target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
       ignores: ["links"]
@@ -773,7 +779,7 @@ resources:
         <<: *search-deployment-create-wait
         min_timeout_seconds: 30
         pending_states: ["IDLE", "UPDATING", "PAUSED"]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
+        target_states: ["DELETED"] # DELETED is a special state value when the resource is not found: API returns 404, or the read hook maps the empty JSON body response to autogen.ErrNotFound
     version_header: application/vnd.atlas.2025-03-12+json
 
   search_index_api:
@@ -880,7 +886,7 @@ resources:
       wait:
         <<: *stream-processor-create-wait
         pending_states: ["INIT", "CREATING", "CREATED", "STARTED", "STOPPED"]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404
     version_header: application/vnd.atlas.2024-05-30+json
     schema:
       ignores: ["links", "options.links", "options.dlq.links", "_id"]
@@ -1626,3 +1632,205 @@ resources:
             description: *project_id_description
           otel_supplied_headers:
             sensitive: true
+
+  metric_integration:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: PUT
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        groupId: projectId
+      ignores: ["links"]
+      overrides:
+        project_id:
+          description: *project_id_description
+        headers.value:
+          sensitive: true
+        headers:
+          description: "Required for auth_type: HEADER. HTTP headers for authentication and configuration. Total size limit 2KB."
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+        ignores: ["links", "results.links"]
+        overrides:
+          project_id:
+            description: *project_id_description
+
+  # Collection-level restore (GA 2025-03-12). Jobs are immutable and have no public DELETE/cancel.
+  cloud_backup_collection_restore_job:
+    read: &cloud-backup-collection-restore-job-read
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs
+      method: POST
+      wait: &collection-restore-create-wait
+        state_property: state
+        pending_states: [INITIALIZING, IN_PROGRESS, FINALIZING]
+        target_states: [SUCCESSFUL]
+        error_description_property: errorMessage
+        timeout_seconds: 10800 # 3 hours
+        min_timeout_seconds: 60
+        delay_seconds: 30
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        groupId: projectId
+        id: jobId
+        targetGroupId: targetProjectId
+      overrides:
+        project_id:
+          description: *project_id_description
+        target_project_id:
+          description: *project_id_description
+        job_id:
+          immutable_computed: true # Reduces plan verbosity.
+        created_at:
+          immutable_computed: true # Reduces plan verbosity.
+        collection_suffix:
+          # Atlas returns "" when the suffix is omitted.
+          computability:
+            optional: true
+            computed: true
+        database_suffix:
+          # Atlas returns "" when the suffix is omitted.
+          computability:
+            optional: true
+            computed: true
+        collections:
+          # Atlas returns [] when the list is omitted.
+          computability:
+            optional: true
+            computed: true
+        databases:
+          # Atlas returns [] when the list is omitted.
+          computability:
+            optional: true
+            computed: true
+        collections.source_namespace:
+          description: *collections_source_namespace_description
+        collections.target_namespace:
+          # Nested optional child of optional+computed list; Atlas echoes "" when unused.
+          computability:
+            optional: true
+            computed: true
+          description: *collections_target_namespace_description
+        databases.source_namespace:
+          description: *databases_source_namespace_description
+        databases.target_namespace:
+          # Nested optional child of optional+computed list; Atlas echoes "" when unused.
+          computability:
+            optional: true
+            computed: true
+          description: *databases_target_namespace_description
+        snapshot_id:
+          # Atlas fills the PIT-base snapshot when the client sends only PIT fields.
+          computability:
+            optional: true
+            computed: true
+        oplog_ts:
+          # Atlas copies pointInTimeUtcSeconds into oplogTs when omitted.
+          computability:
+            optional: true
+            computed: true
+        oplog_inc:
+          # Atlas defaults to 0 when PIT is specified via pointInTimeUtcSeconds only.
+          computability:
+            optional: true
+            computed: true
+        point_in_time_utc_seconds:
+          # Atlas copies oplogTs into pointInTimeUtcSeconds when omitted.
+          computability:
+            optional: true
+            computed: true
+    datasources:
+      read: *cloud-backup-collection-restore-job-read
+      list:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+          id: jobId
+          targetGroupId: targetProjectId
+          results.id: jobId
+          results.targetGroupId: targetProjectId
+        ignores: [results.links]
+        overrides:
+          project_id:
+            description: *project_id_description
+          target_project_id:
+            description: *project_id_description
+          collections.source_namespace:
+            description: *collections_source_namespace_description
+          collections.target_namespace:
+            description: *collections_target_namespace_description
+          databases.source_namespace:
+            description: *databases_source_namespace_description
+          databases.target_namespace:
+            description: *databases_target_namespace_description
+
+  cloud_backup_collection_restore_job_collection:
+    version_header: application/vnd.atlas.2025-03-12+json
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}/collections/{sourceNamespace}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}/collections
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+          id: jobId
+        ignores: [results.links]
+        overrides:
+          project_id:
+            description: *project_id_description
+
+  # Snapshot namespace discovery for collection restore. PIT has no snapshot id; these DS are snapshot-only.
+  # List-only: singular GET body is just `name`, a duplicate of the path param.
+  cloud_backup_snapshot_database:
+    version_header: application/vnd.atlas.2025-03-12+json
+    datasources:
+      list:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+        ignores: [results.links]
+        overrides:
+          project_id:
+            description: *project_id_description
+
+  cloud_backup_snapshot_database_collection:
+    version_header: application/vnd.atlas.2025-03-12+json
+    datasources:
+      list:
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}/collections
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+        ignores: [results.links]
+        overrides:
+          project_id:
+            description: *project_id_description

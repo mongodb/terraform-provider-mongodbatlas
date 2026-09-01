@@ -848,3 +848,17 @@ func TestMarshalAnonymousNonStruct(t *testing.T) {
 	require.ErrorContains(t, err, "marshal unsupported anonymous field")
 	require.ErrorContains(t, err, "expected struct")
 }
+
+func TestMarshalDynamicJSONLargeInteger(t *testing.T) {
+	// Big integers inside jsontypes.Normalized attributes must be sent to the API unrounded.
+	// assert.JSONEq cannot be used here as it decodes numbers to float64 and would hide precision loss.
+	model := struct {
+		AttrDynamicJSON jsontypes.Normalized `tfsdk:"attr_dynamic_json"`
+	}{
+		AttrDynamicJSON: jsontypes.NewNormalizedValue(`{"bigInt": 9007199254740993, "nested": {"list": [9007199254740993]}}`),
+	}
+	raw, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.Contains(t, string(raw), `"bigInt":9007199254740993`)
+	assert.Contains(t, string(raw), `"list":[9007199254740993]`)
+}

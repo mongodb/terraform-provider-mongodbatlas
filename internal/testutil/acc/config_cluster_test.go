@@ -202,6 +202,34 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
 }
 `
 
+var diskSizeGb = `
+resource "mongodbatlas_advanced_cluster" "cluster_info" {
+  backup_enabled = false
+  cluster_type   = "REPLICASET"
+  name           = "my-name"
+  pit_enabled    = false
+  project_id     = "project"
+
+  replication_specs = [{
+    region_configs = [{
+      auto_scaling = {
+        disk_gb_enabled = false
+      }
+      electable_specs = {
+        disk_size_gb  = 40
+        instance_size = "M10"
+        node_count    = 3
+      }
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_WEST_2"
+    }]
+    zone_name = "Zone 1"
+  }]
+
+}
+`
+
 var autoScalingDiskEnabled = `
 resource "mongodbatlas_advanced_cluster" "cluster_info" {
   backup_enabled = false
@@ -273,6 +301,10 @@ func Test_ClusterResourceHcl(t *testing.T) {
 			"defaults": {
 				standardClusterResource,
 				acc.ClusterRequest{ClusterName: clusterName},
+			},
+			"diskSizeGb": {
+				diskSizeGb,
+				acc.ClusterRequest{ClusterName: clusterName, DiskSizeGb: 40},
 			},
 			"dependsOn": {
 				dependsOnClusterResource,

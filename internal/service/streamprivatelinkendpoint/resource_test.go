@@ -362,10 +362,11 @@ func basicMskTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
-		provider  = "AWS"
-		vendor    = "MSK"
-		arn       = os.Getenv("AWS_MSK_ARN")
+		projectID  = acc.ProjectIDExecution(t)
+		provider   = "AWS"
+		vendor     = "MSK"
+		arn        = os.Getenv("AWS_MSK_ARN")
+		authScheme = "IAM"
 	)
 
 	return &resource.TestCase{
@@ -375,8 +376,8 @@ func basicMskTestCase(t *testing.T) *resource.TestCase {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.GetCompleteMskConfig(projectID, arn),
-				Check:  checksStreamPrivatelinkEndpointMsk(projectID, provider, vendor, arn),
+				Config: acc.GetCompleteMskConfig(projectID, arn, authScheme),
+				Check:  checksStreamPrivatelinkEndpointMsk(projectID, provider, vendor, arn, authScheme),
 			},
 			{
 				ResourceName:      resourceName,
@@ -388,13 +389,14 @@ func basicMskTestCase(t *testing.T) *resource.TestCase {
 	}
 }
 
-func checksStreamPrivatelinkEndpointMsk(projectID, provider, vendor, arn string) resource.TestCheckFunc {
+func checksStreamPrivatelinkEndpointMsk(projectID, provider, vendor, arn, authScheme string) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists()}
 	attrMap := map[string]string{
-		"project_id":    projectID,
-		"provider_name": provider,
-		"vendor":        vendor,
-		"arn":           arn,
+		"project_id":            projectID,
+		"provider_name":         provider,
+		"vendor":                vendor,
+		"arn":                   arn,
+		"authentication_scheme": authScheme,
 	}
 	pluralMap := map[string]string{
 		"project_id": projectID,

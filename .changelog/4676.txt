@@ -1,0 +1,43 @@
+```release-note:bug
+resource/mongodbatlas_metric_integration: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found
+```
+
+```release-note:bug
+resource/mongodbatlas_log_integration: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found
+```
+
+```release-note:bug
+resource/mongodbatlas_stream_connection_failover: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found
+```
+
+```release-note:bug
+resource/mongodbatlas_service_account: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found
+```
+
+```release-note:bug
+resource/mongodbatlas_service_account_secret: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found
+```
+
+```release-note:bug
+resource/mongodbatlas_service_account_project_assignment: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found
+```
+
+```release-note:bug
+resource/mongodbatlas_project_service_account: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found
+```
+
+```release-note:bug
+resource/mongodbatlas_project_service_account_secret: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found
+```
+
+```release-note:bug
+resource/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found
+```
+
+```release-note:bug
+resource/mongodbatlas_ai_model_api_key: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found
+```
+
+```release-note:bug
+resource/mongodbatlas_ai_model_rate_limit: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found
+```

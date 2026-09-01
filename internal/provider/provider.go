@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/metricintegration"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -55,6 +57,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgratelimit"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelratelimit"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejob"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejobcollection"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabase"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabasecollection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive"
 	autogenprojectipaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectipaccesslist"
@@ -338,6 +344,14 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		projectserviceaccountaccesslistentry.PluralDataSource,
 		logintegration.DataSource,
 		logintegration.PluralDataSource,
+		metricintegration.DataSource,
+		metricintegration.PluralDataSource,
+		cloudbackupcollectionrestorejob.DataSource,
+		cloudbackupcollectionrestorejob.PluralDataSource,
+		cloudbackupcollectionrestorejobcollection.DataSource,
+		cloudbackupcollectionrestorejobcollection.PluralDataSource,
+		cloudbackupsnapshotdatabase.PluralDataSource,
+		cloudbackupsnapshotdatabasecollection.PluralDataSource,
 		privatelinkendpointservicedatafederationonlinearchive.DataSource,
 		privatelinkendpointservicedatafederationonlinearchive.PluralDataSource,
 		aimodelapikey.DataSource,
@@ -358,6 +372,8 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 
 func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Resource {
 	resources := []func() resource.Resource{
+		metricintegration.Resource,
+		cloudbackupcollectionrestorejob.Resource,
 		project.Resource,
 		logintegration.Resource,
 		encryptionatrest.Resource,

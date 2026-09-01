@@ -98,10 +98,11 @@ schema:
                       request_only_required_on_create: false
           description: List of rules that determine whether MongoDB Cloud checks an object for the alert configuration.
           custom_type:
-            package: customtypes
             name: Matchers
             model: customtypes.NestedListValue[TFMatchersModel]
             schema: customtypes.NewNestedListType[TFMatchersModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: matchers
           tf_model_name: Matchers
@@ -172,10 +173,11 @@ schema:
                       request_only_required_on_create: false
           description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
           custom_type:
-            package: customtypes
             name: MetricThreshold
             model: customtypes.ObjectValue[TFMetricThresholdModel]
             schema: customtypes.NewObjectType[TFMetricThresholdModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: metric_threshold
           tf_model_name: MetricThreshold
@@ -411,9 +413,10 @@ schema:
                         element_type: 4
                       description: 'List that contains the one or more organization roles that receive the configured alert. This parameter is available when `"notifications.[n].typeName" : "GROUP"` or `"notifications.[n].typeName" : "ORG"`. If you include this parameter, MongoDB Cloud sends alerts only to users assigned the roles you specify in the array. If you omit this parameter, MongoDB Cloud sends alerts to users assigned any role.'
                       custom_type:
-                        package: customtypes
                         model: customtypes.ListValue[types.String]
                         schema: customtypes.NewListType[types.String](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: optional
                       tf_schema_name: roles
                       tf_model_name: Roles
@@ -601,10 +604,11 @@ schema:
                       request_only_required_on_create: false
           description: List that contains the targets that MongoDB Cloud sends notifications.
           custom_type:
-            package: customtypes
             name: Notifications
             model: customtypes.NestedListValue[TFNotificationsModel]
             schema: customtypes.NewNestedListType[TFNotificationsModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: notifications
           tf_model_name: Notifications
@@ -686,10 +690,11 @@ schema:
                       request_only_required_on_create: false
           description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
           custom_type:
-            package: customtypes
             name: Threshold
             model: customtypes.ObjectValue[TFThresholdModel]
             schema: customtypes.NewObjectType[TFThresholdModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: threshold
           tf_model_name: Threshold
@@ -828,10 +833,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List of rules that determine whether MongoDB Cloud checks an object for the alert configuration.
               custom_type:
-                package: customtypes
                 name: Matchers
                 model: customtypes.NestedListValue[TFMatchersModel]
                 schema: customtypes.NewNestedListType[TFMatchersModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: matchers
               tf_model_name: Matchers
@@ -902,10 +908,11 @@ data_sources:
                           request_only_required_on_create: false
               description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
               custom_type:
-                package: customtypes
                 name: MetricThreshold
                 model: customtypes.ObjectValue[TFMetricThresholdModel]
                 schema: customtypes.NewObjectType[TFMetricThresholdModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: metric_threshold
               tf_model_name: MetricThreshold
@@ -1141,9 +1148,10 @@ data_sources:
                             element_type: 4
                           description: 'List that contains the one or more organization roles that receive the configured alert. This parameter is available when `"notifications.[n].typeName" : "GROUP"` or `"notifications.[n].typeName" : "ORG"`. If you include this parameter, MongoDB Cloud sends alerts only to users assigned the roles you specify in the array. If you omit this parameter, MongoDB Cloud sends alerts to users assigned any role.'
                           custom_type:
-                            package: customtypes
                             model: customtypes.ListValue[types.String]
                             schema: customtypes.NewListType[types.String](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: roles
                           tf_model_name: Roles
@@ -1331,10 +1339,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List that contains the targets that MongoDB Cloud sends notifications.
               custom_type:
-                package: customtypes
                 name: Notifications
                 model: customtypes.NestedListValue[TFNotificationsModel]
                 schema: customtypes.NewNestedListType[TFNotificationsModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: notifications
               tf_model_name: Notifications
@@ -1416,10 +1425,11 @@ data_sources:
                           request_only_required_on_create: false
               description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
               custom_type:
-                package: customtypes
                 name: Threshold
                 model: customtypes.ObjectValue[TFThresholdModel]
                 schema: customtypes.NewObjectType[TFThresholdModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: threshold
               tf_model_name: Threshold
@@ -1554,10 +1564,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: List of rules that determine whether MongoDB Cloud checks an object for the alert configuration.
                           custom_type:
-                            package: customtypes
                             name: ResultsMatchers
                             model: customtypes.NestedListValue[TFResultsMatchersModel]
                             schema: customtypes.NewNestedListType[TFResultsMatchersModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: matchers
                           tf_model_name: Matchers
@@ -1628,10 +1639,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
                           custom_type:
-                            package: customtypes
                             name: ResultsMetricThreshold
                             model: customtypes.ObjectValue[TFResultsMetricThresholdModel]
                             schema: customtypes.NewObjectType[TFResultsMetricThresholdModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: metric_threshold
                           tf_model_name: MetricThreshold
@@ -1867,9 +1879,10 @@ data_sources:
                                         element_type: 4
                                       description: 'List that contains the one or more organization roles that receive the configured alert. This parameter is available when `"notifications.[n].typeName" : "GROUP"` or `"notifications.[n].typeName" : "ORG"`. If you include this parameter, MongoDB Cloud sends alerts only to users assigned the roles you specify in the array. If you omit this parameter, MongoDB Cloud sends alerts to users assigned any role.'
                                       custom_type:
-                                        package: customtypes
                                         model: customtypes.ListValue[types.String]
                                         schema: customtypes.NewListType[types.String](ctx)
+                                        packages:
+                                            - customtypes
                                       computed_optional_required: computed
                                       tf_schema_name: roles
                                       tf_model_name: Roles
@@ -2057,10 +2070,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: List that contains the targets that MongoDB Cloud sends notifications.
                           custom_type:
-                            package: customtypes
                             name: ResultsNotifications
                             model: customtypes.NestedListValue[TFResultsNotificationsModel]
                             schema: customtypes.NewNestedListType[TFResultsNotificationsModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: notifications
                           tf_model_name: Notifications
@@ -2142,10 +2156,11 @@ data_sources:
                                       request_only_required_on_create: false
                           description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
                           custom_type:
-                            package: customtypes
                             name: ResultsThreshold
                             model: customtypes.ObjectValue[TFResultsThresholdModel]
                             schema: customtypes.NewObjectType[TFResultsThresholdModel](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: threshold
                           tf_model_name: Threshold
@@ -2168,10 +2183,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List of returned documents that MongoDB Cloud provides when completing this request.
               custom_type:
-                package: customtypes
                 name: Results
                 model: customtypes.NestedListValue[TFResultsModel]
                 schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: results
               tf_model_name: Results

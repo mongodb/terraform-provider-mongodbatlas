@@ -69,8 +69,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					" When a Stream Processor is created without specifying the state, it will default to `CREATED` state. When a Stream Processor is updated without specifying the state, it will default to the Previous state. \n\n**NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.",
 			},
 			"options": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Optional configuration for the stream processor.",
+				Optional: true,
+				Validators: []validator.Object{
+					OptionsValidator(),
+				},
+				MarkdownDescription: "Optional configuration for the stream processor. Empty `options` objects are not supported.",
 				Attributes: map[string]schema.Attribute{
 					"dlq": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
@@ -87,8 +90,24 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								MarkdownDescription: "Name of the database to use for the DLQ.",
 							},
 						},
-						Required:            true,
+						Optional:            true,
 						MarkdownDescription: "Dead letter queue for the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-dead-letter-queue) for more information.",
+					},
+					"autoscaling": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "Vertical autoscaling configuration for the stream processor. When present, the processor automatically scales its tier between `min_tier` and `max_tier` based on load; `tier` is used only as the initial/baseline tier and the running tier is reported by `effective_tier`. To disable autoscaling, remove this block.",
+						Attributes: map[string]schema.Attribute{
+							"min_tier": schema.StringAttribute{
+								Optional:            true,
+								Computed:            true,
+								MarkdownDescription: "Tier floor for autoscaling (scale-down limit). When not set, it defaults to the lower of the processor `tier` and the workspace default tier.",
+							},
+							"max_tier": schema.StringAttribute{
+								Optional:            true,
+								Computed:            true,
+								MarkdownDescription: "Tier ceiling for autoscaling (scale-up limit). When not set, it defaults to the workspace maximum tier.",
+							},
+						},
 					},
 				},
 			},
@@ -99,7 +118,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"tier": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Selected tier to start a stream processor on rather than defaulting to the workspace setting. Configures Memory / VCPU allowances. Valid options are SP2, SP5, SP10, SP30, and SP50.",
+				MarkdownDescription: "Selected tier to start a stream processor on rather than defaulting to the workspace setting. Configures Memory / VCPU allowances. Valid options are SP2, SP5, SP10, SP30, and SP50. When `options.autoscaling` is enabled, this is used only as the initial/baseline tier; the running tier is reported by `effective_tier`.",
+			},
+			"effective_tier": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Tier the stream processor is currently running on. When autoscaling is disabled this equals `tier`; when autoscaling is enabled it reflects the tier chosen by the autoscaler within the configured bounds.",
 			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create:            true,
@@ -132,13 +155,15 @@ type TFStreamProcessorRSModel struct {
 	State                 types.String         `tfsdk:"state"`
 	Stats                 types.String         `tfsdk:"stats"`
 	Tier                  types.String         `tfsdk:"tier"`
+	EffectiveTier         types.String         `tfsdk:"effective_tier"`
 	Timeouts              timeouts.Value       `tfsdk:"timeouts"`
 	DeleteOnCreateTimeout types.Bool           `tfsdk:"delete_on_create_timeout"`
 	FailoverEnabled       types.Bool           `tfsdk:"failover_enabled"`
 }
 
 type TFOptionsModel struct {
-	Dlq types.Object `tfsdk:"dlq"`
+	Dlq         types.Object `tfsdk:"dlq"`
+	Autoscaling types.Object `tfsdk:"autoscaling"`
 }
 
 type TFDlqModel struct {
@@ -148,7 +173,8 @@ type TFDlqModel struct {
 }
 
 var OptionsObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"dlq": DlqObjectType,
+	"dlq":         DlqObjectType,
+	"autoscaling": AutoscalingObjectType,
 }}
 
 var DlqObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -169,6 +195,7 @@ type TFStreamProcessorDSModel struct {
 	State           types.String `tfsdk:"state"`
 	Stats           types.String `tfsdk:"stats"`
 	Tier            types.String `tfsdk:"tier"`
+	EffectiveTier   types.String `tfsdk:"effective_tier"`
 	FailoverEnabled types.Bool   `tfsdk:"failover_enabled"`
 }
 

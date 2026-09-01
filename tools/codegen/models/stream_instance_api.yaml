@@ -15,6 +15,8 @@ schema:
                             allowed:
                                 - api_name: aws
                                   tf_schema_name: aws
+                                - api_name: publicPrivateNetworking
+                                  tf_schema_name: public_private_networking
                         AzureBlobStorage:
                             allowed:
                                 - api_name: azure
@@ -84,6 +86,88 @@ schema:
                     - single_nested:
                         nested_object:
                             attributes:
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - list_nested:
+                                                nested_object:
+                                                    attributes:
+                                                        - string: {}
+                                                          description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                                          computed_optional_required: computed
+                                                          tf_schema_name: href
+                                                          tf_model_name: Href
+                                                          api_name: href
+                                                          req_body_usage: omit_always
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                                        - string: {}
+                                                          description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                                          computed_optional_required: computed
+                                                          tf_schema_name: rel
+                                                          tf_model_name: Rel
+                                                          api_name: rel
+                                                          req_body_usage: omit_always
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                              description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                                              custom_type:
+                                                name: ConnectionsAuthenticationAwsLinks
+                                                model: customtypes.NestedListValue[TFConnectionsAuthenticationAwsLinksModel]
+                                                schema: customtypes.NewNestedListType[TFConnectionsAuthenticationAwsLinksModel](ctx)
+                                                packages:
+                                                    - customtypes
+                                              computed_optional_required: computed
+                                              tf_schema_name: links
+                                              tf_model_name: Links
+                                              api_name: links
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+                                              computed_optional_required: computed
+                                              tf_schema_name: role_arn
+                                              tf_model_name: RoleArn
+                                              api_name: roleArn
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
+                                              computed_optional_required: computed
+                                              tf_schema_name: test_bucket
+                                              tf_model_name: TestBucket
+                                              api_name: testBucket
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                  description: AWS configurations for AWS-based connection types.
+                                  custom_type:
+                                    name: ConnectionsAuthenticationAws
+                                    model: customtypes.ObjectValue[TFConnectionsAuthenticationAwsModel]
+                                    schema: customtypes.NewObjectType[TFConnectionsAuthenticationAwsModel](ctx)
+                                    packages:
+                                        - customtypes
+                                  computed_optional_required: computed
+                                  tf_schema_name: aws
+                                  tf_model_name: Aws
+                                  api_name: aws
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
                                 - string: {}
                                   description: OIDC client identifier for authentication to the Kafka cluster.
                                   computed_optional_required: computed
@@ -218,10 +302,11 @@ schema:
                                   request_only_required_on_create: false
                       description: 'Optional for type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.'
                       custom_type:
-                        package: customtypes
                         name: ConnectionsAuthentication
                         model: customtypes.ObjectValue[TFConnectionsAuthenticationModel]
                         schema: customtypes.NewObjectType[TFConnectionsAuthenticationModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: authentication
                       tf_model_name: Authentication
@@ -258,10 +343,11 @@ schema:
                                   request_only_required_on_create: false
                       description: 'Optional for type: AWSKinesisDataStreams, AWSLambda, S3. AWS configurations for AWS-based connection types.'
                       custom_type:
-                        package: customtypes
                         name: ConnectionsAws
                         model: customtypes.ObjectValue[TFConnectionsAwsModel]
                         schema: customtypes.NewObjectType[TFConnectionsAwsModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: aws
                       tf_model_name: Aws
@@ -301,10 +387,11 @@ schema:
                                               request_only_required_on_create: false
                                   description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
                                   custom_type:
-                                    package: customtypes
                                     name: ConnectionsAzureLinks
                                     model: customtypes.NestedListValue[TFConnectionsAzureLinksModel]
                                     schema: customtypes.NewNestedListType[TFConnectionsAzureLinksModel](ctx)
+                                    packages:
+                                        - customtypes
                                   computed_optional_required: computed
                                   tf_schema_name: links
                                   tf_model_name: Links
@@ -350,10 +437,11 @@ schema:
                                   request_only_required_on_create: false
                       description: 'Optional for type: AzureBlobStorage. Azure-specific configuration for the connection.'
                       custom_type:
-                        package: customtypes
                         name: ConnectionsAzure
                         model: customtypes.ObjectValue[TFConnectionsAzureModel]
                         schema: customtypes.NewObjectType[TFConnectionsAzureModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: azure
                       tf_model_name: Azure
@@ -400,9 +488,10 @@ schema:
                         element_type: 4
                       description: 'Optional for type: Kafka. A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have ''.'' characters.'
                       custom_type:
-                        package: customtypes
                         model: customtypes.MapValue[types.String]
                         schema: customtypes.NewMapType[types.String](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: config
                       tf_model_name: Config
@@ -439,10 +528,11 @@ schema:
                                   request_only_required_on_create: false
                       description: 'Optional for type: Cluster. The name of a built-in or custom DB Role to connect to an Atlas Cluster.'
                       custom_type:
-                        package: customtypes
                         name: ConnectionsDbRoleToExecute
                         model: customtypes.ObjectValue[TFConnectionsDbRoleToExecuteModel]
                         schema: customtypes.NewObjectType[TFConnectionsDbRoleToExecuteModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: db_role_to_execute
                       tf_model_name: DbRoleToExecute
@@ -482,10 +572,11 @@ schema:
                                               request_only_required_on_create: false
                                   description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
                                   custom_type:
-                                    package: customtypes
                                     name: ConnectionsGcpLinks
                                     model: customtypes.NestedListValue[TFConnectionsGcpLinksModel]
                                     schema: customtypes.NewNestedListType[TFConnectionsGcpLinksModel](ctx)
+                                    packages:
+                                        - customtypes
                                   computed_optional_required: computed
                                   tf_schema_name: links
                                   tf_model_name: Links
@@ -508,10 +599,11 @@ schema:
                                   request_only_required_on_create: false
                       description: 'Optional for type: GCPPubSub. GCP-specific configuration for the connection.'
                       custom_type:
-                        package: customtypes
                         name: ConnectionsGcp
                         model: customtypes.ObjectValue[TFConnectionsGcpModel]
                         schema: customtypes.NewObjectType[TFConnectionsGcpModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: gcp
                       tf_model_name: Gcp
@@ -525,9 +617,10 @@ schema:
                         element_type: 4
                       description: 'Optional for type: Https. A map of key-value pairs that will be passed as headers for the request.'
                       custom_type:
-                        package: customtypes
                         model: customtypes.MapValue[types.String]
                         schema: customtypes.NewMapType[types.String](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: headers
                       tf_model_name: Headers
@@ -611,10 +704,11 @@ schema:
                                               request_only_required_on_create: false
                                   description: Information about networking access.
                                   custom_type:
-                                    package: customtypes
                                     name: ConnectionsNetworkingAccess
                                     model: customtypes.ObjectValue[TFConnectionsNetworkingAccessModel]
                                     schema: customtypes.NewObjectType[TFConnectionsNetworkingAccessModel](ctx)
+                                    packages:
+                                        - customtypes
                                   computed_optional_required: computed
                                   tf_schema_name: access
                                   tf_model_name: Access
@@ -626,10 +720,11 @@ schema:
                                   request_only_required_on_create: false
                       description: 'Optional for type: AWSKinesisDataStreams, Kafka, S3. Networking configuration for Streams connections.'
                       custom_type:
-                        package: customtypes
                         name: ConnectionsNetworking
                         model: customtypes.ObjectValue[TFConnectionsNetworkingModel]
                         schema: customtypes.NewObjectType[TFConnectionsNetworkingModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: networking
                       tf_model_name: Networking
@@ -694,10 +789,11 @@ schema:
                                                           request_only_required_on_create: false
                                               description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
                                               custom_type:
-                                                package: customtypes
                                                 name: ConnectionsPublicPrivateNetworkingAccessLinks
                                                 model: customtypes.NestedListValue[TFConnectionsPublicPrivateNetworkingAccessLinksModel]
                                                 schema: customtypes.NewNestedListType[TFConnectionsPublicPrivateNetworkingAccessLinksModel](ctx)
+                                                packages:
+                                                    - customtypes
                                               computed_optional_required: computed
                                               tf_schema_name: links
                                               tf_model_name: Links
@@ -720,10 +816,11 @@ schema:
                                               request_only_required_on_create: false
                                   description: Information about networking access.
                                   custom_type:
-                                    package: customtypes
                                     name: ConnectionsPublicPrivateNetworkingAccess
                                     model: customtypes.ObjectValue[TFConnectionsPublicPrivateNetworkingAccessModel]
                                     schema: customtypes.NewObjectType[TFConnectionsPublicPrivateNetworkingAccessModel](ctx)
+                                    packages:
+                                        - customtypes
                                   computed_optional_required: computed
                                   tf_schema_name: access
                                   tf_model_name: Access
@@ -760,10 +857,11 @@ schema:
                                               request_only_required_on_create: false
                                   description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
                                   custom_type:
-                                    package: customtypes
                                     name: ConnectionsPublicPrivateNetworkingLinks
                                     model: customtypes.NestedListValue[TFConnectionsPublicPrivateNetworkingLinksModel]
                                     schema: customtypes.NewNestedListType[TFConnectionsPublicPrivateNetworkingLinksModel](ctx)
+                                    packages:
+                                        - customtypes
                                   computed_optional_required: computed
                                   tf_schema_name: links
                                   tf_model_name: Links
@@ -773,12 +871,13 @@ schema:
                                   create_only: false
                                   present_in_any_response: true
                                   request_only_required_on_create: false
-                      description: 'Optional for type: AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC).'
+                      description: 'Optional for type: AWSLambda, AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC).'
                       custom_type:
-                        package: customtypes
                         name: ConnectionsPublicPrivateNetworking
                         model: customtypes.ObjectValue[TFConnectionsPublicPrivateNetworkingModel]
                         schema: customtypes.NewObjectType[TFConnectionsPublicPrivateNetworkingModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: public_private_networking
                       tf_model_name: PublicPrivateNetworking
@@ -856,10 +955,11 @@ schema:
                                   request_only_required_on_create: false
                       description: 'Required for type: SchemaRegistry. Authentication configuration for Schema Registry.'
                       custom_type:
-                        package: customtypes
                         name: ConnectionsSchemaRegistryAuthentication
                         model: customtypes.ObjectValue[TFConnectionsSchemaRegistryAuthenticationModel]
                         schema: customtypes.NewObjectType[TFConnectionsSchemaRegistryAuthenticationModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: schema_registry_authentication
                       tf_model_name: SchemaRegistryAuthentication
@@ -873,9 +973,10 @@ schema:
                         element_type: 4
                       description: 'Required for type: SchemaRegistry. List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.'
                       custom_type:
-                        package: customtypes
                         model: customtypes.SetValue[types.String]
                         schema: customtypes.NewSetType[types.String](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: schema_registry_urls
                       tf_model_name: SchemaRegistryUrls
@@ -912,10 +1013,11 @@ schema:
                                   request_only_required_on_create: false
                       description: 'Optional for type: Kafka. Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.'
                       custom_type:
-                        package: customtypes
                         name: ConnectionsSecurity
                         model: customtypes.ObjectValue[TFConnectionsSecurityModel]
                         schema: customtypes.NewObjectType[TFConnectionsSecurityModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: security
                       tf_model_name: Security
@@ -960,10 +1062,11 @@ schema:
                       request_only_required_on_create: false
           description: List of connections configured in the stream workspace.
           custom_type:
-            package: customtypes
             name: Connections
             model: customtypes.NestedListValue[TFConnectionsModel]
             schema: customtypes.NewNestedListType[TFConnectionsModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed
           tf_schema_name: connections
           tf_model_name: Connections
@@ -1000,10 +1103,11 @@ schema:
                       request_only_required_on_create: false
           description: Information about the cloud provider region in which MongoDB Cloud processes the stream.
           custom_type:
-            package: customtypes
             name: DataProcessRegion
             model: customtypes.ObjectValue[TFDataProcessRegionModel]
             schema: customtypes.NewObjectType[TFDataProcessRegionModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: data_process_region
           tf_model_name: DataProcessRegion
@@ -1054,10 +1158,11 @@ schema:
                                   request_only_required_on_create: false
                       description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
                       custom_type:
-                        package: customtypes
                         name: FailoverRegionsLinks
                         model: customtypes.NestedListValue[TFFailoverRegionsLinksModel]
                         schema: customtypes.NewNestedListType[TFFailoverRegionsLinksModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: computed
                       tf_schema_name: links
                       tf_model_name: Links
@@ -1080,10 +1185,11 @@ schema:
                       request_only_required_on_create: false
           description: List of failover regions configured for the stream workspace.
           custom_type:
-            package: customtypes
             name: FailoverRegions
             model: customtypes.NestedListValue[TFFailoverRegionsModel]
             schema: customtypes.NewNestedListType[TFFailoverRegionsModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: failover_regions
           tf_model_name: FailoverRegions
@@ -1111,9 +1217,10 @@ schema:
             element_type: 4
           description: List that contains the hostnames assigned to the stream workspace.
           custom_type:
-            package: customtypes
             model: customtypes.ListValue[types.String]
             schema: customtypes.NewListType[types.String](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed
           tf_schema_name: hostnames
           tf_model_name: Hostnames
@@ -1172,10 +1279,11 @@ schema:
                       request_only_required_on_create: false
           description: Desired status change to apply to a tenant's stream processors.
           custom_type:
-            package: customtypes
             name: ProcessorStatus
             model: customtypes.ObjectValue[TFProcessorStatusModel]
             schema: customtypes.NewObjectType[TFProcessorStatusModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: processor_status
           tf_model_name: ProcessorStatus
@@ -1202,10 +1310,11 @@ schema:
                       request_only_required_on_create: false
           description: Sample connections to add to SPI.
           custom_type:
-            package: customtypes
             name: SampleConnections
             model: customtypes.ObjectValue[TFSampleConnectionsModel]
             schema: customtypes.NewObjectType[TFSampleConnectionsModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: sample_connections
           tf_model_name: SampleConnections
@@ -1242,10 +1351,11 @@ schema:
                       request_only_required_on_create: false
           description: Configuration options for an Atlas Stream Processing Workspace.
           custom_type:
-            package: customtypes
             name: StreamConfig
             model: customtypes.ObjectValue[TFStreamConfigModel]
             schema: customtypes.NewObjectType[TFStreamConfigModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: stream_config
           tf_model_name: StreamConfig

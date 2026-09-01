@@ -2,6 +2,7 @@ package projectserviceaccount_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -147,10 +148,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
-	err := acc.CheckDestroyDeleteProjectSAs(s)
-	if err != nil {
-		return err
-	}
+	var errs []error
 	for name, rs := range s.RootModule().Resources {
 		if name != resourceName {
 			continue
@@ -158,15 +156,20 @@ func checkDestroy(s *terraform.State) error {
 		projectID := rs.Primary.Attributes["project_id"]
 		clientID := rs.Primary.Attributes["client_id"]
 		if projectID == "" || clientID == "" {
-			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
+			errs = append(errs, fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName))
+			break
 		}
 
 		_, _, err := acc.ConnV2().ServiceAccountsAPI.GetGroupServiceAccount(context.Background(), projectID, clientID).Execute()
 		if err == nil {
-			return fmt.Errorf("project service account (%s/%s) still exists", projectID, clientID)
+			errs = append(errs, fmt.Errorf("project service account (%s/%s) still exists", projectID, clientID))
+			break
 		}
 	}
-	return nil
+	if err := acc.CheckDestroyDeleteProjectSAs(s); err != nil {
+		errs = append(errs, err)
+	}
+	return errors.Join(errs...)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {

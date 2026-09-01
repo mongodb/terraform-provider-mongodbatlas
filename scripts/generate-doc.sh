@@ -77,7 +77,7 @@ fi
 
 trap 'rm -R docs-out/' EXIT # temp dir cleanup when script exits
 
-tfplugindocs generate --website-source-dir "${TEMPLATE_FOLDER_PATH}"  --rendered-website-dir "docs-out"
+tfplugindocs generate --website-source-dir "${TEMPLATE_FOLDER_PATH}"  --rendered-website-dir "docs-out" --provider-name "mongodbatlas"
 
 if [ "${is_ephemeral}" = true ]; then
     if [ ! -f "docs-out/ephemeral-resources/${resource_name}.md" ]; then
