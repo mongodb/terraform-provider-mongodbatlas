@@ -285,7 +285,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `reference_minute_of_hour` - (Optional) UTC Minutes after `reference_hour_of_day` that Atlas takes snapshots for backup policy items. Must be between 0 and 59, inclusive.
 * `restore_window_days` - (Optional) Number of days back in time you can restore to with point-in-time accuracy. Must be a positive, non-zero integer.
 * `update_snapshots` - (Optional) Specify true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously.
-* `update_copy_snapshots` - (Optional) Specify true to apply the retention changes for updated copy policy items to snapshot copies that Atlas took previously.
+* `update_copy_snapshots` - (Optional) Specify true to apply the retention changes for updated copy policy items to snapshot copies that Atlas took previously. Requires `copy_policy_items_enabled` to be true.
 * `delete_copy_snapshots` - (Optional) Specify true to delete snapshot copies when their associated `copy_policy_items` are removed. Requires `copy_policy_items_enabled` to be true.
 
   **Note** Atlas does not return `update_snapshots`, `update_copy_snapshots`, or `delete_copy_snapshots`. This is Atlas Admin API behavior, not Terraform. For more details about this resource see [Cloud Backup Schedule](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backups/operation/getBackupSchedule).
@@ -359,6 +359,8 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `retention_unit` - (Optional) Unit of time for copy retention: `days`, `weeks`, `months`, or `years`. Required by the API except when `frequency_type` is `ondemand`.
 * `retention_value` - (Optional) Value to associate with `retention_unit`. Required by the API except when `frequency_type` is `ondemand`.
 * `id` - Unique identifier of the copy policy item.
+
+**Note** The write-only array `deleteCopiedBackups` is not supported in Terraform. Use the Atlas Admin API or Atlas CLI to manage that array. It is not the same as `delete_copy_snapshots` on the resource.
 
 ## Attributes Reference
 

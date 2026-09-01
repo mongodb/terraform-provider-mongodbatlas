@@ -2,6 +2,10 @@ package cloudbackupschedule
 
 import (
 	"go.mongodb.org/atlas-sdk/v20250312024/admin"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func FlattenPolicyItem(items []admin.DiskBackupApiPolicyItem, frequencyType string) []map[string]any {
@@ -105,4 +109,52 @@ func expandCopyPolicyItem(item map[string]any) admin.DiskBackupCopyPolicyItem {
 		result.RetentionValue = new(value)
 	}
 	return result
+}
+
+func ExpandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting20240805 {
+	if tfMap == nil {
+		return nil
+	}
+
+	var frequencies []string
+	if set, ok := tfMap["frequencies"].(*schema.Set); ok && set != nil {
+		frequencies = conversion.ExpandStringList(set.List())
+	}
+	var copyPolicyItems []any
+	if items, ok := tfMap["copy_policy_items"].([]any); ok {
+		copyPolicyItems = items
+	}
+	lastN, _ := tfMap["last_number_of_snapshots"].(int)
+
+	copySetting := &admin.DiskBackupCopySetting20240805{
+		CloudProvider:    new(tfMap["cloud_provider"].(string)),
+		RegionName:       new(tfMap["region_name"].(string)),
+		ZoneId:           tfMap["zone_id"].(string),
+		ShouldCopyOplogs: new(tfMap["should_copy_oplogs"].(bool)),
+	}
+
+	expandedItems := ExpandCopyPolicyItems(copyPolicyItems)
+	switch {
+	case expandedItems != nil:
+		copySetting.CopyPolicyItems = expandedItems
+	case lastN > 0:
+		copySetting.LastNumberOfSnapshots = new(lastN)
+	default:
+		copySetting.Frequencies = &frequencies
+	}
+	return copySetting
+}
+
+func ExpandCopySettings(tfList []any) *[]admin.DiskBackupCopySetting20240805 {
+	copySettings := make([]admin.DiskBackupCopySetting20240805, 0)
+
+	for _, tfMapRaw := range tfList {
+		tfMap, ok := tfMapRaw.(map[string]any)
+		if !ok {
+			continue
+		}
+		apiObject := ExpandCopySetting(tfMap)
+		copySettings = append(copySettings, *apiObject)
+	}
+	return &copySettings
 }

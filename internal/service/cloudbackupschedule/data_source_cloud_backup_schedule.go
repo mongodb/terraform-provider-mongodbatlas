@@ -3,8 +3,6 @@ package cloudbackupschedule
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -262,23 +260,14 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	var backupSchedule *admin.DiskBackupSnapshotSchedule20240805
-	var copySettings []map[string]any
-	var err error
-
-	backupSchedule, _, err = connV2.CloudBackupsAPI.GetBackupSchedule(ctx, projectID, clusterName).Execute()
+	backupSchedule, _, err := connV2.CloudBackupsAPI.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}
-	copySettings = FlattenCopySettings(backupSchedule.GetCopySettings())
 
 	diags := setSchemaFields(d, backupSchedule)
 	if diags.HasError() {
 		return diags
-	}
-
-	if err := d.Set("copy_settings", copySettings); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
