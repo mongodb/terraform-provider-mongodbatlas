@@ -71,6 +71,10 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"operations_contact": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -127,6 +131,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	if err := d.Set("security_contact", settings.SecurityContact); err != nil {
 		return diag.Errorf("error setting `security_contact` for organization (%s): %s", orgID, err)
+	}
+	if err := d.Set("operations_contact", settings.OperationsContact); err != nil {
+		return diag.Errorf("error setting `operations_contact` for organization (%s): %s", orgID, err)
 	}
 
 	d.SetId(organization.GetId())
