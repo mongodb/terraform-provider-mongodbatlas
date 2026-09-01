@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/spf13/cast"
@@ -80,6 +82,7 @@ func Resource() *schema.Resource {
 			"copy_settings": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true, // SetNew on the list requires Computed; omitting the block is still a delete via CustomizeDiff.
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cloud_provider": {
@@ -535,7 +538,6 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 
 func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APIClient, d *schema.ResourceData, projectID, clusterName string) error {
 	var err error
-	copySettings := d.Get("copy_settings")
 
 	req := &admin.DiskBackupSnapshotSchedule20240805{}
 
@@ -597,8 +599,8 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 	if err != nil {
 		return fmt.Errorf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
-	if isCopySettingsNonEmptyOrChanged(d) {
-		req.CopySettings = ExpandCopySettings(copySettings.([]any))
+	if copySettings, ok := CopySettingsForUpdate(d); ok {
+		req.CopySettings = ExpandCopySettings(copySettings)
 	}
 
 	req.Policies = getRequestPolicies(policiesItem, resp.GetPolicies())
@@ -697,9 +699,33 @@ func policyItemID(policyState map[string]any) *string {
 	return nil
 }
 
-func isCopySettingsNonEmptyOrChanged(d *schema.ResourceData) bool {
-	copySettings, _ := d.Get("copy_settings").([]any)
-	return len(copySettings) > 0 || d.HasChange("copy_settings")
+func CopySettingsForUpdate(d copySettingsUpdateInput) ([]any, bool) {
+	rawConfig := d.GetRawConfig()
+	if !rawConfig.IsNull() && rawConfig.IsKnown() {
+		if CopySettingsRawConfigEmpty(rawConfig.GetAttr("copy_settings")) {
+			return []any{}, true
+		}
+	}
+	if d.HasChange("copy_settings") || d.HasChange("copy_settings.#") {
+		if count, ok := d.Get("copy_settings.#").(int); ok && count == 0 {
+			return []any{}, true
+		}
+		_, newVal := d.GetChange("copy_settings")
+		newList, _ := newVal.([]any)
+		return newList, true
+	}
+	current, _ := d.Get("copy_settings").([]any)
+	if len(current) == 0 {
+		return nil, false
+	}
+	return current, true
+}
+
+type copySettingsUpdateInput interface {
+	Get(key string) any
+	HasChange(key string) bool
+	GetChange(key string) (any, any)
+	GetRawConfig() cty.Value
 }
 
 func getRequestPolicies(policiesItem []admin.DiskBackupApiPolicyItem, respPolicies []admin.AdvancedDiskBackupSnapshotSchedulePolicy) []admin.AdvancedDiskBackupSnapshotSchedulePolicy {
@@ -759,11 +785,68 @@ func copyPolicyItemsSchema(computed bool) *schema.Schema {
 }
 
 func resourceCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ any) error {
-	return ValidateCopySettingsModes(d)
+	if err := ValidateCopySettingsModes(d); err != nil {
+		return err
+	}
+	rawConfig := d.GetRawConfig()
+	var copySettingsRaw cty.Value
+	if rawConfig.IsNull() || !rawConfig.IsKnown() {
+		copySettingsRaw = cty.NullVal(cty.DynamicPseudoType)
+	} else {
+		copySettingsRaw = rawConfig.GetAttr("copy_settings")
+	}
+	// Optional+Computed would keep last state when HCL omits copy_settings. Force an empty list so delete-on-omit stays.
+	// Do not require Get() length > 0: omitted/unknown config makes Get() empty even though planned state would keep last copies.
+	if CopySettingsRawConfigEmpty(copySettingsRaw) {
+		return d.SetNew("copy_settings", []any{})
+	}
+	return ClearFrequenciesWhenCopyPolicyEnabled(d)
 }
 
 type resourceGetter interface {
 	Get(key string) any
+}
+
+type resourceDiffNewSetter interface {
+	resourceGetter
+	SetNew(key string, value any) error
+}
+
+func CopySettingsRawConfigEmpty(raw cty.Value) bool {
+	// Omitted Optional+Computed nested blocks arrive as unknown (computed from state), not as null.
+	return raw.IsNull() || !raw.IsKnown() || raw.LengthInt() == 0
+}
+
+func ClearFrequenciesWhenCopyPolicyEnabled(d resourceDiffNewSetter) error {
+	enabled, _ := d.Get("copy_policy_items_enabled").(bool)
+	if !enabled {
+		return nil
+	}
+	copySettings, _ := d.Get("copy_settings").([]any)
+	rewritten, changed := CopySettingsWithEmptyFrequencies(copySettings)
+	if !changed {
+		return nil
+	}
+	return d.SetNew("copy_settings", rewritten)
+}
+
+func CopySettingsWithEmptyFrequencies(copySettings []any) ([]any, bool) {
+	changed := false
+	rewritten := make([]any, len(copySettings))
+	for i, raw := range copySettings {
+		entry, ok := raw.(map[string]any)
+		if !ok {
+			rewritten[i] = raw
+			continue
+		}
+		copied := maps.Clone(entry)
+		if collectionLen(copied["frequencies"]) > 0 {
+			copied["frequencies"] = schema.NewSet(schema.HashString, []any{})
+			changed = true
+		}
+		rewritten[i] = copied
+	}
+	return rewritten, changed
 }
 
 func ValidateCopySettingsModes(d resourceGetter) error {
