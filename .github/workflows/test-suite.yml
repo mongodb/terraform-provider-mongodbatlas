@@ -13,7 +13,7 @@ on:
     inputs:
       terraform_matrix:
         description: 'Terraform version matrix (JSON array)'
-        default: '["1.15.x","1.14.x","1.13.x","1.12.x","1.11.x","1.10.x"]'
+        default: '["1.16.x","1.15.x","1.14.x","1.13.x","1.12.x","1.11.x","1.10.x"]'
       provider_matrix:
         description: 'Previous MongoDB Atlas Provider version matrix for migration tests (JSON array)'
         default: '[""]' # "" for latest version
@@ -65,7 +65,7 @@ jobs:
   variables:
     permissions: {}
     env:
-      schedule_terraform_matrix: '["1.15.x"]'
+      schedule_terraform_matrix: '["1.16.x"]'
       schedule_provider_matrix: '[""]' # "" for latest version    
     runs-on: ubuntu-latest
     outputs:
@@ -132,7 +132,7 @@ jobs:
       - name: Summarize test run
         id: summary
         timeout-minutes: 15
-        uses: anthropics/claude-code-action@be7b93b1907a4abad570368f3c74b6fe3807510b
+        uses: anthropics/claude-code-action@e8c2d7c16c018cf1e694711c1c07a5f5db2b5eb1
         with:
           anthropic_api_key: ${{ secrets.AI_GATEWAY_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}

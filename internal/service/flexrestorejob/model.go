@@ -1,7 +1,7 @@
 package flexrestorejob
 
 import (
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -31,9 +31,9 @@ func NewTFModelPluralDS(projectID, name string, apiResp *[]admin.FlexBackupResto
 		return nil
 	}
 	var results []TFModel
-	//nolint:gocritic // TODO: CLOUDP-430469, revert before merging to master.
-	for _, job := range *apiResp {
-		results = append(results, *NewTFModel(&job))
+	jobs := *apiResp
+	for i := range jobs {
+		results = append(results, *NewTFModel(&jobs[i]))
 	}
 	return &TFFlexRestoreJobsDSModel{
 		ProjectID: types.StringValue(projectID),

@@ -8,11 +8,13 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/detectaiagent"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
@@ -36,6 +38,15 @@ const (
 	idleConnTimeout       = 30 * time.Second
 	expectContinueTimeout = 1 * time.Second
 )
+
+// Detect agent usage only once across UserAgent() calls.
+var detectedAgentIdentifier = sync.OnceValue(func() string {
+	agent, ok := detectaiagent.Detect()
+	if !ok {
+		return ""
+	}
+	return agent.UserAgentIdentifier
+})
 
 type AuthMethod int
 
@@ -336,6 +347,8 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params APICallParams
 }
 
 func UserAgent(terraformVersion string) string {
+	// The Terraform version does not change within a single execution, but acceptance/migration tests do create multiple
+	// clients passing in different values, so version identifiers are re-calculated in every UserAgent() call.
 	metadata := []struct {
 		Name  string
 		Value string
@@ -350,6 +363,11 @@ func UserAgent(terraformVersion string) string {
 		}
 		part := fmt.Sprintf("%s/%s", info.Name, info.Value)
 		parts = append(parts, part)
+	}
+
+	// Agent detection runs only once.
+	if identifier := detectedAgentIdentifier(); identifier != "" {
+		parts = append(parts, identifier)
 	}
 	return strings.Join(parts, " ")
 }

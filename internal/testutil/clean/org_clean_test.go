@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
 	"github.com/stretchr/testify/require"
 
@@ -346,9 +346,8 @@ func removePrivateEndpointServices(ctx context.Context, t *testing.T, dryRun boo
 			return 0, clean.SkipUnauthorizedErr(resp, err)
 		}
 
-		//nolint:gocritic // TODO: CLOUDP-430469, revert before merging to master.
-		for _, service := range endpointServices {
-			id := service.GetId()
+		for i := range endpointServices {
+			id := endpointServices[i].GetId()
 			t.Logf("delete private endpoint service %s for provider %s", id, provider)
 			if !dryRun {
 				if _, err := client.PrivateEndpointServicesAPI.DeletePrivateEndpointService(ctx, projectID, provider, id).Execute(); err != nil {

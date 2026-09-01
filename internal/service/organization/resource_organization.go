@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -350,10 +350,11 @@ func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizat
 		if len(saList) > 0 {
 			saMap := saList[0].(map[string]any)
 			createRequest.ServiceAccount = &admin.OrgServiceAccountRequest{
-				Name:                    saMap["name"].(string),
-				Description:             saMap["description"].(string),
-				Roles:                   conversion.ExpandStringList(saMap["roles"].(*schema.Set).List()),
-				SecretExpiresAfterHours: saMap["secret_expires_after_hours"].(int),
+				Name:        saMap["name"].(string),
+				Description: saMap["description"].(string),
+				Roles:       conversion.ExpandStringList(saMap["roles"].(*schema.Set).List()),
+				// TODO: CLOUDP-430469, revert before merging to master.
+				SecretExpiresAfterHours: new(saMap["secret_expires_after_hours"].(int)),
 			}
 		}
 	} else {

@@ -1,0 +1,25 @@
+---
+subcategory: "Cloud Backups"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes the collections in a database contained in a Cloud Backup snapshot. Use this data source to discover namespaces before creating a collection restore job. Point-in-time restores have no snapshot ID, so this data source does not apply to PIT restores.
+
+To use this data source, the requesting Service Account or API Key must have the Backup Manager or Project Owner role.
+
+## Example Usage
+
+The following example lists snapshots and namespaces in a Cloud Backup snapshot.
+
+{{ tffile "examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_discovery/main.tf" }}
+
+### Further Examples
+- [Snapshot discovery](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_discovery)
+- [Snapshot restore](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_cloud_backup_collection_restore_job/snapshot_restore)
+- [Point-in-time restore](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_cloud_backup_collection_restore_job/pit_restore)
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas - Restore from Selected Databases and Collections](https://www.mongodb.com/docs/atlas/backup/cloud-backup/restore-from-db-coll/) Documentation.
+

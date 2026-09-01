@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
 // GetWorkspaceOrInstanceName returns the workspace name from workspace_name or instance_name field. Assumes exactly one of the two is set.
@@ -39,23 +39,28 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 		if diags := plan.Options.As(ctx, optionsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
 		}
-		dlqModel := &TFDlqModel{}
-		if diags := optionsModel.Dlq.As(ctx, dlqModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+		dlq, diags := newDlqReq(ctx, optionsModel.Dlq)
+		if diags.HasError() {
+			return nil, diags
+		}
+		autoscaling, diags := newAutoscalingReq(ctx, optionsModel.Autoscaling)
+		if diags.HasError() {
 			return nil, diags
 		}
 		streamProcessor.Options = &admin.StreamsOptions{
-			Dlq: &admin.StreamsDLQ{
-				Coll:           dlqModel.Coll.ValueStringPointer(),
-				ConnectionName: dlqModel.ConnectionName.ValueStringPointer(),
-				Db:             dlqModel.DB.ValueStringPointer(),
-			},
+			Dlq:         dlq,
+			Autoscaling: autoscaling,
 		}
+	}
+
+	if !plan.Tier.IsNull() && !plan.Tier.IsUnknown() {
+		streamProcessor.Tier = plan.Tier.ValueStringPointer()
 	}
 
 	return streamProcessor, nil
 }
 
-func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.UpdateStreamProcessorApiParams, diag.Diagnostics) {
+func NewStreamProcessorUpdateReq(ctx context.Context, plan, state *TFStreamProcessorRSModel) (*admin.UpdateStreamProcessorApiParams, diag.Diagnostics) {
 	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
 	if diags != nil {
 		return nil, diags
@@ -77,22 +82,35 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSM
 		streamProcessorAPIParams.StreamsModifyStreamProcessor.FailoverEnabled = plan.FailoverEnabled.ValueBoolPointer()
 	}
 
-	if !plan.Options.IsNull() && !plan.Options.IsUnknown() {
-		optionsModel := &TFOptionsModel{}
-		if diags := plan.Options.As(ctx, optionsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
-			return nil, diags
+	// Resolve the options PATCH operations with tri-state semantics.
+	autoscaling, clearAutoscaling, diags := resolveAutoscalingForUpdate(ctx, plan, state)
+	if diags.HasError() {
+		return nil, diags
+	}
+	dlq, clearDLQ, diags := resolveDlqForUpdate(ctx, plan, state)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	if autoscaling != nil || clearAutoscaling || dlq != nil || clearDLQ {
+		options := &admin.StreamsModifyStreamProcessorOptions{
+			Dlq:         dlq,
+			Autoscaling: autoscaling,
 		}
-		dlqModel := &TFDlqModel{}
-		if diags := optionsModel.Dlq.As(ctx, dlqModel, basetypes.ObjectAsOptions{}); diags.HasError() {
-			return nil, diags
+		if clearAutoscaling {
+			options.SetAutoscalingNil()
 		}
-		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = &admin.StreamsModifyStreamProcessorOptions{
-			Dlq: &admin.StreamsDLQ{
-				Coll:           dlqModel.Coll.ValueStringPointer(),
-				ConnectionName: dlqModel.ConnectionName.ValueStringPointer(),
-				Db:             dlqModel.DB.ValueStringPointer(),
-			},
+		if clearDLQ {
+			// SPM uses an empty object (rather than null) as the DLQ clear signal.
+			options.Dlq = &admin.StreamsDLQ{}
 		}
+		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = options
+	}
+
+	// Baseline tier is settable on the PATCH body; when autoscaling is enabled the API treats
+	// it as the initial tier only and reports the running tier via effectiveTier.
+	if !plan.Tier.IsNull() && !plan.Tier.IsUnknown() {
+		streamProcessorAPIParams.StreamsModifyStreamProcessor.Tier = plan.Tier.ValueStringPointer()
 	}
 
 	return streamProcessorAPIParams, nil
@@ -123,6 +141,7 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, w
 		State:         types.StringPointerValue(&apiResp.State),
 		Stats:         statsTF,
 		Tier:          types.StringPointerValue(apiResp.Tier),
+		EffectiveTier: types.StringValue(apiResp.EffectiveTier),
 	}
 
 	if workspaceName != "" {
@@ -171,6 +190,7 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName, w
 		State:           types.StringPointerValue(&apiResp.State),
 		Stats:           statsTF,
 		Tier:            types.StringPointerValue(apiResp.Tier),
+		EffectiveTier:   types.StringValue(apiResp.EffectiveTier),
 		FailoverEnabled: types.BoolValue(apiResp.GetFailoverEnabled()),
 	}
 
@@ -185,16 +205,36 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName, w
 	return tfModel, nil
 }
 
+func newDlqReq(ctx context.Context, dlq types.Object) (*admin.StreamsDLQ, diag.Diagnostics) {
+	if dlq.IsNull() || dlq.IsUnknown() {
+		return nil, nil
+	}
+	dlqModel := &TFDlqModel{}
+	if diags := dlq.As(ctx, dlqModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return nil, diags
+	}
+	return &admin.StreamsDLQ{
+		Coll:           dlqModel.Coll.ValueStringPointer(),
+		ConnectionName: dlqModel.ConnectionName.ValueStringPointer(),
+		Db:             dlqModel.DB.ValueStringPointer(),
+	}, nil
+}
+
 func ConvertOptionsToTF(ctx context.Context, options *admin.StreamsOptions) (*types.Object, diag.Diagnostics) {
-	if options == nil || !options.HasDlq() {
+	if options == nil || (!options.HasDlq() && options.Autoscaling == nil) {
 		return new(types.ObjectNull(OptionsObjectType.AttributeTypes())), nil
 	}
 	dlqTF, diags := convertDlqToTF(ctx, options.Dlq)
 	if diags.HasError() {
 		return nil, diags
 	}
+	autoscalingTF, diags := convertAutoscalingToTF(ctx, options.Autoscaling)
+	if diags.HasError() {
+		return nil, diags
+	}
 	optionsTF := &TFOptionsModel{
-		Dlq: *dlqTF,
+		Dlq:         *dlqTF,
+		Autoscaling: autoscalingTF,
 	}
 	optionsObject, diags := types.ObjectValueFrom(ctx, OptionsObjectType.AttributeTypes(), optionsTF)
 	if diags.HasError() {
@@ -260,10 +300,19 @@ func NewTFStreamProcessors(ctx context.Context,
 }
 
 func convertPipelineToSdk(pipeline string) ([]any, diag.Diagnostics) {
-	var pipelineSliceOfMaps []any
-	err := json.Unmarshal([]byte(pipeline), &pipelineSliceOfMaps)
-	if err != nil {
+	// Each stage is kept as raw JSON instead of being decoded into map[string]any: Go maps are
+	// unordered and encoding/json sorts their keys on marshal, which would send Atlas a pipeline
+	// whose subdocument fields are alphabetized rather than in the order the practitioner wrote.
+	// MongoDB documents are ordered, so that silently changes the meaning of sort specifications
+	// and of equality comparisons against document literals. json.Marshal emits json.RawMessage
+	// verbatim, including when boxed in []any, so the authored order is preserved end to end.
+	var stages []json.RawMessage
+	if err := json.Unmarshal([]byte(pipeline), &stages); err != nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("failed to unmarshal pipeline", err.Error())}
 	}
-	return pipelineSliceOfMaps, nil
+	rawStages := make([]any, len(stages))
+	for i := range stages {
+		rawStages[i] = stages[i]
+	}
+	return rawStages, nil
 }

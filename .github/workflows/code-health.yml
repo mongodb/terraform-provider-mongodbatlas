@@ -34,7 +34,7 @@ jobs:
       # Also speeds up the tests
       - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
-          terraform_version: '1.15.x'
+          terraform_version: '1.16.x'
           terraform_wrapper: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
         with:
@@ -64,7 +64,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
-          terraform_version: '1.15.x'
+          terraform_version: '1.16.x'
           terraform_wrapper: false
       - run: make tools generate-docs-all
       - name: Find mutations

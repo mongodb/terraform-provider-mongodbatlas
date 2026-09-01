@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -36,6 +36,7 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 		State:                 types.StringPointerValue(apiResp.State),
 		Vendor:                types.StringPointerValue(apiResp.Vendor),
 		Arn:                   types.StringPointerValue(apiResp.Arn),
+		AuthenticationScheme:  types.StringPointerValue(apiResp.AuthenticationScheme),
 	}
 
 	subdomain, diags := types.ListValueFrom(ctx, types.StringType, apiResp.GetDnsSubDomain())
@@ -124,6 +125,9 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		State:             plan.State.ValueStringPointer(),
 		Vendor:            plan.Vendor.ValueStringPointer(),
 		Arn:               plan.Arn.ValueStringPointer(),
+	}
+	if !plan.AuthenticationScheme.IsNull() && !plan.AuthenticationScheme.IsUnknown() {
+		result.AuthenticationScheme = plan.AuthenticationScheme.ValueStringPointer()
 	}
 
 	if !plan.DnsSubDomain.IsNull() {

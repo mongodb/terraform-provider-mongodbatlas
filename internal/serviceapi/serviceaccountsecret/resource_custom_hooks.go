@@ -2,7 +2,7 @@ package serviceaccountsecret
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 )
@@ -24,7 +24,7 @@ func resourcePostReadAPICall(secretID string, result autogen.APICallResult) auto
 		return result
 	}
 	var responseJSON readAPIResponse
-	if err := json.Unmarshal(result.Body, &responseJSON); err != nil {
+	if err := autogen.Decode(result.Body, &responseJSON); err != nil {
 		return autogen.APICallResult{Body: nil, Err: err}
 	}
 
@@ -35,5 +35,5 @@ func resourcePostReadAPICall(secretID string, result autogen.APICallResult) auto
 		}
 	}
 
-	return autogen.APICallResult{Body: nil, Err: errors.New("secret not found in service account response")}
+	return autogen.APICallResult{Body: nil, Err: fmt.Errorf("secret not found in service account response: %w", autogen.ErrNotFound)}
 }

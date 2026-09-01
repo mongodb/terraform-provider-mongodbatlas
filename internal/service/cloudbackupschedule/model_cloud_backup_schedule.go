@@ -1,7 +1,7 @@
 package cloudbackupschedule
 
 import (
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
 func FlattenPolicyItem(items []admin.DiskBackupApiPolicyItem, frequencyType string) []map[string]any {
@@ -22,11 +22,11 @@ func FlattenPolicyItem(items []admin.DiskBackupApiPolicyItem, frequencyType stri
 
 func FlattenExport(roles *admin.DiskBackupSnapshotSchedule20240805) []map[string]any {
 	exportList := make([]map[string]any, 0)
-	// TODO: CLOUDP-430469, revert before merging to master.
-	if roles.Export != nil {
+	export := roles.GetExport()
+	if export.FrequencyType != nil || export.ExportBucketId != nil {
 		exportList = append(exportList, map[string]any{
-			"frequency_type":   roles.Export.GetFrequencyType(),
-			"export_bucket_id": roles.Export.GetExportBucketId(),
+			"frequency_type":   export.GetFrequencyType(),
+			"export_bucket_id": export.GetExportBucketId(),
 		})
 	}
 	return exportList

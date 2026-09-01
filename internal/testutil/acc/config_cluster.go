@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
@@ -55,6 +55,7 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 		specRequest := specRequests[i]
 		specs[i] = replicationSpec(&specRequest)
 	}
+	applyDiskSizeGB(specs, req.DiskSizeGb)
 	clusterName = req.ClusterName
 	resourceSuffix := req.ResourceSuffix
 	clusterType := req.ClusterType()
@@ -170,6 +171,9 @@ func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec2
 			if es.NodeCount != nil {
 				esMap["node_count"] = cty.NumberIntVal(int64(*es.NodeCount))
 			}
+			if es.DiskSizeGB != nil {
+				esMap["disk_size_gb"] = cty.NumberIntVal(int64(*es.DiskSizeGB))
+			}
 			if es.EbsVolumeType != nil && *es.EbsVolumeType != "" {
 				esMap["ebs_volume_type"] = cty.StringVal(*es.EbsVolumeType)
 			}
@@ -204,6 +208,22 @@ func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec2
 
 	cluster.SetAttributeValue("replication_specs", cty.TupleVal(allSpecs))
 	return nil
+}
+
+func applyDiskSizeGB(specs []admin.ReplicationSpec20240805, diskSizeGB int) {
+	if diskSizeGB <= 0 {
+		return
+	}
+	gb := float64(diskSizeGB)
+	for i := range specs {
+		rcs := specs[i].GetRegionConfigs()
+		for j := range rcs {
+			if rcs[j].ElectableSpecs != nil {
+				rcs[j].ElectableSpecs.DiskSizeGB = &gb
+			}
+		}
+		specs[i].RegionConfigs = &rcs
+	}
 }
 
 func validateAdvancedConfig(cfg map[string]any) error {

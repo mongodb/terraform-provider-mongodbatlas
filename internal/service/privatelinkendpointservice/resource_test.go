@@ -221,8 +221,8 @@ func waitForNoInterfaceEndpoints(t *testing.T, projectID, providerName, region s
 			if err != nil {
 				return nil, "", err
 			}
-			//nolint:gocritic // TODO: CLOUDP-430469, revert before merging to master.
-			for _, svc := range services {
+			for i := range services {
+				svc := &services[i]
 				if svc.GetRegionName() == region && len(svc.GetInterfaceEndpoints()) > 0 {
 					return "", "PENDING", nil
 				}

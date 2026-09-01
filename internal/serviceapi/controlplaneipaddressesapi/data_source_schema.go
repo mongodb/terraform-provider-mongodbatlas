@@ -14,6 +14,76 @@ import (
 func DataSourceSchema(ctx context.Context) dsschema.Schema {
 	return dsschema.Schema{
 		Attributes: map[string]dsschema.Attribute{
+			"gateways": dsschema.ListNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "List of gateways, each representing a group of service-specific IP addresses that customers can add to their allow lists independently. Includes the Atlas Gateway (data plane) group when present.",
+				CustomType:          customtypes.NewNestedListType[TFDSGatewaysModel](ctx),
+				NestedObject: dsschema.NestedAttributeObject{
+					Attributes: map[string]dsschema.Attribute{
+						"ips": dsschema.SingleNestedAttribute{
+							Computed:            true,
+							MarkdownDescription: "IP addresses for a specific gateway, organized by direction and cloud provider.",
+							CustomType:          customtypes.NewObjectType[TFDSGatewaysIpsModel](ctx),
+							Attributes: map[string]dsschema.Attribute{
+								"inbound": dsschema.SingleNestedAttribute{
+									Computed:            true,
+									MarkdownDescription: "List of inbound IP addresses to the Atlas control plane, categorized by cloud provider. If your application allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your API requests can reach the Atlas control plane.",
+									CustomType:          customtypes.NewObjectType[TFDSGatewaysIpsInboundModel](ctx),
+									Attributes: map[string]dsschema.Attribute{
+										"aws": dsschema.MapAttribute{
+											Computed:            true,
+											MarkdownDescription: "Control plane IP addresses in AWS. Each key identifies an Amazon Web Services (AWS) region. Each value identifies control plane IP addresses in the AWS region.",
+											CustomType:          customtypes.NewMapType[types.String](ctx),
+											ElementType:         types.StringType,
+										},
+										"azure": dsschema.MapAttribute{
+											Computed:            true,
+											MarkdownDescription: "Control plane IP addresses in Azure. Each key identifies an Azure region. Each value identifies control plane IP addresses in the Azure region.",
+											CustomType:          customtypes.NewMapType[types.String](ctx),
+											ElementType:         types.StringType,
+										},
+										"gcp": dsschema.MapAttribute{
+											Computed:            true,
+											MarkdownDescription: "Control plane IP addresses in GCP. Each key identifies a Google Cloud (GCP) region. Each value identifies control plane IP addresses in the GCP region.",
+											CustomType:          customtypes.NewMapType[types.String](ctx),
+											ElementType:         types.StringType,
+										},
+									},
+								},
+								"outbound": dsschema.SingleNestedAttribute{
+									Computed:            true,
+									MarkdownDescription: "List of outbound IP addresses from the Atlas control plane, categorized by cloud provider. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that Atlas can communicate with your webhooks and KMS.",
+									CustomType:          customtypes.NewObjectType[TFDSGatewaysIpsOutboundModel](ctx),
+									Attributes: map[string]dsschema.Attribute{
+										"aws": dsschema.MapAttribute{
+											Computed:            true,
+											MarkdownDescription: "Control plane IP addresses in AWS. Each key identifies an Amazon Web Services (AWS) region. Each value identifies control plane IP addresses in the AWS region.",
+											CustomType:          customtypes.NewMapType[types.String](ctx),
+											ElementType:         types.StringType,
+										},
+										"azure": dsschema.MapAttribute{
+											Computed:            true,
+											MarkdownDescription: "Control plane IP addresses in Azure. Each key identifies an Azure region. Each value identifies control plane IP addresses in the Azure region.",
+											CustomType:          customtypes.NewMapType[types.String](ctx),
+											ElementType:         types.StringType,
+										},
+										"gcp": dsschema.MapAttribute{
+											Computed:            true,
+											MarkdownDescription: "Control plane IP addresses in GCP. Each key identifies a Google Cloud (GCP) region. Each value identifies control plane IP addresses in the GCP region.",
+											CustomType:          customtypes.NewMapType[types.String](ctx),
+											ElementType:         types.StringType,
+										},
+									},
+								},
+							},
+						},
+						"name": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Name of the service that this gateway represents.",
+						},
+					},
+				},
+			},
 			"inbound": dsschema.SingleNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "List of inbound IP addresses to the Atlas control plane, categorized by cloud provider. If your application allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your API requests can reach the Atlas control plane.",
@@ -69,8 +139,27 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
-	Inbound  customtypes.ObjectValue[TFDSInboundModel]  `tfsdk:"inbound" autogen:"omitjson"`
-	Outbound customtypes.ObjectValue[TFDSOutboundModel] `tfsdk:"outbound" autogen:"omitjson"`
+	Gateways customtypes.NestedListValue[TFDSGatewaysModel] `tfsdk:"gateways" autogen:"omitjson"`
+	Inbound  customtypes.ObjectValue[TFDSInboundModel]      `tfsdk:"inbound" autogen:"omitjson"`
+	Outbound customtypes.ObjectValue[TFDSOutboundModel]     `tfsdk:"outbound" autogen:"omitjson"`
+}
+type TFDSGatewaysModel struct {
+	Ips  customtypes.ObjectValue[TFDSGatewaysIpsModel] `tfsdk:"ips" autogen:"omitjson"`
+	Name types.String                                  `tfsdk:"name" autogen:"omitjson"`
+}
+type TFDSGatewaysIpsModel struct {
+	Inbound  customtypes.ObjectValue[TFDSGatewaysIpsInboundModel]  `tfsdk:"inbound" autogen:"omitjson"`
+	Outbound customtypes.ObjectValue[TFDSGatewaysIpsOutboundModel] `tfsdk:"outbound" autogen:"omitjson"`
+}
+type TFDSGatewaysIpsInboundModel struct {
+	Aws   customtypes.MapValue[types.String] `tfsdk:"aws" autogen:"omitjson"`
+	Azure customtypes.MapValue[types.String] `tfsdk:"azure" autogen:"omitjson"`
+	Gcp   customtypes.MapValue[types.String] `tfsdk:"gcp" autogen:"omitjson"`
+}
+type TFDSGatewaysIpsOutboundModel struct {
+	Aws   customtypes.MapValue[types.String] `tfsdk:"aws" autogen:"omitjson"`
+	Azure customtypes.MapValue[types.String] `tfsdk:"azure" autogen:"omitjson"`
+	Gcp   customtypes.MapValue[types.String] `tfsdk:"gcp" autogen:"omitjson"`
 }
 type TFDSInboundModel struct {
 	Aws   customtypes.MapValue[types.String] `tfsdk:"aws" autogen:"omitjson"`

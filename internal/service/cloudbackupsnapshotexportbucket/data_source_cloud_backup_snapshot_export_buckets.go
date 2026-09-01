@@ -3,7 +3,7 @@ package cloudbackupsnapshotexportbucket
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -112,8 +112,8 @@ func flattenBuckets(buckets []admin.DiskBackupSnapshotExportBucketResponse) []ma
 
 	results = make([]map[string]any, len(buckets))
 
-	//nolint:gocritic // TODO: CLOUDP-430469, revert before merging to master.
-	for k, bucket := range buckets {
+	for k := range buckets {
+		bucket := &buckets[k]
 		results[k] = map[string]any{
 			"export_bucket_id": bucket.GetId(),
 			"bucket_name":      bucket.GetBucketName(),

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
 func SplitSnapshotImportID(id string) (*admin.GetClusterBackupSnapshotApiParams, error) {
