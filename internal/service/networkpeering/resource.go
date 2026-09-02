@@ -289,8 +289,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diags
 	}
 	// resourceRead only warns on FAILED status, surface it as an error when reached during creation.
-	if peer, ok := peerResp.(*admin.BaseNetworkPeeringConnectionSettings); ok {
-		diags = append(diags, ErrorIfFailedStatusIsPresent(peer)...)
+	if waitPeer, ok := peerResp.(*admin.BaseNetworkPeeringConnectionSettings); ok {
+		diags = append(diags, ErrorIfFailedStatusIsPresent(waitPeer)...)
 	}
 	return diags
 }
@@ -347,7 +347,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 // ErrorIfFailedStatusIsPresent returns an error diagnostic when the peering connection is in FAILED status.
-// It must only be used in create/update flows, using it in read would block all Terraform operations when Atlas moves the peering to FAILED on its own.
+// It must only be used in create/update flows: using it in read would block all Terraform operations when Atlas moves the peering to FAILED on its own.
 func ErrorIfFailedStatusIsPresent(peer *admin.BaseNetworkPeeringConnectionSettings) diag.Diagnostics {
 	if errorState, failed := failedStatusErrorState(peer); failed {
 		return diag.FromErr(fmt.Errorf("peer networking is in a failed state: %s", errorState))
@@ -367,7 +367,7 @@ func WarnIfFailedStatusIsPresent(peer *admin.BaseNetworkPeeringConnectionSetting
 	return nil
 }
 
-// for Azure/GCP "status" and "errorState" is returned, for AWS "statusName" and "errorStateName" :-/
+// for Azure/GCP "status" and "errorState" is returned, for AWS "statusName" and "errorStateName"
 func failedStatusErrorState(peer *admin.BaseNetworkPeeringConnectionSettings) (errorState string, failed bool) {
 	if peer.GetStatus() != "FAILED" && peer.GetStatusName() != "FAILED" {
 		return "", false
@@ -523,8 +523,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diags
 	}
 	// resourceRead only warns on FAILED status, surface it as an error when reached during update.
-	if peer, ok := peerResp.(*admin.BaseNetworkPeeringConnectionSettings); ok {
-		diags = append(diags, ErrorIfFailedStatusIsPresent(peer)...)
+	if waitPeer, ok := peerResp.(*admin.BaseNetworkPeeringConnectionSettings); ok {
+		diags = append(diags, ErrorIfFailedStatusIsPresent(waitPeer)...)
 	}
 	return diags
 }
