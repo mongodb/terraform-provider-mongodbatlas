@@ -48,6 +48,12 @@ variable "security_contact" {
   default     = ""
 }
 
+variable "operations_contact" {
+  type        = string
+  description = "Email address, typically a distribution list, for the organization to receive proactive notifications about its infrastructure"
+  default     = null
+}
+
 variable "skip_default_alerts_settings" {
   type        = bool
   description = "Flag that indicates whether to prevent Atlas from automatically creating organization-level alerts"
