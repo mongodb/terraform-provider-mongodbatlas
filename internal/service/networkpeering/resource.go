@@ -515,7 +515,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	peerResp, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
+		return diag.FromErr(fmt.Errorf(errorPeersUpdate, peerID, err))
 	}
 
 	diags := resourceRead(ctx, d, meta)
