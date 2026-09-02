@@ -382,8 +382,8 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 		GenAIFeaturesEnabled:    new(d.Get("gen_ai_features_enabled").(bool)),
 		SecurityContact:         new(d.Get("security_contact").(string)),
 	}
-	// SDKv2 Get() cannot distinguish an explicit empty string from an unset field, GetRawConfig() allows to
-	// distinguish between the two. The value in config is always sent so the API validates it, `operationsContact`
+	// SDKv2 Get() cannot distinguish an explicit empty string from an unset field, GetRawConfig() distinguishes
+	// between the two. The value in config is always sent so the API validates it, `operationsContact`
 	// is cleared with an explicit null when removed from config, and omitted when it was never set.
 	if d.GetRawConfig().GetAttr("operations_contact").IsNull() {
 		if d.HasChange("operations_contact") {
