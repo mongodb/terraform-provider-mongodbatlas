@@ -265,7 +265,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		MinTimeout: minTimeout,
 		Delay:      minTimeout,
 	}
-	_, errWait := stateConf.WaitForStateContext(ctx)
+	peerResp, errWait := stateConf.WaitForStateContext(ctx)
 	deleteOnCreateTimeout := true // default value when not set
 	if v, ok := d.GetOkExists("delete_on_create_timeout"); ok {
 		deleteOnCreateTimeout = v.(bool)
@@ -284,7 +284,15 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		"provider_name": providerName,
 	}))
 
-	return resourceRead(ctx, d, meta)
+	diags := resourceRead(ctx, d, meta)
+	if diags.HasError() {
+		return diags
+	}
+	// resourceRead only warns on FAILED status, surface it as an error when reached during creation.
+	if peer, ok := peerResp.(*admin.BaseNetworkPeeringConnectionSettings); ok {
+		diags = append(diags, ErrorIfFailedStatusIsPresent(peer)...)
+	}
+	return diags
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -335,21 +343,40 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	diags := setCommonFields(d, peer, peerID, accepterRegionName)
 
-	failedStatusDiag := errorIfFailedStatusIsPresent(peer)
-
-	return append(diags, failedStatusDiag...)
+	return append(diags, WarnIfFailedStatusIsPresent(peer)...)
 }
 
-func errorIfFailedStatusIsPresent(peer *admin.BaseNetworkPeeringConnectionSettings) diag.Diagnostics {
-	// for Azure/GCP "status" and "errorState" is returned, for AWS "statusName" and "errorStateName" :-/
-	if peer.GetStatus() == "FAILED" || peer.GetStatusName() == "FAILED" {
-		errorState := peer.GetErrorState()
-		if peer.GetErrorStateName() != "" {
-			errorState = peer.GetErrorStateName()
-		}
+// ErrorIfFailedStatusIsPresent returns an error diagnostic when the peering connection is in FAILED status.
+// It must only be used in create/update flows, using it in read would block all Terraform operations when Atlas moves the peering to FAILED on its own.
+func ErrorIfFailedStatusIsPresent(peer *admin.BaseNetworkPeeringConnectionSettings) diag.Diagnostics {
+	if errorState, failed := failedStatusErrorState(peer); failed {
 		return diag.FromErr(fmt.Errorf("peer networking is in a failed state: %s", errorState))
 	}
 	return nil
+}
+
+// WarnIfFailedStatusIsPresent returns a warning diagnostic when the peering connection is in FAILED status.
+func WarnIfFailedStatusIsPresent(peer *admin.BaseNetworkPeeringConnectionSettings) diag.Diagnostics {
+	if errorState, failed := failedStatusErrorState(peer); failed {
+		return diag.Diagnostics{{
+			Severity: diag.Warning,
+			Summary:  "Network peering connection is in FAILED status",
+			Detail:   fmt.Sprintf("Peer networking is in a failed state: %s. The resource is kept in the Terraform state, fix the reported issue and recreate the resource if needed.", errorState),
+		}}
+	}
+	return nil
+}
+
+// for Azure/GCP "status" and "errorState" is returned, for AWS "statusName" and "errorStateName" :-/
+func failedStatusErrorState(peer *admin.BaseNetworkPeeringConnectionSettings) (errorState string, failed bool) {
+	if peer.GetStatus() != "FAILED" && peer.GetStatusName() != "FAILED" {
+		return "", false
+	}
+	errorState = peer.GetErrorState()
+	if peer.GetErrorStateName() != "" {
+		errorState = peer.GetErrorStateName()
+	}
+	return errorState, true
 }
 
 func setCommonFields(d *schema.ResourceData, peer *admin.BaseNetworkPeeringConnectionSettings, peerID, accepterRegionName string) diag.Diagnostics {
@@ -486,12 +513,20 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Delay:      minTimeout,
 	}
 
-	_, err = stateConf.WaitForStateContext(ctx)
+	peerResp, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
 	}
 
-	return resourceRead(ctx, d, meta)
+	diags := resourceRead(ctx, d, meta)
+	if diags.HasError() {
+		return diags
+	}
+	// resourceRead only warns on FAILED status, surface it as an error when reached during update.
+	if peer, ok := peerResp.(*admin.BaseNetworkPeeringConnectionSettings); ok {
+		diags = append(diags, ErrorIfFailedStatusIsPresent(peer)...)
+	}
+	return diags
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -506,7 +541,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"AVAILABLE", "INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER", "TERMINATING", "DELETING"},
+		Pending:    []string{"AVAILABLE", "INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER", "TERMINATING", "DELETING", "FAILED"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, "", conn.NetworkPeeringAPI),
 		Timeout:    d.Timeout(schema.TimeoutDelete),

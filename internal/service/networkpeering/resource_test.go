@@ -8,11 +8,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
 var (
@@ -82,6 +86,10 @@ func TestAccNetworkRSNetworkPeering_AzureFailedStatus(t *testing.T) {
 		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
 		vNetName          = os.Getenv("AZURE_VNET_NAME")
 		providerName      = "AZURE"
+		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		cidrBlock         = "172.16.0.0/21" // failure expected as 2 peering connections use same cidr block range in same azure account
+		firstProjName     = acc.RandomProjectName()
+		secondProjName    = acc.RandomProjectName()
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -90,8 +98,13 @@ func TestAccNetworkRSNetworkPeering_AzureFailedStatus(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
-				Config:      configAzureTwoPeeringSameCIDR(providerName, directoryID, subscriptionID, resourceGroupName, vNetName),
+				Config:      configAzureTwoPeeringSameCIDR(orgID, firstProjName, secondProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName),
 				ExpectError: regexp.MustCompile("peer networking is in a failed state:"),
+			},
+			{
+				// removing the failed peering from the config exercises that refresh only warns on FAILED status and that the failed peering can be destroyed
+				Config: configAzureWithProject("first", orgID, firstProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName),
+				Check:  checkExists("mongodbatlas_network_peering.first"),
 			},
 		},
 	})
@@ -220,6 +233,57 @@ func TestAccNetworkNetworkPeering_timeouts(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestFailedStatusDiagnostics(t *testing.T) {
+	testCases := map[string]struct {
+		peer         *admin.BaseNetworkPeeringConnectionSettings
+		errorState   string
+		expectsDiags bool
+	}{
+		"AWS FAILED status": {
+			peer: &admin.BaseNetworkPeeringConnectionSettings{
+				StatusName:     new("FAILED"),
+				ErrorStateName: new("REJECTED"),
+			},
+			errorState:   "REJECTED",
+			expectsDiags: true,
+		},
+		"Azure/GCP FAILED status": {
+			peer: &admin.BaseNetworkPeeringConnectionSettings{
+				Status:     new("FAILED"),
+				ErrorState: new("CIDR_BLOCK_CONFLICT"),
+			},
+			errorState:   "CIDR_BLOCK_CONFLICT",
+			expectsDiags: true,
+		},
+		"AVAILABLE status": {
+			peer: &admin.BaseNetworkPeeringConnectionSettings{
+				Status:     new("AVAILABLE"),
+				StatusName: new("AVAILABLE"),
+			},
+			expectsDiags: false,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			errorDiags := networkpeering.ErrorIfFailedStatusIsPresent(tc.peer)
+			warningDiags := networkpeering.WarnIfFailedStatusIsPresent(tc.peer)
+			if !tc.expectsDiags {
+				assert.Empty(t, errorDiags)
+				assert.Empty(t, warningDiags)
+				return
+			}
+			assert.Equal(t, diag.FromErr(fmt.Errorf("peer networking is in a failed state: %s", tc.errorState)), errorDiags)
+			expectedWarning := diag.Diagnostics{{
+				Severity: diag.Warning,
+				Summary:  "Network peering connection is in FAILED status",
+				Detail:   fmt.Sprintf("Peer networking is in a failed state: %s. The resource is kept in the Terraform state, fix the reported issue and recreate the resource if needed.", tc.errorState),
+			}}
+			assert.Equal(t, expectedWarning, warningDiags)
+		})
+	}
 }
 
 func basicAWSTestCase(tb testing.TB) *resource.TestCase {
@@ -375,11 +439,7 @@ func configAzure(projectID, providerName, directoryID, subscriptionID, resourceG
 	`, projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName)
 }
 
-func configAzureTwoPeeringSameCIDR(providerName, directoryID, subscriptionID, resourceGroupName, vNetName string) string {
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	firstProjName := acc.RandomProjectName()
-	secondProjName := acc.RandomProjectName()
-	cidrBlock := "172.16.0.0/21" // failure expected as 2 peering connections use same cidr block range in same azure account
+func configAzureTwoPeeringSameCIDR(orgID, firstProjName, secondProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName string) string {
 	firstAzureConfig := configAzureWithProject("first", orgID, firstProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName)
 	secondAzureConfig := configAzureWithProject("second", orgID, secondProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName)
 	return fmt.Sprintf(`
