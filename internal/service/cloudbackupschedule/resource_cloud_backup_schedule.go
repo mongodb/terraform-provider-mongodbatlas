@@ -612,7 +612,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 func copySettingsForUpdate(d *schema.ResourceData) ([]any, bool) {
 	rawConfig := d.GetRawConfig()
 	if rawConfig.IsKnown() && !rawConfig.IsNull() {
-		if CopySettingsRawConfigEmpty(copySettingsFromRawConfig(rawConfig)) {
+		if copySettingsRawConfigEmpty(copySettingsFromRawConfig(rawConfig)) {
 			return []any{}, true
 		}
 	}

@@ -25,28 +25,19 @@ const (
 // block: force [] when raw config omits the list, and clear frequency sets when the flag is on.
 func resourceCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ any) error {
 	copySettingsRaw := copySettingsFromRawConfig(d.GetRawConfig())
-	if err := ValidateCopySettingsModes(d, copySettingsRaw); err != nil {
+	if err := validateCopySettingsModes(d, copySettingsRaw); err != nil {
 		return err
 	}
 	// Optional+Computed would keep last state when HCL omits copy_settings. Force an empty list so delete-on-omit stays.
 	// Do not require Get() length > 0: omitted/unknown config makes Get() empty even though planned state would keep last copies.
-	if CopySettingsRawConfigEmpty(copySettingsRaw) {
+	if copySettingsRawConfigEmpty(copySettingsRaw) {
 		return d.SetNew("copy_settings", []any{})
 	}
-	return ClearFrequenciesWhenCopyPolicyEnabled(d)
+	return clearFrequenciesWhenCopyPolicyEnabled(d)
 }
 
-type resourceGetter interface {
-	Get(key string) any
-}
-
-type resourceDiffNewSetter interface {
-	resourceGetter
-	SetNew(key string, value any) error
-}
-
-// CopySettingsRawConfigEmpty reports whether HCL omitted copy_settings. Also used at apply time by copySettingsForUpdate.
-func CopySettingsRawConfigEmpty(raw cty.Value) bool {
+// copySettingsRawConfigEmpty reports whether HCL omitted copy_settings. Also used at apply time by copySettingsForUpdate.
+func copySettingsRawConfigEmpty(raw cty.Value) bool {
 	// Omitted Optional+Computed nested blocks arrive as unknown (computed from state), not as null.
 	return raw.IsNull() || !raw.IsKnown() || raw.LengthInt() == 0
 }
@@ -58,20 +49,20 @@ func copySettingsFromRawConfig(rawConfig cty.Value) cty.Value {
 	return rawConfig.GetAttr("copy_settings")
 }
 
-func ClearFrequenciesWhenCopyPolicyEnabled(d resourceDiffNewSetter) error {
+func clearFrequenciesWhenCopyPolicyEnabled(d *schema.ResourceDiff) error {
 	enabled, _ := d.Get("copy_policy_items_enabled").(bool)
 	if !enabled {
 		return nil
 	}
 	copySettings, _ := d.Get("copy_settings").([]any)
-	rewritten, changed := CopySettingsWithEmptyFrequencies(copySettings)
+	rewritten, changed := copySettingsWithEmptyFrequencies(copySettings)
 	if !changed {
 		return nil
 	}
 	return d.SetNew("copy_settings", rewritten)
 }
 
-func CopySettingsWithEmptyFrequencies(copySettings []any) ([]any, bool) {
+func copySettingsWithEmptyFrequencies(copySettings []any) ([]any, bool) {
 	changed := false
 	rewritten := make([]any, len(copySettings))
 	for i, raw := range copySettings {
@@ -90,7 +81,7 @@ func CopySettingsWithEmptyFrequencies(copySettings []any) ([]any, bool) {
 	return rewritten, changed
 }
 
-func ValidateCopySettingsModes(d resourceGetter, copySettingsRaw cty.Value) error {
+func validateCopySettingsModes(d *schema.ResourceDiff, copySettingsRaw cty.Value) error {
 	enabled, _ := d.Get("copy_policy_items_enabled").(bool)
 	updateCopy, _ := d.Get("update_copy_snapshots").(bool)
 	deleteCopy, _ := d.Get("delete_copy_snapshots").(bool)

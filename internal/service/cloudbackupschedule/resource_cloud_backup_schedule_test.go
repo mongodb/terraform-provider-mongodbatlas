@@ -414,6 +414,79 @@ func TestAccBackupRSCloudBackupSchedule_copySettingsModesValidation(t *testing.T
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile(`require copy_policy_items_enabled to be true`),
 			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_policy_items_enabled = true
+					copy_settings {
+						cloud_provider = "AWS"
+						region_name    = "US_EAST_1"
+						zone_id        = "111111111111111111111111"
+						frequencies    = ["DAILY"]
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`frequencies cannot be set when copy_policy_items_enabled is true`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					delete_copy_snapshots = true
+				`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`delete_copy_snapshots requires copy_policy_items_enabled to be true`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					update_copy_snapshots = true
+				`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`update_copy_snapshots requires copy_policy_items_enabled to be true`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_policy_items_enabled = true
+					copy_settings {
+						cloud_provider           = "AWS"
+						region_name              = "US_EAST_1"
+						zone_id                  = "111111111111111111111111"
+						last_number_of_snapshots = 5
+						copy_policy_items {
+							frequency_type  = "daily"
+							retention_unit  = "days"
+							retention_value = 7
+						}
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`only one of frequencies, copy_policy_items, or last_number_of_snapshots`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_policy_items_enabled = true
+					copy_settings {
+						cloud_provider           = "AWS"
+						region_name              = "US_EAST_1"
+						zone_id                  = "111111111111111111111111"
+						frequencies              = ["DAILY"]
+						last_number_of_snapshots = 5
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`only one of frequencies, copy_policy_items, or last_number_of_snapshots`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_policy_items_enabled = true
+					copy_settings {
+						cloud_provider = "AWS"
+						region_name    = "US_EAST_1"
+						zone_id        = "111111111111111111111111"
+						frequencies    = ["DAILY"]
+						copy_policy_items {
+							frequency_type  = "daily"
+							retention_unit  = "days"
+							retention_value = 7
+						}
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`only one of frequencies, copy_policy_items, or last_number_of_snapshots`),
+			},
 		},
 	})
 }
