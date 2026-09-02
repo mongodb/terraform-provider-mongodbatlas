@@ -89,10 +89,11 @@ schema:
                                   request_only_required_on_create: false
                       description: Dead letter queue for the stream processor.
                       custom_type:
-                        package: customtypes
                         name: OptionsDlq
                         model: customtypes.ObjectValue[TFOptionsDlqModel]
                         schema: customtypes.NewObjectType[TFOptionsDlqModel](ctx)
+                        packages:
+                            - customtypes
                       computed_optional_required: optional
                       tf_schema_name: dlq
                       tf_model_name: Dlq
@@ -115,10 +116,11 @@ schema:
                       request_only_required_on_create: false
           description: Optional configuration for the stream processor.
           custom_type:
-            package: customtypes
             name: Options
             model: customtypes.ObjectValue[TFOptionsModel]
             schema: customtypes.NewObjectType[TFOptionsModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed_optional
           tf_schema_name: options
           tf_model_name: Options
@@ -132,9 +134,11 @@ schema:
             element_type: 5
           description: Stream aggregation pipeline you want to apply to your streaming data.
           custom_type:
-            package: customtypes
             model: customtypes.ListValue[jsontypes.Normalized]
             schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+            packages:
+                - customtypes
+                - jsontypes
           computed_optional_required: optional
           tf_schema_name: pipeline
           tf_model_name: Pipeline
@@ -159,9 +163,11 @@ schema:
             element_type: 5
           description: The stats associated with the stream processor.
           custom_type:
-            package: customtypes
             model: customtypes.MapValue[jsontypes.Normalized]
             schema: customtypes.NewMapType[jsontypes.Normalized](ctx)
+            packages:
+                - customtypes
+                - jsontypes
           computed_optional_required: computed
           tf_schema_name: stats
           tf_model_name: Stats
@@ -188,7 +194,7 @@ schema:
           tf_schema_name: tier
           tf_model_name: Tier
           api_name: tier
-          req_body_usage: omit_in_update_body
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
           present_in_any_response: true

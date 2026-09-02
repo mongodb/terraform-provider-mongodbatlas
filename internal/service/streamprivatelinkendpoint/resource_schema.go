@@ -83,6 +83,7 @@ func ResourceSchema() schema.Schema {
 				Optional: true,
 				MarkdownDescription: "For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). " +
 					"For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html). " +
+					"For AWS LAMBDA, this is the Lambda VPC endpoint service name in the format `com.amazonaws.{region}.lambda`. " +
 					"For AZURE_BLOB_STORAGE, this is the Azure Resource Manager path of the storage account in the format " +
 					"`/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}`.",
 				PlanModifiers: []planmodifier.String{
@@ -105,7 +106,7 @@ func ResourceSchema() schema.Schema {
 				Required: true,
 				MarkdownDescription: `Vendor that manages the endpoint. The following are the vendor values per provider:
 
-	* **AWS**: MSK, CONFLUENT, and S3
+	* **AWS**: MSK, CONFLUENT, S3, and LAMBDA
 
 	* **Azure**: EVENTHUB, CONFLUENT, and AZURE_BLOB_STORAGE
 
@@ -119,6 +120,14 @@ func ResourceSchema() schema.Schema {
 				MarkdownDescription: "Amazon Resource Name (ARN). Required for AWS Provider and MSK vendor.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"authentication_scheme": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Authentication mechanism to use with this private link connection. Only applies when the vendor is `MSK`. Valid values are `SASL_SCRAM`, `TLS`, and `IAM`. Changing this value forces replacement of the private link connection.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplaceIfConfigured(),
 				},
 			},
 		},
@@ -141,6 +150,7 @@ type TFModel struct {
 	State                 types.String `tfsdk:"state"`
 	Vendor                types.String `tfsdk:"vendor"`
 	Arn                   types.String `tfsdk:"arn"`
+	AuthenticationScheme  types.String `tfsdk:"authentication_scheme"`
 }
 
 type TFModelDSP struct {

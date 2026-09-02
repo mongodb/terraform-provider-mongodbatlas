@@ -24,7 +24,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```
 
 ### Further Examples
-- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.15.0/examples/mongodbatlas_stream_connection)
+- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_stream_connection)
 
 ### Example Cross Project Cluster Connection
 
@@ -152,6 +152,36 @@ resource "mongodbatlas_stream_connection" "test" {
     }
 }
 
+```
+
+### Example AWSLambda Connection with Private Link
+
+~> **NOTE:** An AWS cluster must be provisioned in the same region before creating an AWS Lambda private endpoint.
+
+```terraform
+resource "mongodbatlas_stream_privatelink_endpoint" "aws_lambda" {
+    project_id          = var.project_id
+    provider_name       = "AWS"
+    vendor              = "LAMBDA"
+    region              = "us-east-1"
+    service_endpoint_id = "com.amazonaws.us-east-1.lambda"
+}
+
+resource "mongodbatlas_stream_connection" "example_aws_lambda_private_link" {
+    project_id      = var.project_id
+    workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+    connection_name = "AWSLambdaPLConnection"
+    type            = "AWSLambda"
+    aws = {
+      role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/lambdaRole"
+    }
+    networking = {
+      access = {
+        type          = "PRIVATE_LINK"
+        connection_id = mongodbatlas_stream_privatelink_endpoint.aws_lambda.id
+      }
+    }
+}
 ```
 
 ### Example GCPPubSub Connection
@@ -366,6 +396,7 @@ If `type` is of value `AWSKinesisDataStreams` the following additional arguments
 
 If `type` is of value `AWSLambda` the following additional arguments are defined:
 * `aws` - The configuration for AWS Lambda connection. See [AWS](#aws).
+* `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
 
 If `type` is of value `GCPPubSub` the following additional arguments are defined:
 * `gcp` - The configuration for GCP Pub/Sub connection. See [GCP](#gcp).
@@ -386,7 +417,7 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
 
 ### Authentication
 
-* `mechanism` - Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, or `OAUTHBEARER`.
+* `mechanism` - Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, `OAUTHBEARER`, or `AWS_MSK_IAM`.
 * `method` - SASL OAUTHBEARER authentication method. Value must be OIDC.
 * `username` - Username of the account to connect to the Kafka cluster.
 * `password` - Password of the account to connect to the Kafka cluster.
@@ -395,6 +426,10 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
 * `client_secret` - Secret known only to the Kafka client and the authorization server.
 * `scope` - Scope of the access request to the broker specified by the Kafka clients.
 * `sasl_oauthbearer_extensions` - Additional information to provide to the Kafka broker.
+* `aws` - AWS configuration used for `AWS_MSK_IAM` authentication to an Amazon MSK cluster. See [authentication AWS](#authentication-aws).
+
+### Authentication AWS
+* `role_arn` - Amazon Resource Name (ARN) that identifies the AWS IAM role that MongoDB Cloud assumes to authenticate to the Amazon MSK cluster.
 
 ### Security
 

@@ -1,5 +1,77 @@
 ## (Unreleased)
 
+## 2.17.0 (August 27, 2026)
+
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_cloud_backup_collection_restore_job` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
+* **New Data Source:** `data-source/mongodbatlas_cloud_backup_collection_restore_job_collection` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
+* **New Data Source:** `data-source/mongodbatlas_cloud_backup_collection_restore_job_collections` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
+* **New Data Source:** `data-source/mongodbatlas_cloud_backup_collection_restore_jobs` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
+* **New Data Source:** `data-source/mongodbatlas_cloud_backup_snapshot_database_collections` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
+* **New Data Source:** `data-source/mongodbatlas_cloud_backup_snapshot_databases` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
+* **New Resource:** `resource/mongodbatlas_cloud_backup_collection_restore_job` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection: Adds `authentication.aws` attribute ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
+* data-source/mongodbatlas_stream_connections: Adds `authentication.aws` attribute ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
+* data-source/mongodbatlas_stream_privatelink_endpoint: Adds `authentication_scheme` attribute ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
+* data-source/mongodbatlas_stream_privatelink_endpoints: Adds `authentication_scheme` attribute ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
+* data-source/mongodbatlas_stream_processor: Adds `options.autoscaling` block and read-only `effective_tier` attribute ([#4665](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4665))
+* data-source/mongodbatlas_stream_processors: Adds `options.autoscaling` block and read-only `effective_tier` attribute ([#4665](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4665))
+* resource/mongodbatlas_stream_connection: Adds support for IAM (`AWS_MSK_IAM`) authentication for Kafka connections via the new `authentication.aws` attribute ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
+* resource/mongodbatlas_stream_privatelink_endpoint: Adds `authentication_scheme` attribute to support `SASL_SCRAM`, `TLS`, and `IAM` authentication for MSK Private Link connections ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
+* resource/mongodbatlas_stream_processor: Adds independently optional `options.autoscaling` and `options.dlq` blocks plus read-only `effective_tier` attribute to support vertical autoscaling ([#4665](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4665))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_log_integrations: Sends `integration_type` list filter during pagination ([#4680](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4680))
+* data-source/mongodbatlas_metric_integrations: Sends `integration_type` and `provider_type` list filters during pagination ([#4680](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4680))
+* resource/mongodbatlas_ai_model_api_key: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_ai_model_rate_limit: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_log_integration: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_metric_integration: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_project_service_account: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_project_service_account_secret: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_service_account: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_service_account_project_assignment: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_service_account_secret: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_stream_connection: Requires replacement of mongodbatlas_stream_connection when networking changes ([#4659](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4659))
+* resource/mongodbatlas_stream_connection_failover: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+
+## 2.16.0 (August 13, 2026)
+
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_ai_model_api_key` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_api_keys` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_org_api_key` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_org_api_keys` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_org_rate_limit` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_org_rate_limits` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_rate_limit` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_ai_model_rate_limits` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Data Source:** `data-source/mongodbatlas_metric_integration` ([#4555](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4555))
+* **New Data Source:** `data-source/mongodbatlas_metric_integrations` ([#4555](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4555))
+* **New Resource:** `resource/mongodbatlas_ai_model_api_key` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Resource:** `resource/mongodbatlas_ai_model_rate_limit` ([#4630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4630))
+* **New Resource:** `resource/mongodbatlas_metric_integration` ([#4553](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4553))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection: Supports `networking` for `AWSLambda` connections. ([#4619](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4619))
+* data-source/mongodbatlas_stream_connections: Supports `networking` for `AWSLambda` connections. ([#4619](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4619))
+* resource/mongodbatlas_database_user: Adds support for write-only `password_wo` and `password_wo_version` attributes so the password is not persisted in Terraform state ([#4621](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4621))
+* resource/mongodbatlas_stream_connection: Supports `networking` with `PRIVATE_LINK` access for `AWSLambda` connections. ([#4619](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4619))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_stream_connection_failover: Marks `authentication.ssl_key` and `authentication.ssl_key_password` as sensitive ([#4617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4617))
+* data-source/mongodbatlas_stream_connection_failovers: Marks `results.authentication.ssl_key` and `results.authentication.ssl_key_password` as sensitive ([#4617](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4617))
+* resource/mongodbatlas_stream_processor: Preserves the field order of pipeline stage subdocuments instead of sending them alphabetized. ([#4631](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4631))
+
 ## 2.15.0 (July 29, 2026)
 
 ENHANCEMENTS:

@@ -195,10 +195,11 @@ PROPERTIES
 }
 
 resource "mongodbatlas_stream_privatelink_endpoint" "test" {
-  project_id    = var.project_id
-  provider_name = "AWS"
-  vendor        = "MSK"
-  arn           = aws_msk_cluster.example.arn
+  project_id            = var.project_id
+  provider_name         = "AWS"
+  vendor                = "MSK"
+  arn                   = aws_msk_cluster.example.arn
+  authentication_scheme = "SASL_SCRAM" # Authentication mechanism for MSK. Valid values are SASL_SCRAM, TLS, and IAM.
 }
 
 data "mongodbatlas_stream_privatelink_endpoint" "singular_datasource" {
@@ -397,6 +398,7 @@ output "privatelink_endpoint_id" {
 Read-Only:
 
 - `arn` (String) Amazon Resource Name (ARN). Required for AWS Provider and MSK vendor.
+- `authentication_scheme` (String) Authentication mechanism to use with this private link connection. Only applies when the vendor is `MSK`. Valid values are `SASL_SCRAM`, `TLS`, and `IAM`. Changing this value forces replacement of the private link connection.
 - `dns_domain` (String) The domain hostname. Optional for AWS Confluent Enterprise Kafka Cluster. Required for the following provider and vendor combinations:
 
 	* AWS provider with CONFLUENT vendor for Dedicated Kafka Cluster.
@@ -418,11 +420,11 @@ Read-Only:
 - `provider_name` (String) Provider where the endpoint is deployed. Valid values are AWS, AZURE, and GCP.
 - `region` (String) The region of the Provider’s cluster. See [AZURE](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances) and [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/#stream-processing-instances) supported regions. When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.
 - `service_attachment_uris` (List of String) List of GCP service attachment URIs for Confluent vendor. Required for GCP provider with CONFLUENT vendor.
-- `service_endpoint_id` (String) For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html). For AZURE_BLOB_STORAGE, this is the Azure Resource Manager path of the storage account in the format `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}`.
+- `service_endpoint_id` (String) For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html). For AWS LAMBDA, this is the Lambda VPC endpoint service name in the format `com.amazonaws.{region}.lambda`. For AZURE_BLOB_STORAGE, this is the Azure Resource Manager path of the storage account in the format `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}`.
 - `state` (String) Status of the connection.
 - `vendor` (String) Vendor that manages the endpoint. The following are the vendor values per provider:
 
-	* **AWS**: MSK, CONFLUENT, and S3
+	* **AWS**: MSK, CONFLUENT, S3, and LAMBDA
 
 	* **Azure**: EVENTHUB, CONFLUENT, and AZURE_BLOB_STORAGE
 

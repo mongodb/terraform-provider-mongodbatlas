@@ -72,10 +72,11 @@ schema:
                       request_only_required_on_create: false
           description: List of settings that configure the Search Nodes for your cluster, with per-region detail including the region name and cloud provider.
           custom_type:
-            package: customtypes
             name: EffectiveSpecs
             model: customtypes.NestedListValue[TFEffectiveSpecsModel]
             schema: customtypes.NewNestedListType[TFEffectiveSpecsModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: computed
           tf_schema_name: effective_specs
           tf_model_name: EffectiveSpecs
@@ -170,10 +171,11 @@ schema:
                       request_only_required_on_create: false
           description: List of settings that configure the Search Nodes for your cluster. Provide one element per region when configuring asymmetric deployments; a single element applies to all regions.
           custom_type:
-            package: customtypes
             name: Specs
             model: customtypes.NestedListValue[TFSpecsModel]
             schema: customtypes.NewNestedListType[TFSpecsModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: required
           tf_schema_name: specs
           tf_model_name: Specs

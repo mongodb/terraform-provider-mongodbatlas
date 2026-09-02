@@ -1,0 +1,237 @@
+package aimodelratelimit_test
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"os"
+	"regexp"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+)
+
+const (
+	resourceType            = "mongodbatlas_ai_model_rate_limit"
+	resourceName            = resourceType + ".this"
+	dataSourceName          = "data." + resourceType + ".this"
+	dataSourcePluralName    = "data." + resourceType + "s.this"
+	orgDataSourceType       = "mongodbatlas_ai_model_org_rate_limit"
+	orgDataSourceName       = "data." + orgDataSourceType + ".this"
+	orgDataSourcePluralName = "data." + orgDataSourceType + "s.this"
+	modelGroupName          = "embed_large"
+)
+
+func TestAccAIModelRateLimit_basic(t *testing.T) {
+	var (
+		orgID     = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectID = acc.ProjectIDExecution(t)
+	)
+	// Rate limits are reset to defaults on destroy rather than removed, so CheckDestroy
+	// compares against a baseline captured before the resource is created.
+	baseline, err := getRateLimit(projectID, "ANY", "ANY", modelGroupName)
+	if err != nil {
+		t.Fatalf("failed to capture baseline rate limit for %s: %v", modelGroupName, err)
+	}
+	// Serial test execution to avoid conflicts with other tests that use the same project and model group names.
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy(baseline),
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(orgID, projectID, 100, 1000),
+				Check:  checkBasic(),
+			},
+			{
+				Config: configBasic(orgID, projectID, 200, 2000),
+				Check:  checkBasic(),
+			},
+			{
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportStateVerifyIdentifierAttribute: "project_id",
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+			},
+		},
+	})
+}
+
+func TestAccAIModelRateLimit_invalidValues(t *testing.T) {
+	projectID := acc.ProjectIDExecution(t)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configInvalid(projectID, "nonexistent_model_group", 100, 1000),
+				ExpectError: regexp.MustCompile("RESOURCE_NOT_FOUND"),
+			},
+			{
+				Config:      configInvalid(projectID, modelGroupName, 0, 1000),
+				ExpectError: regexp.MustCompile("BAD_REQUEST"),
+			},
+			{
+				Config:      configInvalid(projectID, modelGroupName, -1, 1000),
+				ExpectError: regexp.MustCompile("BAD_REQUEST"),
+			},
+			{
+				Config:      configInvalid(projectID, modelGroupName, 100, 0),
+				ExpectError: regexp.MustCompile("BAD_REQUEST"),
+			},
+			{
+				Config:      configInvalid(projectID, modelGroupName, 100, -1),
+				ExpectError: regexp.MustCompile("BAD_REQUEST"),
+			},
+		},
+	})
+}
+
+func configBasic(orgID, projectID string, requestsPerMinute, tokensPerMinute int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_ai_model_rate_limit" "this" {
+			project_id                 = %[2]q
+			cloud                      = "ANY"
+			geography                  = "ANY"
+			model_group_name           = %[3]q
+			requests_per_minute_limit  = %[4]d
+			tokens_per_minute_limit    = %[5]d
+		}
+
+		data "mongodbatlas_ai_model_rate_limit" "this" {
+			project_id       = %[2]q
+			cloud            = "ANY"
+			geography        = "ANY"
+			model_group_name = mongodbatlas_ai_model_rate_limit.this.model_group_name
+		}
+
+		data "mongodbatlas_ai_model_rate_limits" "this" {
+			project_id = %[2]q
+			depends_on = [mongodbatlas_ai_model_rate_limit.this]
+		}
+
+		data "mongodbatlas_ai_model_org_rate_limit" "this" {
+			org_id           = %[1]q
+			cloud            = "ANY"
+			geography        = "ANY"
+			model_group_name = mongodbatlas_ai_model_rate_limit.this.model_group_name
+		}
+
+		data "mongodbatlas_ai_model_org_rate_limits" "this" {
+			org_id     = %[1]q
+			depends_on = [mongodbatlas_ai_model_rate_limit.this]
+		}
+	`, orgID, projectID, modelGroupName, requestsPerMinute, tokensPerMinute)
+}
+
+func configInvalid(projectID, modelGroupName string, requestsPerMinute, tokensPerMinute int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_ai_model_rate_limit" "this" {
+			project_id                 = %[1]q
+			cloud                      = "ANY"
+			geography                  = "ANY"
+			model_group_name           = %[2]q
+			requests_per_minute_limit  = %[3]d
+			tokens_per_minute_limit    = %[4]d
+		}
+	`, projectID, modelGroupName, requestsPerMinute, tokensPerMinute)
+}
+
+func checkBasic() resource.TestCheckFunc {
+	attrsSet := []string{"model_group_name", "requests_per_minute_limit", "tokens_per_minute_limit", "cloud", "geography", "endpoint"}
+	return resource.ComposeAggregateTestCheckFunc(
+		acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName), attrsSet, nil, checkExists(resourceName)),
+		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
+		acc.CheckRSAndDS(orgDataSourceName, nil, new(orgDataSourcePluralName), attrsSet, nil),
+		resource.TestCheckResourceAttrWith(orgDataSourcePluralName, "results.#", acc.IntGreatThan(0)),
+	)
+}
+
+func checkExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs := s.RootModule().Resources[resourceName]
+		if !rateLimitExists(rs) {
+			return fmt.Errorf("rate limit (%s) does not exist", rs.Primary.ID)
+		}
+		return nil
+	}
+}
+
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs := s.RootModule().Resources[resourceName]
+		return fmt.Sprintf("%s/%s/%s/%s",
+			rs.Primary.Attributes["project_id"],
+			rs.Primary.Attributes["cloud"],
+			rs.Primary.Attributes["geography"],
+			rs.Primary.Attributes["model_group_name"]), nil
+	}
+}
+
+type rateLimitValues struct {
+	RequestsPerMinuteLimit int `json:"requestsPerMinuteLimit"`
+	TokensPerMinuteLimit   int `json:"tokensPerMinuteLimit"`
+}
+
+// getRateLimit fetches the current requests/tokens per minute limits for a model group.
+// The baseline rate limit is captured before the resource is created, so that CheckDestroy
+// can verify that destroying the resource resets the rate limit back to the baseline.
+func getRateLimit(projectID, cloud, geography, modelGroupName string) (*rateLimitValues, error) {
+	resp, err := acc.GetAIModelRateLimit(context.Background(), projectID, cloud, geography, modelGroupName)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status %d fetching rate limit for %s", resp.StatusCode, modelGroupName)
+	}
+	var result rateLimitValues
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func checkDestroy(baseline *rateLimitValues) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for _, rs := range s.RootModule().Resources {
+			if rs.Type != resourceType {
+				continue
+			}
+			current, err := getRateLimit(rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cloud"], rs.Primary.Attributes["geography"], rs.Primary.Attributes["model_group_name"])
+			if err != nil {
+				return fmt.Errorf("checkDestroy: failed to get rate limit for %s: %w", rs.Primary.ID, err)
+			}
+			if *current != *baseline {
+				return fmt.Errorf("rate limit for %s was not reset to its pre-test values after destroy: got %+v, want %+v", rs.Primary.Attributes["model_group_name"], current, baseline)
+			}
+		}
+		return nil
+	}
+}
+
+// rateLimitExists checks if a rate limit exists.
+func rateLimitExists(rs *terraform.ResourceState) bool {
+	callParams := config.APICallParams{
+		VersionHeader: "application/vnd.atlas.2025-03-12+json",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits",
+		PathParams: map[string]string{
+			"groupId":        rs.Primary.Attributes["project_id"],
+			"cloud":          rs.Primary.Attributes["cloud"],
+			"geography":      rs.Primary.Attributes["geography"],
+			"modelGroupName": rs.Primary.Attributes["model_group_name"],
+		},
+		Method: "GET",
+	}
+	resp, err := acc.MongoDBClient.UntypedAPICall(context.Background(), callParams, nil)
+	if resp != nil {
+		resp.Body.Close()
+	}
+	return err == nil
+}

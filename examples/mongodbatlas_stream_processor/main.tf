@@ -49,39 +49,53 @@ resource "mongodbatlas_stream_processor" "stream-processor-sample-example" {
   project_id     = var.project_id
   workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "sampleProcessorName"
-  pipeline = jsonencode([
-    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-sample.connection_name } },
-    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "sample", "coll" : "solar", "timeseries" : { "timeField" : "_ts" } } }
-  ])
-  state = "STARTED"
-  tier  = "SP30"
+  # Authored as a raw JSON string so the field order is preserved exactly. Do not use jsonencode,
+  # which emits object keys in lexicographic order.
+  pipeline = <<-JSON
+    [
+      {"$source": {"connectionName": "${mongodbatlas_stream_connection.example-sample.connection_name}"}},
+      {"$emit": {"connectionName": "${mongodbatlas_stream_connection.example-cluster.connection_name}", "db": "sample", "coll": "solar", "timeseries": {"timeField": "_ts"}}}
+    ]
+  JSON
+  state    = "STARTED"
+  tier     = "SP30"
 }
 
 resource "mongodbatlas_stream_processor" "stream-processor-cluster-to-kafka-example" {
   project_id     = var.project_id
   workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "clusterProcessorName"
-  pipeline = jsonencode([
-    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name } },
-    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_from_cluster" } }
-  ])
-  state = "CREATED"
+  pipeline       = <<-JSON
+    [
+      {"$source": {"connectionName": "${mongodbatlas_stream_connection.example-cluster.connection_name}"}},
+      {"$emit": {"connectionName": "${mongodbatlas_stream_connection.example-kafka.connection_name}", "topic": "topic_from_cluster"}}
+    ]
+  JSON
+  state          = "CREATED"
 }
 
 resource "mongodbatlas_stream_processor" "stream-processor-kafka-to-cluster-example" {
   project_id     = var.project_id
   workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "kafkaProcessorName"
-  pipeline = jsonencode([
-    { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_source" } },
-    { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "kafka", "coll" : "topic_source", "timeseries" : { "timeField" : "ts" } }
-  }])
-  state = "CREATED"
+  pipeline       = <<-JSON
+    [
+      {"$source": {"connectionName": "${mongodbatlas_stream_connection.example-kafka.connection_name}", "topic": "topic_source"}},
+      {"$emit": {"connectionName": "${mongodbatlas_stream_connection.example-cluster.connection_name}", "db": "kafka", "coll": "topic_source", "timeseries": {"timeField": "ts"}}}
+    ]
+  JSON
+  state          = "CREATED"
+  # `tier` is the baseline tier; the current autoscaled tier is `effective_tier`.
+  tier = "SP10"
   options = {
     dlq = {
       coll            = "exampleColumn"
-      connection_name = resource.mongodbatlas_stream_connection.example-cluster.connection_name
+      connection_name = mongodbatlas_stream_connection.example-cluster.connection_name
       db              = "exampleDb"
+    }
+    autoscaling = {
+      min_tier = "SP10"
+      max_tier = "SP50"
     }
   }
 }

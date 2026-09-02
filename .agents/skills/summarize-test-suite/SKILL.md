@@ -161,6 +161,8 @@ Assign each failing test (or aggregated subtest group) to exactly one category, 
 
 Build the summary in Slack mrkdwn from the templates below and return it. Never emit GitHub-flavoured markdown — `**bold**`, `# heading`, `[label](url)` will not render correctly. The TL;DR line appears only in the red template; green and yellow have no TL;DR (the header and categorisation say everything).
 
+**Format coupling**: the monthly-test-suite-summary skill parses this output format. Reflect any template change in `.agents/skills/monthly-test-suite-summary/scripts/monthly_summary.py`.
+
 #### Template — code regression detected
 
 Use this when at least one failure is category 1.

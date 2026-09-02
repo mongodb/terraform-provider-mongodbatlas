@@ -2,6 +2,7 @@ package projectserviceaccountsecret_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"testing"
@@ -217,10 +218,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
-	err := acc.CheckDestroyDeleteProjectSAs(s)
-	if err != nil {
-		return err
-	}
+	var errs []error
 	for name, rs := range s.RootModule().Resources {
 		if name != resourceName {
 			continue
@@ -229,14 +227,19 @@ func checkDestroy(s *terraform.State) error {
 		projectID := rs.Primary.Attributes["project_id"]
 		clientID := rs.Primary.Attributes["client_id"]
 		if id == "" || projectID == "" || clientID == "" {
-			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
+			errs = append(errs, fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName))
+			break
 		}
 
 		if exists, _ := secretExists(projectID, clientID, id); exists {
-			return fmt.Errorf("project service account secret (%s/%s/%s) still exists", id, projectID, clientID)
+			errs = append(errs, fmt.Errorf("project service account secret (%s/%s/%s) still exists", id, projectID, clientID))
+			break
 		}
 	}
-	return nil
+	if err := acc.CheckDestroyDeleteProjectSAs(s); err != nil {
+		errs = append(errs, err)
+	}
+	return errors.Join(errs...)
 }
 
 func secretExists(projectID, clientID, secretID string) (bool, error) {

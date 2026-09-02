@@ -21,6 +21,7 @@ const streamConnectionName = "stream_connection"
 // Connection type constants used to differentiate API field mapping by connection type.
 const (
 	ConnectionTypeAWSKinesisDataStreams = "AWSKinesisDataStreams"
+	ConnectionTypeAWSLambda             = "AWSLambda"
 	ConnectionTypeAzureBlobStorage      = "AzureBlobStorage"
 	ConnectionTypeGCPPubSub             = "GCPPubSub"
 	ConnectionTypeKafka                 = "Kafka"
@@ -97,6 +98,7 @@ type TFConnectionAuthenticationModel struct {
 	ClientSecret              types.String `tfsdk:"client_secret"`
 	Scope                     types.String `tfsdk:"scope"`
 	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions"`
+	AWS                       types.Object `tfsdk:"aws"`
 }
 
 var ConnectionAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -109,6 +111,7 @@ var ConnectionAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]
 	"client_secret":               types.StringType,
 	"scope":                       types.StringType,
 	"sasl_oauthbearer_extensions": types.StringType,
+	"aws":                         AWSObjectType,
 }}
 
 type TFSchemaRegistryAuthenticationModel struct {

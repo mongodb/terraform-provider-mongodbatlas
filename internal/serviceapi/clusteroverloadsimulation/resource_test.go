@@ -9,16 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 const (
-	resourceName     = "mongodbatlas_cluster_overload_simulation.test"
-	dataSourceName   = "data.mongodbatlas_cluster_overload_simulation.test"
-	apiVersionHeader = "application/vnd.atlas.preview+json"
-	readPath         = "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/overloadSimulations/{simulationId}"
+	resourceName   = "mongodbatlas_cluster_overload_simulation.test"
+	dataSourceName = "data.mongodbatlas_cluster_overload_simulation.test"
 )
 
 func TestAccClusterOverloadSimulation_basic(t *testing.T) {
@@ -88,13 +84,7 @@ func checkExists(name string) resource.TestCheckFunc {
 		if !ok {
 			return fmt.Errorf("not found: %s", name)
 		}
-		resp, err := acc.MongoDBClient.UntypedAPICall(context.Background(), readRequest(rs), nil)
-		if resp != nil && resp.Body != nil {
-			if closeErr := resp.Body.Close(); closeErr != nil && err == nil {
-				return fmt.Errorf("closing cluster overload simulation response: %w", closeErr)
-			}
-		}
-		if err != nil {
+		if err := getClusterOverloadSimulation(rs); err != nil {
 			return fmt.Errorf("cluster overload simulation does not exist: %w", err)
 		}
 		return nil
@@ -106,35 +96,21 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_cluster_overload_simulation" {
 			continue
 		}
-		resp, err := acc.MongoDBClient.UntypedAPICall(context.Background(), readRequest(rs), nil)
-		if resp != nil && resp.Body != nil {
-			if closeErr := resp.Body.Close(); closeErr != nil && err == nil {
-				return fmt.Errorf("closing cluster overload simulation response: %w", closeErr)
-			}
+		if err := getClusterOverloadSimulation(rs); err == nil {
+			return fmt.Errorf("cluster overload simulation %s still exists", rs.Primary.Attributes["simulation_id"])
 		}
-		if validate.StatusNotFound(resp) {
-			continue
-		}
-		if err != nil {
-			return fmt.Errorf("checking cluster overload simulation destruction: %w", err)
-		}
-		return fmt.Errorf("cluster overload simulation %s still exists", rs.Primary.Attributes["simulation_id"])
 	}
 	return nil
 }
 
-// TODO CLOUDP-397756: Use the Atlas SDK once the overload protection simulation API is stable.
-func readRequest(rs *terraform.ResourceState) config.APICallParams {
-	return config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  readPath,
-		PathParams: map[string]string{
-			"projectId":    rs.Primary.Attributes["project_id"],
-			"clusterName":  rs.Primary.Attributes["cluster_name"],
-			"simulationId": rs.Primary.Attributes["simulation_id"],
-		},
-		Method: "GET",
-	}
+func getClusterOverloadSimulation(rs *terraform.ResourceState) error {
+	_, _, err := acc.ConnV2().OverloadProtectionSimulationAPI.GetClusterOverloadSimulation(
+		context.Background(),
+		rs.Primary.Attributes["project_id"],
+		rs.Primary.Attributes["cluster_name"],
+		rs.Primary.Attributes["simulation_id"],
+	).Execute()
+	return err
 }
 
 func importStateIDFunc(name string) resource.ImportStateIdFunc {

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
 func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
@@ -38,6 +38,15 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 			ClientSecret:              authenticationModel.ClientSecret.ValueStringPointer(),
 			Scope:                     authenticationModel.Scope.ValueStringPointer(),
 			SaslOauthbearerExtensions: authenticationModel.SaslOauthbearerExtensions.ValueStringPointer(),
+		}
+		if !authenticationModel.AWS.IsNull() && !authenticationModel.AWS.IsUnknown() {
+			awsModel := &TFAWSModel{}
+			if diags := authenticationModel.AWS.As(ctx, awsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+				return nil, diags
+			}
+			streamConnection.Authentication.Aws = &admin.StreamsAWSConnectionConfig{
+				RoleArn: awsModel.RoleArn.ValueStringPointer(),
+			}
 		}
 	}
 	if !plan.Security.IsNull() {
@@ -80,7 +89,7 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 			return nil, diags
 		}
 		switch plan.Type.ValueString() {
-		case ConnectionTypeAzureBlobStorage, ConnectionTypeGCPPubSub:
+		case ConnectionTypeAWSLambda, ConnectionTypeAzureBlobStorage, ConnectionTypeGCPPubSub:
 			streamConnection.PublicPrivateNetworking = &admin.StreamsPublicPrivateLinkNetworking{
 				Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
 					Type:         networkingAccessModel.Type.ValueStringPointer(),
@@ -277,7 +286,8 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 		connectionModel.DBRoleToExecute = dbRoleToExecuteModel
 	}
 
-	// The API returns networking in either Networking (Kafka, S3) or PublicPrivateNetworking (GCPPubSub, Azure) depending on connection type.
+	// The API returns networking in either Networking (Kafka, S3, AWSKinesisDataStreams) or
+	// PublicPrivateNetworking (AWSLambda, AzureBlobStorage, GCPPubSub) depending on connection type.
 	connectionModel.Networking = types.ObjectNull(NetworkingObjectType.AttrTypes)
 	var networkingAccessType, networkingConnectionID *string
 	if apiResp.Networking != nil && apiResp.Networking.Access != nil {
@@ -371,6 +381,19 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 			ClientID:                  types.StringPointerValue(authResp.ClientId),
 			Scope:                     types.StringPointerValue(authResp.Scope),
 			SaslOauthbearerExtensions: types.StringPointerValue(authResp.SaslOauthbearerExtensions),
+			// aws is always set to a typed value (real object or typed null) so the
+			// parent authentication object type is always satisfied.
+			AWS: types.ObjectNull(AWSObjectType.AttrTypes),
+		}
+
+		if authResp.Aws != nil {
+			awsObject, diags := types.ObjectValueFrom(ctx, AWSObjectType.AttrTypes, TFAWSModel{
+				RoleArn: types.StringPointerValue(authResp.Aws.RoleArn),
+			})
+			if diags.HasError() {
+				return nil, diags
+			}
+			resultAuthModel.AWS = awsObject
 		}
 
 		if currAuthConfig != nil && !currAuthConfig.IsNull() { // if config is available (create & update of resource) password value is set in new state

@@ -4,6 +4,7 @@ package clusteroverloadsimulation
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -16,7 +17,7 @@ import (
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 
-const apiVersionHeader = "application/vnd.atlas.preview+json"
+const apiVersionHeader = "application/vnd.atlas.2025-03-12+json"
 
 func Resource() resource.Resource {
 	return &rs{
@@ -77,6 +78,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			MinTimeoutSeconds: 10,
 			DelaySeconds:      10,
 			CallParams:        readAPICallParams,
+			FormatID:          formatIDAttributes,
 		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)
@@ -123,6 +125,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		MinTimeoutSeconds: 10,
 		DelaySeconds:      10,
 		CallParams:        readAPICallParams,
+		FormatID:          formatIDAttributes,
 	}
 	autogen.HandleDelete(ctx, *reqHandle)
 }
@@ -145,6 +148,15 @@ func readAPICallParams(model any) *config.APICallParams {
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
+}
+
+func formatIDAttributes(model any) string {
+	m := model.(*TFModel)
+	return fmt.Sprintf("project_id=%q, cluster_name=%q, simulation_id=%q",
+		m.ProjectId.ValueString(),
+		m.ClusterName.ValueString(),
+		m.SimulationId.ValueString(),
+	)
 }
 
 func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {

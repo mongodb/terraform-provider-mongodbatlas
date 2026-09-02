@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
 var (
@@ -92,10 +92,10 @@ var (
 
 func TestNewMongoDBDatabaseUser(t *testing.T) {
 	testCases := []struct {
-		tfDatabaseUserModel databaseuser.TfDatabaseUserModel
-		passwordStateValue  types.String
 		expectedResult      *admin.CloudDatabaseUser
+		passwordStateValue  types.String
 		name                string
+		tfDatabaseUserModel databaseuser.TfDatabaseUserModel
 		expectedError       bool
 	}{
 		{
@@ -145,9 +145,74 @@ func TestNewMongoDBDatabaseUser(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, err := databaseuser.NewMongoDBDatabaseUser(t.Context(), tc.passwordStateValue, types.StringValue(""), &testCases[i].tfDatabaseUserModel)
+			resultModel, err := databaseuser.NewMongoDBDatabaseUser(t.Context(), tc.passwordStateValue, types.StringValue(""), types.Int64Null(), &testCases[i].tfDatabaseUserModel)
 
 			if (err != nil) != tc.expectedError {
+				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
+			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
+		})
+	}
+}
+
+func newPasswordWoTestModel(passwordWo string, version int64) databaseuser.TfDatabaseUserModel {
+	return databaseuser.TfDatabaseUserModel{
+		ProjectID:         types.StringValue(projectID),
+		Username:          types.StringValue(username),
+		AuthDatabaseName:  types.StringValue(authDatabaseName),
+		PasswordWo:        types.StringValue(passwordWo),
+		PasswordWoVersion: types.Int64Value(version),
+		Roles:             rolesSet,
+		Labels:            labelsSet,
+		Scopes:            scopesSet,
+	}
+}
+
+func newPasswordWoExpectedResult(password *string) *admin.CloudDatabaseUser {
+	return &admin.CloudDatabaseUser{
+		GroupId:      projectID,
+		Username:     username,
+		DatabaseName: authDatabaseName,
+		Description:  new(""),
+		Password:     password,
+		Roles:        []admin.DatabaseUserRole{sdkRole},
+		Labels:       &[]admin.ComponentLabel{sdkLabel},
+		Scopes:       &[]admin.UserScope{sdkScope},
+	}
+}
+
+func TestNewMongoDBDatabaseUserPasswordWo(t *testing.T) {
+	testCases := []struct {
+		expectedResult       *admin.CloudDatabaseUser
+		name                 string
+		tfDatabaseUserModel  databaseuser.TfDatabaseUserModel
+		passwordWoStateValue types.Int64
+	}{
+		{
+			name:                 "password_wo sets result.Password on CREATE",
+			tfDatabaseUserModel:  newPasswordWoTestModel("write-only-password", 1),
+			passwordWoStateValue: types.Int64Null(),
+			expectedResult:       newPasswordWoExpectedResult(new("write-only-password")),
+		},
+		{
+			name:                 "password_wo sets password when version changes on UPDATE",
+			tfDatabaseUserModel:  newPasswordWoTestModel("updated-password", 2),
+			passwordWoStateValue: types.Int64Value(1),
+			expectedResult:       newPasswordWoExpectedResult(new("updated-password")),
+		},
+		{
+			name:                 "password_wo does NOT set password when version unchanged on UPDATE",
+			tfDatabaseUserModel:  newPasswordWoTestModel("same-password", 1),
+			passwordWoStateValue: types.Int64Value(1),
+			expectedResult:       newPasswordWoExpectedResult(nil),
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel, err := databaseuser.NewMongoDBDatabaseUser(t.Context(), types.StringNull(), types.StringValue(""), tc.passwordWoStateValue, &testCases[i].tfDatabaseUserModel)
+
+			if err != nil {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
 			}
 			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
@@ -158,9 +223,9 @@ func TestNewMongoDBDatabaseUser(t *testing.T) {
 func TestNewTfDatabaseUserModel(t *testing.T) {
 	testCases := []struct {
 		expectedResult  *databaseuser.TfDatabaseUserModel
-		currentModel    databaseuser.TfDatabaseUserModel
 		sdkDatabaseUser *admin.CloudDatabaseUser
 		name            string
+		currentModel    databaseuser.TfDatabaseUserModel
 		expectedError   bool
 	}{
 		{
@@ -353,19 +418,21 @@ func getDatabaseUserModel(roles, labels, scopes basetypes.SetValue, password typ
 		"auth_database_name": authDatabaseName,
 	})
 	return &databaseuser.TfDatabaseUserModel{
-		ID:               types.StringValue(encodedID),
-		ProjectID:        types.StringValue(projectID),
-		AuthDatabaseName: types.StringValue(authDatabaseName),
-		Username:         types.StringValue(username),
-		Description:      types.StringValue(""),
-		Password:         password,
-		X509Type:         types.StringValue(x509Type),
-		OIDCAuthType:     types.StringValue(oidCAuthType),
-		LDAPAuthType:     types.StringValue(ldapAuthType),
-		AWSIAMType:       types.StringValue(awsIAMType),
-		Roles:            roles,
-		Labels:           labels,
-		Scopes:           scopes,
+		ID:                types.StringValue(encodedID),
+		ProjectID:         types.StringValue(projectID),
+		AuthDatabaseName:  types.StringValue(authDatabaseName),
+		Username:          types.StringValue(username),
+		Description:       types.StringValue(""),
+		Password:          password,
+		PasswordWo:        types.StringNull(),
+		PasswordWoVersion: types.Int64Null(),
+		X509Type:          types.StringValue(x509Type),
+		OIDCAuthType:      types.StringValue(oidCAuthType),
+		LDAPAuthType:      types.StringValue(ldapAuthType),
+		AWSIAMType:        types.StringValue(awsIAMType),
+		Roles:             roles,
+		Labels:            labels,
+		Scopes:            scopes,
 	}
 }
 

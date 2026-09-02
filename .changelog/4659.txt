@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_stream_connection: Requires replacement of mongodbatlas_stream_connection when networking changes
+```

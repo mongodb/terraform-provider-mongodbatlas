@@ -34,12 +34,13 @@ type APIOperation struct {
 }
 
 type Wait struct {
-	StateProperty     string   `yaml:"state_property"` // defined in camel case as found in API response body, e.g. "stateName"
-	PendingStates     []string `yaml:"pending_states"`
-	TargetStates      []string `yaml:"target_states"`
-	TimeoutSeconds    int      `yaml:"timeout_seconds"`
-	MinTimeoutSeconds int      `yaml:"min_timeout_seconds"`
-	DelaySeconds      int      `yaml:"delay_seconds"`
+	StateProperty            string   `yaml:"state_property"`             // defined in camel case as found in API response body, e.g. "stateName"
+	ErrorDescriptionProperty string   `yaml:"error_description_property"` // defined in camel case as found in API response body, e.g. "errorMessage"
+	PendingStates            []string `yaml:"pending_states"`
+	TargetStates             []string `yaml:"target_states"`
+	TimeoutSeconds           int      `yaml:"timeout_seconds"`
+	MinTimeoutSeconds        int      `yaml:"min_timeout_seconds"`
+	DelaySeconds             int      `yaml:"delay_seconds"`
 }
 
 type MoveState struct {

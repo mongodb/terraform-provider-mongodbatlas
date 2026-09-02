@@ -8,10 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
 const (
@@ -355,6 +356,41 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 					Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
 					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+					AWS:                          tfAWSLambdaConfigObject(t, sampleRoleArn),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
+					Headers:                      types.MapNull(types.StringType),
+					SchemaRegistryURLs:           types.ListNull(types.StringType),
+					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				},
+			},
+		},
+		{
+			name: "AWSLambda connection type with publicPrivateNetworking",
+			SDKResp: &admin.StreamsConnection{
+				Name: new(awslambdaConnectionName),
+				Type: new("AWSLambda"),
+				Aws:  &admin.StreamsAWSConnectionConfig{RoleArn: new(sampleRoleArn)},
+				PublicPrivateNetworking: &admin.StreamsPublicPrivateLinkNetworking{
+					Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
+						Type:         new("PRIVATE_LINK"),
+						ConnectionId: new("plc-12345"),
+					},
+				},
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:                    types.StringValue(dummyProjectID),
+					WorkspaceName:                types.StringValue(instanceName),
+					ConnectionName:               types.StringValue(awslambdaConnectionName),
+					Type:                         types.StringValue("AWSLambda"),
+					Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+					Config:                       types.MapNull(types.StringType),
+					Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+					Networking:                   tfNetworkingObject(t, "PRIVATE_LINK", new("plc-12345")),
 					AWS:                          tfAWSLambdaConfigObject(t, sampleRoleArn),
 					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
@@ -968,6 +1004,32 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 			},
 		},
 		{
+			name: "AWSLambda type TF state with PRIVATE_LINK networking",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:      types.StringValue(dummyProjectID),
+					InstanceName:   types.StringValue(instanceName),
+					ConnectionName: types.StringValue(awslambdaConnectionName),
+					Type:           types.StringValue("AWSLambda"),
+					AWS:            tfAWSLambdaConfigObject(t, sampleRoleArn),
+					Networking:     tfNetworkingObject(t, "PRIVATE_LINK", new("plc-12345")),
+				},
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name: new(awslambdaConnectionName),
+				Type: new("AWSLambda"),
+				Aws: &admin.StreamsAWSConnectionConfig{
+					RoleArn: new(sampleRoleArn),
+				},
+				PublicPrivateNetworking: &admin.StreamsPublicPrivateLinkNetworking{
+					Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
+						Type:         new("PRIVATE_LINK"),
+						ConnectionId: new("plc-12345"),
+					},
+				},
+			},
+		},
+		{
 			name: "GCPPubSub type TF state",
 			tfModel: &streamconnection.TFStreamConnectionModel{
 				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
@@ -1139,6 +1201,7 @@ func tfAuthenticationObject(t *testing.T, mechanism, username, password string) 
 		Mechanism: types.StringValue(mechanism),
 		Username:  types.StringValue(username),
 		Password:  types.StringValue(password),
+		AWS:       types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 	})
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
@@ -1156,6 +1219,7 @@ func tfAuthenticationObjectForOAuth(t *testing.T, mechanism, clientID, clientSec
 		TokenEndpointURL:          types.StringValue(tokenEndpointURL),
 		Scope:                     types.StringValue(scope),
 		SaslOauthbearerExtensions: types.StringValue(saslOauthbearerExtensions),
+		AWS:                       types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 	})
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
@@ -1168,6 +1232,7 @@ func tfAuthenticationObjectWithNoPassword(t *testing.T, mechanism, username stri
 	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
 		Mechanism: types.StringValue(mechanism),
 		Username:  types.StringValue(username),
+		AWS:       types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 	})
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
@@ -1289,4 +1354,124 @@ func tfGCPConfigObject(t *testing.T, serviceAccountID string) types.Object {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
 	}
 	return gcp
+}
+
+// tfKafkaIAMAuthObject builds a Kafka authentication object using AWS MSK IAM auth.
+func tfKafkaIAMAuthObject(t *testing.T, mechanism, roleArn string) types.Object {
+	t.Helper()
+	awsObj, diags := types.ObjectValueFrom(t.Context(), streamconnection.AWSObjectType.AttrTypes, streamconnection.TFAWSModel{
+		RoleArn: types.StringValue(roleArn),
+	})
+	if diags.HasError() {
+		t.Fatalf("failed to create aws object: %s", diags.Errors()[0].Summary())
+	}
+	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
+		Mechanism: types.StringValue(mechanism),
+		AWS:       awsObj,
+	})
+	if diags.HasError() {
+		t.Fatalf("failed to create auth object: %s", diags.Errors()[0].Summary())
+	}
+	return auth
+}
+
+// TestStreamConnectionKafkaIAMAuth verifies AWS_MSK_IAM authentication round-trips (Task 8).
+func TestStreamConnectionKafkaIAMAuth(t *testing.T) {
+	const (
+		iamMechanism = "AWS_MSK_IAM"
+		roleArn      = "arn:aws:iam::123456789123:role/kafka-iam"
+	)
+	authConfig := tfKafkaIAMAuthObject(t, iamMechanism, roleArn)
+	tfModel := &streamconnection.TFStreamConnectionModel{
+		TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+			ProjectID:      types.StringValue(dummyProjectID),
+			WorkspaceName:  types.StringValue(instanceName),
+			ConnectionName: types.StringValue(connectionName),
+			Type:           types.StringValue("Kafka"),
+			Authentication: authConfig,
+		},
+	}
+
+	// TF -> SDK
+	sdkReq, diags := streamconnection.NewStreamConnectionReq(t.Context(), tfModel)
+	require.False(t, diags.HasError(), "unexpected diags: %v", diags)
+	require.NotNil(t, sdkReq.Authentication)
+	assert.Equal(t, iamMechanism, sdkReq.Authentication.GetMechanism())
+	require.NotNil(t, sdkReq.Authentication.Aws, "authentication.aws should be set for AWS_MSK_IAM")
+	assert.Equal(t, roleArn, sdkReq.Authentication.Aws.GetRoleArn())
+
+	// SDK -> TF (round-trip): aws.role_arn should be reflected back in state
+	sdkResp := &admin.StreamsConnection{
+		Name: new(connectionName),
+		Type: new("Kafka"),
+		Authentication: &admin.StreamsKafkaAuthentication{
+			Mechanism: new(iamMechanism),
+			Aws:       &admin.StreamsAWSConnectionConfig{RoleArn: new(roleArn)},
+		},
+	}
+	result, diags := streamconnection.NewTFStreamConnection(t.Context(), dummyProjectID, "", instanceName, &authConfig, nil, sdkResp, nil)
+	require.False(t, diags.HasError(), "unexpected diags: %v", diags)
+	awsModel := &streamconnection.TFAWSModel{}
+	authModel := &streamconnection.TFConnectionAuthenticationModel{}
+	require.False(t, result.Authentication.As(t.Context(), authModel, basetypes.ObjectAsOptions{}).HasError())
+	require.False(t, authModel.AWS.IsNull(), "authentication.aws should be populated")
+	require.False(t, authModel.AWS.As(t.Context(), awsModel, basetypes.ObjectAsOptions{}).HasError())
+	assert.Equal(t, roleArn, awsModel.RoleArn.ValueString())
+}
+
+// TestStreamConnectionKafkaAuthAWSTypedNull is the regression guard (Task 8b): when
+// no aws block is configured, the authentication.aws attr must be a typed null and
+// never produce diagnostics, across all construction paths.
+func TestStreamConnectionKafkaAuthAWSTypedNull(t *testing.T) {
+	// Object-type parity guard: ensure "aws" attr exists and maps to AWSObjectType.
+	awsAttrType, ok := streamconnection.ConnectionAuthenticationObjectType.AttrTypes["aws"]
+	require.True(t, ok, "authentication object type must include an 'aws' attribute")
+	assert.True(t, awsAttrType.Equal(streamconnection.AWSObjectType), "'aws' attr must be AWSObjectType")
+
+	// (a) Kafka auth with PLAIN mechanism, no aws configured.
+	authConfig := tfAuthenticationObject(t, authMechanism, authUsername, "raw password")
+
+	// (b) API response with Aws == nil.
+	sdkResp := &admin.StreamsConnection{
+		Name: new(connectionName),
+		Type: new("Kafka"),
+		Authentication: &admin.StreamsKafkaAuthentication{
+			Mechanism: new(authMechanism),
+			Username:  new(authUsername),
+		},
+	}
+
+	assertAWSTypedNull := func(t *testing.T, obj types.Object) {
+		t.Helper()
+		authModel := &streamconnection.TFConnectionAuthenticationModel{}
+		require.False(t, obj.As(t.Context(), authModel, basetypes.ObjectAsOptions{}).HasError())
+		assert.True(t, authModel.AWS.IsNull(), "aws should be null")
+		assert.False(t, authModel.AWS.IsUnknown(), "aws should not be unknown/invalid")
+		assert.True(t, authModel.AWS.Type(t.Context()).Equal(streamconnection.AWSObjectType), "aws must retain AWSObjectType")
+	}
+
+	// create/update path (currAuthConfig provided)
+	resultWithCfg, diags := streamconnection.NewTFStreamConnection(t.Context(), dummyProjectID, "", instanceName, &authConfig, nil, sdkResp, nil)
+	require.False(t, diags.HasError(), "unexpected diags (with config): %v", diags)
+	assertAWSTypedNull(t, resultWithCfg.Authentication)
+
+	// (c)/(d) data source / import path (currAuthConfig == nil)
+	resultDS, diags := streamconnection.NewTFStreamConnectionDS(t.Context(), dummyProjectID, "", instanceName, nil, nil, sdkResp)
+	require.False(t, diags.HasError(), "unexpected diags (nil config): %v", diags)
+	assertAWSTypedNull(t, resultDS.Authentication)
+
+	// (e) TF -> SDK with null aws => Aws omitted from request.
+	tfModel := &streamconnection.TFStreamConnectionModel{
+		TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+			ProjectID:      types.StringValue(dummyProjectID),
+			WorkspaceName:  types.StringValue(instanceName),
+			ConnectionName: types.StringValue(connectionName),
+			Type:           types.StringValue("Kafka"),
+			Authentication: authConfig,
+		},
+	}
+	sdkReq, diags := streamconnection.NewStreamConnectionReq(t.Context(), tfModel)
+	require.False(t, diags.HasError(), "unexpected diags (req): %v", diags)
+	require.NotNil(t, sdkReq.Authentication)
+	assert.Nil(t, sdkReq.Authentication.Aws, "authentication.aws should be omitted when not configured")
 }
