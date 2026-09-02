@@ -113,6 +113,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 			MultiFactorAuthRequired: new(true),
 			GenAIFeaturesEnabled:    new(false),
 			SecurityContact:         conversion.StringPtr("test@mongodb.com"),
+			OperationsContact:       conversion.StringPtr("test@mongodb.com"),
 		}
 
 		settingsConfigUpdated = &admin.OrganizationSettings{
@@ -131,6 +132,15 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 			{
 				Config: configWithSettings(orgOwnerID, name, description, roleName, settingsConfig),
 				Check:  checkAggr(orgOwnerID, name, description, settingsConfig),
+			},
+			{
+				Config: configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
+				Check:  checkAggr(orgOwnerID, name, description, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
+			},
+			{
+				// The API rejects an empty operations contact, an existing value is cleared by removing the attribute instead.
+				Config:      configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(settingsConfig, "")),
+				ExpectError: regexp.MustCompile(`INVALID_OPERATIONS_CONTACT_EMAIL`),
 			},
 			{
 				Config: configWithSettings(orgOwnerID, name, description, roleName, settingsConfigUpdated),
@@ -441,6 +451,14 @@ func configWithSettings(orgOwnerID, name, description, roleNames string, setting
 	`, orgOwnerID, name, description, roleNames, settingsStr)
 }
 
+// withOperationsContact copies settings with a different operations contact, so a test step
+// only changes that attribute.
+func withOperationsContact(settings *admin.OrganizationSettings, operationsContact string) *admin.OrganizationSettings {
+	updated := *settings
+	updated.OperationsContact = conversion.StringPtr(operationsContact)
+	return &updated
+}
+
 func getSettingsConfig(settings *admin.OrganizationSettings) string {
 	var configs []string
 
@@ -458,6 +476,9 @@ func getSettingsConfig(settings *admin.OrganizationSettings) string {
 	}
 	if settings.SecurityContact != nil {
 		configs = append(configs, fmt.Sprintf("security_contact = %q", *settings.SecurityContact))
+	}
+	if settings.OperationsContact != nil {
+		configs = append(configs, fmt.Sprintf("operations_contact = %q", *settings.OperationsContact))
 	}
 
 	return strings.Join(configs, "\n")
@@ -544,6 +565,7 @@ func checkAggr(orgOwnerID, name, description string, settings *admin.Organizatio
 		"restrict_employee_access":   strconv.FormatBool(settings.GetRestrictEmployeeAccess()),
 		"gen_ai_features_enabled":    strconv.FormatBool(settings.GetGenAIFeaturesEnabled()),
 		"security_contact":           settings.GetSecurityContact(),
+		"operations_contact":         settings.GetOperationsContact(),
 	}
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
@@ -563,6 +585,7 @@ func checkAggrSA(orgOwnerID, name string, settings *admin.OrganizationSettings, 
 		"restrict_employee_access":   strconv.FormatBool(settings.GetRestrictEmployeeAccess()),
 		"gen_ai_features_enabled":    strconv.FormatBool(settings.GetGenAIFeaturesEnabled()),
 		"security_contact":           settings.GetSecurityContact(),
+		"operations_contact":         settings.GetOperationsContact(),
 	}
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
