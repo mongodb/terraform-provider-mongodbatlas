@@ -217,7 +217,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 ## Example Usage - Copy Policy Items
 
-Use `copy_policy_items_enabled = true` with `copy_policy_items` when copies should keep a different retention than the source snapshots. Use `last_number_of_snapshots` instead to copy the last N snapshots. `frequency_type` is lowercase. `frequencies` stays uppercase and is the legacy path when the flag is false or omitted.
+Use `copy_policy_items_enabled = true` with `copy_policy_items` when copies should keep a different retention than the source snapshots. Use `last_number_of_snapshots` instead to copy the last N snapshots. `frequency_type` is lowercase. `frequencies` stays uppercase and is the legacy path when the flag is false or omitted. After you apply with the flag `true`, keep it `true`; Atlas cannot disable copy-policy items once they are enabled.
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "my_cluster" {
@@ -292,7 +292,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `delete_copy_snapshots` - (Optional) Specify true to delete snapshot copies when their associated `copy_policy_items` are removed. Requires `copy_policy_items_enabled` to be true.
 
   **Note** Atlas does not return `update_snapshots`, `update_copy_snapshots`, or `delete_copy_snapshots`. This is Atlas Admin API behavior, not Terraform. For more details about this resource see [Cloud Backup Schedule](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backups/operation/getBackupSchedule).
-* `copy_policy_items_enabled` - (Optional) Flag that selects copy-policy mode. Set to `true` to use `copy_policy_items` or `last_number_of_snapshots`. When `false` or omitted, use `frequencies`. Atlas cannot change this flag back to `false` after it is `true`.
+* `copy_policy_items_enabled` - (Optional) Flag that selects copy-policy mode. Set to `true` to use `copy_policy_items` or `last_number_of_snapshots`. When `false` or omitted, use `frequencies`. This transition is one-way: after you apply with `copy_policy_items_enabled = true`, Atlas cannot disable copy-policy items. You can still switch each `copy_settings` entry between `copy_policy_items` and `last_number_of_snapshots`.
 
 * `policy_item_hourly` - (Optional) Hourly policy item. See [below](#policy_item_hourly)
 * `policy_item_daily` - (Optional) Daily policy item. See [below](#policy_item_daily)
@@ -350,7 +350,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 ### copy_settings
 * `cloud_provider` - (Required) Human-readable label that identifies the cloud provider that stores the snapshot copy. i.e. "AWS" "AZURE" "GCP"
-* `frequencies` - (Optional) List that describes which types of snapshots to copy when `copy_policy_items_enabled` is false or omitted. Values: `HOURLY`, `DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`, `ON_DEMAND`. Mutually exclusive with `copy_policy_items` and `last_number_of_snapshots` on the same entry.
+* `frequencies` - (Optional) List that describes which types of snapshots to copy when `copy_policy_items_enabled` is false or omitted. Values: `HOURLY`, `DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`, `ON_DEMAND`. Mutually exclusive with `copy_policy_items` and `last_number_of_snapshots` on the same entry. You can switch an entry from `frequencies` to `copy_policy_items` or `last_number_of_snapshots` in one apply; the switch back is not possible because `copy_policy_items_enabled` cannot be turned off once it is `true`.
 * `copy_policy_items` - (Optional) Copy-policy items when `copy_policy_items_enabled` is true. Mutually exclusive with `frequencies` and `last_number_of_snapshots`. See [below](#copy_policy_items).
 * `last_number_of_snapshots` - (Optional) Number of most recent snapshots to copy, from 1 to 500, when `copy_policy_items_enabled` is true. Mutually exclusive with `frequencies` and `copy_policy_items`.
 * `region_name` - (Required) Target region to copy snapshots belonging to replicationSpecId to. Please supply the 'Atlas Region' which can be found under https://www.mongodb.com/docs/atlas/reference/cloud-providers/ 'regions' link
