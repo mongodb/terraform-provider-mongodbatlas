@@ -217,7 +217,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 ## Example Usage - Copy Policy Items
 
-Use `copy_policy_items_enabled = true` with `copy_policy_items` when copies should keep a different retention than the source snapshots. `frequency_type` is lowercase. `frequencies` stays uppercase and is the legacy path when the flag is false or omitted.
+Use `copy_policy_items_enabled = true` with `copy_policy_items` when copies should keep a different retention than the source snapshots. Use `last_number_of_snapshots` instead to copy the last N snapshots. `frequency_type` is lowercase. `frequencies` stays uppercase and is the legacy path when the flag is false or omitted.
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "my_cluster" {
@@ -247,6 +247,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
   reference_minute_of_hour = 45
   restore_window_days      = 4
 
+  # Source daily snapshots keep 14 days.
   policy_item_daily {
     frequency_interval = 1
     retention_unit     = "days"
@@ -261,6 +262,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
     zone_id            = mongodbatlas_advanced_cluster.my_cluster.replication_specs.*.zone_id[0]
     should_copy_oplogs = false
 
+    # Daily copies keep 7 days, shorter than the source.
     copy_policy_items {
       frequency_type  = "daily"
       retention_unit  = "days"
@@ -269,6 +271,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
     copy_policy_items {
       frequency_type = "ondemand"
     }
+    # Alternative: last_number_of_snapshots = 5. Do not set it with copy_policy_items.
   }
 }
 ```

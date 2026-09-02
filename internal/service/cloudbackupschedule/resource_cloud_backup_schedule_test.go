@@ -286,6 +286,7 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSchedule_copySettings_zoneId(t *testing.T) {
+	warnLocalCopyDestRegion(t)
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
 			CloudBackup: true,
@@ -327,7 +328,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings_zoneId(t *testing.T) {
 		copySettingsChecks = map[string]string{
 			"copy_settings.#":                    "1",
 			"copy_settings.0.cloud_provider":     "AWS",
-			"copy_settings.0.region_name":        "US_WEST_1",
+			"copy_settings.0.region_name":        "US_EAST_1",
 			"copy_settings.0.should_copy_oplogs": "true",
 		}
 		emptyCopySettingsChecks = map[string]string{
@@ -492,6 +493,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettingsModesValidation(t *testing.T
 }
 
 func TestAccBackupRSCloudBackupSchedule_copyPolicyItems(t *testing.T) {
+	warnLocalCopyDestRegion(t)
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
 			CloudBackup: true,
@@ -734,8 +736,14 @@ func configCopySettingsPlanOnly(extra string) string {
 	`, extra)
 }
 
-// Copy dest must differ from the source cluster region. CI creates US_EAST_2;
-// local reuse via MONGODB_ATLAS_PROJECT_ID / MONGODB_ATLAS_CLUSTER_NAME may be US_EAST_1.
+// Copy dest is US_EAST_1 so the source cluster region must differ. CI uses US_EAST_2.
+func warnLocalCopyDestRegion(t *testing.T) {
+	t.Helper()
+	if acc.ExistingClusterUsed() {
+		t.Log("copy_settings dest is US_EAST_1; if reusing a local cluster, pick a different region for that cluster")
+	}
+}
+
 type copyScheduleConfig struct {
 	info            *acc.ClusterInfo
 	regionName      string
@@ -748,7 +756,7 @@ type copyScheduleConfig struct {
 }
 
 func newCopyScheduleConfig(info *acc.ClusterInfo) copyScheduleConfig {
-	return copyScheduleConfig{info: info, regionName: "US_WEST_1"}
+	return copyScheduleConfig{info: info, regionName: "US_EAST_1"}
 }
 
 func (c copyScheduleConfig) withDaily(days int) copyScheduleConfig {
@@ -989,7 +997,7 @@ func configCopySettings(terraformStr, projectID, clusterResourceName string, emp
 							"MONTHLY",
 							"YEARLY",
 							"ON_DEMAND"]
-				region_name = "US_WEST_1"
+				region_name = "US_EAST_1"
 				replication_spec_id = %[1]s.replication_specs.*.id[0]
 				should_copy_oplogs = true
 			}`, clusterResourceName)
@@ -1008,7 +1016,7 @@ func configCopySettings(terraformStr, projectID, clusterResourceName string, emp
 							"MONTHLY",
 							"YEARLY",
 							"ON_DEMAND"]
-				region_name = "US_WEST_1"
+				region_name = "US_EAST_1"
 				zone_id = %[1]s.replication_specs.*.zone_id[0]
 				should_copy_oplogs = true
 			}`, clusterResourceName)
