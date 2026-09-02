@@ -15,7 +15,6 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 	return dsschema.Schema{
 		Attributes: map[string]dsschema.Attribute{
 			"include_system_managed": dsschema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether system-managed Service Accounts (such as those used for MCP ingress/egress integrations) are included in the response. When false, only user-managed Service Accounts are returned.",
 			},
