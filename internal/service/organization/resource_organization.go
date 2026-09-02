@@ -385,7 +385,6 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 	// SDKv2 Get() cannot distinguish an explicit empty string from an unset field, GetRawConfig() allows to
 	// distinguish between the two. The value in config is always sent so the API validates it, `operationsContact`
 	// is cleared with an explicit null when removed from config, and omitted when it was never set.
-	// SetOperationsContactNil is used so a nil pointer is serialized as null instead of omitted.
 	if d.GetRawConfig().GetAttr("operations_contact").IsNull() {
 		if d.HasChange("operations_contact") {
 			settings.SetOperationsContactNil()
