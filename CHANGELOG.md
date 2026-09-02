@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Guide:** Adds guidance for migrating stream connections and processors from instance_name to workspace_name ([#4682](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4682))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_project_service_accounts: Adds `include_system_managed` attribute to optionally include system-managed Service Accounts in the response ([#4699](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4699))
