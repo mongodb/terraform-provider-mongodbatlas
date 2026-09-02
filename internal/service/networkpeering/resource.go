@@ -288,9 +288,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if diags.HasError() {
 		return diags
 	}
-	// resourceRead only warns on FAILED status, surface it as an error when reached during creation.
+	// resourceRead only warns on FAILED status, surface it as an error (without the warning) when reached during creation.
 	if waitPeer, ok := peerResp.(*admin.BaseNetworkPeeringConnectionSettings); ok {
-		diags = append(diags, ErrorIfFailedStatusIsPresent(waitPeer)...)
+		if failedDiags := ErrorIfFailedStatusIsPresent(waitPeer); failedDiags.HasError() {
+			return failedDiags
+		}
 	}
 	return diags
 }
@@ -349,34 +351,42 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 // ErrorIfFailedStatusIsPresent returns an error diagnostic when the peering connection is in FAILED status.
 // It must only be used in create/update flows: using it in read would block all Terraform operations when Atlas moves the peering to FAILED on its own.
 func ErrorIfFailedStatusIsPresent(peer *admin.BaseNetworkPeeringConnectionSettings) diag.Diagnostics {
-	if errorState, failed := failedStatusErrorState(peer); failed {
-		return diag.FromErr(fmt.Errorf("peer networking is in a failed state: %s", errorState))
+	if errDetail, failed := failedStatusErrorDetail(peer); failed {
+		return diag.FromErr(fmt.Errorf("peer networking is in a failed state: %s", errDetail))
 	}
 	return nil
 }
 
 // WarnIfFailedStatusIsPresent returns a warning diagnostic when the peering connection is in FAILED status.
 func WarnIfFailedStatusIsPresent(peer *admin.BaseNetworkPeeringConnectionSettings) diag.Diagnostics {
-	if errorState, failed := failedStatusErrorState(peer); failed {
+	if errDetail, failed := failedStatusErrorDetail(peer); failed {
 		return diag.Diagnostics{{
 			Severity: diag.Warning,
 			Summary:  "Network peering connection is in FAILED status",
-			Detail:   fmt.Sprintf("Peer networking is in a failed state: %s. The resource is kept in the Terraform state, fix the reported issue and recreate the resource if needed.", errorState),
+			Detail:   fmt.Sprintf("Peer networking is in a failed state: %s. The resource is kept in the Terraform state. Fix the reported issue and recreate the resource if needed.", errDetail),
 		}}
 	}
 	return nil
 }
 
 // for Azure/GCP "status" and "errorState" is returned, for AWS "statusName" and "errorStateName"
-func failedStatusErrorState(peer *admin.BaseNetworkPeeringConnectionSettings) (errorState string, failed bool) {
+func failedStatusErrorDetail(peer *admin.BaseNetworkPeeringConnectionSettings) (errDetail string, failed bool) {
 	if peer.GetStatus() != "FAILED" && peer.GetStatusName() != "FAILED" {
 		return "", false
 	}
-	errorState = peer.GetErrorState()
+	errDetail = peer.GetErrorState()
 	if peer.GetErrorStateName() != "" {
-		errorState = peer.GetErrorStateName()
+		errDetail = peer.GetErrorStateName()
 	}
-	return errorState, true
+	// append errorMessage when set, the error state may lack the failure description (e.g. AWS only returns a code like "REJECTED")
+	if msg := peer.GetErrorMessage(); msg != "" && msg != errDetail {
+		if errDetail == "" {
+			errDetail = msg
+		} else {
+			errDetail = fmt.Sprintf("%s: %s", errDetail, msg)
+		}
+	}
+	return errDetail, true
 }
 
 func setCommonFields(d *schema.ResourceData, peer *admin.BaseNetworkPeeringConnectionSettings, peerID, accepterRegionName string) diag.Diagnostics {
@@ -522,9 +532,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if diags.HasError() {
 		return diags
 	}
-	// resourceRead only warns on FAILED status, surface it as an error when reached during update.
+	// resourceRead only warns on FAILED status, surface it as an error (without the warning) when reached during update.
 	if waitPeer, ok := peerResp.(*admin.BaseNetworkPeeringConnectionSettings); ok {
-		diags = append(diags, ErrorIfFailedStatusIsPresent(waitPeer)...)
+		if failedDiags := ErrorIfFailedStatusIsPresent(waitPeer); failedDiags.HasError() {
+			return failedDiags
+		}
 	}
 	return diags
 }

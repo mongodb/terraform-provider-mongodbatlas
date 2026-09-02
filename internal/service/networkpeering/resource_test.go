@@ -99,7 +99,7 @@ func TestAccNetworkRSNetworkPeering_AzureFailedStatus(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configAzureTwoPeeringSameCIDR(orgID, firstProjName, secondProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName),
-				ExpectError: regexp.MustCompile("peer networking is in a failed state:"),
+				ExpectError: regexp.MustCompile("peer networking is in a failed state:.*overlapping CIDR block"),
 			},
 			{
 				// removing the failed peering (always `second`) from the config exercises that refresh only warns on FAILED status and that the failed peering can be destroyed
@@ -238,7 +238,7 @@ func TestAccNetworkNetworkPeering_timeouts(t *testing.T) {
 func TestFailedStatusDiagnostics(t *testing.T) {
 	testCases := map[string]struct {
 		peer         *admin.BaseNetworkPeeringConnectionSettings
-		errorState   string
+		errDetail    string
 		expectsDiags bool
 	}{
 		"AWS FAILED status": {
@@ -246,7 +246,16 @@ func TestFailedStatusDiagnostics(t *testing.T) {
 				StatusName:     new("FAILED"),
 				ErrorStateName: new("REJECTED"),
 			},
-			errorState:   "REJECTED",
+			errDetail:    "REJECTED",
+			expectsDiags: true,
+		},
+		"AWS FAILED status with error message": {
+			peer: &admin.BaseNetworkPeeringConnectionSettings{
+				StatusName:     new("FAILED"),
+				ErrorStateName: new("REJECTED"),
+				ErrorMessage:   new("vpc peering connection request was rejected by AWS"),
+			},
+			errDetail:    "REJECTED: vpc peering connection request was rejected by AWS",
 			expectsDiags: true,
 		},
 		"Azure/GCP FAILED status": {
@@ -254,7 +263,7 @@ func TestFailedStatusDiagnostics(t *testing.T) {
 				Status:     new("FAILED"),
 				ErrorState: new("CIDR_BLOCK_CONFLICT"),
 			},
-			errorState:   "CIDR_BLOCK_CONFLICT",
+			errDetail:    "CIDR_BLOCK_CONFLICT",
 			expectsDiags: true,
 		},
 		"AVAILABLE status": {
@@ -275,11 +284,11 @@ func TestFailedStatusDiagnostics(t *testing.T) {
 				assert.Empty(t, warningDiags)
 				return
 			}
-			assert.Equal(t, diag.FromErr(fmt.Errorf("peer networking is in a failed state: %s", tc.errorState)), errorDiags)
+			assert.Equal(t, diag.FromErr(fmt.Errorf("peer networking is in a failed state: %s", tc.errDetail)), errorDiags)
 			expectedWarning := diag.Diagnostics{{
 				Severity: diag.Warning,
 				Summary:  "Network peering connection is in FAILED status",
-				Detail:   fmt.Sprintf("Peer networking is in a failed state: %s. The resource is kept in the Terraform state, fix the reported issue and recreate the resource if needed.", tc.errorState),
+				Detail:   fmt.Sprintf("Peer networking is in a failed state: %s. The resource is kept in the Terraform state. Fix the reported issue and recreate the resource if needed.", tc.errDetail),
 			}}
 			assert.Equal(t, expectedWarning, warningDiags)
 		})
