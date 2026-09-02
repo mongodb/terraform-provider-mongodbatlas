@@ -1,8 +1,5 @@
 schema:
-    description: |-
-        This API is in preview. Breaking changes might be introduced before it is released. Don't use preview APIs in production.
-
-         Starts an overload protection simulation for one cluster. Returns a 409 if a simulation is already in progress or completed; DELETE the existing simulation before starting a new one.
+    description: Starts an overload protection simulation for one cluster. Returns a 409 if a simulation is already in progress or completed; DELETE the existing simulation before starting a new one.
     attributes:
         - string: {}
           description: Date and time when cancellation of the overload protection simulation was requested. This parameter is only present when a cancellation has been requested and expresses its value in the ISO 8601 timestamp format in UTC.
@@ -48,6 +45,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          immutable_computed: true
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
           computed_optional_required: required
@@ -70,6 +68,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          immutable_computed: true
         - string: {}
           description: Unique identifier of the overload protection simulation.
           computed_optional_required: computed
@@ -81,6 +80,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          immutable_computed: true
         - string: {}
           description: Current state of the overload protection simulation.
           computed_optional_required: computed
@@ -147,13 +147,10 @@ operations:
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/overloadSimulations/{simulationId}
-    version_header: application/vnd.atlas.preview+json
+    version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
     singular:
-        description: |-
-            This API is in preview. Breaking changes might be introduced before it is released. Don't use preview APIs in production.
-
-             Returns the overload protection simulation for one cluster.
+        description: Returns the overload protection simulation for one cluster.
         attributes:
             - string: {}
               description: Date and time when cancellation of the overload protection simulation was requested. This parameter is only present when a cancellation has been requested and expresses its value in the ISO 8601 timestamp format in UTC.
@@ -247,6 +244,6 @@ data_sources:
         read:
             http_method: GET
             path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/overloadSimulations/{simulationId}
-        version_header: application/vnd.atlas.preview+json
+        version_header: application/vnd.atlas.2025-03-12+json
 name: cluster_overload_simulation
 packageName: clusteroverloadsimulation

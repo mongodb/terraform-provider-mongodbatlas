@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
@@ -32,6 +33,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"expires_at": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Date and time when the overload protection simulation expires. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
@@ -41,10 +43,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"request_date": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Date and time when the overload protection simulation was requested. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"simulation_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique identifier of the overload protection simulation.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"state": schema.StringAttribute{
 				Computed:            true,
