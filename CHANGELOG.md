@@ -1,5 +1,10 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_project_service_accounts: Adds `include_system_managed` attribute to optionally include system-managed Service Accounts in the response ([#4699](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4699))
+* data-source/mongodbatlas_service_accounts: Adds `include_system_managed` attribute to optionally include system-managed Service Accounts in the response ([#4699](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4699))
+
 ## 2.17.0 (August 27, 2026)
 
 FEATURES:
