@@ -20,6 +20,34 @@ func GetWorkspaceOrInstanceName(workspaceName, instanceName types.String) string
 	return instanceName.ValueString()
 }
 
+// IsAliasOnlyTransition reports whether a plan preserves the effective workspace
+// and changes no processor configuration other than its alias representation.
+func IsAliasOnlyTransition(plan, state *TFStreamProcessorRSModel) bool {
+	if plan.WorkspaceName.IsUnknown() || plan.InstanceName.IsUnknown() || state.WorkspaceName.IsUnknown() || state.InstanceName.IsUnknown() {
+		return false
+	}
+	if plan.WorkspaceName.Equal(state.WorkspaceName) && plan.InstanceName.Equal(state.InstanceName) {
+		return false
+	}
+	if GetWorkspaceOrInstanceName(plan.WorkspaceName, plan.InstanceName) != GetWorkspaceOrInstanceName(state.WorkspaceName, state.InstanceName) {
+		return false
+	}
+
+	return plan.Options.Equal(state.Options) &&
+		plan.Pipeline.Equal(state.Pipeline) &&
+		plan.ProcessorName.Equal(state.ProcessorName) &&
+		plan.ProjectID.Equal(state.ProjectID) &&
+		plan.FailoverEnabled.Equal(state.FailoverEnabled) &&
+		equalOptionalComputedString(plan.State, state.State) &&
+		equalOptionalComputedString(plan.Tier, state.Tier)
+}
+
+// equalOptionalComputedString treats an unknown plan value as unchanged because
+// Terraform may defer Optional+Computed attributes during an update plan.
+func equalOptionalComputedString(plan, state types.String) bool {
+	return plan.IsUnknown() || plan.Equal(state)
+}
+
 func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessor, diag.Diagnostics) {
 	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
 	if diags != nil {

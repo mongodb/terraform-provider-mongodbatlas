@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/assert"
@@ -51,6 +52,40 @@ func importStep() resource.TestStep {
 
 func TestAccStreamProcessor_basic(t *testing.T) {
 	resource.Test(t, *basicTestCase(t))
+}
+
+func TestAccStreamProcessor_workspaceNameAliasMigration(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		randomSuffix            = acctest.RandString(5)
+		processorName           = "alias-migration-" + randomSuffix
+		legacyConfig            = configMigration(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil)
+		canonicalConfig         = config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: legacyConfig,
+				Check:  composeStreamProcessorChecksMigration(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+			},
+			{
+				Config: canonicalConfig,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+				},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+					resource.TestCheckNoResourceAttr(resourceName, "instance_name"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccStreamProcessor_withFailoverEnabled(t *testing.T) {
@@ -284,7 +319,7 @@ func basicTestCaseMigration(t *testing.T) *resource.TestCase {
 				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"stats"},
+				ImportStateVerifyIgnore: []string{"instance_name", "workspace_name", "stats"},
 			},
 		}}
 }
