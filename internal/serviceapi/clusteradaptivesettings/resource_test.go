@@ -32,6 +32,16 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
+				// The first apply verifies that omitting the optional overrides creates stable state.
+				Config: configWithoutOverrides(projectID, clusterName),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+				Check: checkNoOverridesResourceAndDataSource(),
+			},
+			{
 				Config: configBasic(projectID, clusterName, `{
 					OVERLOAD_PROTECTION        = true
 					SEARCH_OVERLOAD_PROTECTION = true
@@ -59,13 +69,7 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 						plancheck.ExpectEmptyPlan(),
 					},
 				},
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckNoResourceAttr(resourceName, "adaptive_settings_overrides"),
-					resource.TestCheckNoResourceAttr(dataSourceName, "adaptive_settings_overrides"),
-					resource.TestCheckResourceAttrSet(resourceName, "effective_adaptive_settings"),
-					resource.TestCheckResourceAttrPair(dataSourceName, "effective_adaptive_settings", resourceName, "effective_adaptive_settings"),
-				),
+				Check: checkNoOverridesResourceAndDataSource(),
 			},
 			{
 				Config: configBasic(projectID, clusterName, `{
@@ -136,6 +140,16 @@ func checkResourceAndDataSource(expectedOverrides string) resource.TestCheckFunc
 		resource.TestCheckResourceAttr(resourceName, "adaptive_settings_overrides", expectedOverrides),
 		resource.TestCheckResourceAttrSet(resourceName, "effective_adaptive_settings"),
 		resource.TestCheckResourceAttrPair(dataSourceName, "adaptive_settings_overrides", resourceName, "adaptive_settings_overrides"),
+		resource.TestCheckResourceAttrPair(dataSourceName, "effective_adaptive_settings", resourceName, "effective_adaptive_settings"),
+	)
+}
+
+func checkNoOverridesResourceAndDataSource() resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		checkExists(resourceName),
+		resource.TestCheckNoResourceAttr(resourceName, "adaptive_settings_overrides"),
+		resource.TestCheckNoResourceAttr(dataSourceName, "adaptive_settings_overrides"),
+		resource.TestCheckResourceAttrSet(resourceName, "effective_adaptive_settings"),
 		resource.TestCheckResourceAttrPair(dataSourceName, "effective_adaptive_settings", resourceName, "effective_adaptive_settings"),
 	)
 }
