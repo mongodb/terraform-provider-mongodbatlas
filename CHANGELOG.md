@@ -8,6 +8,7 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_project_service_accounts: Adds `include_system_managed` attribute to optionally include system-managed Service Accounts in the response ([#4699](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4699))
 * data-source/mongodbatlas_service_accounts: Adds `include_system_managed` attribute to optionally include system-managed Service Accounts in the response ([#4699](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4699))
+* resource/mongodbatlas_stream_processor: Adds `options.resume_from_checkpoint` to allow modifying the `$source` stage of a `pipeline`, which the Atlas Admin API rejects while resuming from an existing checkpoint. Only applied to updates that change the `$source` or a window stage, the changes the API rejects while resuming from a checkpoint. ([#4608](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4608))
 
 ## 2.17.0 (August 27, 2026)
 
