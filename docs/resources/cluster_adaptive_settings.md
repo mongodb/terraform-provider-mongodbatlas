@@ -11,6 +11,7 @@ subcategory: "Clusters"
 ## Example Usages
 
 ```terraform
+# Manage Adaptive Settings overrides for an existing MongoDB Atlas cluster and read the resulting effective settings with the corresponding data source.
 resource "mongodbatlas_cluster_adaptive_settings" "this" {
   project_id   = var.project_id
   cluster_name = var.cluster_name
