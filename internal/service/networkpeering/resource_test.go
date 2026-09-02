@@ -102,8 +102,8 @@ func TestAccNetworkRSNetworkPeering_AzureFailedStatus(t *testing.T) {
 				ExpectError: regexp.MustCompile("peer networking is in a failed state:"),
 			},
 			{
-				// removing the failed peering from the config exercises that refresh only warns on FAILED status and that the failed peering can be destroyed
-				Config: configAzureWithProject("first", orgID, firstProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName),
+				// removing the failed peering (always `second`) from the config exercises that refresh only warns on FAILED status and that the failed peering can be destroyed
+				Config: configAzureWithProject("first", orgID, firstProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName, ""),
 				Check:  checkExists("mongodbatlas_network_peering.first"),
 			},
 		},
@@ -440,15 +440,16 @@ func configAzure(projectID, providerName, directoryID, subscriptionID, resourceG
 }
 
 func configAzureTwoPeeringSameCIDR(orgID, firstProjName, secondProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName string) string {
-	firstAzureConfig := configAzureWithProject("first", orgID, firstProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName)
-	secondAzureConfig := configAzureWithProject("second", orgID, secondProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName)
+	firstAzureConfig := configAzureWithProject("first", orgID, firstProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName, "")
+	// depends_on makes first complete before second starts, so second is always the peering reaching FAILED status
+	secondAzureConfig := configAzureWithProject("second", orgID, secondProjName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName, "depends_on = [mongodbatlas_network_peering.first]")
 	return fmt.Sprintf(`
 		%[1]s
 		%[2]s
 	`, firstAzureConfig, secondAzureConfig)
 }
 
-func configAzureWithProject(rsName, orgID, projectName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName string) string {
+func configAzureWithProject(rsName, orgID, projectName, cidrBlock, providerName, directoryID, subscriptionID, resourceGroupName, vNetName, extraPeeringAttr string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "%[8]s" {
 			org_id 			 = %[1]q
@@ -470,8 +471,9 @@ func configAzureWithProject(rsName, orgID, projectName, cidrBlock, providerName,
 			azure_subscription_id = %[5]q
 			resource_group_name   = %[6]q
 			vnet_name	          = %[7]q
+			%[10]s
 		}
-	`, orgID, projectName, providerName, directoryID, subscriptionID, resourceGroupName, vNetName, rsName, cidrBlock)
+	`, orgID, projectName, providerName, directoryID, subscriptionID, resourceGroupName, vNetName, rsName, cidrBlock, extraPeeringAttr)
 }
 
 func configGCP(projectID, providerName, gcpProjectID, networkName string) string {
