@@ -290,7 +290,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	// resourceRead only warns on FAILED status, surface it as an error (without the warning) when reached during creation.
 	if waitPeer, ok := peerResp.(*admin.BaseNetworkPeeringConnectionSettings); ok {
-		if failedDiags := errorIfFailedStatusIsPresent(waitPeer); failedDiags.HasError() {
+		if failedDiags := ErrorIfFailedStatusIsPresent(waitPeer); failedDiags.HasError() {
 			return failedDiags
 		}
 	}
@@ -345,20 +345,20 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	diags := setCommonFields(d, peer, peerID, accepterRegionName)
 
-	return append(diags, warnIfFailedStatusIsPresent(peer)...)
+	return append(diags, WarnIfFailedStatusIsPresent(peer)...)
 }
 
-// errorIfFailedStatusIsPresent returns an error diagnostic when the peering connection is in FAILED status.
+// ErrorIfFailedStatusIsPresent returns an error diagnostic when the peering connection is in FAILED status.
 // It must only be used in create/update flows: using it in read would block all Terraform operations when Atlas moves the peering to FAILED on its own.
-func errorIfFailedStatusIsPresent(peer *admin.BaseNetworkPeeringConnectionSettings) diag.Diagnostics {
+func ErrorIfFailedStatusIsPresent(peer *admin.BaseNetworkPeeringConnectionSettings) diag.Diagnostics {
 	if errDetail, failed := failedStatusErrorDetail(peer); failed {
 		return diag.FromErr(fmt.Errorf("peer networking is in a failed state: %s", errDetail))
 	}
 	return nil
 }
 
-// warnIfFailedStatusIsPresent returns a warning diagnostic when the peering connection is in FAILED status.
-func warnIfFailedStatusIsPresent(peer *admin.BaseNetworkPeeringConnectionSettings) diag.Diagnostics {
+// WarnIfFailedStatusIsPresent returns a warning diagnostic when the peering connection is in FAILED status.
+func WarnIfFailedStatusIsPresent(peer *admin.BaseNetworkPeeringConnectionSettings) diag.Diagnostics {
 	if errDetail, failed := failedStatusErrorDetail(peer); failed {
 		return diag.Diagnostics{{
 			Severity: diag.Warning,
@@ -534,7 +534,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	// resourceRead only warns on FAILED status, surface it as an error (without the warning) when reached during update.
 	if waitPeer, ok := peerResp.(*admin.BaseNetworkPeeringConnectionSettings); ok {
-		if failedDiags := errorIfFailedStatusIsPresent(waitPeer); failedDiags.HasError() {
+		if failedDiags := ErrorIfFailedStatusIsPresent(waitPeer); failedDiags.HasError() {
 			return failedDiags
 		}
 	}
