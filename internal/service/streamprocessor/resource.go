@@ -5,7 +5,7 @@ import (
 	"errors"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -111,7 +111,6 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		if plan.Tier.ValueString() != "" {
 			startWithOptions.SetTier(plan.Tier.ValueString())
 		}
-
 		_, err := connV2.StreamsAPI.StartStreamProcessorWith(ctx, projectID, workspaceOrInstanceName, processorName, startWithOptions).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(errorCreateStart, err.Error())
@@ -126,7 +125,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 
 	instanceName := plan.InstanceName.ValueString()
 	workspaceName := plan.WorkspaceName.ValueString()
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessorResp, &plan.Timeouts, &plan.DeleteOnCreateTimeout, &plan.FailoverEnabled)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessorResp, &plan.Timeouts, &plan.DeleteOnCreateTimeout, &plan.FailoverEnabled, &plan.Options)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -158,7 +157,7 @@ func (r *streamProcessorRS) Read(ctx context.Context, req resource.ReadRequest, 
 
 	instanceName := state.InstanceName.ValueString()
 	workspaceName := state.WorkspaceName.ValueString()
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessor, &state.Timeouts, &state.DeleteOnCreateTimeout, &state.FailoverEnabled)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessor, &state.Timeouts, &state.DeleteOnCreateTimeout, &state.FailoverEnabled, &state.Options)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -173,6 +172,13 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if IsAliasOnlyTransition(&plan, &state) {
+		state.InstanceName = plan.InstanceName
+		state.WorkspaceName = plan.WorkspaceName
+		resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 		return
 	}
 
@@ -223,7 +229,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	// modify the stream processor
-	modifyAPIRequestParams, diags := NewStreamProcessorUpdateReq(ctx, &plan)
+	modifyAPIRequestParams, diags := NewStreamProcessorUpdateReq(ctx, &plan, &state)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -240,7 +246,6 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		if plan.Tier.ValueString() != "" {
 			startWithOptions.SetTier(plan.Tier.ValueString())
 		}
-
 		_, err := r.Client.AtlasV2.StreamsAPI.StartStreamProcessorWith(ctx, projectID, workspaceOrInstanceName, processorName, startWithOptions).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("Error starting stream processor", err.Error())
@@ -266,7 +271,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 
 	instanceName := plan.InstanceName.ValueString()
 	workspaceName := plan.WorkspaceName.ValueString()
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessorResp, &plan.Timeouts, &plan.DeleteOnCreateTimeout, &plan.FailoverEnabled)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessorResp, &plan.Timeouts, &plan.DeleteOnCreateTimeout, &plan.FailoverEnabled, &plan.Options)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

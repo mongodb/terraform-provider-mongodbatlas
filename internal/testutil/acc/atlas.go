@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312023/admin"
+	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
 
 func createProject(tb testing.TB, name string) string {
@@ -40,12 +40,12 @@ func deleteProject(id string) error {
 	return nil
 }
 
-func createCluster(tb testing.TB, projectID, name string) string {
+func createCluster(tb testing.TB, projectID, name string, backupEnabled, pitEnabled bool) string {
 	tb.Helper()
 	regions := DefaultRegions()
 	for i, region := range regions {
 		lastRegion := i == len(regions)-1
-		req := clusterReq(name, projectID, region)
+		req := clusterReq(name, projectID, region, backupEnabled, pitEnabled)
 		_, _, err := ConnV2().ClustersAPI.CreateCluster(tb.Context(), projectID, &req).Execute()
 		if isOutOfCapacityError(err) && !lastRegion {
 			tb.Logf("Cluster creation in %s failed with OUT_OF_CAPACITY, trying next region: %s, err: %s", region, name, err)
@@ -85,11 +85,13 @@ func deleteCluster(projectID, name string) error {
 	return nil
 }
 
-func clusterReq(name, projectID, region string) admin.ClusterDescription20240805 {
+func clusterReq(name, projectID, region string, backupEnabled, pitEnabled bool) admin.ClusterDescription20240805 {
 	return admin.ClusterDescription20240805{
-		Name:        new(name),
-		GroupId:     new(projectID),
-		ClusterType: new("REPLICASET"),
+		Name:          new(name),
+		GroupId:       new(projectID),
+		ClusterType:   new("REPLICASET"),
+		BackupEnabled: new(backupEnabled),
+		PitEnabled:    new(pitEnabled),
 		ReplicationSpecs: &[]admin.ReplicationSpec20240805{
 			{
 				RegionConfigs: &[]admin.CloudRegionConfig20240805{

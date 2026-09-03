@@ -1,5 +1,60 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Guide:** Adds guidance for migrating stream connections and processors from instance_name to workspace_name ([#4682](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4682))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_project_service_accounts: Adds `include_system_managed` attribute to optionally include system-managed Service Accounts in the response ([#4699](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4699))
+* data-source/mongodbatlas_service_accounts: Adds `include_system_managed` attribute to optionally include system-managed Service Accounts in the response ([#4699](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4699))
+* resource/mongodbatlas_stream_processor: Adds `options.resume_from_checkpoint` to allow modifying the `$source` stage of a `pipeline`, which the Atlas Admin API rejects while resuming from an existing checkpoint. Only applied to updates that change the `$source` or a window stage, the changes the API rejects while resuming from a checkpoint. ([#4608](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4608))
+
+BUG FIXES:
+
+* resource/mongodbatlas_network_peering: Emits a warning instead of returning an error when a peering connection in `FAILED` status is refreshed, and allows peerings in `FAILED` status to be deleted ([#4698](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4698))
+
+## 2.17.0 (August 27, 2026)
+
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_cloud_backup_collection_restore_job` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
+* **New Data Source:** `data-source/mongodbatlas_cloud_backup_collection_restore_job_collection` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
+* **New Data Source:** `data-source/mongodbatlas_cloud_backup_collection_restore_job_collections` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
+* **New Data Source:** `data-source/mongodbatlas_cloud_backup_collection_restore_jobs` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
+* **New Data Source:** `data-source/mongodbatlas_cloud_backup_snapshot_database_collections` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
+* **New Data Source:** `data-source/mongodbatlas_cloud_backup_snapshot_databases` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
+* **New Resource:** `resource/mongodbatlas_cloud_backup_collection_restore_job` ([#4669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4669))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection: Adds `authentication.aws` attribute ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
+* data-source/mongodbatlas_stream_connections: Adds `authentication.aws` attribute ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
+* data-source/mongodbatlas_stream_privatelink_endpoint: Adds `authentication_scheme` attribute ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
+* data-source/mongodbatlas_stream_privatelink_endpoints: Adds `authentication_scheme` attribute ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
+* data-source/mongodbatlas_stream_processor: Adds `options.autoscaling` block and read-only `effective_tier` attribute ([#4665](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4665))
+* data-source/mongodbatlas_stream_processors: Adds `options.autoscaling` block and read-only `effective_tier` attribute ([#4665](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4665))
+* resource/mongodbatlas_stream_connection: Adds support for IAM (`AWS_MSK_IAM`) authentication for Kafka connections via the new `authentication.aws` attribute ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
+* resource/mongodbatlas_stream_privatelink_endpoint: Adds `authentication_scheme` attribute to support `SASL_SCRAM`, `TLS`, and `IAM` authentication for MSK Private Link connections ([#4638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4638))
+* resource/mongodbatlas_stream_processor: Adds independently optional `options.autoscaling` and `options.dlq` blocks plus read-only `effective_tier` attribute to support vertical autoscaling ([#4665](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4665))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_log_integrations: Sends `integration_type` list filter during pagination ([#4680](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4680))
+* data-source/mongodbatlas_metric_integrations: Sends `integration_type` and `provider_type` list filters during pagination ([#4680](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4680))
+* resource/mongodbatlas_ai_model_api_key: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_ai_model_rate_limit: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_log_integration: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_metric_integration: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_project_service_account: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_project_service_account_secret: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_service_account: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_service_account_project_assignment: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_service_account_secret: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+* resource/mongodbatlas_stream_connection: Requires replacement of mongodbatlas_stream_connection when networking changes ([#4659](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4659))
+* resource/mongodbatlas_stream_connection_failover: Fixes delete operations to surface non-404 API errors instead of removing the resource from the state, and read and wait operations to surface API errors instead of misinterpreting them as resource not found ([#4676](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4676))
+
 ## 2.16.0 (August 13, 2026)
 
 FEATURES:

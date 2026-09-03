@@ -171,12 +171,33 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 		Delay:      1 * time.Minute,
 		Refresh: func() (result any, state string, err error) {
 			job, _, err := ConnV2().ClustersAPI.GetSampleDatasetLoad(ctx, projectID, jobID).Execute()
+			if err != nil {
+				return nil, "", err
+			}
+			if job == nil {
+				return nil, "", fmt.Errorf("sample dataset load %s returned nil job for cluster %s:%s", jobID, projectID, clusterName)
+			}
 			state = job.GetState()
-			return job, state, err
+			if err := errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state); err != nil {
+				return job, state, err
+			}
+			return job, state, nil
 		},
 	}
 	_, err = stateConf.WaitForStateContext(ctx)
 	return err
+}
+
+func errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state string) error {
+	if state == retrystrategy.RetryStrategyFailedState {
+		return fmt.Errorf("sample dataset load %s failed for cluster %s:%s", jobID, projectID, clusterName)
+	}
+	return nil
+}
+
+// ErrIfSampleDatasetLoadFailedForTest exposes sample-dataset FAILED mapping for unit tests.
+func ErrIfSampleDatasetLoadFailedForTest(projectID, clusterName, jobID, state string) error {
+	return errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state)
 }
 
 func ConfigBasicDedicated(projectID, name, zoneName string) string {

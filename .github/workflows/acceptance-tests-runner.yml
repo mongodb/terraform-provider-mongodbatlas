@@ -277,6 +277,7 @@ jobs:
       autogen_fast: ${{ steps.filter.outputs.autogen_fast == 'true' || env.mustTrigger == 'true' }}
       autogen_slow: ${{ steps.filter.outputs.autogen_slow == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
+      backup_collection_restore: ${{ steps.filter.outputs.backup_collection_restore == 'true' || env.mustTrigger == 'true' }}
       control_plane_ip_addresses: ${{ steps.filter.outputs.control_plane_ip_addresses == 'true' || env.mustTrigger == 'true' }}
       cloud_user: ${{ steps.filter.outputs.cloud_user == 'true' || env.mustTrigger == 'true' }}
       cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
@@ -351,6 +352,12 @@ jobs:
             - 'internal/service/cloudbackupsnapshotexportjob/*.go'
             - 'internal/service/cloudbackupsnapshotrestorejob/*.go'  
             - 'internal/service/onlinearchive/*.go'
+          backup_collection_restore:
+            - 'internal/serviceapi/cloudbackupcollectionrestorejob/*.go'
+            - 'internal/serviceapi/cloudbackupcollectionrestorejobcollection/*.go'
+            - 'internal/serviceapi/cloudbackupsnapshotdatabase/*.go'
+            - 'internal/serviceapi/cloudbackupsnapshotdatabasecollection/*.go'
+            - 'internal/testutil/acc/cloud_backup_collection_restore*.go'
           control_plane_ip_addresses:
             - 'internal/service/controlplaneipaddresses/*.go'
           cloud_user:
@@ -801,6 +808,30 @@ jobs:
             ./internal/service/cloudbackupsnapshotexportjob
             ./internal/service/cloudbackupsnapshotrestorejob
             ./internal/service/onlinearchive
+        run: make testacc
+
+  backup_collection_restore:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.backup_collection_restore == 'true' || inputs.test_group == 'backup_collection_restore' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_PACKAGES: |
+            ./internal/serviceapi/cloudbackupcollectionrestorejob
+            ./internal/serviceapi/cloudbackupsnapshotdatabase
         run: make testacc
 
   control_plane_ip_addresses:

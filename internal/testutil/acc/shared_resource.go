@@ -27,6 +27,7 @@ type projectInfo struct {
 }
 
 var sharedInfo = struct {
+	clusterPopulateErr error
 	clusterName        string
 	streamInstanceName string
 	projects           []projectInfo
@@ -175,11 +176,19 @@ func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID
 // When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined it will be used instead of creating resources. This is useful for local execution but not intended for CI executions.
 func ClusterNameExecution(tb testing.TB, populateSampleData bool) (projectID, clusterName string) {
 	tb.Helper()
+	projectID, clusterName, err := clusterNameExecution(tb, populateSampleData, false, false)
+	require.NoError(tb, err)
+	return projectID, clusterName
+}
+
+func clusterNameExecution(tb testing.TB, populateSampleData, backupEnabled, pitEnabled bool) (projectID, clusterName string, err error) {
+	tb.Helper()
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "sharedInfo not initialized, use acc.Run() to run tests that require shared resources")
 
 	if ExistingClusterUsed() {
-		return existingProjectIDClusterName()
+		projectID, clusterName = existingProjectIDClusterName()
+		return projectID, clusterName, nil
 	}
 
 	projectID = ProjectIDExecution(tb) // ensure the execution project is created before cluster creation
@@ -191,15 +200,20 @@ func ClusterNameExecution(tb testing.TB, populateSampleData bool) (projectID, cl
 	if sharedInfo.clusterName == "" {
 		name := RandomClusterName()
 		tb.Logf("Creating execution cluster: %s\n", name)
-		sharedInfo.clusterName = createCluster(tb, projectID, name)
+		sharedInfo.clusterName = createCluster(tb, projectID, name, backupEnabled, pitEnabled)
 
 		if populateSampleData {
-			err := PopulateWithSampleData(projectID, sharedInfo.clusterName)
-			require.NoError(tb, err)
+			if populateErr := PopulateWithSampleData(projectID, sharedInfo.clusterName); populateErr != nil {
+				sharedInfo.clusterPopulateErr = populateErr
+			}
 		}
 	}
 
-	return projectID, sharedInfo.clusterName
+	if populateSampleData && sharedInfo.clusterPopulateErr != nil {
+		return projectID, sharedInfo.clusterName, sharedInfo.clusterPopulateErr
+	}
+
+	return projectID, sharedInfo.clusterName, nil
 }
 
 // ProjectIDExecutionWithStreamInstance returns the project ID and stream instance name for test execution.

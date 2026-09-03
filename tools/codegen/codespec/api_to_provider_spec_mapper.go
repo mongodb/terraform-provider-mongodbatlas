@@ -258,12 +258,13 @@ func waitConfigToModel(waitConfig *config.Wait) *Wait {
 		return nil
 	}
 	return &Wait{
-		StateProperty:     waitConfig.StateProperty,
-		PendingStates:     waitConfig.PendingStates,
-		TargetStates:      waitConfig.TargetStates,
-		TimeoutSeconds:    waitConfig.TimeoutSeconds,
-		MinTimeoutSeconds: waitConfig.MinTimeoutSeconds,
-		DelaySeconds:      waitConfig.DelaySeconds,
+		StateProperty:            waitConfig.StateProperty,
+		ErrorDescriptionProperty: waitConfig.ErrorDescriptionProperty,
+		PendingStates:            waitConfig.PendingStates,
+		TargetStates:             waitConfig.TargetStates,
+		TimeoutSeconds:           waitConfig.TimeoutSeconds,
+		MinTimeoutSeconds:        waitConfig.MinTimeoutSeconds,
+		DelaySeconds:             waitConfig.DelaySeconds,
 	}
 }
 
@@ -322,6 +323,14 @@ func queryParamsToAttributes(op *high.Operation) (Attributes, error) {
 			log.Printf("[WARN] Query param %s could not be mapped: %s", paramName, err)
 			continue
 		}
+
+		// Query params are never returned in API responses.
+		// When the spec defines a default, these are promoted to ComputedOptional.
+		// Roll them back to Optional only.
+		if parameterAttribute.ComputedOptionalRequired == ComputedOptional {
+			parameterAttribute.ComputedOptionalRequired = Optional
+		}
+
 		queryAttributes = append(queryAttributes, *parameterAttribute)
 	}
 	return queryAttributes, nil

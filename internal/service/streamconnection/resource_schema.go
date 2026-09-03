@@ -40,7 +40,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"instance_name": schema.StringAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+					WorkspaceNameRequiresReplace{},
 				},
 				Validators: []validator.String{
 					stringvalidator.ConflictsWith(path.MatchRoot("workspace_name")),
@@ -50,7 +50,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"workspace_name": schema.StringAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+					WorkspaceNameRequiresReplace{},
 				},
 				Validators: []validator.String{
 					stringvalidator.ConflictsWith(path.MatchRoot("instance_name")),
@@ -124,6 +124,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"sasl_oauthbearer_extensions": schema.StringAttribute{
 						Optional: true,
 					},
+					"aws": schema.SingleNestedAttribute{
+						Optional: true,
+						Attributes: map[string]schema.Attribute{
+							"role_arn": schema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
 				},
 			},
 			"bootstrap_servers": schema.StringAttribute{
@@ -149,6 +157,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed: true,
 				PlanModifiers: []planmodifier.Object{
 					objectplanmodifier.UseStateForUnknown(),
+					objectplanmodifier.RequiresReplaceIfConfigured(),
 				},
 				Attributes: map[string]schema.Attribute{
 					"access": schema.SingleNestedAttribute{
