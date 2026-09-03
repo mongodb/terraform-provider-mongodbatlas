@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -20,7 +19,7 @@ const dataSourcePluralName = "data.mongodbatlas_project_mcp_config_secrets.test"
 
 func TestAccProjectMcpConfigSecret_basic(t *testing.T) {
 	var (
-		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID = acc.ProjectIDExecution(t)
 		name      = acc.RandomName()
 	)
 
@@ -47,7 +46,7 @@ func TestAccProjectMcpConfigSecret_basic(t *testing.T) {
 
 func TestAccProjectMcpConfigSecret_rotate(t *testing.T) {
 	var (
-		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID     = acc.ProjectIDExecution(t)
 		name          = acc.RandomName()
 		firstSecretID string
 	)
@@ -213,7 +212,11 @@ func checkDestroy(s *terraform.State) error {
 			errs = append(errs, fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName))
 			continue
 		}
-		if _, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetGroupMcpSecret(context.Background(), projectID, mcpConfigID, secretID).Execute(); err == nil {
+		stillExists := func() bool {
+			_, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetGroupMcpSecret(context.Background(), projectID, mcpConfigID, secretID).Execute()
+			return err == nil
+		}
+		if !acc.WaitUntilGoneOk(stillExists) {
 			errs = append(errs, fmt.Errorf("mcp config secret (%s/%s/%s) still exists", projectID, mcpConfigID, secretID))
 		}
 	}
