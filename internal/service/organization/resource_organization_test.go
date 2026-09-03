@@ -138,11 +138,6 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 				Check:  checkAggr(orgOwnerID, name, description, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
 			},
 			{
-				// The API rejects an empty operations contact, an existing value is cleared by removing the attribute instead.
-				Config:      configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(settingsConfig, "")),
-				ExpectError: regexp.MustCompile(`INVALID_OPERATIONS_CONTACT_EMAIL`),
-			},
-			{
 				Config: configWithSettings(orgOwnerID, name, description, roleName, settingsConfigUpdated),
 				Check:  checkAggr(orgOwnerID, name, description, settingsConfigUpdated),
 			},
@@ -150,6 +145,11 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 				Config: configBasic(orgOwnerID, nameUpdated, description, roleName, false, nil),
 				Check: checkAggr(orgOwnerID, nameUpdated, description, settingsConfigUpdated,
 					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "true")),
+			},
+			{
+				// The API rejects an empty operations contact, an existing value is cleared by removing the attribute instead.
+				Config:      configWithSettings(orgOwnerID, nameUpdated, description, roleName, withOperationsContact(settingsConfig, "")),
+				ExpectError: regexp.MustCompile(`INVALID_OPERATIONS_CONTACT_EMAIL`),
 			},
 		},
 	})
