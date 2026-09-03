@@ -90,6 +90,10 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"auto_copy_settings_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"use_org_and_group_names_in_export_prefix": {
 				Type:     schema.TypeBool,
 				Computed: true,

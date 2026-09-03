@@ -59,6 +59,10 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			"auto_copy_settings_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"copy_policy_items_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -422,6 +426,10 @@ func setSchemaFields(d *schema.ResourceData, backupSchedule *admin.DiskBackupSna
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
 	}
 
+	if err := d.Set("auto_copy_settings_enabled", backupSchedule.GetAutoCopySettingsEnabled()); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_copy_settings_enabled", clusterName, err)
+	}
+
 	if err := d.Set("copy_policy_items_enabled", backupSchedule.GetCopyPolicyItemsEnabled()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_policy_items_enabled", clusterName, err)
 	}
@@ -555,6 +563,10 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		req.AutoExportEnabled = new(v.(bool))
 	}
 
+	if v, ok := d.GetOkExists("auto_copy_settings_enabled"); ok {
+		req.AutoCopySettingsEnabled = new(v.(bool))
+	}
+
 	if _, ok := d.GetOkExists("copy_policy_items_enabled"); ok || d.HasChange("copy_policy_items_enabled") {
 		req.CopyPolicyItemsEnabled = new(d.Get("copy_policy_items_enabled").(bool))
 	}
@@ -613,7 +625,11 @@ func copySettingsForUpdate(d *schema.ResourceData) ([]any, bool) {
 	rawConfig := d.GetRawConfig()
 	if rawConfig.IsKnown() && !rawConfig.IsNull() {
 		if copySettingsRawConfigEmpty(copySettingsFromRawConfig(rawConfig)) {
-			return []any{}, true
+			autoCopy, _ := d.Get("auto_copy_settings_enabled").(bool)
+			if shouldForceEmptyCopySettings(autoCopy, true) {
+				return []any{}, true
+			}
+			return nil, false
 		}
 	}
 	if d.HasChange("copy_settings") || d.HasChange("copy_settings.#") {

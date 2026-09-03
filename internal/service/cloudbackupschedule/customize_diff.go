@@ -30,10 +30,19 @@ func resourceCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ any) err
 	}
 	// Optional+Computed would keep last state when HCL omits copy_settings. Force an empty list so delete-on-omit stays.
 	// Do not require Get() length > 0: omitted/unknown config makes Get() empty even though planned state would keep last copies.
+	// Skip force-empty when auto_copy_settings_enabled is true so Atlas-managed copies stay in the plan.
 	if copySettingsRawConfigEmpty(copySettingsRaw) {
-		return d.SetNew("copy_settings", []any{})
+		autoCopy, _ := d.Get("auto_copy_settings_enabled").(bool)
+		if shouldForceEmptyCopySettings(autoCopy, true) {
+			return d.SetNew("copy_settings", []any{})
+		}
+		return nil
 	}
 	return clearFrequenciesWhenCopyPolicyEnabled(d)
+}
+
+func shouldForceEmptyCopySettings(autoCopyEnabled, rawEmpty bool) bool {
+	return rawEmpty && !autoCopyEnabled
 }
 
 // copySettingsRawConfigEmpty reports whether HCL omitted copy_settings. Also used at apply time by copySettingsForUpdate.
