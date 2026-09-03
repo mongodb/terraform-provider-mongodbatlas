@@ -14,6 +14,10 @@ import (
 func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 	return dsschema.Schema{
 		Attributes: map[string]dsschema.Attribute{
+			"include_system_managed": dsschema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether system-managed Service Accounts (such as those used for MCP ingress/egress integrations) are included in the response. When false, only user-managed Service Accounts are returned.",
+			},
 			"org_id": dsschema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects.",
@@ -83,8 +87,9 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFPluralDSModel struct {
-	OrgId   types.String                                        `tfsdk:"org_id" autogen:"omitjson"`
-	Results customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
+	IncludeSystemManaged types.Bool                                          `tfsdk:"include_system_managed" autogen:"omitjson"`
+	OrgId                types.String                                        `tfsdk:"org_id" autogen:"omitjson"`
+	Results              customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
 }
 type TFPluralDSResultsModel struct {
 	ClientId    types.String                                               `tfsdk:"client_id" autogen:"omitjson"`

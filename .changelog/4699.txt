@@ -1,0 +1,7 @@
+```release-note:enhancement
+data-source/mongodbatlas_service_accounts: Adds `include_system_managed` attribute to optionally include system-managed Service Accounts in the response
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_project_service_accounts: Adds `include_system_managed` attribute to optionally include system-managed Service Accounts in the response
+```
