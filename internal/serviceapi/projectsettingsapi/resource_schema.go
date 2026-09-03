@@ -20,6 +20,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"is_atlas_home_page_ai_assistant_enabled": schema.BoolAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether the MongoDB Assistant on the Atlas Home Page is enabled for the specified project.",
 			},
