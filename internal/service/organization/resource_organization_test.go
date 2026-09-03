@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
@@ -134,25 +135,42 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 				Check:  checkAggr(orgOwnerID, name, description, settingsConfig),
 			},
 			{
-				Config: configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
-				Check:  checkAggr(orgOwnerID, name, description, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
+				PreConfig: sleepForSettingsRateLimit,
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
+				Check:     checkAggr(orgOwnerID, name, description, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
 			},
 			{
-				Config: configWithSettings(orgOwnerID, name, description, roleName, settingsConfigUpdated),
-				Check:  checkAggr(orgOwnerID, name, description, settingsConfigUpdated),
+				PreConfig: sleepForSettingsRateLimit,
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, settingsConfigUpdated),
+				Check:     checkAggr(orgOwnerID, name, description, settingsConfigUpdated),
 			},
 			{
-				Config: configBasic(orgOwnerID, nameUpdated, description, roleName, false, nil),
+				PreConfig: sleepForSettingsRateLimit,
+				Config:    configBasic(orgOwnerID, nameUpdated, description, roleName, false, nil),
 				Check: checkAggr(orgOwnerID, nameUpdated, description, settingsConfigUpdated,
 					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "true")),
 			},
 			{
-				// The API rejects an empty operations contact, an existing value is cleared by removing the attribute instead.
+				// Re-set operations_contact to a real value: configBasic cleared it, and an
+				// empty-string config would otherwise be a no-op diff against an already-blank value.
+				PreConfig: sleepForSettingsRateLimit,
+				Config:    configWithSettings(orgOwnerID, nameUpdated, description, roleName, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
+				Check:     resource.TestCheckResourceAttr(resourceName, "operations_contact", "test-updated@mongodb.com"),
+			},
+			{
+				PreConfig:   sleepForSettingsRateLimit,
 				Config:      configWithSettings(orgOwnerID, nameUpdated, description, roleName, withOperationsContact(settingsConfig, "")),
 				ExpectError: regexp.MustCompile(`INVALID_OPERATIONS_CONTACT_EMAIL`),
 			},
 		},
 	})
+}
+
+// sleepForSettingsRateLimit spaces out steps hitting the org settings endpoint, whose rate
+// limit (5 requests/60s, per https://www.mongodb.com/docs/atlas/api/api-rate-limit/#organization-settings) is easily
+// exceeded by consecutive apply steps, each of which reads and writes it multiple times.
+func sleepForSettingsRateLimit() {
+	time.Sleep(45 * time.Second)
 }
 
 func TestAccConfigRSOrganization_ServiceAccount(t *testing.T) {
