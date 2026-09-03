@@ -68,6 +68,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`." +
 					" When a Stream Processor is created without specifying the state, it will default to `CREATED` state. When a Stream Processor is updated without specifying the state, it will default to the Previous state. \n\n**NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.",
 			},
+			// IMPORTANT: the data sources define their own copy of options in
+			// dataSourceOptionsOverridenField, without resume_from_checkpoint. Keep both in sync.
 			"options": schema.SingleNestedAttribute{
 				Optional: true,
 				Validators: []validator.Object{
@@ -75,6 +77,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 				MarkdownDescription: "Optional configuration for the stream processor. Empty `options` objects are not supported.",
 				Attributes: map[string]schema.Attribute{
+					"resume_from_checkpoint": schema.BoolAttribute{
+						Optional: true,
+						MarkdownDescription: "Controls checkpoint behavior when the `$source` stage or a window stage of the `pipeline` changes. When `true`, the stream processor resumes from its last checkpoint. Set to `false` to discard the existing checkpoint, which is necessary for those changes because the API rejects them while resuming from an incompatible checkpoint." +
+							" Defaults to `true` when not set.\n\n**NOTE** This attribute is only applied to updates that change the `$source` stage, or a window's type, `interval`, `hopSize` or `allowedLateness`. It is ignored on create and on any other update, such as a `tier` change or an edit to a `$match` stage." +
+							" Because it is applied to every such change while it remains in the configuration, remove it once the change it was needed for has been applied, otherwise a later `$source` or window change discards the checkpoint without being set again for that change. It cannot be imported.",
+					},
 					"dlq": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"coll": schema.StringAttribute{
@@ -162,6 +170,14 @@ type TFStreamProcessorRSModel struct {
 }
 
 type TFOptionsModel struct {
+	Dlq                  types.Object `tfsdk:"dlq"`
+	Autoscaling          types.Object `tfsdk:"autoscaling"`
+	ResumeFromCheckpoint types.Bool   `tfsdk:"resume_from_checkpoint"`
+}
+
+// TFDSOptionsModel is the data source counterpart of TFOptionsModel. resume_from_checkpoint is not
+// part of the data source schemas, see dataSourceOptionsOverridenField.
+type TFDSOptionsModel struct {
 	Dlq         types.Object `tfsdk:"dlq"`
 	Autoscaling types.Object `tfsdk:"autoscaling"`
 }
@@ -173,6 +189,14 @@ type TFDlqModel struct {
 }
 
 var OptionsObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"dlq":                    DlqObjectType,
+	"autoscaling":            AutoscalingObjectType,
+	"resume_from_checkpoint": types.BoolType,
+}}
+
+// DSOptionsObjectType mirrors OptionsObjectType without resume_from_checkpoint, matching the
+// narrower data source schemas.
+var DSOptionsObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"dlq":         DlqObjectType,
 	"autoscaling": AutoscalingObjectType,
 }}

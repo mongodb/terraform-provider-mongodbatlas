@@ -79,16 +79,15 @@ func pluralizeName(name string) string {
 }
 
 // getQueryParams extracts query parameters from plural data source attributes.
-// Assumption made is that query parameters are optional top-level attributes
+// Assumption: query parameters are optional top-level attributes.
 func getQueryParams(attributes codespec.Attributes) []codetemplate.Param {
 	var queryParams []codetemplate.Param
 
 	for i := range attributes {
-		// Only consider optional attributes as query parameters
 		if attributes[i].ComputedOptionalRequired == codespec.Optional {
 			param := codetemplate.Param{
 				PascalCaseName: stringcase.Capitalize(attributes[i].TFModelName),
-				CamelCaseName:  stringcase.Uncapitalize(attributes[i].APIName),
+				CamelCaseName:  attributes[i].APIName,
 			}
 			queryParams = append(queryParams, param)
 		}
