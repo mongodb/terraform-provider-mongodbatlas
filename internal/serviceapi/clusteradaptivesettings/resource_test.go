@@ -17,7 +17,7 @@ import (
 const (
 	resourceName     = "mongodbatlas_cluster_adaptive_settings.test"
 	dataSourceName   = "data.mongodbatlas_cluster_adaptive_settings.test"
-	apiVersionHeader = "application/vnd.atlas.2025-03-12+json"
+	apiVersionHeader = "application/vnd.atlas.preview+json"
 	readPath         = "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/adaptiveSettings"
 )
 

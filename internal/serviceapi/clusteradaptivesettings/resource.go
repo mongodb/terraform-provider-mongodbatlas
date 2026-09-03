@@ -15,7 +15,7 @@ import (
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 
-const apiVersionHeader = "application/vnd.atlas.2025-03-12+json"
+const apiVersionHeader = "application/vnd.atlas.preview+json"
 
 func Resource() resource.Resource {
 	return &rs{

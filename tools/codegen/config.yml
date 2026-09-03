@@ -163,7 +163,6 @@ resources:
       # Adaptive Settings belong to the cluster, so destroy clears overrides instead of deleting the API object.
       static_request_body: '{"adaptiveSettingsOverrides": null}'
       resets_to_defaults: true
-    version_header: application/vnd.atlas.2025-03-12+json
     schema:
       aliases:
         groupId: projectId

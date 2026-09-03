@@ -159,7 +159,7 @@ func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 
 func adaptiveSettingsCallParams() config.APICallParams {
 	return config.APICallParams{
-		VersionHeader: "application/vnd.atlas.2025-03-12+json",
+		VersionHeader: "application/vnd.atlas.preview+json",
 		RelativePath:  "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/adaptiveSettings",
 		PathParams: map[string]string{
 			"projectId":   "projectID",
