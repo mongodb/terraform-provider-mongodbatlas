@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/spf13/cast"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -29,6 +30,8 @@ const (
 	errorSnapshotBackupScheduleRead    = "error getting a Cloud Backup Schedule for the cluster(%s): %s"
 	errorSnapshotBackupScheduleSetting = "error setting `%s` for Cloud Backup Schedule(%s): %s"
 )
+
+var deprecationMsgCopySettingsFrequencies = fmt.Sprintf(constant.DeprecationParamWithReplacement, "`copy_policy_items` or `last_number_of_snapshots`")
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -84,9 +87,10 @@ func Resource() *schema.Resource {
 							Computed: true,
 						},
 						"frequencies": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Computed: true,
+							Type:       schema.TypeSet,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: deprecationMsgCopySettingsFrequencies,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},

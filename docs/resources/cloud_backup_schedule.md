@@ -163,7 +163,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 ## Example Usage - Create a Cluster with Cloud Backup Enabled with Snapshot Distribution
 
-You can enable `cloud_backup` in the Cluster resource and then use the `cloud_backup_schedule` resource with a basic policy for Cloud Backup.
+You can enable `cloud_backup` in the Cluster resource and then use the `cloud_backup_schedule` resource with a basic policy for Cloud Backup. Use `copy_policy_items_enabled = true` with `copy_policy_items` when copies should keep a different retention than the source snapshots. Use `last_number_of_snapshots` instead to copy the last N snapshots. `frequency_type` is lowercase. After you apply with the flag `true`, keep it `true`; Atlas cannot disable copy-policy items once they are enabled.
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "my_cluster" {
@@ -171,60 +171,6 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   name           = "clusterTest"
   cluster_type   = "REPLICASET"
   backup_enabled = true # must be enabled in order to use cloud_backup_schedule resource
-
-  replication_specs = [{
-    region_configs = [{
-      priority      = 7
-      provider_name = "AWS"
-      region_name   = "EU_CENTRAL_1"
-      electable_specs = {
-        instance_size = "M10"
-        node_count    = 3
-      }
-    }]
-  }]
-}
-
-resource "mongodbatlas_cloud_backup_schedule" "test" {
-  project_id   = mongodbatlas_advanced_cluster.my_cluster.project_id
-  cluster_name = mongodbatlas_advanced_cluster.my_cluster.name
-
-  reference_hour_of_day    = 3
-  reference_minute_of_hour = 45
-  restore_window_days      = 4
-
-  policy_item_daily {
-    frequency_interval = 1
-    retention_unit     = "days"
-    retention_value    = 14
-  }
-
-  copy_settings {
-    cloud_provider = "AWS"
-    frequencies = ["HOURLY",
-		   "DAILY",
-		   "WEEKLY",
-		   "MONTHLY",
-                   "YEARLY",
-		   "ON_DEMAND"]
-    region_name = "US_EAST_1"
-    zone_id = mongodbatlas_advanced_cluster.my_cluster.replication_specs.*.zone_id[0]
-    should_copy_oplogs = false
-  }
-
-}
-```
-
-## Example Usage - Copy Policy Items
-
-Use `copy_policy_items_enabled = true` with `copy_policy_items` when copies should keep a different retention than the source snapshots. Use `last_number_of_snapshots` instead to copy the last N snapshots. `frequency_type` is lowercase. `frequencies` stays uppercase and is the legacy path when the flag is false or omitted. After you apply with the flag `true`, keep it `true`; Atlas cannot disable copy-policy items once they are enabled.
-
-```terraform
-resource "mongodbatlas_advanced_cluster" "my_cluster" {
-  project_id     = "<PROJECT-ID>"
-  name           = "clusterTest"
-  cluster_type   = "REPLICASET"
-  backup_enabled = true
 
   replication_specs = [{
     region_configs = [{
@@ -276,9 +222,12 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 }
 ```
 
-
 ### Further Examples
 - [Cloud Backup Schedule](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_cloud_backup_schedule)
+
+## Switching from frequencies
+
+`copy_settings.frequencies` is deprecated. Set `copy_policy_items_enabled = true`, then set `copy_policy_items` or `last_number_of_snapshots` on the entry and drop `frequencies`. The switch is one-way on the cluster: after Atlas enables copy-policy items, you cannot turn the flag off.
 
 ## Argument Reference
 
@@ -350,7 +299,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 ### copy_settings
 * `cloud_provider` - (Required) Human-readable label that identifies the cloud provider that stores the snapshot copy. i.e. "AWS" "AZURE" "GCP"
-* `frequencies` - (Optional) List that describes which types of snapshots to copy when `copy_policy_items_enabled` is false or omitted. Values: `HOURLY`, `DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`, `ON_DEMAND`. Mutually exclusive with `copy_policy_items` and `last_number_of_snapshots` on the same entry. You can switch an entry from `frequencies` to `copy_policy_items` or `last_number_of_snapshots` in one apply; the switch back is not possible because `copy_policy_items_enabled` cannot be turned off once it is `true`.
+* `frequencies` - (Deprecated, Optional) List that describes which types of snapshots to copy when `copy_policy_items_enabled` is false or omitted. Values: `HOURLY`, `DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`, `ON_DEMAND`. Mutually exclusive with `copy_policy_items` and `last_number_of_snapshots` on the same entry. You can switch an entry from `frequencies` to `copy_policy_items` or `last_number_of_snapshots` in one apply; the switch back is not possible because `copy_policy_items_enabled` cannot be turned off once it is `true`. Use `copy_policy_items` or `last_number_of_snapshots` instead.
 * `copy_policy_items` - (Optional) Copy-policy items when `copy_policy_items_enabled` is true. Mutually exclusive with `frequencies` and `last_number_of_snapshots`. See [below](#copy_policy_items).
 * `last_number_of_snapshots` - (Optional) Number of most recent snapshots to copy, from 1 to 500, when `copy_policy_items_enabled` is true. Mutually exclusive with `frequencies` and `copy_policy_items`.
 * `region_name` - (Required) Target region to copy snapshots belonging to replicationSpecId to. Please supply the 'Atlas Region' which can be found under https://www.mongodb.com/docs/atlas/reference/cloud-providers/ 'regions' link

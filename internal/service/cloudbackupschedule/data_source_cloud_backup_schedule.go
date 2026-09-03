@@ -40,8 +40,9 @@ func DataSource() *schema.Resource {
 							Computed: true,
 						},
 						"frequencies": {
-							Type:     schema.TypeSet,
-							Computed: true,
+							Type:       schema.TypeSet,
+							Computed:   true,
+							Deprecated: deprecationMsgCopySettingsFrequencies,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},

@@ -44,17 +44,22 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
     retention_value    = 14
   }
 
+  copy_policy_items_enabled = true
+
   copy_settings {
-    cloud_provider = "AWS"
-    frequencies = ["HOURLY",
-		   "DAILY",
-		   "WEEKLY",
-		   "MONTHLY",
-		   "YEARLY",
-		   "ON_DEMAND"]
-    region_name = "US_EAST_1"
-    zone_id = mongodbatlas_advanced_cluster.my_cluster.replication_specs.*.zone_id[0]
+    cloud_provider     = "AWS"
+    region_name        = "US_EAST_1"
+    zone_id            = mongodbatlas_advanced_cluster.my_cluster.replication_specs.*.zone_id[0]
     should_copy_oplogs = false
+
+    copy_policy_items {
+      frequency_type  = "daily"
+      retention_unit  = "days"
+      retention_value = 7
+    }
+    copy_policy_items {
+      frequency_type = "ondemand"
+    }
   }
 }
 
@@ -137,7 +142,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### copy_settings
 * `cloud_provider` - Human-readable label that identifies the cloud provider that stores the snapshot copy. i.e. "AWS" "AZURE" "GCP"
-* `frequencies` - List that describes which types of snapshots to copy when `copy_policy_items_enabled` is false. Values: `HOURLY`, `DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`, `ON_DEMAND`.
+* `frequencies` - (Deprecated) List that describes which types of snapshots to copy when `copy_policy_items_enabled` is false. Values: `HOURLY`, `DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`, `ON_DEMAND`. Use `copy_policy_items` or `last_number_of_snapshots` instead.
 * `copy_policy_items` - Copy-policy items when `copy_policy_items_enabled` is true. See [below](#copy_policy_items).
 * `last_number_of_snapshots` - Number of most recent snapshots copied when `copy_policy_items_enabled` is true.
 * `region_name` - Target region to copy snapshots belonging to replicationSpecId to. Please supply the 'Atlas Region' which can be found under https://www.mongodb.com/docs/atlas/reference/cloud-providers/ 'regions' link

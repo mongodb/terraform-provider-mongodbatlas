@@ -46,17 +46,22 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
   reference_minute_of_hour = 45
   restore_window_days      = 4
 
+  copy_policy_items_enabled = true
+
   copy_settings {
-    cloud_provider = "AWS"
-    frequencies = ["HOURLY",
-      "DAILY",
-      "WEEKLY",
-      "MONTHLY",
-      "YEARLY",
-    "ON_DEMAND"]
+    cloud_provider     = "AWS"
     region_name        = "US_WEST_1"
     zone_id            = mongodbatlas_advanced_cluster.automated_backup_test_cluster[each.key].replication_specs[0].zone_id
     should_copy_oplogs = true
+
+    copy_policy_items {
+      frequency_type  = "daily"
+      retention_unit  = "days"
+      retention_value = 2 # shorter than policy_item_daily
+    }
+    copy_policy_items {
+      frequency_type = "ondemand"
+    }
   }
 
   policy_item_hourly {
