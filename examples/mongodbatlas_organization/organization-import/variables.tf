@@ -51,7 +51,6 @@ variable "security_contact" {
 variable "operations_contact" {
   type        = string
   description = "Email address, typically a distribution list, for the organization to receive proactive notifications about its infrastructure"
-  default     = null
 }
 
 variable "skip_default_alerts_settings" {
