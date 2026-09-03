@@ -4,7 +4,9 @@ subcategory: "Clusters"
 
 # Resource: mongodbatlas_advanced_cluster
 
-`mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters.
+`mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters, including clusters that use the Atlas Infinite Database.
+
+To create an Atlas Infinite Database cluster, set the `database_edition` attribute to `INFINITE`. For more information, including supported features and limitations, see the [Atlas Infinite Database documentation](https://www.mongodb.com/docs/atlas/infinite/atlas-infinite-landing/).
 
 We recommend all MongoDB Atlas Terraform users start with the [`Official MongoDB Atlas Cluster Module`](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/cluster/mongodbatlas/latest). This module simplifies cluster deployment and implements MongoDB Atlas best practices by default.
 
