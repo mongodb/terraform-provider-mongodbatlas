@@ -55,10 +55,14 @@ func pluralDataSourceReadAPICallParams(ctx context.Context, model *TFPluralDSMod
 	pathParams := map[string]string{
 		"orgId": model.OrgId.ValueString(),
 	}
+	queryParams := autogen.BuildQueryParamMap(ctx, []autogen.QueryParamArg{
+		{APIName: "includeSystemManaged", Value: model.IncludeSystemManaged},
+	})
 	return &config.APICallParams{
 		VersionHeader: "application/vnd.atlas.2024-08-05+json",
 		RelativePath:  "/api/atlas/v2/orgs/{orgId}/serviceAccounts",
 		PathParams:    pathParams,
+		QueryParams:   queryParams,
 		Method:        "GET",
 	}
 }
