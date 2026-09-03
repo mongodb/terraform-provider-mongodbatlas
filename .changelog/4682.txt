@@ -1,0 +1,3 @@
+```release-note:new-guide
+Adds guidance for migrating stream connections and processors from instance_name to workspace_name
+```

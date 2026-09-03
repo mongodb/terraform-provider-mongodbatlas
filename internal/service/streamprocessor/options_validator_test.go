@@ -21,8 +21,9 @@ func TestOptionsValidator(t *testing.T) {
 		},
 		"empty options": {
 			value: types.ObjectValueMust(streamprocessor.OptionsObjectType.AttributeTypes(), map[string]attr.Value{
-				"dlq":         types.ObjectNull(streamprocessor.DlqObjectType.AttributeTypes()),
-				"autoscaling": types.ObjectNull(streamprocessor.AutoscalingObjectType.AttributeTypes()),
+				"dlq":                    types.ObjectNull(streamprocessor.DlqObjectType.AttributeTypes()),
+				"autoscaling":            types.ObjectNull(streamprocessor.AutoscalingObjectType.AttributeTypes()),
+				"resume_from_checkpoint": types.BoolNull(),
 			}),
 			wantErr: true,
 		},
@@ -33,7 +34,8 @@ func TestOptionsValidator(t *testing.T) {
 					"connection_name": types.StringValue("connection"),
 					"db":              types.StringValue("db"),
 				}),
-				"autoscaling": types.ObjectNull(streamprocessor.AutoscalingObjectType.AttributeTypes()),
+				"autoscaling":            types.ObjectNull(streamprocessor.AutoscalingObjectType.AttributeTypes()),
+				"resume_from_checkpoint": types.BoolNull(),
 			}),
 		},
 		"options with autoscaling": {
@@ -43,6 +45,14 @@ func TestOptionsValidator(t *testing.T) {
 					"min_tier": types.StringValue("SP10"),
 					"max_tier": types.StringValue("SP30"),
 				}),
+				"resume_from_checkpoint": types.BoolNull(),
+			}),
+		},
+		"options with only resume_from_checkpoint": {
+			value: types.ObjectValueMust(streamprocessor.OptionsObjectType.AttributeTypes(), map[string]attr.Value{
+				"dlq":                    types.ObjectNull(streamprocessor.DlqObjectType.AttributeTypes()),
+				"autoscaling":            types.ObjectNull(streamprocessor.AutoscalingObjectType.AttributeTypes()),
+				"resume_from_checkpoint": types.BoolValue(false),
 			}),
 		},
 		"options with a future attribute": {

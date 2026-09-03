@@ -154,7 +154,21 @@ func streamProcessorDSTFModelWithInstanceName(t *testing.T, state, stats string,
 
 func optionsToTFModel(t *testing.T, options *admin.StreamsOptions) types.Object {
 	t.Helper()
-	result, diags := streamprocessor.ConvertOptionsToTF(t.Context(), options)
+	return optionsToTFModelWithResume(t, options, types.BoolNull())
+}
+
+func optionsToTFModelWithResume(t *testing.T, options *admin.StreamsOptions, resumeFromCheckpoint types.Bool) types.Object {
+	t.Helper()
+	result, diags := streamprocessor.ConvertOptionsToTF(t.Context(), options, resumeFromCheckpoint)
+	assert.False(t, diags.HasError())
+	assert.NotNil(t, result)
+	return *result
+}
+
+// optionsToTFDSModel builds the data source options object, which has no resume_from_checkpoint.
+func optionsToTFDSModel(t *testing.T, options *admin.StreamsOptions) types.Object {
+	t.Helper()
+	result, diags := streamprocessor.ConvertOptionsToTFDS(t.Context(), options)
 	assert.False(t, diags.HasError())
 	assert.NotNil(t, result)
 	return *result
@@ -170,15 +184,15 @@ func TestDSSDKToTFModel(t *testing.T) {
 			sdkModel: admin.NewStreamsProcessorWithStats(
 				processorID, "SP10", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 			),
-			expectedTFModel: streamProcessorDSTFModel(t, stateCreated, "", optionsToTFModel(t, nil)),
+			expectedTFModel: streamProcessorDSTFModel(t, stateCreated, "", optionsToTFDSModel(t, nil)),
 		},
 		"afterStarted": {
 			sdkModel:        streamProcessorWithStats(t, nil),
-			expectedTFModel: streamProcessorDSTFModel(t, stateStarted, statsExample, optionsToTFModel(t, nil)),
+			expectedTFModel: streamProcessorDSTFModel(t, stateStarted, statsExample, optionsToTFDSModel(t, nil)),
 		},
 		"withOptions": {
 			sdkModel:        streamProcessorWithStats(t, &streamOptionsExample),
-			expectedTFModel: streamProcessorDSTFModel(t, stateStarted, statsExample, optionsToTFModel(t, &streamOptionsExample)),
+			expectedTFModel: streamProcessorDSTFModel(t, stateStarted, statsExample, optionsToTFDSModel(t, &streamOptionsExample)),
 		},
 		"withFailoverEnabled": {
 			sdkModel: func() *admin.StreamsProcessorWithStats {
@@ -187,7 +201,7 @@ func TestDSSDKToTFModel(t *testing.T) {
 				return p
 			}(),
 			expectedTFModel: func() *streamprocessor.TFStreamProcessorDSModel {
-				m := streamProcessorDSTFModel(t, stateCreated, "", optionsToTFModel(t, nil))
+				m := streamProcessorDSTFModel(t, stateCreated, "", optionsToTFDSModel(t, nil))
 				m.FailoverEnabled = types.BoolValue(true)
 				return m
 			}(),
@@ -224,15 +238,15 @@ func TestDSSDKToTFModelInstanceName(t *testing.T) {
 			sdkModel: admin.NewStreamsProcessorWithStats(
 				processorID, "SP10", processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 			),
-			expectedTFModel: streamProcessorDSTFModelWithInstanceName(t, stateCreated, "", optionsToTFModel(t, nil)),
+			expectedTFModel: streamProcessorDSTFModelWithInstanceName(t, stateCreated, "", optionsToTFDSModel(t, nil)),
 		},
 		"afterStarted": {
 			sdkModel:        streamProcessorWithStats(t, nil),
-			expectedTFModel: streamProcessorDSTFModelWithInstanceName(t, stateStarted, statsExample, optionsToTFModel(t, nil)),
+			expectedTFModel: streamProcessorDSTFModelWithInstanceName(t, stateStarted, statsExample, optionsToTFDSModel(t, nil)),
 		},
 		"withOptions": {
 			sdkModel:        streamProcessorWithStats(t, &streamOptionsExample),
-			expectedTFModel: streamProcessorDSTFModelWithInstanceName(t, stateStarted, statsExample, optionsToTFModel(t, &streamOptionsExample)),
+			expectedTFModel: streamProcessorDSTFModelWithInstanceName(t, stateStarted, statsExample, optionsToTFDSModel(t, &streamOptionsExample)),
 		},
 	}
 
@@ -327,7 +341,7 @@ func TestSDKToTFModel(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			sdkModel := tc.sdkModel
-			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", sdkModel, nil, nil, tc.failoverEnabled)
+			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", sdkModel, nil, nil, tc.failoverEnabled, nil)
 			assert.False(t, diags.HasError())
 			assert.Equal(t, tc.expectedTFModel.Options, resultModel.Options)
 			if sdkModel.Stats != nil {
@@ -372,7 +386,7 @@ func TestPluralDSSDKToTFModel(t *testing.T) {
 				ProjectID:     types.StringValue(projectID),
 				WorkspaceName: types.StringValue(workspaceName),
 				Results: []streamprocessor.TFStreamProcessorDSModel{
-					*streamProcessorDSTFModel(t, stateCreated, "", optionsToTFModel(t, nil)),
+					*streamProcessorDSTFModel(t, stateCreated, "", optionsToTFDSModel(t, nil)),
 				},
 			},
 		},
@@ -415,7 +429,7 @@ func TestPluralDSSDKToTFModelWithInstanceName(t *testing.T) {
 			ProjectID:    types.StringValue(projectID),
 			InstanceName: types.StringValue(instanceName),
 			Results: []streamprocessor.TFStreamProcessorDSModel{
-				*streamProcessorDSTFModelWithInstanceName(t, stateCreated, "", optionsToTFModel(t, nil)),
+				*streamProcessorDSTFModelWithInstanceName(t, stateCreated, "", optionsToTFDSModel(t, nil)),
 			},
 		}},
 	}
@@ -542,7 +556,7 @@ func TestConvertOptionsToTFAutoscaling(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("round-trips autoscaling through options", func(t *testing.T) {
-		optionsTF, diags := streamprocessor.ConvertOptionsToTF(ctx, &streamOptionsWithAutoscaling)
+		optionsTF, diags := streamprocessor.ConvertOptionsToTF(ctx, &streamOptionsWithAutoscaling, types.BoolNull())
 		require.False(t, diags.HasError())
 		require.NotNil(t, optionsTF)
 
@@ -559,7 +573,7 @@ func TestConvertOptionsToTFAutoscaling(t *testing.T) {
 	})
 
 	t.Run("autoscaling is null when absent from response", func(t *testing.T) {
-		optionsTF, diags := streamprocessor.ConvertOptionsToTF(ctx, &streamOptionsExample)
+		optionsTF, diags := streamprocessor.ConvertOptionsToTF(ctx, &streamOptionsExample, types.BoolNull())
 		require.False(t, diags.HasError())
 		optionsModel := &streamprocessor.TFOptionsModel{}
 		diags = optionsTF.As(ctx, optionsModel, basetypes.ObjectAsOptions{})
@@ -698,6 +712,132 @@ func TestNewStreamProcessorUpdateReqAutoscaling(t *testing.T) {
 		require.False(t, diags.HasError())
 		assert.Nil(t, req.StreamsModifyStreamProcessor.Options)
 	})
+}
+
+// TestNewStreamProcessorUpdateReqResumeFromCheckpoint checks that options.resume_from_checkpoint is
+// only sent for the changes the API rejects while resuming from a checkpoint, so that a value left
+// in the configuration cannot discard the checkpoint on an unrelated update.
+func TestNewStreamProcessorUpdateReqResumeFromCheckpoint(t *testing.T) {
+	const (
+		statePipeline = `[{"$source":{"connectionName":"src","config":{"pipeline":[{"$match":{"operationType":"insert"}}]}}},{"$match":{"amount":{"$gt":100}}},{"$emit":{"connectionName":"__testLog"}}]`
+		// Same pipeline, different formatting.
+		reformatted = `[{"$source": {"connectionName": "src", "config": {"pipeline": [{"$match": {"operationType": "insert"}}]}}}, {"$match": {"amount": {"$gt": 100}}}, {"$emit": {"connectionName": "__testLog"}}]`
+		// $source connection replaced.
+		sourceConnChanged = `[{"$source":{"connectionName":"other","config":{"pipeline":[{"$match":{"operationType":"insert"}}]}}},{"$match":{"amount":{"$gt":100}}},{"$emit":{"connectionName":"__testLog"}}]`
+		// $source config filter changed.
+		sourceFilterChanged = `[{"$source":{"connectionName":"src","config":{"pipeline":[{"$match":{"operationType":"update"}}]}}},{"$match":{"amount":{"$gt":100}}},{"$emit":{"connectionName":"__testLog"}}]`
+		// Only a downstream $match changed: compatible with the existing checkpoint.
+		matchChanged = `[{"$source":{"connectionName":"src","config":{"pipeline":[{"$match":{"operationType":"insert"}}]}}},{"$match":{"amount":{"$gt":200}}},{"$emit":{"connectionName":"__testLog"}}]`
+
+		stateWindow          = `[{"$source":{"connectionName":"src"}},{"$tumblingWindow":{"interval":{"size":10,"unit":"second"},"pipeline":[{"$group":{"_id":"$k"}}]}},{"$emit":{"connectionName":"__testLog"}}]`
+		windowIntervalChange = `[{"$source":{"connectionName":"src"}},{"$tumblingWindow":{"interval":{"size":30,"unit":"second"},"pipeline":[{"$group":{"_id":"$k"}}]}},{"$emit":{"connectionName":"__testLog"}}]`
+		windowInnerChange    = `[{"$source":{"connectionName":"src"}},{"$tumblingWindow":{"interval":{"size":10,"unit":"second"},"pipeline":[{"$group":{"_id":"$other"}}]}},{"$emit":{"connectionName":"__testLog"}}]`
+		windowRemoved        = `[{"$source":{"connectionName":"src"}},{"$emit":{"connectionName":"__testLog"}}]`
+	)
+
+	testCases := map[string]struct {
+		statePipeline   string
+		planPipeline    string
+		resume          types.Bool
+		expectResumeSet bool
+	}{
+		"source connection change sends the flag": {
+			statePipeline: statePipeline, planPipeline: sourceConnChanged,
+			resume: types.BoolValue(false), expectResumeSet: true,
+		},
+		"source config filter change sends the flag": {
+			statePipeline: statePipeline, planPipeline: sourceFilterChanged,
+			resume: types.BoolValue(false), expectResumeSet: true,
+		},
+		"explicit true is sent for a source change": {
+			statePipeline: statePipeline, planPipeline: sourceConnChanged,
+			resume: types.BoolValue(true), expectResumeSet: true,
+		},
+		"downstream match change does not send a stale flag": {
+			statePipeline: statePipeline, planPipeline: matchChanged,
+			resume: types.BoolValue(false), expectResumeSet: false,
+		},
+		"no pipeline change does not send the flag": {
+			statePipeline: statePipeline, planPipeline: statePipeline,
+			resume: types.BoolValue(false), expectResumeSet: false,
+		},
+		"reformatting the pipeline does not send the flag": {
+			statePipeline: statePipeline, planPipeline: reformatted,
+			resume: types.BoolValue(false), expectResumeSet: false,
+		},
+		"omitted flag is never sent even for a source change": {
+			statePipeline: statePipeline, planPipeline: sourceConnChanged,
+			resume: types.BoolNull(), expectResumeSet: false,
+		},
+		"window interval change sends the flag": {
+			statePipeline: stateWindow, planPipeline: windowIntervalChange,
+			resume: types.BoolValue(false), expectResumeSet: true,
+		},
+		"removing a window sends the flag": {
+			statePipeline: stateWindow, planPipeline: windowRemoved,
+			resume: types.BoolValue(false), expectResumeSet: true,
+		},
+		"window inner pipeline change does not send the flag": {
+			statePipeline: stateWindow, planPipeline: windowInnerChange,
+			resume: types.BoolValue(false), expectResumeSet: false,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			plan := &streamprocessor.TFStreamProcessorRSModel{
+				WorkspaceName: types.StringValue(workspaceName),
+				InstanceName:  types.StringNull(),
+				Pipeline:      jsontypes.NewNormalizedValue(tc.planPipeline),
+				ProcessorName: types.StringValue(processorName),
+				ProjectID:     types.StringValue(projectID),
+				Options:       optionsToTFModelWithResume(t, nil, tc.resume),
+			}
+			state := &streamprocessor.TFStreamProcessorRSModel{
+				WorkspaceName: types.StringValue(workspaceName),
+				InstanceName:  types.StringNull(),
+				Pipeline:      jsontypes.NewNormalizedValue(tc.statePipeline),
+				ProcessorName: types.StringValue(processorName),
+				ProjectID:     types.StringValue(projectID),
+				Options:       types.ObjectNull(streamprocessor.OptionsObjectType.AttributeTypes()),
+			}
+
+			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), plan, state)
+			require.False(t, diags.HasError())
+
+			apiOptions := updateReq.StreamsModifyStreamProcessor.Options
+			if !tc.expectResumeSet {
+				if apiOptions != nil {
+					assert.Nil(t, apiOptions.ResumeFromCheckpoint)
+				}
+				return
+			}
+			require.NotNil(t, apiOptions)
+			require.NotNil(t, apiOptions.ResumeFromCheckpoint)
+			assert.Equal(t, tc.resume.ValueBool(), *apiOptions.ResumeFromCheckpoint)
+		})
+	}
+}
+
+// TestSDKToTFModelResumeFromCheckpoint checks that options.resume_from_checkpoint is carried over
+// from the plan or prior state, since the API response never contains it.
+func TestSDKToTFModelResumeFromCheckpoint(t *testing.T) {
+	for name, resumeFromCheckpoint := range map[string]types.Bool{
+		"null":  types.BoolNull(),
+		"false": types.BoolValue(false),
+		"true":  types.BoolValue(true),
+	} {
+		t.Run(name, func(t *testing.T) {
+			configOptions := optionsToTFModelWithResume(t, nil, resumeFromCheckpoint)
+			sdkModel := streamProcessorWithStats(t, nil)
+			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", sdkModel, nil, nil, nil, &configOptions)
+			require.False(t, diags.HasError())
+
+			got, diags := streamprocessor.ResumeFromCheckpointFromOptions(t.Context(), &resultModel.Options)
+			require.False(t, diags.HasError())
+			assert.Equal(t, resumeFromCheckpoint, got)
+		})
+	}
 }
 
 func TestGetWorkspaceOrInstanceName(t *testing.T) {
