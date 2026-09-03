@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/assert"
@@ -53,6 +54,40 @@ func TestAccStreamProcessor_basic(t *testing.T) {
 	resource.Test(t, *basicTestCase(t))
 }
 
+func TestAccStreamProcessor_workspaceNameAliasMigration(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		randomSuffix            = acctest.RandString(5)
+		processorName           = "alias-migration-" + randomSuffix
+		legacyConfig            = configMigration(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil)
+		canonicalConfig         = config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: legacyConfig,
+				Check:  composeStreamProcessorChecksMigration(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+			},
+			{
+				Config: canonicalConfig,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+				},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+					resource.TestCheckNoResourceAttr(resourceName, "instance_name"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccStreamProcessor_withFailoverEnabled(t *testing.T) {
 	// Requires a real Atlas cluster: failover_enabled=true only accepts Atlas-to-Atlas or Atlas-to-Kafka pipelines.
 	var (
@@ -90,6 +125,143 @@ func TestAccStreamProcessor_withFailoverEnabled(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "failover_enabled", "stats"},
 			},
 		}})
+}
+
+// TestAccStreamProcessor_resumeFromCheckpoint verifies that modifying the $source stage of a running
+// processor is rejected unless resume_from_checkpoint is false, because the Atlas Admin API defaults
+// it to true. Requires a real Atlas cluster so the processor can run and produce a checkpoint.
+func TestAccStreamProcessor_resumeFromCheckpoint(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t, false)
+		randomSuffix           = acctest.RandString(5)
+		workspaceName          = acc.RandomName()
+		processorName          = "new-processor-resume-" + randomSuffix
+	)
+
+	// The API rejects a $source change that cannot resume from the stored checkpoint with
+	// "resumeFromCheckpoint must be false to modify a stream processor's $source stage". Only the
+	// shared prefix is matched: the full sentence is 79 characters, which Terraform wraps across
+	// lines with "| " continuations, so a longer pattern would not match reliably.
+	checkpointRejected := regexp.MustCompile(`resumeFromCheckpoint must be false`)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				// Baseline: running processor with a $source-level filter.
+				Config: configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "insert", nil),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
+					resource.TestCheckNoResourceAttr(resourceName, "options.resume_from_checkpoint"),
+					// Resource-only attribute, not part of the data source schema.
+					resource.TestCheckNoResourceAttr(dataSourceName, "options.resume_from_checkpoint"),
+				),
+			},
+			{
+				// The same $source change without resume_from_checkpoint is rejected by the API, since it
+				// defaults to true and the existing checkpoint is incompatible with the new $source.
+				Config:      configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", nil),
+				ExpectError: checkpointRejected,
+			},
+			{
+				// resume_from_checkpoint = true is rejected the same way as omitting it.
+				Config:      configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", new(true)),
+				ExpectError: checkpointRejected,
+			},
+			{
+				// Setting it to false discards the checkpoint and allows the $source change.
+				Config: configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", new(false)),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "options.resume_from_checkpoint", "false"),
+					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
+				),
+			},
+			{
+				// Unsetting it is how the one-off is cleared. The pipeline is unchanged from the previous
+				// step, so nothing is sent and the processor keeps running.
+				Config: configWithResumeFromCheckpoint(t, projectID, workspaceName, clusterName, processorName, "update", nil),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr(resourceName, "options.resume_from_checkpoint"),
+					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// resume_from_checkpoint is not returned by the API so it cannot be imported. This config
+				// sets no dlq either, so the whole options object is absent after import, which also
+				// drops the object's element count (options.%).
+				ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "options.", "stats"},
+			},
+		}})
+}
+
+// configWithResumeFromCheckpoint builds an Atlas-to-Atlas processor whose $source carries an
+// operationType filter, so that changing operationType between steps is a $source modification.
+func configWithResumeFromCheckpoint(t *testing.T, projectID, workspaceName, clusterName, processorName, operationType string, resumeFromCheckpoint *bool) string {
+	t.Helper()
+
+	resumeAttr := ""
+	if resumeFromCheckpoint != nil {
+		resumeAttr = fmt.Sprintf("options = { resume_from_checkpoint = %t }", *resumeFromCheckpoint)
+	}
+
+	return fmt.Sprintf(`
+	resource "mongodbatlas_stream_workspace" "resume_workspace" {
+		project_id     = %[1]q
+		workspace_name = %[2]q
+		data_process_region = {
+			cloud_provider = "AWS"
+			region         = "VIRGINIA_USA"
+		}
+		stream_config = {
+			tier = "SP10"
+		}
+	}
+
+	resource "mongodbatlas_stream_connection" "cluster_src" {
+		project_id      = %[1]q
+		workspace_name  = mongodbatlas_stream_workspace.resume_workspace.workspace_name
+		connection_name = "cluster-src"
+		type            = "Cluster"
+		cluster_name    = %[3]q
+		db_role_to_execute = {
+			role = "atlasAdmin"
+			type = "BUILT_IN"
+		}
+	}
+
+	resource "mongodbatlas_stream_processor" "processor" {
+		project_id     = %[1]q
+		workspace_name = mongodbatlas_stream_workspace.resume_workspace.workspace_name
+		processor_name = %[4]q
+		pipeline = jsonencode([
+			{ "$source" = {
+				"connectionName" = mongodbatlas_stream_connection.cluster_src.connection_name
+				"config" = {
+					"pipeline" = [
+						{ "$match" = { "operationType" = %[5]q } }
+					]
+				}
+			} },
+			{ "$merge" = {
+				"into" = {
+					"connectionName" = mongodbatlas_stream_connection.cluster_src.connection_name
+					"db"             = "resume_test"
+					"coll"           = "sink"
+				}
+			} }
+		])
+		state = "STARTED"
+		%[6]s
+	}
+
+	`, projectID, workspaceName, clusterName, processorName, operationType, resumeAttr) + processorDataSources()
 }
 
 func TestAccStreamProcessor_withTier(t *testing.T) {
@@ -284,7 +456,7 @@ func basicTestCaseMigration(t *testing.T) *resource.TestCase {
 				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"stats"},
+				ImportStateVerifyIgnore: []string{"instance_name", "workspace_name", "stats"},
 			},
 		}}
 }

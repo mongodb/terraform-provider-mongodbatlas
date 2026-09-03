@@ -66,16 +66,6 @@ data "mongodbatlas_stream_connections" "test" {
 		depends_on = [mongodbatlas_stream_connection.test]
 }
 `
-
-	dataSourcePluralConfigWithPageMigration = `
-data "mongodbatlas_stream_connections" "test" {
-		project_id = mongodbatlas_stream_connection.test.project_id
-		instance_name = mongodbatlas_stream_connection.test.instance_name
-		page_num = 2 # no specific reason for 2, just to test pagination
-		items_per_page = 1
-		depends_on = [mongodbatlas_stream_connection.test]
-}
-`
 )
 
 var (
@@ -150,6 +140,10 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 	}
 }
 
+func TestAccStreamRSStreamConnection_workspaceNameAliasMigration(t *testing.T) {
+	resource.Test(t, *testCaseKafkaPlaintextMigration(t))
+}
+
 func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
@@ -170,11 +164,15 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 				),
 			},
 			{
-				Config: dataSourceConfigMigration + dataSourcePluralConfigWithPageMigration + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user2", "otherpassword", "", "", "", "", "", ""), "localhost:9093", "latest", kafkaNetworkingPublic, false),
+				Config: dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+				},
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkKafkaAttributesMigration(resourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
-					checkKafkaAttributesMigration(dataSourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, false),
-					streamConnectionsAttributeChecksMigration(pluralDataSourceName, new(2), new(1)),
+					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
+					resource.TestCheckNoResourceAttr(resourceName, "instance_name"),
 				),
 			},
 			{
@@ -771,7 +769,7 @@ func TestAccStreamRSStreamConnection_SchemaRegistry(t *testing.T) {
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = acc.RandomName()
-		schemaRegistryURLs      = []string{"https://schemaregistry.example.com", "https://schemaregistry2.example.com"}
+		schemaRegistryURLs      = []string{"https://httpbin.org/anything/schema-registry-1", "https://httpbin.org/anything/schema-registry-2"}
 		username                = "user"
 		password                = "password"
 	)
@@ -840,7 +838,7 @@ func TestAccStreamRSStreamConnection_SchemaRegistrySASLInherit(t *testing.T) {
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = acc.RandomName()
-		schemaRegistryURLs      = []string{"https://schemaregistry.example.com"}
+		schemaRegistryURLs      = []string{"https://httpbin.org/anything/schema-registry"}
 	)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },

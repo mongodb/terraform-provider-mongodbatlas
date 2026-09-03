@@ -66,6 +66,30 @@ moved {
 7. Run `terraform apply` to apply the changes. The `mongodbatlas_stream_instance` resource will be removed from the Terraform state and the `mongodbatlas_stream_workspace` resource will be added.
 8. Hashicorp recommends to keep the move block in your configuration file to help track the migrations, however you can delete the `moved` block from your configuration file without any adverse impact.
 
+## Update dependent stream connections and processors
+
+The `moved` block transfers only the workspace resource state. Update any `mongodbatlas_stream_connection` and `mongodbatlas_stream_processor` configurations that reference the old resource as part of the same change.
+
+```terraform
+# Before
+resource "mongodbatlas_stream_connection" "example" {
+  project_id    = var.project_id
+  instance_name = mongodbatlas_stream_instance.this.instance_name
+  # ...
+}
+
+# After
+resource "mongodbatlas_stream_connection" "example" {
+  project_id     = var.project_id
+  workspace_name = mongodbatlas_stream_workspace.this.workspace_name
+  # ...
+}
+```
+
+Use the same `instance_name` to `workspace_name` change for stream processors. When both attributes resolve to the same workspace, updating a stream connection is an in-place state migration and does not replace the connection. An alias-only stream processor update also does not stop or restart the processor.
+
+Run `terraform plan` before applying the configuration. Expect the workspace resource to be moved and dependent resources to be updated in place; do not apply a plan that destroys and recreates an unchanged stream connection.
+
 ## Migration using import
 
 **Note**: We recommend the [`moved` block](#migration-using-the-moved-block-recommended) method as it's more convenient and less error-prone.
