@@ -249,6 +249,44 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 	})
 }
 
+func TestAccConfigDSOrganization_operationsContact(t *testing.T) {
+	acc.SkipInUnitTest(t)
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	const operationsContact = "test@mongodb.com"
+
+	t.Cleanup(func() {
+		_, _, _ = acc.ConnV2().OrganizationsAPI.UpdateOrgSettings(context.Background(), orgID, &admin.OrganizationSettings{
+			OperationsContact: conversion.StringPtr(""),
+		}).Execute()
+	})
+
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				PreConfig: setOrgOperationsContact(t, orgID, operationsContact),
+				Config:    configWithPluralDS(orgID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(datasourceName, "operations_contact", operationsContact),
+					resource.TestCheckResourceAttr(pluralDSName, "results.0.operations_contact", operationsContact),
+				),
+			},
+		},
+	})
+}
+
+func setOrgOperationsContact(t *testing.T, orgID, value string) func() {
+	t.Helper()
+	return func() {
+		_, _, err := acc.ConnV2().OrganizationsAPI.UpdateOrgSettings(context.Background(), orgID, &admin.OrganizationSettings{
+			OperationsContact: conversion.StringPtr(value),
+		}).Execute()
+		if err != nil {
+			t.Fatalf("PreConfig: error setting operations_contact for org %s: %s", orgID, err)
+		}
+	}
+}
+
 func TestAccConfigDSOrganization_users(t *testing.T) {
 	var (
 		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
