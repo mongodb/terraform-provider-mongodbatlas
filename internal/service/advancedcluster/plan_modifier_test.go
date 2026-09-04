@@ -17,14 +17,18 @@ var (
 	regionConfig1 = repSpec1.AtMapKey("region_configs").AtSliceIndex(0)
 )
 
-func autoScalingKnownValue(computeEnabled, diskEnabled, scaleDown bool, minInstanceSize, maxInstanceSize string) knownvalue.Check {
-	return knownvalue.ObjectPartial(map[string]knownvalue.Check{
+func autoScalingKnownValue(computeEnabled, diskEnabled, scaleDown bool, minInstanceSize, maxInstanceSize string, includeStorageConfig bool) knownvalue.Check {
+	attributes := map[string]knownvalue.Check{
 		"compute_enabled":            knownvalue.Bool(computeEnabled),
 		"disk_gb_enabled":            knownvalue.Bool(diskEnabled),
 		"compute_scale_down_enabled": knownvalue.Bool(scaleDown),
 		"compute_min_instance_size":  knownvalue.StringExact(minInstanceSize),
 		"compute_max_instance_size":  knownvalue.StringExact(maxInstanceSize),
-	})
+	}
+	if includeStorageConfig {
+		attributes["storage_config"] = knownvalue.Null()
+	}
+	return knownvalue.ObjectExact(attributes)
 }
 
 func specInstanceSizeNodeCount(instanceSize string, nodeCount int) knownvalue.Check {
@@ -36,10 +40,11 @@ func specInstanceSizeNodeCount(instanceSize string, nodeCount int) knownvalue.Ch
 
 func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 	var (
-		baseConfig         = unit.NewMockPlanChecksConfig(t, &mockConfig, unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs)
-		resourceName       = baseConfig.ResourceName
-		autoScalingEnabled = autoScalingKnownValue(true, true, true, "M10", "M30")
-		testCases          = []unit.PlanCheckTest{
+		baseConfig                  = unit.NewMockPlanChecksConfig(t, &mockConfig, unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs)
+		resourceName                = baseConfig.ResourceName
+		autoScalingEnabled          = autoScalingKnownValue(true, true, true, "M10", "M30", true)
+		analyticsAutoScalingEnabled = autoScalingKnownValue(true, true, true, "M10", "M30", false)
+		testCases                   = []unit.PlanCheckTest{
 			{
 				ConfigFilename: "main_removed_blocks_from_config_no_plan_changes.tf",
 				Checks: []plancheck.PlanCheck{
@@ -61,14 +66,14 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("read_only_specs"), specInstanceSizeNodeCount("M10", 2)),
 					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("electable_specs"), specInstanceSizeNodeCount("M10", 5)),
 					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling"), autoScalingEnabled),
-					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("analytics_auto_scaling"), autoScalingEnabled),
+					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("analytics_auto_scaling"), analyticsAutoScalingEnabled),
 					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("analytics_specs")), // analytics specs was defined in region_configs.0 but not in region_configs.1
 
 					// checks regionConfig1
 					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("read_only_specs"), specInstanceSizeNodeCount("M20", 1)),
 					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("electable_specs"), specInstanceSizeNodeCount("M20", 3)),
 					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling"), autoScalingEnabled),
-					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_auto_scaling"), autoScalingEnabled),
+					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_auto_scaling"), analyticsAutoScalingEnabled),
 					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_specs"), knownvalue.NotNull()),
 				},
 			},

@@ -54,11 +54,9 @@ func AddIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20240805, 
 	return replicationSpecs
 }
 
-// SetShardSizeLimitGBNullOnRemoval includes replication specs in the patch when a configured shard size limit is removed from configuration.
-// Atlas preserves the limit when replicationSpecs is omitted and clears it when shardSizeLimitGB is explicitly null.
-func SetShardSizeLimitGBNullOnRemoval(stateReplicationSpecs, planReplicationSpecs, configReplicationSpecs *[]admin.ReplicationSpec20240805, patch *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
-	if stateReplicationSpecs == nil || planReplicationSpecs == nil || configReplicationSpecs == nil ||
-		!hasShardSizeLimit(*stateReplicationSpecs) || hasShardSizeLimit(*planReplicationSpecs) {
+// SetShardSizeLimitGBNull includes configuration-shaped replication specs in the patch and explicitly clears the limit in every region.
+func SetShardSizeLimitGBNull(configReplicationSpecs *[]admin.ReplicationSpec20240805, patch *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
+	if configReplicationSpecs == nil {
 		return patch
 	}
 
@@ -68,6 +66,11 @@ func SetShardSizeLimitGBNullOnRemoval(stateReplicationSpecs, planReplicationSpec
 	patchSpecs := cloneReplicationSpecsWithNullShardSizeLimit(*configReplicationSpecs)
 	patch.ReplicationSpecs = &patchSpecs
 	return patch
+}
+
+func shardSizeLimitRemoved(stateReplicationSpecs, planReplicationSpecs *[]admin.ReplicationSpec20240805) bool {
+	return stateReplicationSpecs != nil && planReplicationSpecs != nil &&
+		hasShardSizeLimit(*stateReplicationSpecs) && !hasShardSizeLimit(*planReplicationSpecs)
 }
 
 func hasShardSizeLimit(replicationSpecs []admin.ReplicationSpec20240805) bool {

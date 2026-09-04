@@ -199,6 +199,7 @@ func newAdvancedAutoScalingSettings(ctx context.Context, input types.Object, inc
 	}
 }
 
+// newAutoScalingValues decodes the attributes separately because storage_config is valid only under auto_scaling.
 func newAutoScalingValues(ctx context.Context, input types.Object, includeStorageConfig bool, diags *diag.Diagnostics) (values *TFAutoScalingModel, storageConfig types.Object) {
 	if !includeStorageConfig {
 		item := new(TFAutoScalingModel)
@@ -267,6 +268,7 @@ func newAdvancedComputeAutoScaling(item *TFAutoScalingModel) *admin.AdvancedComp
 	maxInstanceSize := conversion.NilForUnknownOrEmptyString(item.ComputeMaxInstanceSize)
 	minInstanceSize := conversion.NilForUnknownOrEmptyString(item.ComputeMinInstanceSize)
 	if enabled == nil && scaleDownEnabled == nil && maxInstanceSize == nil && minInstanceSize == nil {
+		// Omit compute: {} when auto_scaling contains only storage_config.
 		return nil
 	}
 	return &admin.AdvancedComputeAutoScaling{
@@ -279,6 +281,7 @@ func newAdvancedComputeAutoScaling(item *TFAutoScalingModel) *admin.AdvancedComp
 func newDiskGBAutoScaling(item *TFAutoScalingModel) *admin.DiskGBAutoScaling {
 	enabled := conversion.NilForUnknown(item.DiskGBEnabled, item.DiskGBEnabled.ValueBoolPointer())
 	if enabled == nil {
+		// Omit diskGB: {} when auto_scaling contains only storage_config.
 		return nil
 	}
 	return &admin.DiskGBAutoScaling{

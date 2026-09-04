@@ -507,10 +507,8 @@ func autoScalingWithStorageConfigSchema() schema.SingleNestedAttribute {
 		MarkdownDescription: descStorageConfig,
 		Attributes: map[string]schema.Attribute{
 			"shard_size_limit_gb": schema.Int64Attribute{
-				Required: true,
-				Validators: []validator.Int64{
-					int64validator.AtLeast(1),
-				},
+				// Require a value when storage_config is configured because Atlas omits an empty object from responses.
+				Required:            true,
 				MarkdownDescription: descShardSizeLimitGB,
 			},
 		},

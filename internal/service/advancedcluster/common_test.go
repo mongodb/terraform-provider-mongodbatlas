@@ -248,102 +248,49 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 	}
 }
 
-func TestSetShardSizeLimitGBNullOnRemoval(t *testing.T) {
+func TestSetShardSizeLimitGBNull(t *testing.T) {
 	tags := []admin.ResourceTag{{Key: "environment", Value: "test"}}
+	mixedRegionConfig := clusterWithShardSizeLimits(nil, nil)
+	mixedRegions := mixedRegionConfig.GetReplicationSpecs()[0].GetRegionConfigs()
+	mixedRegions[0].AutoScaling = nil
+	mixedRegions[1].AutoScaling = computeAutoScaling()
+	zeroNodePatch := clusterWithOptionalSpecs(nil, 0)
+	zeroNodePatch.Tags = &tags
 	testCases := map[string]struct {
-		state        *admin.ClusterDescription20240805
-		plan         *admin.ClusterDescription20240805
-		config       *admin.ClusterDescription20240805
-		patch        *admin.ClusterDescription20240805
-		expectedJSON string
-		expectedNil  bool
+		config                *admin.ClusterDescription20240805
+		patch                 *admin.ClusterDescription20240805
+		expectedJSON          string
+		assertConfigUnchanged bool
 	}{
-		"removal only": {
-			state:        clusterWithShardSizeLimits(new(1024)),
-			config:       clusterWithShardSizeLimits(nil),
-			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}}}]}]}`,
+		"removes limits from all regions and preserves compute auto scaling": {
+			config:                mixedRegionConfig,
+			expectedJSON:          `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}}},{"autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true},"storageConfig":{"shardSizeLimitGB":null}}}]}]}`,
+			assertConfigUnchanged: true,
 		},
-		"preserves unrelated patch": {
-			state:        clusterWithShardSizeLimits(new(1024)),
-			config:       clusterWithShardSizeLimits(nil),
-			patch:        &admin.ClusterDescription20240805{Tags: &tags},
-			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}}}]}],"tags":[{"key":"environment","value":"test"}]}`,
-		},
-		"removes limits from multiple regions": {
-			state:        clusterWithShardSizeLimits(new(1024), new(1024)),
-			config:       clusterWithShardSizeLimits(nil, nil),
-			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}}},{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}}}]}]}`,
-		},
-		"removes limit when config omits auto scaling block": {
-			state: clusterWithShardSizeLimits(new(1024)),
-			config: &admin.ClusterDescription20240805{ReplicationSpecs: &[]admin.ReplicationSpec20240805{
-				{RegionConfigs: &[]admin.CloudRegionConfig20240805{{}}},
-			}},
-			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}}}]}]}`,
-		},
-		"preserves compute auto scaling while clearing storage config": {
-			state:        clusterWithShardSizeLimits(new(1024)),
-			config:       clusterWithComputeAutoScaling(),
-			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true},"storageConfig":{"shardSizeLimitGB":null}}}]}]}`,
-		},
-		"uses config instead of state-derived zero-node specs": {
-			state:        clusterWithOptionalSpecs(new(1024), 0),
-			plan:         clusterWithOptionalSpecs(nil, 0),
+		"uses config-shaped specs and preserves unrelated patch fields": {
 			config:       clusterWithElectableSpec(),
-			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}},"electableSpecs":{"instanceSize":"M10","nodeCount":1}}]}]}`,
-		},
-		"replaces normal replication specs patch with config": {
-			state:        clusterWithOptionalSpecs(new(1024), 1),
-			plan:         clusterWithOptionalSpecs(nil, 0),
-			config:       clusterWithElectableSpec(),
-			patch:        clusterWithOptionalSpecs(nil, 0),
-			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}},"electableSpecs":{"instanceSize":"M10","nodeCount":1}}]}]}`,
-		},
-		"adds null to existing compute auto scaling patch": {
-			state:        clusterWithShardSizeLimits(new(1024)),
-			config:       clusterWithComputeAutoScaling(),
-			patch:        clusterWithComputeAutoScalingAndStorageConfigNull(),
-			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true},"storageConfig":{"shardSizeLimitGB":null}}}]}]}`,
-		},
-		"unchanged limit": {
-			state:       clusterWithShardSizeLimits(new(1024)),
-			config:      clusterWithShardSizeLimits(new(1024)),
-			expectedNil: true,
-		},
-		"config omission preserved by plan": {
-			state:       clusterWithShardSizeLimits(new(1024)),
-			plan:        clusterWithShardSizeLimits(new(1024)),
-			config:      clusterWithShardSizeLimits(nil),
-			expectedNil: true,
-		},
-		"analytics auto scaling is ignored": {
-			state:       clusterWithAnalyticsShardSizeLimit(1024),
-			config:      clusterWithAnalyticsShardSizeLimit(0),
-			expectedNil: true,
+			patch:        zeroNodePatch,
+			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}},"electableSpecs":{"instanceSize":"M10","nodeCount":1}}]}],"tags":[{"key":"environment","value":"test"}]}`,
 		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			plan := tc.plan
-			if plan == nil {
-				plan = tc.config
+			var configJSONBefore []byte
+			if tc.assertConfigUnchanged {
+				var err error
+				configJSONBefore, err = json.Marshal(tc.config)
+				require.NoError(t, err)
 			}
-			configJSONBefore, err := json.Marshal(tc.config)
-			require.NoError(t, err)
-			result := advancedcluster.SetShardSizeLimitGBNullOnRemoval(tc.state.ReplicationSpecs, plan.ReplicationSpecs, tc.config.ReplicationSpecs, tc.patch)
-			if tc.expectedNil {
-				assert.Nil(t, result)
-				return
-			}
+			result := advancedcluster.SetShardSizeLimitGBNull(tc.config.ReplicationSpecs, tc.patch)
 			resultJSON, err := json.Marshal(result)
 			require.NoError(t, err)
 			require.JSONEq(t, tc.expectedJSON, string(resultJSON))
-			assert.NotContains(t, string(resultJSON), `"storageConfig":null`)
-			assert.Contains(t, string(resultJSON), `"shardSizeLimitGB":null`)
-			configJSONAfter, err := json.Marshal(tc.config)
-			require.NoError(t, err)
-			assert.JSONEq(t, string(configJSONBefore), string(configJSONAfter))
+			if tc.assertConfigUnchanged {
+				configJSONAfter, err := json.Marshal(tc.config)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(configJSONBefore), string(configJSONAfter))
+			}
 		})
 	}
 }
@@ -360,35 +307,13 @@ func clusterWithShardSizeLimits(limits ...*int) *admin.ClusterDescription2024080
 	return &admin.ClusterDescription20240805{ReplicationSpecs: &[]admin.ReplicationSpec20240805{{RegionConfigs: &regions}}}
 }
 
-func clusterWithAnalyticsShardSizeLimit(limit int) *admin.ClusterDescription20240805 {
-	var storageConfig *admin.StorageConfig
-	if limit != 0 {
-		storageConfig = &admin.StorageConfig{ShardSizeLimitGB: &limit}
-	}
-	regions := []admin.CloudRegionConfig20240805{{
-		AnalyticsAutoScaling: &admin.AdvancedAutoScalingSettings{StorageConfig: storageConfig},
+func computeAutoScaling() *admin.AdvancedAutoScalingSettings {
+	return &admin.AdvancedAutoScalingSettings{Compute: &admin.AdvancedComputeAutoScaling{
+		Enabled:          new(true),
+		MaxInstanceSize:  new("M30"),
+		MinInstanceSize:  new("M10"),
+		ScaleDownEnabled: new(true),
 	}}
-	return &admin.ClusterDescription20240805{ReplicationSpecs: &[]admin.ReplicationSpec20240805{{RegionConfigs: &regions}}}
-}
-
-func clusterWithComputeAutoScaling() *admin.ClusterDescription20240805 {
-	regions := []admin.CloudRegionConfig20240805{{
-		AutoScaling: &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{
-				Enabled:          new(true),
-				MaxInstanceSize:  new("M30"),
-				MinInstanceSize:  new("M10"),
-				ScaleDownEnabled: new(true),
-			},
-		},
-	}}
-	return &admin.ClusterDescription20240805{ReplicationSpecs: &[]admin.ReplicationSpec20240805{{RegionConfigs: &regions}}}
-}
-
-func clusterWithComputeAutoScalingAndStorageConfigNull() *admin.ClusterDescription20240805 {
-	cluster := clusterWithComputeAutoScaling()
-	cluster.GetReplicationSpecs()[0].GetRegionConfigs()[0].AutoScaling.SetStorageConfigNil()
-	return cluster
 }
 
 func clusterWithOptionalSpecs(limit *int, optionalNodeCount int) *admin.ClusterDescription20240805 {
