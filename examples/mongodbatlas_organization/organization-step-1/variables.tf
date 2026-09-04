@@ -23,10 +23,10 @@ variable "operations_contact" {
   default     = null
 }
 variable "custom_session_timeouts" {
-  type = object({
+  type = list(object({
     absolute_session_timeout_in_seconds = number
     idle_session_timeout_in_seconds     = number
-  })
+  }))
   description = "Custom session timeout settings for the organization"
   default     = null
 }
