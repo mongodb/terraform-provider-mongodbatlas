@@ -51,6 +51,38 @@ resource "mongodbatlas_advanced_cluster" "this" {
 }
 ```
 
+### Example Atlas Infinite Database cluster with a per-shard data-size limit
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "infinite" {
+  project_id       = "PROJECT ID"
+  name             = "NAME OF CLUSTER"
+  cluster_type     = "REPLICASET"
+  database_edition = "INFINITE"
+
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 2
+          }
+          auto_scaling = {
+            storage_config = {
+              shard_size_limit_gb = 1024 # Optional. Omit storage_config to use the Atlas default limit.
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
 ### Example using effective fields with auto-scaling
 
 ```terraform
