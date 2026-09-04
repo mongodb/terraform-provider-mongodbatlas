@@ -4,7 +4,9 @@ subcategory: "Clusters"
 
 # Resource: mongodbatlas_advanced_cluster
 
-`mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters.
+`mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters, including clusters that use the Atlas Infinite Database.
+
+To create an Atlas Infinite Database cluster, set the `database_edition` attribute to `INFINITE`. For more information, including supported features and limitations, see the [Atlas Infinite Database documentation](https://www.mongodb.com/docs/atlas/infinite/atlas-infinite-landing/).
 
 We recommend all MongoDB Atlas Terraform users start with the [`Official MongoDB Atlas Cluster Module`](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/cluster/mongodbatlas/latest). This module simplifies cluster deployment and implements MongoDB Atlas best practices by default.
 
@@ -42,6 +44,38 @@ resource "mongodbatlas_advanced_cluster" "this" {
           provider_name = "AWS"
           priority      = 7
           region_name   = "US_EAST_1"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Example Atlas Infinite Database cluster with a per-shard data-size limit
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "infinite" {
+  project_id       = "PROJECT ID"
+  name             = "NAME OF CLUSTER"
+  cluster_type     = "REPLICASET"
+  database_edition = "INFINITE"
+
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 2
+          }
+          auto_scaling = {
+            storage_config = {
+              shard_size_limit_gb = 1024 # Optional. Omit storage_config to use the Atlas default limit.
+            }
+          }
         }
       ]
     }
