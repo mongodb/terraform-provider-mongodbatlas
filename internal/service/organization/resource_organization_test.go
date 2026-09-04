@@ -170,7 +170,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 // limit (5 requests/60s, per https://www.mongodb.com/docs/atlas/api/api-rate-limit/#organization-settings) is easily
 // exceeded by consecutive apply steps, each of which reads and writes it multiple times.
 func sleepForSettingsRateLimit() {
-	time.Sleep(45 * time.Second)
+	time.Sleep(60 * time.Second)
 }
 
 func TestAccConfigRSOrganization_ServiceAccount(t *testing.T) {
@@ -232,24 +232,6 @@ func TestAccConfigDSOrganization_noAccessShouldFail(t *testing.T) {
 }
 
 func TestAccConfigDSOrganization_basic(t *testing.T) {
-	var (
-		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithPluralDS(orgID),
-				Check: checkAggrDS(resource.TestCheckResourceAttr(datasourceName, "gen_ai_features_enabled", "true"),
-					resource.TestCheckResourceAttr(pluralDSName, "results.0.gen_ai_features_enabled", "true"),
-					resource.TestCheckResourceAttrSet(datasourceName, "users.#"),
-					resource.TestCheckResourceAttrSet(datasourceName, "users.0.id")),
-			},
-		},
-	})
-}
-
-func TestAccConfigDSOrganization_operationsContact(t *testing.T) {
 	acc.SkipInUnitTest(t)
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	const operationsContact = "test@mongodb.com"
@@ -260,12 +242,25 @@ func TestAccConfigDSOrganization_operationsContact(t *testing.T) {
 		}).Execute()
 	})
 
+	// Serial test: the second step mutates operations_contact on the shared
+	// test org via a direct SDK call. The value is set via the SDK rather than through the
+	// resource because a paying org's key can't read an org it just created.
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				PreConfig: setOrgOperationsContact(t, orgID, operationsContact),
-				Config:    configWithPluralDS(orgID),
+				Config: configWithPluralDS(orgID),
+				Check: checkAggrDS(resource.TestCheckResourceAttr(datasourceName, "gen_ai_features_enabled", "true"),
+					resource.TestCheckResourceAttr(pluralDSName, "results.0.gen_ai_features_enabled", "true"),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.#"),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.0.id")),
+			},
+			{
+				PreConfig: func() {
+					sleepForSettingsRateLimit()
+					setOrgOperationsContact(t, orgID, operationsContact)()
+				},
+				Config: configWithPluralDS(orgID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(datasourceName, "operations_contact", operationsContact),
 					resource.TestCheckResourceAttr(pluralDSName, "results.0.operations_contact", operationsContact),
