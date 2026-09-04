@@ -263,10 +263,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			}
 			// Use configuration-shaped replication specs so API-computed zero-node specs are not sent.
 			schemafunc.CopyUnknowns(ctx, &plan, &configModel, nil, nil)
-			adjustRegionConfigsChildren(ctx, diags, &state, &configModel)
-			if diags.HasError() {
-				return
-			}
 			diff.clusterPatchOnlyReq = SetShardSizeLimitGBNull(
 				newReplicationSpec(ctx, configModel.ReplicationSpecs, diags),
 				diff.clusterPatchOnlyReq,

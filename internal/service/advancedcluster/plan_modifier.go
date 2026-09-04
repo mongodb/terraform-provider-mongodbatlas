@@ -88,9 +88,8 @@ func adjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 			}
 			stateReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ReadOnlySpecs)
 			planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
-			// Atlas returns an API-computed read_only_specs block with node_count = 0 when none is configured.
-			// Preserve specs that are present in the plan or contain nodes, but do not add that zero-node block to update requests.
-			if stateReadOnlySpecs != nil && (planReadOnlySpecs != nil || stateReadOnlySpecs.NodeCount.ValueInt64() > 0) {
+			if stateReadOnlySpecs != nil { // read_only_specs is present in state
+				// logic below ensures that if read only specs is present in state but not in the plan, plan will be populated so that read only spec configuration is not removed on update operations
 				newPlanReadOnlySpecs := planReadOnlySpecs
 				if newPlanReadOnlySpecs == nil {
 					newPlanReadOnlySpecs = new(TFSpecsModel) // start with null attributes if not present plan

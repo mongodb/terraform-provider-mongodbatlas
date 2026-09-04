@@ -192,9 +192,11 @@ func newAdvancedAutoScalingSettings(ctx context.Context, input types.Object, inc
 	if diags.HasError() {
 		return resp
 	}
+	omitEmptyChildren := !storageConfig.IsNull() && !storageConfig.IsUnknown()
 	return &admin.AdvancedAutoScalingSettings{
-		Compute:       newAdvancedComputeAutoScaling(values),
-		DiskGB:        newDiskGBAutoScaling(values),
+		// Atlas treats empty compute and diskGB objects as configured when storage_config is present.
+		Compute:       newAdvancedComputeAutoScaling(values, omitEmptyChildren),
+		DiskGB:        newDiskGBAutoScaling(values, omitEmptyChildren),
 		StorageConfig: newStorageConfig(ctx, storageConfig, diags),
 	}
 }
@@ -262,13 +264,12 @@ func newDedicatedHardwareSpec(ctx context.Context, input types.Object, diags *di
 	}
 }
 
-func newAdvancedComputeAutoScaling(item *TFAutoScalingModel) *admin.AdvancedComputeAutoScaling {
+func newAdvancedComputeAutoScaling(item *TFAutoScalingModel, omitEmpty bool) *admin.AdvancedComputeAutoScaling {
 	enabled := conversion.NilForUnknown(item.ComputeEnabled, item.ComputeEnabled.ValueBoolPointer())
 	scaleDownEnabled := conversion.NilForUnknown(item.ComputeScaleDownEnabled, item.ComputeScaleDownEnabled.ValueBoolPointer())
 	maxInstanceSize := conversion.NilForUnknownOrEmptyString(item.ComputeMaxInstanceSize)
 	minInstanceSize := conversion.NilForUnknownOrEmptyString(item.ComputeMinInstanceSize)
-	if enabled == nil && scaleDownEnabled == nil && maxInstanceSize == nil && minInstanceSize == nil {
-		// Omit compute: {} when auto_scaling contains only storage_config.
+	if omitEmpty && enabled == nil && scaleDownEnabled == nil && maxInstanceSize == nil && minInstanceSize == nil {
 		return nil
 	}
 	return &admin.AdvancedComputeAutoScaling{
@@ -278,10 +279,9 @@ func newAdvancedComputeAutoScaling(item *TFAutoScalingModel) *admin.AdvancedComp
 		MinInstanceSize:  minInstanceSize,
 	}
 }
-func newDiskGBAutoScaling(item *TFAutoScalingModel) *admin.DiskGBAutoScaling {
+func newDiskGBAutoScaling(item *TFAutoScalingModel, omitEmpty bool) *admin.DiskGBAutoScaling {
 	enabled := conversion.NilForUnknown(item.DiskGBEnabled, item.DiskGBEnabled.ValueBoolPointer())
-	if enabled == nil {
-		// Omit diskGB: {} when auto_scaling contains only storage_config.
+	if omitEmpty && enabled == nil {
 		return nil
 	}
 	return &admin.DiskGBAutoScaling{

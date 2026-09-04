@@ -10,6 +10,7 @@
       "nodeCount": 1
      },
      "autoScaling": {
+      "compute": {},
       "diskGB": {
        "enabled": true
       }
@@ -43,6 +44,7 @@
       "nodeCount": 1
      },
      "autoScaling": {
+      "compute": {},
       "diskGB": {
        "enabled": true
       }
