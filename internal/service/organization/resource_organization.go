@@ -102,6 +102,23 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"custom_session_timeouts": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"absolute_session_timeout_in_seconds": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"idle_session_timeout_in_seconds": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
+			},
 			"service_account": {
 				Type:     schema.TypeList,
 				Optional: true,
