@@ -93,6 +93,17 @@ func cloneReplicationSpecsWithNullShardSizeLimit(replicationSpecs []admin.Replic
 			if regions[regionIndex].AutoScaling != nil {
 				autoScaling = *regions[regionIndex].AutoScaling
 			}
+			// The clear operation adds storageConfig after model conversion. Remove empty
+			// siblings that Atlas treats as explicitly configured on Infinite clusters.
+			if compute := autoScaling.Compute; compute != nil &&
+				!compute.HasEnabled() && !compute.HasMaxInstanceSize() &&
+				!compute.HasMinInstanceSize() && !compute.HasScaleDownEnabled() &&
+				len(compute.NullFields) == 0 {
+				autoScaling.Compute = nil
+			}
+			if diskGB := autoScaling.DiskGB; diskGB != nil && !diskGB.HasEnabled() && len(diskGB.NullFields) == 0 {
+				autoScaling.DiskGB = nil
+			}
 			storageConfig := admin.StorageConfig{}
 			storageConfig.SetShardSizeLimitGBNil()
 			autoScaling.SetStorageConfig(storageConfig)

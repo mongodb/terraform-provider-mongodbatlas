@@ -252,8 +252,10 @@ func TestSetShardSizeLimitGBNull(t *testing.T) {
 	tags := []admin.ResourceTag{{Key: "environment", Value: "test"}}
 	mixedRegionConfig := clusterWithShardSizeLimits(nil, nil)
 	mixedRegions := mixedRegionConfig.GetReplicationSpecs()[0].GetRegionConfigs()
-	mixedRegions[0].AutoScaling = nil
+	mixedRegions[0].AutoScaling.Compute = &admin.AdvancedComputeAutoScaling{}
+	mixedRegions[0].AutoScaling.DiskGB = &admin.DiskGBAutoScaling{}
 	mixedRegions[1].AutoScaling = computeAutoScaling()
+	mixedRegions[1].AutoScaling.DiskGB = &admin.DiskGBAutoScaling{}
 	zeroNodePatch := clusterWithOptionalSpecs(nil, 0)
 	zeroNodePatch.Tags = &tags
 	testCases := map[string]struct {
@@ -262,7 +264,7 @@ func TestSetShardSizeLimitGBNull(t *testing.T) {
 		expectedJSON          string
 		assertConfigUnchanged bool
 	}{
-		"removes limits from all regions and preserves compute auto scaling": {
+		"omits empty auto scaling and preserves configured compute": {
 			config:                mixedRegionConfig,
 			expectedJSON:          `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}}},{"autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true},"storageConfig":{"shardSizeLimitGB":null}}}]}]}`,
 			assertConfigUnchanged: true,
