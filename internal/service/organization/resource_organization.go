@@ -9,6 +9,7 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -288,6 +289,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err := d.Set("security_contact", settings.SecurityContact); err != nil {
 		return diag.Errorf("error setting `security_contact` for organization (%s): %s", orgID, err)
 	}
+	if err := d.Set("custom_session_timeouts", flattenCustomSessionTimeouts(settings.CustomSessionTimeouts)); err != nil {
+		return diag.Errorf("error setting `custom_session_timeouts` for organization (%s): %s", orgID, err)
+	}
 	return nil
 }
 
@@ -315,7 +319,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		d.HasChange("multi_factor_auth_required") ||
 		d.HasChange("restrict_employee_access") ||
 		d.HasChange("gen_ai_features_enabled") ||
-		d.HasChange("security_contact") {
+		d.HasChange("security_contact") ||
+		d.HasChange("custom_session_timeouts") {
 		if _, _, err := conn.OrganizationsAPI.UpdateOrgSettings(ctx, orgID, newOrganizationSettings(d)).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization settings: %s", err))
 		}
@@ -384,13 +389,61 @@ func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizat
 }
 
 func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings {
-	return &admin.OrganizationSettings{
+	settings := &admin.OrganizationSettings{
 		ApiAccessListRequired:   new(d.Get("api_access_list_required").(bool)),
 		MultiFactorAuthRequired: new(d.Get("multi_factor_auth_required").(bool)),
 		RestrictEmployeeAccess:  new(d.Get("restrict_employee_access").(bool)),
 		GenAIFeaturesEnabled:    new(d.Get("gen_ai_features_enabled").(bool)),
 		SecurityContact:         new(d.Get("security_contact").(string)),
 	}
+	if raw := d.GetRawConfig().GetAttr("custom_session_timeouts"); raw.IsNull() {
+		if d.HasChange("custom_session_timeouts") {
+			settings.SetCustomSessionTimeoutsNil()
+		}
+	} else {
+		settings.SetCustomSessionTimeouts(*expandCustomSessionTimeouts(d))
+	}
+	return settings
+}
+
+// expandCustomSessionTimeouts maps the block into the SDK object using raw config so an
+// unset child is sent as an explicit null.
+func expandCustomSessionTimeouts(d *schema.ResourceData) *admin.CustomSessionTimeouts {
+	raw := d.GetRawConfig().GetAttr("custom_session_timeouts")
+	cst := &admin.CustomSessionTimeouts{}
+	if raw.LengthInt() == 0 { // block present but empty -> reset both to defaults
+		cst.SetAbsoluteSessionTimeoutInSecondsNil()
+		cst.SetIdleSessionTimeoutInSecondsNil()
+		return cst
+	}
+	elem := raw.Index(cty.NumberIntVal(0))
+	if v := elem.GetAttr("absolute_session_timeout_in_seconds"); v.IsNull() {
+		cst.SetAbsoluteSessionTimeoutInSecondsNil()
+	} else {
+		n, _ := v.AsBigFloat().Int64()
+		cst.SetAbsoluteSessionTimeoutInSeconds(int(n))
+	}
+	if v := elem.GetAttr("idle_session_timeout_in_seconds"); v.IsNull() {
+		cst.SetIdleSessionTimeoutInSecondsNil()
+	} else {
+		n, _ := v.AsBigFloat().Int64()
+		cst.SetIdleSessionTimeoutInSeconds(int(n))
+	}
+	return cst
+}
+
+func flattenCustomSessionTimeouts(cst *admin.CustomSessionTimeouts) []any {
+	if cst == nil {
+		return nil
+	}
+	obj := map[string]any{}
+	if v, ok := cst.GetAbsoluteSessionTimeoutInSecondsOk(); ok {
+		obj["absolute_session_timeout_in_seconds"] = v
+	}
+	if v, ok := cst.GetIdleSessionTimeoutInSecondsOk(); ok {
+		obj["idle_session_timeout_in_seconds"] = v
+	}
+	return []any{obj}
 }
 
 func ValidateAPIKeyIsOrgOwner(roles []string) error {
