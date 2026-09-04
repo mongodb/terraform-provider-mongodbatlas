@@ -89,6 +89,10 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"operations_contact": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -160,6 +164,7 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 			"restrict_employee_access":     settings.RestrictEmployeeAccess,
 			"gen_ai_features_enabled":      settings.GenAIFeaturesEnabled,
 			"security_contact":             settings.SecurityContact,
+			"operations_contact":           settings.OperationsContact,
 		}
 	}
 	return results, nil

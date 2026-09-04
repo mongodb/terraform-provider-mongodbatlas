@@ -9,5 +9,6 @@ resource "mongodbatlas_organization" "imported" {
   restrict_employee_access     = var.restrict_employee_access
   gen_ai_features_enabled      = var.gen_ai_features_enabled
   security_contact             = var.security_contact
+  operations_contact           = var.operations_contact
   skip_default_alerts_settings = var.skip_default_alerts_settings
 }

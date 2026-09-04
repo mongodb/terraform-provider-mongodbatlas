@@ -32,6 +32,7 @@ multi_factor_auth_required = true
 restrict_employee_access   = true
 gen_ai_features_enabled    = true
 security_contact          = "<SECURITY_CONTACT_EMAIL>"
+operations_contact        = "<OPERATIONS_CONTACT_EMAIL>"
 skip_default_alerts_settings = true
 ```
 
