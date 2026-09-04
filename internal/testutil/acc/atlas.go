@@ -42,30 +42,68 @@ func deleteProject(id string) error {
 	return nil
 }
 
+type clusterCreateFuncs struct {
+	create func(region string) error
+	wait   func() error
+	delete func() error
+}
+
 func createCluster(tb testing.TB, projectID, name string, backupEnabled, pitEnabled bool) string {
 	tb.Helper()
-	regions := DefaultRegions()
-	for i, region := range regions {
-		lastRegion := i == len(regions)-1
-		req := clusterReq(name, projectID, region, backupEnabled, pitEnabled)
-		_, _, err := ConnV2().ClustersAPI.CreateCluster(tb.Context(), projectID, &req).Execute()
-		if isOutOfCapacityError(err) && !lastRegion {
-			tb.Logf("Cluster creation in %s failed with OUT_OF_CAPACITY, trying next region, err: %s", region, err)
-			continue
-		}
-		require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
-		stateConf := cluster.CreateStateChangeConfig(tb.Context(), ConnV2(), projectID, name, 1*time.Hour)
-		_, err = stateConf.WaitForStateContext(tb.Context())
-		if isFailedProvisioning(err) && !lastRegion {
-			tb.Logf("Cluster creation in %s failed while provisioning, trying next region, err: %s", region, err)
-			require.NoError(tb, deleteCluster(projectID, name), "Cluster deletion failed: %s", name)
-			continue
-		}
-		require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
-		return name
+	fns := clusterCreateFuncs{
+		create: func(region string) error {
+			req := clusterReq(name, projectID, region, backupEnabled, pitEnabled)
+			_, _, err := ConnV2().ClustersAPI.CreateCluster(tb.Context(), projectID, &req).Execute()
+			return err
+		},
+		wait: func() error {
+			stateConf := cluster.CreateStateChangeConfig(tb.Context(), ConnV2(), projectID, name, 1*time.Hour)
+			_, err := stateConf.WaitForStateContext(tb.Context())
+			return err
+		},
+		delete: func() error {
+			return deleteCluster(projectID, name)
+		},
 	}
-	require.Fail(tb, "Cluster creation failed in all candidate regions", "name: %s, regions: %s", name, strings.Join(regions, ","))
+	require.NoError(tb, createClusterWithRegionFallback(tb, DefaultRegions(), fns), "Cluster creation failed: %s", name)
 	return name
+}
+
+// createClusterWithRegionFallback tries to create a cluster in each candidate region,
+// falling back to the next region when creation fails with OUT_OF_CAPACITY or
+// provisioning ends in a terminal unexpected state. Extracted from createCluster so the
+// fallback behavior can be unit-tested with stub operations.
+func createClusterWithRegionFallback(tb testing.TB, regions []string, fns clusterCreateFuncs) error {
+	tb.Helper()
+	var lastErr error
+	for i, region := range regions {
+		err := fns.create(region)
+		if isOutOfCapacityError(err) {
+			lastErr = err
+			if next := i + 1; next < len(regions) {
+				tb.Logf("Cluster creation in %s failed with OUT_OF_CAPACITY, trying next region %s, err: %s", region, regions[next], err)
+			}
+			continue
+		}
+		if err != nil {
+			return fmt.Errorf("cluster creation failed: %w", err)
+		}
+		if err = fns.wait(); isFailedProvisioning(err) {
+			lastErr = err
+			if delErr := fns.delete(); delErr != nil {
+				return fmt.Errorf("cluster deletion failed: %w (after provisioning failure: %s)", delErr, err)
+			}
+			if next := i + 1; next < len(regions) {
+				tb.Logf("Cluster creation in %s failed while provisioning, trying next region %s, err: %s", region, regions[next], err)
+			}
+			continue
+		}
+		if err != nil {
+			return fmt.Errorf("cluster creation failed: %w", err)
+		}
+		return nil
+	}
+	return fmt.Errorf("cluster creation failed in all candidate regions (%s), last error: %w", strings.Join(regions, ","), lastErr)
 }
 
 // isFailedProvisioning reports whether waiting for cluster creation failed in a way that
@@ -73,9 +111,6 @@ func createCluster(tb testing.TB, projectID, name string, backupEnabled, pitEnab
 // unexpected cluster state reported by the polling endpoint (whose error would not
 // contain OUT_OF_CAPACITY text).
 func isFailedProvisioning(err error) bool {
-	if err == nil {
-		return false
-	}
 	if isOutOfCapacityError(err) {
 		return true
 	}
