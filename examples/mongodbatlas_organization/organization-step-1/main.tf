@@ -8,6 +8,7 @@ resource "mongodbatlas_organization" "test" {
   api_access_list_required   = false
   security_contact           = var.security_contact
   operations_contact         = var.operations_contact
+  custom_session_timeouts    = var.custom_session_timeouts
 }
 
 output "org_id" {

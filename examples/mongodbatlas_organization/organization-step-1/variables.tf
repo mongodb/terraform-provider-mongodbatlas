@@ -22,6 +22,14 @@ variable "operations_contact" {
   description = "Email address, typically a distribution list, for the organization to receive proactive notifications about its infrastructure"
   default     = null
 }
+variable "custom_session_timeouts" {
+  type = object({
+    absolute_session_timeout_in_seconds = number
+    idle_session_timeout_in_seconds     = number
+  })
+  description = "Custom session timeout settings for the organization"
+  default     = null
+}
 
 
 
