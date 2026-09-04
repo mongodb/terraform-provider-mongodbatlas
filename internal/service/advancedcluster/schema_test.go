@@ -34,6 +34,11 @@ func TestAccAdvancedCluster_ValidationErrors(t *testing.T) {
 				Config:      configBasic(projectID, clusterName, "advanced_configuration = {oplog_size_mb = -1}"),
 				ExpectError: regexp.MustCompile("Invalid Attribute Value"),
 			},
+			{
+				Config:      configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2, new(0)),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile("at least 1"),
+			},
 		},
 	})
 }

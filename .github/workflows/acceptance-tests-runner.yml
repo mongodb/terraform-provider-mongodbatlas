@@ -469,7 +469,7 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           HTTP_MOCKER_CAPTURE: 'true'
           # TODO: CLOUDP-430469, revert before merging to master.
-          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests == true && '^TestAccClusterAdvancedCluster_infinite$' || env.ACCTEST_REGEX_RUN }}
+          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests == true && '^TestAccClusterAdvancedCluster_infinite' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
