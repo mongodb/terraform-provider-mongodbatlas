@@ -115,6 +115,10 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 			GenAIFeaturesEnabled:    new(false),
 			SecurityContact:         conversion.StringPtr("test@mongodb.com"),
 			OperationsContact:       conversion.StringPtr("test@mongodb.com"),
+			CustomSessionTimeouts: &admin.CustomSessionTimeouts{
+				AbsoluteSessionTimeoutInSeconds: conversion.IntPtr(3600),
+				IdleSessionTimeoutInSeconds:     conversion.IntPtr(300),
+			},
 		}
 
 		settingsConfigUpdated = &admin.OrganizationSettings{
@@ -122,6 +126,10 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 			MultiFactorAuthRequired: new(true),
 			RestrictEmployeeAccess:  new(false),
 			GenAIFeaturesEnabled:    new(true),
+			CustomSessionTimeouts: &admin.CustomSessionTimeouts{
+				AbsoluteSessionTimeoutInSeconds: conversion.IntPtr(7200),
+				IdleSessionTimeoutInSeconds:     conversion.IntPtr(600),
+			},
 		}
 	)
 
@@ -132,12 +140,18 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithSettings(orgOwnerID, name, description, roleName, settingsConfig),
-				Check:  checkAggr(orgOwnerID, name, description, settingsConfig),
+				Check: checkAggr(orgOwnerID, name, description, settingsConfig,
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.absolute_session_timeout_in_seconds", "3600"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.idle_session_timeout_in_seconds", "300")),
 			},
 			{
 				PreConfig: sleepForSettingsRateLimit,
-				Config:    configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
-				Check:     checkAggr(orgOwnerID, name, description, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(settingsConfigUpdated, "test-updated@mongodb.com")),
+				Check: checkAggr(orgOwnerID, name, description, withOperationsContact(settingsConfigUpdated, "test-updated@mongodb.com"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.absolute_session_timeout_in_seconds", "7200"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.idle_session_timeout_in_seconds", "600")),
 			},
 			{
 				PreConfig: sleepForSettingsRateLimit,
@@ -148,7 +162,16 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 				PreConfig: sleepForSettingsRateLimit,
 				Config:    configBasic(orgOwnerID, nameUpdated, description, roleName, false, nil),
 				Check: checkAggr(orgOwnerID, nameUpdated, description, settingsConfigUpdated,
-					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "true")),
+					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "true"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "0")),
+			},
+			{
+				// Placed last so the API error doesn't affect the state assertions of earlier steps.
+				Config: configWithSettings(orgOwnerID, nameUpdated, description, roleName,
+					&admin.OrganizationSettings{CustomSessionTimeouts: &admin.CustomSessionTimeouts{
+						AbsoluteSessionTimeoutInSeconds: conversion.IntPtr(0),
+					}}),
+				ExpectError: regexp.MustCompile(`(?i)session.?timeout`),
 			},
 			{
 				// Re-set operations_contact to a real value: configBasic cleared it, and an
@@ -530,6 +553,21 @@ func getSettingsConfig(settings *admin.OrganizationSettings) string {
 	}
 	if settings.OperationsContact != nil {
 		configs = append(configs, fmt.Sprintf("operations_contact = %q", *settings.OperationsContact))
+	}
+	if settings.CustomSessionTimeouts != nil {
+		var fields []string
+		if settings.CustomSessionTimeouts.AbsoluteSessionTimeoutInSeconds != nil {
+			fields = append(fields, fmt.Sprintf("absolute_session_timeout_in_seconds = %d", *settings.CustomSessionTimeouts.AbsoluteSessionTimeoutInSeconds))
+		}
+		if settings.CustomSessionTimeouts.IdleSessionTimeoutInSeconds != nil {
+			fields = append(fields, fmt.Sprintf("idle_session_timeout_in_seconds = %d", *settings.CustomSessionTimeouts.IdleSessionTimeoutInSeconds))
+		}
+		block := "custom_session_timeouts {\n"
+		if len(fields) > 0 {
+			block += "\t" + strings.Join(fields, "\n\t") + "\n"
+		}
+		block += "}"
+		configs = append(configs, block)
 	}
 
 	return strings.Join(configs, "\n")
