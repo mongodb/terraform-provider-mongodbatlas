@@ -2,6 +2,7 @@ package advancedcluster
 
 import (
 	"context"
+	"maps"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -46,6 +47,8 @@ const (
 	descContainerID               = "A key-value map of the Network Peering Container ID(s) for the configuration specified in region_configs. The Container ID is the id of the container created when the first cluster in the region (AWS/Azure) or project (GCP) was created."
 	descDatabaseEdition           = "Available in Public Preview: Optional value that indicates whether the cluster uses the `CORE` or `INFINITE` database edition. If you omit this attribute, MongoDB Cloud selects the default database edition."
 	descEffectiveDatabaseEdition  = "Available in Public Preview: Database edition that the cluster currently uses. This value is `CORE` or `INFINITE` and can differ from `database_edition` when MongoDB Cloud applies the default."
+	descStorageConfig             = "Settings that determine the per-shard data-size limit for this cluster. You can configure these settings only for Atlas INFINITE clusters."
+	descShardSizeLimitGB          = "Maximum data size that MongoDB Cloud allows each shard of this cluster to reach, expressed in gigabytes. Set the same value for every region configuration. Remove `storage_config` to clear the configured limit."
 )
 
 func resourceSchema(ctx context.Context) schema.Schema {
@@ -258,7 +261,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 								Attributes: map[string]schema.Attribute{
 									"analytics_auto_scaling": autoScalingSchema(),
 									"analytics_specs":        specsSchema(),
-									"auto_scaling":           autoScalingSchema(),
+									"auto_scaling":           autoScalingWithStorageConfigSchema(),
 									"backing_provider_name": schema.StringAttribute{
 										Optional:            true,
 										MarkdownDescription: descBackingProviderNameTenant,
@@ -424,7 +427,7 @@ func replicationSpecsSchemaDS() dsschema.ListNestedAttribute {
 						Attributes: map[string]dsschema.Attribute{
 							"analytics_auto_scaling": autoScalingSchemaDS(),
 							"analytics_specs":        specsSchemaDS(),
-							"auto_scaling":           autoScalingSchemaDS(),
+							"auto_scaling":           autoScalingWithStorageConfigSchemaDS(),
 							"backing_provider_name": dsschema.StringAttribute{
 								Computed:            true,
 								MarkdownDescription: descBackingProviderNameTenant,
@@ -497,6 +500,24 @@ func autoScalingSchema() schema.SingleNestedAttribute {
 	}
 }
 
+func autoScalingWithStorageConfigSchema() schema.SingleNestedAttribute {
+	result := autoScalingSchema()
+	result.Attributes["storage_config"] = schema.SingleNestedAttribute{
+		Optional:            true,
+		MarkdownDescription: descStorageConfig,
+		Attributes: map[string]schema.Attribute{
+			"shard_size_limit_gb": schema.Int64Attribute{
+				Required: true,
+				Validators: []validator.Int64{
+					int64validator.AtLeast(1),
+				},
+				MarkdownDescription: descShardSizeLimitGB,
+			},
+		},
+	}
+	return result
+}
+
 func autoScalingSchemaDS() dsschema.SingleNestedAttribute {
 	return dsschema.SingleNestedAttribute{
 		Computed:            true,
@@ -524,6 +545,21 @@ func autoScalingSchemaDS() dsschema.SingleNestedAttribute {
 			},
 		},
 	}
+}
+
+func autoScalingWithStorageConfigSchemaDS() dsschema.SingleNestedAttribute {
+	result := autoScalingSchemaDS()
+	result.Attributes["storage_config"] = dsschema.SingleNestedAttribute{
+		Computed:            true,
+		MarkdownDescription: descStorageConfig,
+		Attributes: map[string]dsschema.Attribute{
+			"shard_size_limit_gb": dsschema.Int64Attribute{
+				Computed:            true,
+				MarkdownDescription: descShardSizeLimitGB,
+			},
+		},
+	}
+	return result
 }
 
 func specsSchema() schema.SingleNestedAttribute {
@@ -864,7 +900,7 @@ type TFRegionConfigsModel struct {
 var regionConfigsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"analytics_auto_scaling": autoScalingObjType,
 	"analytics_specs":        specsObjType,
-	"auto_scaling":           autoScalingObjType,
+	"auto_scaling":           autoScalingWithStorageConfigObjType,
 	"backing_provider_name":  types.StringType,
 	"electable_specs":        specsObjType,
 	"priority":               types.Int64Type,
@@ -891,7 +927,7 @@ type TFRegionConfigsDSModel struct {
 var regionConfigsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"analytics_auto_scaling":    autoScalingObjType,
 	"analytics_specs":           specsDSObjType,
-	"auto_scaling":              autoScalingObjType,
+	"auto_scaling":              autoScalingWithStorageConfigObjType,
 	"backing_provider_name":     types.StringType,
 	"effective_analytics_specs": specsDSObjType,
 	"effective_electable_specs": specsDSObjType,
@@ -911,6 +947,15 @@ type TFAutoScalingModel struct {
 	DiskGBEnabled           types.Bool   `tfsdk:"disk_gb_enabled"`
 }
 
+type TFAutoScalingWithStorageConfigModel struct {
+	ComputeMaxInstanceSize  types.String `tfsdk:"compute_max_instance_size"`
+	ComputeMinInstanceSize  types.String `tfsdk:"compute_min_instance_size"`
+	StorageConfig           types.Object `tfsdk:"storage_config"`
+	ComputeEnabled          types.Bool   `tfsdk:"compute_enabled"`
+	ComputeScaleDownEnabled types.Bool   `tfsdk:"compute_scale_down_enabled"`
+	DiskGBEnabled           types.Bool   `tfsdk:"disk_gb_enabled"`
+}
+
 var autoScalingObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"compute_enabled":            types.BoolType,
 	"compute_max_instance_size":  types.StringType,
@@ -918,6 +963,20 @@ var autoScalingObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"compute_scale_down_enabled": types.BoolType,
 	"disk_gb_enabled":            types.BoolType,
 }}
+
+type TFStorageConfigModel struct {
+	ShardSizeLimitGB types.Int64 `tfsdk:"shard_size_limit_gb"`
+}
+
+var storageConfigObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"shard_size_limit_gb": types.Int64Type,
+}}
+
+var autoScalingWithStorageConfigObjType = types.ObjectType{AttrTypes: func() map[string]attr.Type {
+	result := maps.Clone(autoScalingObjType.AttrTypes)
+	result["storage_config"] = storageConfigObjType
+	return result
+}()}
 
 type TFSpecsModel struct {
 	DiskSizeGb    types.Float64 `tfsdk:"disk_size_gb"`

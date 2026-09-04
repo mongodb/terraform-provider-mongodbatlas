@@ -18,7 +18,7 @@ var (
 )
 
 func autoScalingKnownValue(computeEnabled, diskEnabled, scaleDown bool, minInstanceSize, maxInstanceSize string) knownvalue.Check {
-	return knownvalue.ObjectExact(map[string]knownvalue.Check{
+	return knownvalue.ObjectPartial(map[string]knownvalue.Check{
 		"compute_enabled":            knownvalue.Bool(computeEnabled),
 		"disk_gb_enabled":            knownvalue.Bool(diskEnabled),
 		"compute_scale_down_enabled": knownvalue.Bool(scaleDown),

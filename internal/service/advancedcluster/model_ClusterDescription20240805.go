@@ -233,7 +233,7 @@ func newRegionConfigModel(ctx context.Context, item *admin.CloudRegionConfig2024
 	return TFRegionConfigsModel{
 		AnalyticsAutoScaling: newAutoScalingObjType(ctx, item.AnalyticsAutoScaling, diags),
 		AnalyticsSpecs:       newSpecsObjType(ctx, item.AnalyticsSpecs, diags),
-		AutoScaling:          newAutoScalingObjType(ctx, item.AutoScaling, diags),
+		AutoScaling:          newAutoScalingWithStorageConfigObjType(ctx, item.AutoScaling, diags),
 		BackingProviderName:  types.StringPointerValue(item.BackingProviderName),
 		ElectableSpecs:       newSpecsFromHwObjType(ctx, item.ElectableSpecs, diags),
 		Priority:             types.Int64PointerValue(conversion.IntPtrToInt64Ptr(item.Priority)),
@@ -378,6 +378,32 @@ func newAutoScalingObjType(ctx context.Context, input *admin.AdvancedAutoScaling
 		tfModel.DiskGBEnabled = types.BoolValue(conversion.SafeValue(diskGB.Enabled))
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, autoScalingObjType.AttrTypes, tfModel)
+	diags.Append(diagsLocal...)
+	return objType
+}
+
+func newAutoScalingWithStorageConfigObjType(ctx context.Context, input *admin.AdvancedAutoScalingSettings, diags *diag.Diagnostics) types.Object {
+	if input == nil {
+		return types.ObjectNull(autoScalingWithStorageConfigObjType.AttrTypes)
+	}
+	attributes := newAutoScalingObjType(ctx, input, diags).Attributes()
+	attributes["storage_config"] = types.ObjectNull(storageConfigObjType.AttrTypes)
+	if input.StorageConfig != nil && input.StorageConfig.HasShardSizeLimitGB() {
+		attributes["storage_config"] = newStorageConfigObjType(ctx, input.StorageConfig, diags)
+	}
+	result, diagsLocal := types.ObjectValue(autoScalingWithStorageConfigObjType.AttrTypes, attributes)
+	diags.Append(diagsLocal...)
+	return result
+}
+
+func newStorageConfigObjType(ctx context.Context, input *admin.StorageConfig, diags *diag.Diagnostics) types.Object {
+	if input == nil {
+		return types.ObjectNull(storageConfigObjType.AttrTypes)
+	}
+	tfModel := TFStorageConfigModel{
+		ShardSizeLimitGB: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.ShardSizeLimitGB)),
+	}
+	objType, diagsLocal := types.ObjectValueFrom(ctx, storageConfigObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
 	return objType
 }

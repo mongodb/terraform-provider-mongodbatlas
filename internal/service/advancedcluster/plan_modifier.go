@@ -88,7 +88,7 @@ func adjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 			}
 			stateReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ReadOnlySpecs)
 			planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
-			if stateReadOnlySpecs != nil { // read_only_specs is present in state
+			if stateReadOnlySpecs != nil && (planReadOnlySpecs != nil || stateReadOnlySpecs.NodeCount.ValueInt64() > 0) {
 				// logic below ensures that if read only specs is present in state but not in the plan, plan will be populated so that read only spec configuration is not removed on update operations
 				newPlanReadOnlySpecs := planReadOnlySpecs
 				if newPlanReadOnlySpecs == nil {
@@ -131,14 +131,14 @@ func adjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 			}
 
 			// don't use auto_scaling or analytics_auto_scaling from state if it's not enabled as it doesn't need to be present in Update request payload
-			stateAutoScaling := TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AutoScaling)
-			planAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AutoScaling)
-			if planAutoScaling == nil && stateAutoScaling != nil && (stateAutoScaling.ComputeEnabled.ValueBool() || stateAutoScaling.DiskGBEnabled.ValueBool()) {
+			stateAutoScaling := stateRegionConfigsTF[j].AutoScaling
+			planAutoScaling := planRegionConfigsTF[j].AutoScaling
+			if (planAutoScaling.IsNull() || planAutoScaling.IsUnknown()) && autoScalingEnabled(stateAutoScaling) {
 				planRegionConfigsTF[j].AutoScaling = stateRegionConfigsTF[j].AutoScaling
 			}
-			stateAnalyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AnalyticsAutoScaling)
-			planAnalyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AnalyticsAutoScaling)
-			if planAnalyticsAutoScaling == nil && stateAnalyticsAutoScaling != nil && (stateAnalyticsAutoScaling.ComputeEnabled.ValueBool() || stateAnalyticsAutoScaling.DiskGBEnabled.ValueBool()) {
+			stateAnalyticsAutoScaling := stateRegionConfigsTF[j].AnalyticsAutoScaling
+			planAnalyticsAutoScaling := planRegionConfigsTF[j].AnalyticsAutoScaling
+			if (planAnalyticsAutoScaling.IsNull() || planAnalyticsAutoScaling.IsUnknown()) && autoScalingEnabled(stateAnalyticsAutoScaling) {
 				planRegionConfigsTF[j].AnalyticsAutoScaling = stateRegionConfigsTF[j].AnalyticsAutoScaling
 			}
 		}
@@ -182,19 +182,21 @@ func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *
 		for i := range repSpecsTF {
 			regiongConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
 			for j := range regiongConfigsTF {
-				for _, autoScalingTF := range []types.Object{regiongConfigsTF[j].AutoScaling, regiongConfigsTF[j].AnalyticsAutoScaling} {
-					autoscaling := TFModelObject[TFAutoScalingModel](ctx, autoScalingTF)
-					if autoscaling == nil {
-						continue
-					}
-					if autoscaling.ComputeEnabled.ValueBool() || autoscaling.DiskGBEnabled.ValueBool() {
-						return true
-					}
+				if autoScalingEnabled(regiongConfigsTF[j].AutoScaling) || autoScalingEnabled(regiongConfigsTF[j].AnalyticsAutoScaling) {
+					return true
 				}
 			}
 		}
 	}
 	return false
+}
+
+func autoScalingEnabled(input types.Object) bool {
+	if input.IsNull() || input.IsUnknown() {
+		return false
+	}
+	attributes := input.Attributes()
+	return attributes["compute_enabled"].(types.Bool).ValueBool() || attributes["disk_gb_enabled"].(types.Bool).ValueBool()
 }
 
 // isReadOnlySpecsDeleted detects if any read_only_specs block with node_count > 0 was deleted from the plan.

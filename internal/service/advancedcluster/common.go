@@ -54,6 +54,52 @@ func AddIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20240805, 
 	return replicationSpecs
 }
 
+// SetShardSizeLimitGBNullOnRemoval includes replication specs in the patch when a configured shard size limit is removed from configuration.
+// Atlas preserves the limit when replicationSpecs is omitted and clears it when shardSizeLimitGB is explicitly null.
+func SetShardSizeLimitGBNullOnRemoval(stateReplicationSpecs, planReplicationSpecs, configReplicationSpecs *[]admin.ReplicationSpec20240805, patch *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
+	if stateReplicationSpecs == nil || planReplicationSpecs == nil || configReplicationSpecs == nil ||
+		!hasShardSizeLimit(*stateReplicationSpecs) || hasShardSizeLimit(*planReplicationSpecs) {
+		return patch
+	}
+
+	if patch == nil {
+		patch = new(admin.ClusterDescription20240805)
+	}
+	patchSpecs := cloneReplicationSpecsWithNullShardSizeLimit(*configReplicationSpecs)
+	patch.ReplicationSpecs = &patchSpecs
+	return patch
+}
+
+func hasShardSizeLimit(replicationSpecs []admin.ReplicationSpec20240805) bool {
+	for _, replicationSpec := range replicationSpecs {
+		for _, regionConfig := range replicationSpec.GetRegionConfigs() {
+			if regionConfig.AutoScaling != nil && regionConfig.AutoScaling.StorageConfig != nil && regionConfig.AutoScaling.StorageConfig.HasShardSizeLimitGB() {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func cloneReplicationSpecsWithNullShardSizeLimit(replicationSpecs []admin.ReplicationSpec20240805) []admin.ReplicationSpec20240805 {
+	result := append([]admin.ReplicationSpec20240805(nil), replicationSpecs...)
+	for specIndex := range result {
+		regions := append([]admin.CloudRegionConfig20240805(nil), result[specIndex].GetRegionConfigs()...)
+		for regionIndex := range regions {
+			autoScaling := admin.AdvancedAutoScalingSettings{}
+			if regions[regionIndex].AutoScaling != nil {
+				autoScaling = *regions[regionIndex].AutoScaling
+			}
+			storageConfig := admin.StorageConfig{}
+			storageConfig.SetShardSizeLimitGBNil()
+			autoScaling.SetStorageConfig(storageConfig)
+			regions[regionIndex].AutoScaling = &autoScaling
+		}
+		result[specIndex].RegionConfigs = &regions
+	}
+	return result
+}
+
 func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
 	for i, container := range containers {
 		gpc := cluster.GetProviderName() == constant.GCP

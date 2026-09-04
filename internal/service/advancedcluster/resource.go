@@ -226,8 +226,9 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var state, plan TFModel
+	var configModel, state, plan TFModel
 	diags := &resp.Diagnostics
+	diags.Append(req.Config.Get(ctx, &configModel)...)
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
 	if diags.HasError() {
@@ -246,6 +247,21 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 
 	{
 		diff := findClusterDiff(ctx, &state, &plan, diags)
+		if diags.HasError() {
+			return
+		}
+		// Use configuration-shaped replication specs for removal so API-computed zero-node specs are not sent.
+		requestConfig := configModel
+		adjustRegionConfigsChildren(ctx, diags, &state, &requestConfig)
+		if diags.HasError() {
+			return
+		}
+		diff.clusterPatchOnlyReq = SetShardSizeLimitGBNullOnRemoval(
+			newReplicationSpec(ctx, state.ReplicationSpecs, diags),
+			newReplicationSpec(ctx, plan.ReplicationSpecs, diags),
+			newReplicationSpec(ctx, requestConfig.ReplicationSpecs, diags),
+			diff.clusterPatchOnlyReq,
+		)
 		if diags.HasError() {
 			return
 		}
