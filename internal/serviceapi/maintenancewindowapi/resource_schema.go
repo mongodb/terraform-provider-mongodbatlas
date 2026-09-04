@@ -22,7 +22,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"day_of_week": schema.Int64Attribute{
 				Required:            true,
-				MarkdownDescription: "One-based integer that represents the day of the week that the maintenance window starts.\n\n- `1`: Sunday.\n- `2`: Monday.\n- `3`: Tuesday.\n- `4`: Wednesday.\n- `5`: Thursday.\n- `6`: Friday.\n- `7`: Saturday.",
+				MarkdownDescription: "One-based integer that represents the day of the week, in the project's configured time zone (see `timeZoneId`), that the maintenance window starts.\n\n- `1`: Sunday.\n- `2`: Monday.\n- `3`: Tuesday.\n- `4`: Wednesday.\n- `5`: Thursday.\n- `6`: Friday.\n- `7`: Saturday.",
 			},
 			"group_id": schema.StringAttribute{
 				Required:            true,
@@ -31,7 +31,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"hour_of_day": schema.Int64Attribute{
 				Required:            true,
-				MarkdownDescription: "Zero-based integer that represents the hour of the of the day that the maintenance window starts according to a 24-hour clock. Use `0` for midnight and `12` for noon.",
+				MarkdownDescription: "Zero-based integer that represents the hour of the day, in the project's configured time zone (see `timeZoneId`), that the maintenance window starts according to a 24-hour clock. Use `0` for midnight and `12` for noon. If you haven't changed your project's time zone, this defaults to UTC.",
 			},
 			"number_of_deferrals": schema.Int64Attribute{
 				Computed:            true,
@@ -44,11 +44,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"end_hour_of_day": schema.Int64Attribute{
 						Optional:            true,
-						MarkdownDescription: "Zero-based integer that represents the end hour of the of the day that the maintenance will not begin in.",
+						MarkdownDescription: "Zero-based integer, in the project's configured time zone (see `timeZoneId`), that represents the end hour of the day that maintenance will not begin in.",
 					},
 					"start_hour_of_day": schema.Int64Attribute{
 						Optional:            true,
-						MarkdownDescription: "Zero-based integer that represents the beginning hour of the of the day that the maintenance will not begin in.",
+						MarkdownDescription: "Zero-based integer, in the project's configured time zone (see `timeZoneId`), that represents the beginning hour of the day that maintenance will not begin in.",
 					},
 				},
 			},
