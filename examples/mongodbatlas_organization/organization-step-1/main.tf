@@ -7,6 +7,7 @@ resource "mongodbatlas_organization" "test" {
   restrict_employee_access   = true
   api_access_list_required   = false
   security_contact           = var.security_contact
+  operations_contact         = var.operations_contact
 }
 
 output "org_id" {

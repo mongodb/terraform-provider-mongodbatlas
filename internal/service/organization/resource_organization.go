@@ -103,6 +103,10 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"operations_contact": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"custom_session_timeouts": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -289,6 +293,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err := d.Set("security_contact", settings.SecurityContact); err != nil {
 		return diag.Errorf("error setting `security_contact` for organization (%s): %s", orgID, err)
 	}
+	if err := d.Set("operations_contact", settings.OperationsContact); err != nil {
+		return diag.Errorf("error setting `operations_contact` for organization (%s): %s", orgID, err)
+	}
 	if err := d.Set("custom_session_timeouts", flattenCustomSessionTimeouts(settings.CustomSessionTimeouts)); err != nil {
 		return diag.Errorf("error setting `custom_session_timeouts` for organization (%s): %s", orgID, err)
 	}
@@ -320,6 +327,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		d.HasChange("restrict_employee_access") ||
 		d.HasChange("gen_ai_features_enabled") ||
 		d.HasChange("security_contact") ||
+		d.HasChange("operations_contact") ||
 		d.HasChange("custom_session_timeouts") {
 		if _, _, err := conn.OrganizationsAPI.UpdateOrgSettings(ctx, orgID, newOrganizationSettings(d)).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization settings: %s", err))
@@ -395,6 +403,16 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 		RestrictEmployeeAccess:  new(d.Get("restrict_employee_access").(bool)),
 		GenAIFeaturesEnabled:    new(d.Get("gen_ai_features_enabled").(bool)),
 		SecurityContact:         new(d.Get("security_contact").(string)),
+	}
+	// SDKv2 Get() cannot distinguish an explicit empty string from an unset field, GetRawConfig() distinguishes
+	// between the two. The value in config is always sent so the API validates it, `operationsContact`
+	// is cleared with an explicit null when removed from config, and omitted when it was never set.
+	if d.GetRawConfig().GetAttr("operations_contact").IsNull() {
+		if d.HasChange("operations_contact") {
+			settings.SetOperationsContactNil()
+		}
+	} else {
+		settings.SetOperationsContact(d.Get("operations_contact").(string))
 	}
 	if raw := d.GetRawConfig().GetAttr("custom_session_timeouts"); raw.IsNull() {
 		if d.HasChange("custom_session_timeouts") {
