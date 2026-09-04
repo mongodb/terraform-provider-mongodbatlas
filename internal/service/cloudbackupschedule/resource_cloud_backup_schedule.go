@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/spf13/cast"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -30,6 +31,8 @@ const (
 	errorSnapshotBackupScheduleSetting = "error setting `%s` for Cloud Backup Schedule(%s): %s"
 )
 
+var deprecationMsgCopySettingsFrequencies = fmt.Sprintf(constant.DeprecationParamWithReplacement, "`copy_policy_items` or `last_number_of_snapshots`")
+
 func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceCreate,
@@ -39,6 +42,7 @@ func Resource() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
+		CustomizeDiff: resourceCustomizeDiff,
 
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -58,6 +62,10 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			"copy_policy_items_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"skip_destroy": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -70,6 +78,7 @@ func Resource() *schema.Resource {
 			"copy_settings": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true, // SetNew on the list requires Computed; omitting the block is still a delete via CustomizeDiff.
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cloud_provider": {
@@ -78,9 +87,10 @@ func Resource() *schema.Resource {
 							Computed: true,
 						},
 						"frequencies": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Computed: true,
+							Type:       schema.TypeSet,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: deprecationMsgCopySettingsFrequencies,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
@@ -99,6 +109,11 @@ func Resource() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Computed: true,
+						},
+						"copy_policy_items": copyPolicyItemsSchema(false),
+						"last_number_of_snapshots": {
+							Type:     schema.TypeInt,
+							Optional: true,
 						},
 					},
 				},
@@ -298,6 +313,14 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"update_copy_snapshots": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"delete_copy_snapshots": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"cluster_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -401,6 +424,10 @@ func setSchemaFields(d *schema.ResourceData, backupSchedule *admin.DiskBackupSna
 
 	if err := d.Set("auto_export_enabled", backupSchedule.GetAutoExportEnabled()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
+	}
+
+	if err := d.Set("copy_policy_items_enabled", backupSchedule.GetCopyPolicyItemsEnabled()); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_policy_items_enabled", clusterName, err)
 	}
 
 	if err := d.Set("export", FlattenExport(backupSchedule)); err != nil {
@@ -508,7 +535,6 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 
 func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APIClient, d *schema.ResourceData, projectID, clusterName string) error {
 	var err error
-	copySettings := d.Get("copy_settings")
 
 	req := &admin.DiskBackupSnapshotSchedule20240805{}
 
@@ -533,6 +559,10 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		req.AutoExportEnabled = new(v.(bool))
 	}
 
+	if _, ok := d.GetOkExists("copy_policy_items_enabled"); ok || d.HasChange("copy_policy_items_enabled") {
+		req.CopyPolicyItemsEnabled = new(d.Get("copy_policy_items_enabled").(bool))
+	}
+
 	if v, ok := d.GetOk("export"); ok {
 		req.Export = expandAutoExportPolicy(v.([]any))
 	}
@@ -555,13 +585,19 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 	if *value {
 		req.UpdateSnapshots = value
 	}
+	if d.Get("update_copy_snapshots").(bool) {
+		req.UpdateCopySnapshots = new(true)
+	}
+	if d.Get("delete_copy_snapshots").(bool) {
+		req.DeleteCopySnapshots = new(true)
+	}
 
 	resp, _, err := connV2.CloudBackupsAPI.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return fmt.Errorf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
-	if isCopySettingsNonEmptyOrChanged(d) {
-		req.CopySettings = ExpandCopySettings(copySettings.([]any))
+	if copySettings, ok := copySettingsForUpdate(d); ok {
+		req.CopySettings = ExpandCopySettings(copySettings)
 	}
 
 	req.Policies = getRequestPolicies(policiesItem, resp.GetPolicies())
@@ -574,34 +610,29 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 	return nil
 }
 
-func ExpandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting20240805 {
-	if tfMap == nil {
-		return nil
-	}
-
-	frequencies := conversion.ExpandStringList(tfMap["frequencies"].(*schema.Set).List())
-	copySetting := &admin.DiskBackupCopySetting20240805{
-		CloudProvider:    new(tfMap["cloud_provider"].(string)),
-		Frequencies:      &frequencies,
-		RegionName:       new(tfMap["region_name"].(string)),
-		ZoneId:           tfMap["zone_id"].(string),
-		ShouldCopyOplogs: new(tfMap["should_copy_oplogs"].(bool)),
-	}
-	return copySetting
-}
-
-func ExpandCopySettings(tfList []any) *[]admin.DiskBackupCopySetting20240805 {
-	copySettings := make([]admin.DiskBackupCopySetting20240805, 0)
-
-	for _, tfMapRaw := range tfList {
-		tfMap, ok := tfMapRaw.(map[string]any)
-		if !ok {
-			continue
+// copySettingsForUpdate picks copy_settings for the PATCH body.
+// CustomizeDiff clears copy_settings in the plan when the block is omitted, but d.Get at apply time
+// still returns the pre-plan entry; raw config is the apply-time source of truth for delete-on-omit.
+func copySettingsForUpdate(d *schema.ResourceData) ([]any, bool) {
+	rawConfig := d.GetRawConfig()
+	if rawConfig.IsKnown() && !rawConfig.IsNull() {
+		if copySettingsRawConfigEmpty(copySettingsFromRawConfig(rawConfig)) {
+			return []any{}, true
 		}
-		apiObject := ExpandCopySetting(tfMap)
-		copySettings = append(copySettings, *apiObject)
 	}
-	return &copySettings
+	if d.HasChange("copy_settings") || d.HasChange("copy_settings.#") {
+		_, newVal := d.GetChange("copy_settings")
+		newList, _ := newVal.([]any)
+		if newList == nil {
+			newList = []any{}
+		}
+		return newList, true
+	}
+	current, _ := d.Get("copy_settings").([]any)
+	if len(current) == 0 {
+		return nil, false
+	}
+	return current, true
 }
 
 func expandAutoExportPolicy(items []any) *admin.AutoExportPolicy {
@@ -642,11 +673,6 @@ func policyItemID(policyState map[string]any) *string {
 	return nil
 }
 
-func isCopySettingsNonEmptyOrChanged(d *schema.ResourceData) bool {
-	copySettings, _ := d.Get("copy_settings").([]any)
-	return len(copySettings) > 0 || d.HasChange("copy_settings")
-}
-
 func getRequestPolicies(policiesItem []admin.DiskBackupApiPolicyItem, respPolicies []admin.AdvancedDiskBackupSnapshotSchedulePolicy) []admin.AdvancedDiskBackupSnapshotSchedulePolicy {
 	if len(policiesItem) > 0 {
 		policy := admin.AdvancedDiskBackupSnapshotSchedulePolicy{
@@ -658,4 +684,47 @@ func getRequestPolicies(policiesItem []admin.DiskBackupApiPolicyItem, respPolici
 		return []admin.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
 	}
 	return nil
+}
+
+func copyPolicyItemsSchema(computed bool) *schema.Schema {
+	frequencyType := &schema.Schema{
+		Type:     schema.TypeString,
+		Computed: computed,
+	}
+	if !computed {
+		frequencyType.Required = true
+	}
+	retentionUnit := &schema.Schema{
+		Type:     schema.TypeString,
+		Computed: computed,
+	}
+	if !computed {
+		retentionUnit.Optional = true
+	}
+	retentionValue := &schema.Schema{
+		Type:     schema.TypeInt,
+		Computed: computed,
+	}
+	if !computed {
+		retentionValue.Optional = true
+	}
+	s := &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: computed,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"frequency_type":  frequencyType,
+				"retention_unit":  retentionUnit,
+				"retention_value": retentionValue,
+			},
+		},
+	}
+	if !computed {
+		s.Optional = true
+	}
+	return s
 }

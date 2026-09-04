@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_cloud_backup_schedule: Adds `copy_policy_items_enabled`, `copy_settings.copy_policy_items`, `copy_settings.last_number_of_snapshots`, `update_copy_snapshots`, and `delete_copy_snapshots` attributes
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_cloud_backup_schedule: Adds `copy_policy_items_enabled`, `copy_settings.copy_policy_items`, and `copy_settings.last_number_of_snapshots` attributes
+```
+
+```release-note:note
+resource/mongodbatlas_cloud_backup_schedule: Deprecates `copy_settings.frequencies` in favor of `copy_settings.copy_policy_items` and `copy_settings.last_number_of_snapshots`
+```

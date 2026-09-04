@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
@@ -284,6 +286,7 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSchedule_copySettings_zoneId(t *testing.T) {
+	warnLocalCopyDestRegion(t)
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
 			CloudBackup: true,
@@ -364,6 +367,182 @@ func TestAccBackupRSCloudBackupSchedule_copySettings_zoneId(t *testing.T) {
 					RestoreWindowDays:     new(1),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(checksUpdate...),
+			},
+		},
+	})
+}
+
+func TestAccBackupRSCloudBackupSchedule_copySettingsModesValidation(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_settings {
+						cloud_provider = "AWS"
+						region_name    = "US_EAST_1"
+						zone_id        = "111111111111111111111111"
+						copy_policy_items {
+							frequency_type  = "daily"
+							retention_unit  = "days"
+							retention_value = 7
+						}
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`require copy_policy_items_enabled to be true`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_policy_items_enabled = false
+					copy_settings {
+						cloud_provider           = "AWS"
+						region_name              = "US_EAST_1"
+						zone_id                  = "111111111111111111111111"
+						last_number_of_snapshots = 5
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`require copy_policy_items_enabled to be true`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_settings {
+						cloud_provider           = "AWS"
+						region_name              = "US_EAST_1"
+						zone_id                  = "111111111111111111111111"
+						last_number_of_snapshots = 5
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`require copy_policy_items_enabled to be true`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_policy_items_enabled = true
+					copy_settings {
+						cloud_provider = "AWS"
+						region_name    = "US_EAST_1"
+						zone_id        = "111111111111111111111111"
+						frequencies    = ["DAILY"]
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`frequencies cannot be set when copy_policy_items_enabled is true`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					delete_copy_snapshots = true
+				`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`delete_copy_snapshots requires copy_policy_items_enabled to be true`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					update_copy_snapshots = true
+				`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`update_copy_snapshots requires copy_policy_items_enabled to be true`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_policy_items_enabled = true
+					copy_settings {
+						cloud_provider           = "AWS"
+						region_name              = "US_EAST_1"
+						zone_id                  = "111111111111111111111111"
+						last_number_of_snapshots = 5
+						copy_policy_items {
+							frequency_type  = "daily"
+							retention_unit  = "days"
+							retention_value = 7
+						}
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`only one of frequencies, copy_policy_items, or last_number_of_snapshots`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_policy_items_enabled = true
+					copy_settings {
+						cloud_provider           = "AWS"
+						region_name              = "US_EAST_1"
+						zone_id                  = "111111111111111111111111"
+						frequencies              = ["DAILY"]
+						last_number_of_snapshots = 5
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`only one of frequencies, copy_policy_items, or last_number_of_snapshots`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					copy_policy_items_enabled = true
+					copy_settings {
+						cloud_provider = "AWS"
+						region_name    = "US_EAST_1"
+						zone_id        = "111111111111111111111111"
+						frequencies    = ["DAILY"]
+						copy_policy_items {
+							frequency_type  = "daily"
+							retention_unit  = "days"
+							retention_value = 7
+						}
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`only one of frequencies, copy_policy_items, or last_number_of_snapshots`),
+			},
+		},
+	})
+}
+
+func TestAccBackupRSCloudBackupSchedule_copyPolicyItems(t *testing.T) {
+	warnLocalCopyDestRegion(t)
+	var (
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
+			CloudBackup: true,
+			ReplicationSpecs: []acc.ReplicationSpecRequest{
+				{Region: "US_EAST_2"},
+			},
+			PitEnabled: true,
+		})
+		base                   = newCopyScheduleConfig(&clusterInfo)
+		configFrequencies      = base.withFrequencies()
+		configDailyAndOndemand = base.withDaily(7).withOndemand()
+		configUpdateCopies     = base.withDaily(3).withOndemand().withUpdateCopies()
+		configDeleteOndemand   = base.withDaily(3).withDeleteCopies()
+		configLastN            = base.withLastN(5)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configFrequencies.HCL(),
+				Check:  configFrequencies.check(),
+			},
+			{
+				Config: configDailyAndOndemand.HCL(),
+				Check:  configDailyAndOndemand.check(),
+			},
+			{
+				Config: configUpdateCopies.HCL(),
+				Check:  configUpdateCopies.check(),
+			},
+			// update_copy_snapshots is config-only (GET omits it). Re-plan the same HCL so Read does not invent a false -> true diff.
+			{
+				Config: configUpdateCopies.HCL(),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+			},
+			{
+				Config: configDeleteOndemand.HCL(),
+				Check:  configDeleteOndemand.check(),
+			},
+			{
+				Config: configLastN.HCL(),
+				Check:  configLastN.check(),
 			},
 		},
 	})
@@ -545,6 +724,200 @@ func checkDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func configCopySettingsPlanOnly(extra string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+			project_id   = "111111111111111111111111"
+			cluster_name = "test-cluster"
+			%s
+		}
+	`, extra)
+}
+
+// Copy dest is US_EAST_1 so the source cluster region must differ. CI uses US_EAST_2.
+func warnLocalCopyDestRegion(t *testing.T) {
+	t.Helper()
+	if acc.ExistingClusterUsed() {
+		t.Log("copy_settings dest is US_EAST_1; if reusing a local cluster, pick a different region for that cluster")
+	}
+}
+
+type copyScheduleConfig struct {
+	info            *acc.ClusterInfo
+	regionName      string
+	dailyRetention  int
+	lastN           int
+	includeOndemand bool
+	updateCopy      bool
+	deleteCopy      bool
+	useFrequencies  bool
+}
+
+func newCopyScheduleConfig(info *acc.ClusterInfo) copyScheduleConfig {
+	return copyScheduleConfig{info: info, regionName: "US_EAST_1"}
+}
+
+func (c copyScheduleConfig) withDaily(days int) copyScheduleConfig {
+	c.dailyRetention = days
+	return c
+}
+
+func (c copyScheduleConfig) withOndemand() copyScheduleConfig {
+	c.includeOndemand = true
+	return c
+}
+
+func (c copyScheduleConfig) withLastN(n int) copyScheduleConfig {
+	c.lastN = n
+	return c
+}
+
+func (c copyScheduleConfig) withUpdateCopies() copyScheduleConfig {
+	c.updateCopy = true
+	return c
+}
+
+func (c copyScheduleConfig) withDeleteCopies() copyScheduleConfig {
+	c.deleteCopy = true
+	return c
+}
+
+func (c copyScheduleConfig) withFrequencies() copyScheduleConfig {
+	c.useFrequencies = true
+	return c
+}
+
+func (c copyScheduleConfig) HCL() string {
+	enabled := ""
+	sourceDailyRetention := 2
+	if !c.useFrequencies {
+		enabled = "copy_policy_items_enabled = true"
+		sourceDailyRetention = 7
+	}
+	updateFlag := ""
+	if c.updateCopy {
+		updateFlag = "update_copy_snapshots = true"
+	}
+	deleteFlag := ""
+	if c.deleteCopy {
+		deleteFlag = "delete_copy_snapshots = true"
+	}
+
+	return fmt.Sprintf(`
+		%[1]s
+		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+			project_id                = %[2]q
+			cluster_name              = %[3]s.name
+			reference_hour_of_day     = 3
+			reference_minute_of_hour  = 45
+			restore_window_days       = 1
+			%[4]s
+			%[5]s
+			%[6]s
+
+			policy_item_hourly {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 1
+			}
+			policy_item_daily {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = %[7]d
+			}
+			policy_item_weekly {
+				frequency_interval = 4
+				retention_unit     = "weeks"
+				retention_value    = 3
+			}
+			policy_item_monthly {
+				frequency_interval = 5
+				retention_unit     = "months"
+				retention_value    = 4
+			}
+			policy_item_yearly {
+				frequency_interval = 1
+				retention_unit     = "years"
+				retention_value    = 1
+			}
+			copy_settings {
+				cloud_provider     = "AWS"
+				region_name        = %[8]q
+				zone_id            = %[3]s.replication_specs.*.zone_id[0]
+				should_copy_oplogs = true
+				%[9]s
+			}
+		}
+
+		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+			cluster_name = mongodbatlas_cloud_backup_schedule.schedule_test.cluster_name
+			project_id   = mongodbatlas_cloud_backup_schedule.schedule_test.project_id
+		}
+	`, c.info.TerraformStr, c.info.ProjectID, c.info.ResourceName, enabled, updateFlag, deleteFlag, sourceDailyRetention, c.regionName, c.copySettingsInner())
+}
+
+func (c copyScheduleConfig) copySettingsInner() string {
+	if c.useFrequencies {
+		return `frequencies = ["HOURLY", "DAILY", "WEEKLY", "MONTHLY", "YEARLY", "ON_DEMAND"]`
+	}
+	if c.lastN != 0 {
+		return fmt.Sprintf("last_number_of_snapshots = %d", c.lastN)
+	}
+	inner := fmt.Sprintf(`
+				copy_policy_items {
+					frequency_type  = "daily"
+					retention_unit  = "days"
+					retention_value = %d
+				}
+`, c.dailyRetention)
+	if c.includeOndemand {
+		inner += `
+				copy_policy_items {
+					frequency_type = "ondemand"
+				}
+`
+	}
+	return inner
+}
+
+func (c copyScheduleConfig) check() resource.TestCheckFunc {
+	attrs := map[string]string{
+		"cluster_name":                        c.info.Name,
+		"copy_policy_items_enabled":           "true",
+		"copy_settings.#":                     "1",
+		"copy_settings.0.frequencies.#":       "0",
+		"copy_settings.0.copy_policy_items.#": "0",
+	}
+	var setAttrs []string
+	switch {
+	case c.useFrequencies:
+		attrs["copy_policy_items_enabled"] = "false"
+		attrs["copy_settings.0.frequencies.#"] = "6"
+	case c.lastN != 0:
+		attrs["copy_settings.0.last_number_of_snapshots"] = strconv.Itoa(c.lastN)
+	default:
+		itemCount := 1
+		attrs["copy_settings.0.copy_policy_items.0.frequency_type"] = "daily"
+		attrs["copy_settings.0.copy_policy_items.0.retention_unit"] = "days"
+		attrs["copy_settings.0.copy_policy_items.0.retention_value"] = strconv.Itoa(c.dailyRetention)
+		setAttrs = append(setAttrs, "copy_settings.0.copy_policy_items.0.id")
+		if c.includeOndemand {
+			itemCount++
+			attrs["copy_settings.0.copy_policy_items.1.frequency_type"] = "ondemand"
+			setAttrs = append(setAttrs, "copy_settings.0.copy_policy_items.1.id")
+		}
+		attrs["copy_settings.0.copy_policy_items.#"] = strconv.Itoa(itemCount)
+	}
+	extra := []resource.TestCheckFunc{checkExists(resourceName)}
+	if c.updateCopy {
+		extra = append(extra, resource.TestCheckResourceAttr(resourceName, "update_copy_snapshots", "true"))
+	}
+	if c.deleteCopy {
+		extra = append(extra, resource.TestCheckResourceAttr(resourceName, "delete_copy_snapshots", "true"))
+	}
+	return acc.CheckRSAndDS(resourceName, &dataSourceName, nil, setAttrs, attrs, extra...)
 }
 
 func configNoPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule20240805) string {

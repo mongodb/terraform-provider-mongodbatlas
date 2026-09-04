@@ -163,7 +163,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 ## Example Usage - Create a Cluster with Cloud Backup Enabled with Snapshot Distribution
 
-You can enable `cloud_backup` in the Cluster resource and then use the `cloud_backup_schedule` resource with a basic policy for Cloud Backup.
+You can enable `cloud_backup` in the Cluster resource and then use the `cloud_backup_schedule` resource with a basic policy for Cloud Backup. Use `copy_policy_items_enabled = true` with `copy_policy_items` when copies should keep a different retention than the source snapshots. Use `last_number_of_snapshots` instead to copy the last N snapshots. `frequency_type` is lowercase. After you apply with the flag `true`, keep it `true`; Atlas cannot disable copy-policy items once they are enabled.
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "my_cluster" {
@@ -193,31 +193,41 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
   reference_minute_of_hour = 45
   restore_window_days      = 4
 
+  # Source daily snapshots keep 14 days.
   policy_item_daily {
     frequency_interval = 1
     retention_unit     = "days"
     retention_value    = 14
   }
 
-  copy_settings {
-    cloud_provider = "AWS"
-    frequencies = ["HOURLY",
-		   "DAILY",
-		   "WEEKLY",
-		   "MONTHLY",
-                   "YEARLY",
-		   "ON_DEMAND"]
-    region_name = "US_EAST_1"
-    zone_id = mongodbatlas_advanced_cluster.my_cluster.replication_specs.*.zone_id[0]
-    should_copy_oplogs = false
-  }
+  copy_policy_items_enabled = true
 
+  copy_settings {
+    cloud_provider     = "AWS"
+    region_name        = "US_EAST_1"
+    zone_id            = mongodbatlas_advanced_cluster.my_cluster.replication_specs.*.zone_id[0]
+    should_copy_oplogs = false
+
+    # Daily copies keep 7 days, shorter than the source.
+    copy_policy_items {
+      frequency_type  = "daily"
+      retention_unit  = "days"
+      retention_value = 7
+    }
+    copy_policy_items {
+      frequency_type = "ondemand"
+    }
+    # Alternative: last_number_of_snapshots = 5. Do not set it with copy_policy_items.
+  }
 }
 ```
 
-
 ### Further Examples
 - [Cloud Backup Schedule](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_cloud_backup_schedule)
+
+## Switching from frequencies
+
+`copy_settings.frequencies` is deprecated. Set `copy_policy_items_enabled = true`, then set `copy_policy_items` or `last_number_of_snapshots` on the entry and drop `frequencies`. The switch is one-way on the cluster: after Atlas enables copy-policy items, you cannot turn the flag off.
 
 ## Argument Reference
 
@@ -226,9 +236,10 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `reference_hour_of_day` - (Optional) UTC Hour of day between 0 and 23, inclusive, representing which hour of the day that Atlas takes snapshots for backup policy items.
 * `reference_minute_of_hour` - (Optional) UTC Minutes after `reference_hour_of_day` that Atlas takes snapshots for backup policy items. Must be between 0 and 59, inclusive.
 * `restore_window_days` - (Optional) Number of days back in time you can restore to with point-in-time accuracy. Must be a positive, non-zero integer.
-* `update_snapshots` - (Optional) Specify true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously. 
-  
-  **Note** This parameter does not return updates on return from API, this is a feature of the MongoDB Atlas Admin API itself and not Terraform.  For more details about this resource see [Cloud Backup Schedule](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backups/operation/getBackupSchedule).
+* `update_snapshots` - (Optional) Specify true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously.
+* `update_copy_snapshots` - (Optional) Specify true to apply the retention changes for updated copy policy items to snapshot copies that Atlas took previously. Requires `copy_policy_items_enabled` to be true.
+* `delete_copy_snapshots` - (Optional) Specify true to delete snapshot copies when their associated `copy_policy_items` are removed. Requires `copy_policy_items_enabled` to be true.
+* `copy_policy_items_enabled` - (Optional) Flag that selects copy-policy mode. Set to `true` to use `copy_policy_items` or `last_number_of_snapshots`. When `false` or omitted, use `frequencies`. This transition is one-way: after you apply with `copy_policy_items_enabled = true`, Atlas cannot disable copy-policy items. You can still switch each `copy_settings` entry between `copy_policy_items` and `last_number_of_snapshots`.
 
 * `policy_item_hourly` - (Optional) Hourly policy item. See [below](#policy_item_hourly)
 * `policy_item_daily` - (Optional) Daily policy item. See [below](#policy_item_daily)
@@ -286,10 +297,20 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 ### copy_settings
 * `cloud_provider` - (Required) Human-readable label that identifies the cloud provider that stores the snapshot copy. i.e. "AWS" "AZURE" "GCP"
-* `frequencies` - (Required) List that describes which types of snapshots to copy. i.e. "HOURLY" "DAILY" "WEEKLY" "MONTHLY" "ON_DEMAND"
+* `frequencies` - (Deprecated, Optional) List that describes which types of snapshots to copy when `copy_policy_items_enabled` is false or omitted. Values: `HOURLY`, `DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`, `ON_DEMAND`. Mutually exclusive with `copy_policy_items` and `last_number_of_snapshots` on the same entry. You can switch an entry from `frequencies` to `copy_policy_items` or `last_number_of_snapshots` in one apply; the switch back is not possible because `copy_policy_items_enabled` cannot be turned off once it is `true`. Use `copy_policy_items` or `last_number_of_snapshots` instead.
+* `copy_policy_items` - (Optional) Copy-policy items when `copy_policy_items_enabled` is true. Mutually exclusive with `frequencies` and `last_number_of_snapshots`. See [below](#copy_policy_items).
+* `last_number_of_snapshots` - (Optional) Number of most recent snapshots to copy, from 1 to 500, when `copy_policy_items_enabled` is true. Mutually exclusive with `frequencies` and `copy_policy_items`.
 * `region_name` - (Required) Target region to copy snapshots belonging to replicationSpecId to. Please supply the 'Atlas Region' which can be found under https://www.mongodb.com/docs/atlas/reference/cloud-providers/ 'regions' link
 * `zone_id` - Unique 24-hexadecimal digit string that identifies the zone in a cluster. For global clusters, there can be multiple zones to choose from. For sharded clusters and replica set clusters, there is only one zone in the cluster. To find appropriate value for `zone_id`, do a GET request to Return One Cluster from One Project and consult the replicationSpecs array [Return One Cluster From One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getcluster). Alternately, use `mongodbatlas_advanced_cluster` data source or resource and reference `replication_specs.#.zone_id`.
 * `should_copy_oplogs` - (Required) Flag that indicates whether to copy the oplogs to the target region. You can use the oplogs to perform point-in-time restores.
+
+### copy_policy_items
+* `frequency_type` - (Required) Frequency associated with the copy policy item: `hourly`, `daily`, `weekly`, `monthly`, `yearly`, or `ondemand`.
+* `retention_unit` - (Optional) Unit of time for copy retention: `days`, `weeks`, `months`, or `years`. Required by the API except when `frequency_type` is `ondemand`.
+* `retention_value` - (Optional) Value to associate with `retention_unit`. Required by the API except when `frequency_type` is `ondemand`.
+* `id` - Unique identifier of the copy policy item.
+
+**Note** The write-only array `deleteCopiedBackups` is not supported in Terraform. Use the Atlas Admin API or Atlas CLI to manage that array. It is not the same as `delete_copy_snapshots` on the resource.
 
 ## Attributes Reference
 
