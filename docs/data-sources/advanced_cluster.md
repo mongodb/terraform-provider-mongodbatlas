@@ -260,6 +260,8 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 * `compute_scale_down_enabled` - Flag that indicates whether the instance size may scale down. 
 * `compute_min_instance_size` - Minimum instance size to which your cluster can automatically scale (such as M10). 
 * `compute_max_instance_size` - Maximum instance size to which your cluster can automatically scale (such as M40). 
+* `storage_config` - Settings that determine the configured per-shard data-size limit for an Atlas INFINITE cluster.
+  * `shard_size_limit_gb` - Maximum configured data size that MongoDB Cloud allows each shard to reach, expressed in gigabytes.
 
 ### analytics_auto_scaling
 
