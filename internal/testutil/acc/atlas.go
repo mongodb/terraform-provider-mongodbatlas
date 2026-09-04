@@ -2,6 +2,7 @@ package acc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/stretchr/testify/require"
@@ -48,24 +50,37 @@ func createCluster(tb testing.TB, projectID, name string, backupEnabled, pitEnab
 		req := clusterReq(name, projectID, region, backupEnabled, pitEnabled)
 		_, _, err := ConnV2().ClustersAPI.CreateCluster(tb.Context(), projectID, &req).Execute()
 		if isOutOfCapacityError(err) && !lastRegion {
-			tb.Logf("Cluster creation in %s failed with OUT_OF_CAPACITY, trying next region: %s, err: %s", region, name, err)
+			tb.Logf("Cluster creation in %s failed with OUT_OF_CAPACITY, trying next region, err: %s", region, err)
 			continue
 		}
 		require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
 		stateConf := cluster.CreateStateChangeConfig(tb.Context(), ConnV2(), projectID, name, 1*time.Hour)
 		_, err = stateConf.WaitForStateContext(tb.Context())
-		if isOutOfCapacityError(err) && !lastRegion {
-			tb.Logf("Cluster creation in %s failed with OUT_OF_CAPACITY while provisioning, trying next region: %s, err: %s", region, name, err)
-			if err := deleteCluster(projectID, name); err != nil {
-				tb.Logf("Failed to delete cluster %s after OUT_OF_CAPACITY: %s", name, err)
-			}
+		if isFailedProvisioning(err) && !lastRegion {
+			tb.Logf("Cluster creation in %s failed while provisioning, trying next region, err: %s", region, err)
+			require.NoError(tb, deleteCluster(projectID, name), "Cluster deletion failed: %s", name)
 			continue
 		}
 		require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
 		return name
 	}
-	require.Fail(tb, "Cluster creation failed with OUT_OF_CAPACITY in all candidate regions", "name: %s, regions: %s", name, strings.Join(regions, ","))
+	require.Fail(tb, "Cluster creation failed in all candidate regions", "name: %s, regions: %s", name, strings.Join(regions, ","))
 	return name
+}
+
+// isFailedProvisioning reports whether waiting for cluster creation failed in a way that
+// justifies trying another region: an explicit OUT_OF_CAPACITY error, or a terminal
+// unexpected cluster state reported by the polling endpoint (whose error would not
+// contain OUT_OF_CAPACITY text).
+func isFailedProvisioning(err error) bool {
+	if err == nil {
+		return false
+	}
+	if isOutOfCapacityError(err) {
+		return true
+	}
+	var unexpectedStateErr *retry.UnexpectedStateError
+	return errors.As(err, &unexpectedStateErr)
 }
 
 func isOutOfCapacityError(err error) bool {
