@@ -49,6 +49,38 @@ resource "mongodbatlas_advanced_cluster" "this" {
 }
 ```
 
+### Example Atlas INFINITE cluster with a per-shard data-size limit
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "infinite" {
+  project_id       = "PROJECT ID"
+  name             = "NAME OF CLUSTER"
+  cluster_type     = "REPLICASET"
+  database_edition = "INFINITE"
+
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 3
+          }
+          auto_scaling = {
+            storage_config = {
+              shard_size_limit_gb = 1024 # Optional. Omit storage_config to use the Atlas default limit.
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
 ### Example using effective fields with auto-scaling
 
 ```terraform
@@ -834,6 +866,8 @@ replication_specs = [
 * `compute_scale_down_enabled` - (Optional) Flag that indicates whether the instance size may scale down. Atlas requires this parameter if `replication_specs[#].region_configs[#].auto_scaling.compute_enabled` : true. If you enable this option, specify a value for `replication_specs[#].region_configs[#].auto_scaling.compute_min_instance_size`.
 * `compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale (such as M10). Atlas requires this parameter if `replication_specs[#].region_configs[#].auto_scaling.compute_scale_down_enabled` is true.
 * `compute_max_instance_size` - (Optional) Maximum instance size to which your cluster can automatically scale (such as M40). Atlas requires this parameter if `replication_specs[#].region_configs[#].auto_scaling.compute_enabled` is true.
+* `storage_config` - (Optional) Settings that determine the per-shard data-size limit for an Atlas INFINITE cluster.
+  * `shard_size_limit_gb` - (Required) Maximum data size that MongoDB Cloud allows each shard to reach, expressed in gigabytes. The minimum value is `1`. Set the same value for every region configuration. Remove `storage_config` to clear the configured limit.
 
   -> **NOTE:** MongoDB recommends enabling both [cluster tier (compute) and storage auto-scaling](https://www.mongodb.com/docs/atlas/cluster-autoscaling/#cluster-tier-and-cluster-storage-might-scale-in-parallel) together for optimal performance and cost efficiency. When only one type of auto-scaling is enabled, Atlas may still adjust both compute and storage resources to maintain optimal cluster performance. See the [Atlas Auto-Scaling documentation](https://www.mongodb.com/docs/atlas/cluster-autoscaling/) and [Scalability Best Practices](https://www.mongodb.com/docs/atlas/architecture/current/scalability/#all-deployment-paradigm-recommendations) for more information.
 

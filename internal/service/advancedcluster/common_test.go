@@ -1,6 +1,7 @@
 package advancedcluster_test
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"testing"
@@ -9,6 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 	"go.mongodb.org/atlas-sdk/v20250312024/mockadmin"
 )
@@ -244,4 +246,88 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 			assert.Equal(t, tc.ExpectedReplicationSpecs, resultSpecs)
 		})
 	}
+}
+
+func TestSetShardSizeLimitGBNull(t *testing.T) {
+	tags := []admin.ResourceTag{{Key: "environment", Value: "test"}}
+	mixedRegionConfig := clusterWithShardSizeLimits(nil, nil)
+	mixedRegions := mixedRegionConfig.GetReplicationSpecs()[0].GetRegionConfigs()
+	mixedRegions[0].AutoScaling.Compute = &admin.AdvancedComputeAutoScaling{}
+	mixedRegions[0].AutoScaling.DiskGB = &admin.DiskGBAutoScaling{}
+	mixedRegions[1].AutoScaling = computeAutoScaling()
+	mixedRegions[1].AutoScaling.DiskGB = &admin.DiskGBAutoScaling{}
+	zeroNodePatch := clusterWithOptionalSpecs(nil, 0)
+	zeroNodePatch.Tags = &tags
+	testCases := map[string]struct {
+		config       *admin.ClusterDescription20240805
+		patch        *admin.ClusterDescription20240805
+		expectedJSON string
+	}{
+		"omits empty auto scaling and preserves configured compute": {
+			config:       mixedRegionConfig,
+			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}}},{"autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true},"storageConfig":{"shardSizeLimitGB":null}}}]}]}`,
+		},
+		"uses config-shaped specs and preserves unrelated patch fields": {
+			config:       clusterWithElectableSpec(),
+			patch:        zeroNodePatch,
+			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}},"electableSpecs":{"instanceSize":"M10","nodeCount":1}}]}],"tags":[{"key":"environment","value":"test"}]}`,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			result := advancedcluster.SetShardSizeLimitGBNull(tc.config.ReplicationSpecs, tc.patch)
+			resultJSON, err := json.Marshal(result)
+			require.NoError(t, err)
+			require.JSONEq(t, tc.expectedJSON, string(resultJSON))
+		})
+	}
+}
+
+func clusterWithShardSizeLimits(limits ...*int) *admin.ClusterDescription20240805 {
+	regions := make([]admin.CloudRegionConfig20240805, len(limits))
+	for i, limit := range limits {
+		autoScaling := &admin.AdvancedAutoScalingSettings{}
+		if limit != nil {
+			autoScaling.StorageConfig = &admin.StorageConfig{ShardSizeLimitGB: limit}
+		}
+		regions[i].AutoScaling = autoScaling
+	}
+	return &admin.ClusterDescription20240805{ReplicationSpecs: &[]admin.ReplicationSpec20240805{{RegionConfigs: &regions}}}
+}
+
+func computeAutoScaling() *admin.AdvancedAutoScalingSettings {
+	return &admin.AdvancedAutoScalingSettings{Compute: &admin.AdvancedComputeAutoScaling{
+		Enabled:          new(true),
+		MaxInstanceSize:  new("M30"),
+		MinInstanceSize:  new("M10"),
+		ScaleDownEnabled: new(true),
+	}}
+}
+
+func clusterWithOptionalSpecs(limit *int, optionalNodeCount int) *admin.ClusterDescription20240805 {
+	cluster := clusterWithShardSizeLimits(limit)
+	region := &cluster.GetReplicationSpecs()[0].GetRegionConfigs()[0]
+	region.AnalyticsSpecs = &admin.DedicatedHardwareSpec20240805{
+		InstanceSize: new("M10"),
+		NodeCount:    new(optionalNodeCount),
+	}
+	region.ElectableSpecs = &admin.HardwareSpec20240805{
+		InstanceSize: new("M10"),
+		NodeCount:    new(1),
+	}
+	region.ReadOnlySpecs = &admin.DedicatedHardwareSpec20240805{
+		InstanceSize: new("M10"),
+		NodeCount:    new(optionalNodeCount),
+	}
+	return cluster
+}
+
+func clusterWithElectableSpec() *admin.ClusterDescription20240805 {
+	cluster := clusterWithOptionalSpecs(nil, 0)
+	region := &cluster.GetReplicationSpecs()[0].GetRegionConfigs()[0]
+	region.AnalyticsSpecs = nil
+	region.AutoScaling = nil
+	region.ReadOnlySpecs = nil
+	return cluster
 }

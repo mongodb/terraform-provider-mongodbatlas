@@ -54,6 +54,60 @@ func AddIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20240805, 
 	return replicationSpecs
 }
 
+// SetShardSizeLimitGBNull includes configuration-shaped replication specs in the patch and explicitly clears the limit in every region.
+func SetShardSizeLimitGBNull(configReplicationSpecs *[]admin.ReplicationSpec20240805, patch *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
+	if configReplicationSpecs == nil {
+		return patch
+	}
+
+	if patch == nil {
+		patch = new(admin.ClusterDescription20240805)
+	}
+	// The caller supplies a freshly converted configuration request, so this helper owns it.
+	for _, spec := range *configReplicationSpecs {
+		for i := range spec.GetRegionConfigs() {
+			region := &(*spec.RegionConfigs)[i]
+			if region.AutoScaling == nil {
+				region.AutoScaling = new(admin.AdvancedAutoScalingSettings)
+			}
+			omitEmptyAutoScalingChildren(region.AutoScaling)
+			storageConfig := new(admin.StorageConfig)
+			storageConfig.SetShardSizeLimitGBNil()
+			region.AutoScaling.StorageConfig = storageConfig
+		}
+	}
+	patch.ReplicationSpecs = configReplicationSpecs
+	return patch
+}
+
+func shardSizeLimitRemoved(stateReplicationSpecs, planReplicationSpecs *[]admin.ReplicationSpec20240805) bool {
+	return stateReplicationSpecs != nil && planReplicationSpecs != nil &&
+		hasShardSizeLimit(*stateReplicationSpecs) && !hasShardSizeLimit(*planReplicationSpecs)
+}
+
+func hasShardSizeLimit(replicationSpecs []admin.ReplicationSpec20240805) bool {
+	for _, replicationSpec := range replicationSpecs {
+		for _, regionConfig := range replicationSpec.GetRegionConfigs() {
+			if regionConfig.AutoScaling != nil && regionConfig.AutoScaling.StorageConfig != nil && regionConfig.AutoScaling.StorageConfig.HasShardSizeLimitGB() {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// Atlas treats empty compute and diskGB objects as explicitly configured on Infinite clusters.
+func omitEmptyAutoScalingChildren(autoScaling *admin.AdvancedAutoScalingSettings) {
+	if compute := autoScaling.Compute; compute != nil &&
+		!compute.HasEnabled() && !compute.HasMaxInstanceSize() &&
+		!compute.HasMinInstanceSize() && !compute.HasScaleDownEnabled() && len(compute.NullFields) == 0 {
+		autoScaling.Compute = nil
+	}
+	if diskGB := autoScaling.DiskGB; diskGB != nil && !diskGB.HasEnabled() && len(diskGB.NullFields) == 0 {
+		autoScaling.DiskGB = nil
+	}
+}
+
 func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
 	for i, container := range containers {
 		gpc := cluster.GetProviderName() == constant.GCP

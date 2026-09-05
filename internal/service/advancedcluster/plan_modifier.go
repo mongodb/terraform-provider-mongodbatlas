@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
@@ -130,15 +131,15 @@ func adjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 				planRegionConfigsTF[j].AnalyticsSpecs = objType
 			}
 
-			// don't use auto_scaling or analytics_auto_scaling from state if it's not enabled as it doesn't need to be present in Update request payload
-			stateAutoScaling := TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AutoScaling)
-			planAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AutoScaling)
-			if planAutoScaling == nil && stateAutoScaling != nil && (stateAutoScaling.ComputeEnabled.ValueBool() || stateAutoScaling.DiskGBEnabled.ValueBool()) {
+			// Preserve state auto-scaling only when compute or disk auto-scaling is enabled.
+			stateAutoScaling := stateRegionConfigsTF[j].AutoScaling
+			planAutoScaling := planRegionConfigsTF[j].AutoScaling
+			if (planAutoScaling.IsNull() || planAutoScaling.IsUnknown()) && autoScalingEnabled(stateAutoScaling) {
 				planRegionConfigsTF[j].AutoScaling = stateRegionConfigsTF[j].AutoScaling
 			}
-			stateAnalyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AnalyticsAutoScaling)
-			planAnalyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AnalyticsAutoScaling)
-			if planAnalyticsAutoScaling == nil && stateAnalyticsAutoScaling != nil && (stateAnalyticsAutoScaling.ComputeEnabled.ValueBool() || stateAnalyticsAutoScaling.DiskGBEnabled.ValueBool()) {
+			stateAnalyticsAutoScaling := stateRegionConfigsTF[j].AnalyticsAutoScaling
+			planAnalyticsAutoScaling := planRegionConfigsTF[j].AnalyticsAutoScaling
+			if (planAnalyticsAutoScaling.IsNull() || planAnalyticsAutoScaling.IsUnknown()) && autoScalingEnabled(stateAnalyticsAutoScaling) {
 				planRegionConfigsTF[j].AnalyticsAutoScaling = stateRegionConfigsTF[j].AnalyticsAutoScaling
 			}
 		}
@@ -182,19 +183,22 @@ func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *
 		for i := range repSpecsTF {
 			regiongConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
 			for j := range regiongConfigsTF {
-				for _, autoScalingTF := range []types.Object{regiongConfigsTF[j].AutoScaling, regiongConfigsTF[j].AnalyticsAutoScaling} {
-					autoscaling := TFModelObject[TFAutoScalingModel](ctx, autoScalingTF)
-					if autoscaling == nil {
-						continue
-					}
-					if autoscaling.ComputeEnabled.ValueBool() || autoscaling.DiskGBEnabled.ValueBool() {
-						return true
-					}
+				if autoScalingEnabled(regiongConfigsTF[j].AutoScaling) || autoScalingEnabled(regiongConfigsTF[j].AnalyticsAutoScaling) {
+					return true
 				}
 			}
 		}
 	}
 	return false
+}
+
+// autoScalingEnabled reads shared fields directly because auto_scaling includes storage_config but analytics_auto_scaling does not.
+func autoScalingEnabled(input types.Object) bool {
+	if input.IsNull() || input.IsUnknown() {
+		return false
+	}
+	attributes := input.Attributes()
+	return attributes["compute_enabled"].(types.Bool).ValueBool() || attributes["disk_gb_enabled"].(types.Bool).ValueBool()
 }
 
 // isReadOnlySpecsDeleted detects if any read_only_specs block with node_count > 0 was deleted from the plan.
@@ -280,4 +284,32 @@ func minLen[T any](a, b []T) int {
 		return la
 	}
 	return lb
+}
+
+// clearRemovedStorageConfig prevents the computed parent from retaining a configured limit after removal.
+type clearRemovedStorageConfig struct{}
+
+func (clearRemovedStorageConfig) Description(context.Context) string {
+	return "Clears the shard size limit when auto_scaling is removed from configuration."
+}
+
+func (m clearRemovedStorageConfig) MarkdownDescription(ctx context.Context) string {
+	return m.Description(ctx)
+}
+
+func (clearRemovedStorageConfig) PlanModifyObject(_ context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+	if !req.ConfigValue.IsNull() || req.StateValue.IsNull() || req.StateValue.IsUnknown() || req.Plan.Raw.IsNull() {
+		return
+	}
+	attributes := req.StateValue.Attributes()
+	if attributes["storage_config"].IsNull() {
+		return
+	}
+	if !req.PlanValue.IsNull() && !req.PlanValue.IsUnknown() {
+		attributes = req.PlanValue.Attributes()
+	}
+	attributes["storage_config"] = types.ObjectNull(storageConfigObjType.AttrTypes)
+	var diags diag.Diagnostics
+	resp.PlanValue, diags = types.ObjectValue(autoScalingWithStorageConfigObjType.AttrTypes, attributes)
+	resp.Diagnostics.Append(diags...)
 }
