@@ -63,8 +63,20 @@ func SetShardSizeLimitGBNull(configReplicationSpecs *[]admin.ReplicationSpec2024
 	if patch == nil {
 		patch = new(admin.ClusterDescription20240805)
 	}
-	patchSpecs := cloneReplicationSpecsWithNullShardSizeLimit(*configReplicationSpecs)
-	patch.ReplicationSpecs = &patchSpecs
+	// The caller supplies a freshly converted configuration request, so this helper owns it.
+	for _, spec := range *configReplicationSpecs {
+		for i := range spec.GetRegionConfigs() {
+			region := &(*spec.RegionConfigs)[i]
+			if region.AutoScaling == nil {
+				region.AutoScaling = new(admin.AdvancedAutoScalingSettings)
+			}
+			omitEmptyAutoScalingChildren(region.AutoScaling)
+			storageConfig := new(admin.StorageConfig)
+			storageConfig.SetShardSizeLimitGBNil()
+			region.AutoScaling.StorageConfig = storageConfig
+		}
+	}
+	patch.ReplicationSpecs = configReplicationSpecs
 	return patch
 }
 
@@ -84,34 +96,16 @@ func hasShardSizeLimit(replicationSpecs []admin.ReplicationSpec20240805) bool {
 	return false
 }
 
-func cloneReplicationSpecsWithNullShardSizeLimit(replicationSpecs []admin.ReplicationSpec20240805) []admin.ReplicationSpec20240805 {
-	result := append([]admin.ReplicationSpec20240805(nil), replicationSpecs...)
-	for specIndex := range result {
-		regions := append([]admin.CloudRegionConfig20240805(nil), result[specIndex].GetRegionConfigs()...)
-		for regionIndex := range regions {
-			autoScaling := admin.AdvancedAutoScalingSettings{}
-			if regions[regionIndex].AutoScaling != nil {
-				autoScaling = *regions[regionIndex].AutoScaling
-			}
-			// The clear operation adds storageConfig after model conversion. Remove empty
-			// siblings that Atlas treats as explicitly configured on Infinite clusters.
-			if compute := autoScaling.Compute; compute != nil &&
-				!compute.HasEnabled() && !compute.HasMaxInstanceSize() &&
-				!compute.HasMinInstanceSize() && !compute.HasScaleDownEnabled() &&
-				len(compute.NullFields) == 0 {
-				autoScaling.Compute = nil
-			}
-			if diskGB := autoScaling.DiskGB; diskGB != nil && !diskGB.HasEnabled() && len(diskGB.NullFields) == 0 {
-				autoScaling.DiskGB = nil
-			}
-			storageConfig := admin.StorageConfig{}
-			storageConfig.SetShardSizeLimitGBNil()
-			autoScaling.SetStorageConfig(storageConfig)
-			regions[regionIndex].AutoScaling = &autoScaling
-		}
-		result[specIndex].RegionConfigs = &regions
+// Atlas treats empty compute and diskGB objects as explicitly configured on Infinite clusters.
+func omitEmptyAutoScalingChildren(autoScaling *admin.AdvancedAutoScalingSettings) {
+	if compute := autoScaling.Compute; compute != nil &&
+		!compute.HasEnabled() && !compute.HasMaxInstanceSize() &&
+		!compute.HasMinInstanceSize() && !compute.HasScaleDownEnabled() && len(compute.NullFields) == 0 {
+		autoScaling.Compute = nil
 	}
-	return result
+	if diskGB := autoScaling.DiskGB; diskGB != nil && !diskGB.HasEnabled() && len(diskGB.NullFields) == 0 {
+		autoScaling.DiskGB = nil
+	}
 }
 
 func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {

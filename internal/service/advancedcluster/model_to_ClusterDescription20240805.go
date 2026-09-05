@@ -169,9 +169,9 @@ func newRegionConfig(ctx context.Context, input types.List, diags *diag.Diagnost
 	for i := range elements {
 		item := &elements[i]
 		resp[i] = admin.CloudRegionConfig20240805{
-			AnalyticsAutoScaling: newAdvancedAutoScalingSettings(ctx, item.AnalyticsAutoScaling, false, diags),
+			AnalyticsAutoScaling: newAdvancedAutoScalingSettings(ctx, item.AnalyticsAutoScaling, diags),
 			AnalyticsSpecs:       newDedicatedHardwareSpec(ctx, item.AnalyticsSpecs, diags),
-			AutoScaling:          newAdvancedAutoScalingSettings(ctx, item.AutoScaling, true, diags),
+			AutoScaling:          newAdvancedAutoScalingWithStorageConfig(ctx, item.AutoScaling, diags),
 			BackingProviderName:  conversion.NilForUnknown(item.BackingProviderName, item.BackingProviderName.ValueStringPointer()),
 			ElectableSpecs:       newHardwareSpec(ctx, item.ElectableSpecs, diags),
 			Priority:             conversion.Int64PtrToIntPtr(item.Priority.ValueInt64Pointer()),
@@ -183,34 +183,41 @@ func newRegionConfig(ctx context.Context, input types.List, diags *diag.Diagnost
 	return &resp
 }
 
-func newAdvancedAutoScalingSettings(ctx context.Context, input types.Object, includeStorageConfig bool, diags *diag.Diagnostics) *admin.AdvancedAutoScalingSettings {
+func newAdvancedAutoScalingSettings(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.AdvancedAutoScalingSettings {
 	var resp *admin.AdvancedAutoScalingSettings
 	if input.IsUnknown() || input.IsNull() {
 		return resp
 	}
-	values, storageConfig := newAutoScalingValues(ctx, input, includeStorageConfig, diags)
-	if diags.HasError() {
+	item := &TFAutoScalingModel{}
+	if localDiags := input.As(ctx, item, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
+		diags.Append(localDiags...)
 		return resp
 	}
-	omitEmptyChildren := !storageConfig.IsNull() && !storageConfig.IsUnknown()
 	return &admin.AdvancedAutoScalingSettings{
-		// Atlas treats empty compute and diskGB objects as configured when storage_config is present.
-		Compute:       newAdvancedComputeAutoScaling(values, omitEmptyChildren),
-		DiskGB:        newDiskGBAutoScaling(values, omitEmptyChildren),
-		StorageConfig: newStorageConfig(ctx, storageConfig, diags),
+		Compute: newAdvancedComputeAutoScaling(item),
+		DiskGB:  newDiskGBAutoScaling(item),
 	}
 }
 
-// newAutoScalingValues decodes the attributes separately because storage_config is valid only under auto_scaling.
-func newAutoScalingValues(ctx context.Context, input types.Object, includeStorageConfig bool, diags *diag.Diagnostics) (values *TFAutoScalingModel, storageConfig types.Object) {
-	if !includeStorageConfig {
-		item := new(TFAutoScalingModel)
-		diags.Append(input.As(ctx, item, basetypes.ObjectAsOptions{})...)
-		return item, types.ObjectNull(storageConfigObjType.AttrTypes)
+func newAdvancedAutoScalingWithStorageConfig(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.AdvancedAutoScalingSettings {
+	if input.IsUnknown() || input.IsNull() {
+		return nil
 	}
 	item := new(TFAutoScalingWithStorageConfigModel)
 	diags.Append(input.As(ctx, item, basetypes.ObjectAsOptions{})...)
-	return conversion.CopyModel[TFAutoScalingModel](item), item.StorageConfig
+	if diags.HasError() {
+		return nil
+	}
+	values := conversion.CopyModel[TFAutoScalingModel](item)
+	result := &admin.AdvancedAutoScalingSettings{
+		Compute:       newAdvancedComputeAutoScaling(values),
+		DiskGB:        newDiskGBAutoScaling(values),
+		StorageConfig: newStorageConfig(ctx, item.StorageConfig, diags),
+	}
+	if result.StorageConfig != nil {
+		omitEmptyAutoScalingChildren(result)
+	}
+	return result
 }
 
 func newStorageConfig(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.StorageConfig {
@@ -264,27 +271,16 @@ func newDedicatedHardwareSpec(ctx context.Context, input types.Object, diags *di
 	}
 }
 
-func newAdvancedComputeAutoScaling(item *TFAutoScalingModel, omitEmpty bool) *admin.AdvancedComputeAutoScaling {
-	enabled := conversion.NilForUnknown(item.ComputeEnabled, item.ComputeEnabled.ValueBoolPointer())
-	scaleDownEnabled := conversion.NilForUnknown(item.ComputeScaleDownEnabled, item.ComputeScaleDownEnabled.ValueBoolPointer())
-	maxInstanceSize := conversion.NilForUnknownOrEmptyString(item.ComputeMaxInstanceSize)
-	minInstanceSize := conversion.NilForUnknownOrEmptyString(item.ComputeMinInstanceSize)
-	if omitEmpty && enabled == nil && scaleDownEnabled == nil && maxInstanceSize == nil && minInstanceSize == nil {
-		return nil
-	}
+func newAdvancedComputeAutoScaling(item *TFAutoScalingModel) *admin.AdvancedComputeAutoScaling {
 	return &admin.AdvancedComputeAutoScaling{
-		Enabled:          enabled,
-		ScaleDownEnabled: scaleDownEnabled,
-		MaxInstanceSize:  maxInstanceSize,
-		MinInstanceSize:  minInstanceSize,
+		Enabled:          conversion.NilForUnknown(item.ComputeEnabled, item.ComputeEnabled.ValueBoolPointer()),
+		ScaleDownEnabled: conversion.NilForUnknown(item.ComputeScaleDownEnabled, item.ComputeScaleDownEnabled.ValueBoolPointer()),
+		MaxInstanceSize:  conversion.NilForUnknownOrEmptyString(item.ComputeMaxInstanceSize),
+		MinInstanceSize:  conversion.NilForUnknownOrEmptyString(item.ComputeMinInstanceSize),
 	}
 }
-func newDiskGBAutoScaling(item *TFAutoScalingModel, omitEmpty bool) *admin.DiskGBAutoScaling {
-	enabled := conversion.NilForUnknown(item.DiskGBEnabled, item.DiskGBEnabled.ValueBoolPointer())
-	if omitEmpty && enabled == nil {
-		return nil
-	}
+func newDiskGBAutoScaling(item *TFAutoScalingModel) *admin.DiskGBAutoScaling {
 	return &admin.DiskGBAutoScaling{
-		Enabled: enabled,
+		Enabled: conversion.NilForUnknown(item.DiskGBEnabled, item.DiskGBEnabled.ValueBoolPointer()),
 	}
 }

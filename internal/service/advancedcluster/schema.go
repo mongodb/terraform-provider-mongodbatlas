@@ -502,12 +502,13 @@ func autoScalingSchema() schema.SingleNestedAttribute {
 
 func autoScalingWithStorageConfigSchema() schema.SingleNestedAttribute {
 	result := autoScalingSchema()
+	result.PlanModifiers = []planmodifier.Object{clearRemovedStorageConfig{}}
 	result.Attributes["storage_config"] = schema.SingleNestedAttribute{
 		Optional:            true,
 		MarkdownDescription: descStorageConfig,
 		Attributes: map[string]schema.Attribute{
 			"shard_size_limit_gb": schema.Int64Attribute{
-				// Atlas canonicalizes an empty storageConfig as omitted, so require the only current child.
+				// Atlas omits storageConfig from API responses when it has no configured values, so require its only currently supported child.
 				Required:            true,
 				MarkdownDescription: descShardSizeLimitGB,
 			},

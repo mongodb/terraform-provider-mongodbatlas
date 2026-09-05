@@ -111,6 +111,7 @@ func TestAccClusterAdvancedCluster_infiniteBasic(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 2)
+	storageConfig := databaseEditionStorageConfig(new(1024))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -118,16 +119,31 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(1024), false),
+				Config: configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2, new(1024)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkDatabaseEdition(new("INFINITE"), "INFINITE"),
-					checkComputeAutoScaling(),
 					checkShardSizeLimit(new(1024)),
 				),
 				ConfigStateChecks: append(
 					pluralDatabaseEditionChecks(clusterName, new("INFINITE"), "INFINITE"),
 					pluralShardSizeLimitChecks(clusterName, new(1024))...,
 				),
+			},
+			{
+				Config: configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, storageConfig, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkShardSizeLimit(new(1024)),
+					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
+				),
+			},
+			{
+				Config:      configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "disk_gb_enabled = true\n"+storageConfig, true),
+				ExpectError: regexp.MustCompile(`autoScaling\.diskGB is not configurable for an Atlas Infinite\s+cluster`),
+			},
+			{
+				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "", true),
+				Check:             checkShardSizeLimit(nil),
+				ConfigStateChecks: pluralShardSizeLimitChecks(clusterName, nil),
 			},
 			{
 				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(1024), true),
@@ -139,6 +155,14 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 				),
 			},
 			{
+				Config: configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "compute_enabled = false\n"+storageConfig, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkShardSizeLimit(new(1024)),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.compute_enabled", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.auto_scaling.compute_enabled", "false"),
+				),
+			},
+			{
 				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(2048), true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkDatabaseEdition(new("INFINITE"), "INFINITE"),
@@ -146,14 +170,31 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 					checkShardSizeLimit(new(2048)),
 				),
 			},
+			{
+				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 3, new(2048), true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkShardSizeLimit(new(2048)),
+					checkComputeAutoScaling(),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.node_count", "3"),
+				),
+			},
 			acc.TestStepImportCluster(resourceName),
 			{
-				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, nil, true),
+				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 3, nil, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkDatabaseEdition(new("INFINITE"), "INFINITE"),
 					checkComputeAutoScaling(),
 					checkShardSizeLimit(nil),
 				),
+				ConfigStateChecks: pluralShardSizeLimitChecks(clusterName, nil),
+			},
+			{
+				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 3, new(1024), true),
+				Check:  checkShardSizeLimit(new(1024)),
+			},
+			{
+				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE"), 3, nil),
+				Check:             resource.ComposeAggregateTestCheckFunc(checkShardSizeLimit(nil), checkComputeAutoScaling()),
 				ConfigStateChecks: pluralShardSizeLimitChecks(clusterName, nil),
 			},
 		},

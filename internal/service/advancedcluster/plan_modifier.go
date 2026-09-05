@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
@@ -283,4 +284,32 @@ func minLen[T any](a, b []T) int {
 		return la
 	}
 	return lb
+}
+
+// clearRemovedStorageConfig prevents the computed parent from retaining a configured limit after removal.
+type clearRemovedStorageConfig struct{}
+
+func (clearRemovedStorageConfig) Description(context.Context) string {
+	return "Clears the shard size limit when auto_scaling is removed from configuration."
+}
+
+func (m clearRemovedStorageConfig) MarkdownDescription(ctx context.Context) string {
+	return m.Description(ctx)
+}
+
+func (clearRemovedStorageConfig) PlanModifyObject(_ context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+	if !req.ConfigValue.IsNull() || req.StateValue.IsNull() || req.StateValue.IsUnknown() || req.Plan.Raw.IsNull() {
+		return
+	}
+	attributes := req.StateValue.Attributes()
+	if attributes["storage_config"].IsNull() {
+		return
+	}
+	if !req.PlanValue.IsNull() && !req.PlanValue.IsUnknown() {
+		attributes = req.PlanValue.Attributes()
+	}
+	attributes["storage_config"] = types.ObjectNull(storageConfigObjType.AttrTypes)
+	var diags diag.Diagnostics
+	resp.PlanValue, diags = types.ObjectValue(autoScalingWithStorageConfigObjType.AttrTypes, attributes)
+	resp.Diagnostics.Append(diags...)
 }

@@ -259,15 +259,13 @@ func TestSetShardSizeLimitGBNull(t *testing.T) {
 	zeroNodePatch := clusterWithOptionalSpecs(nil, 0)
 	zeroNodePatch.Tags = &tags
 	testCases := map[string]struct {
-		config                *admin.ClusterDescription20240805
-		patch                 *admin.ClusterDescription20240805
-		expectedJSON          string
-		assertConfigUnchanged bool
+		config       *admin.ClusterDescription20240805
+		patch        *admin.ClusterDescription20240805
+		expectedJSON string
 	}{
 		"omits empty auto scaling and preserves configured compute": {
-			config:                mixedRegionConfig,
-			expectedJSON:          `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}}},{"autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true},"storageConfig":{"shardSizeLimitGB":null}}}]}]}`,
-			assertConfigUnchanged: true,
+			config:       mixedRegionConfig,
+			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}}},{"autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true},"storageConfig":{"shardSizeLimitGB":null}}}]}]}`,
 		},
 		"uses config-shaped specs and preserves unrelated patch fields": {
 			config:       clusterWithElectableSpec(),
@@ -278,21 +276,10 @@ func TestSetShardSizeLimitGBNull(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			var configJSONBefore []byte
-			if tc.assertConfigUnchanged {
-				var err error
-				configJSONBefore, err = json.Marshal(tc.config)
-				require.NoError(t, err)
-			}
 			result := advancedcluster.SetShardSizeLimitGBNull(tc.config.ReplicationSpecs, tc.patch)
 			resultJSON, err := json.Marshal(result)
 			require.NoError(t, err)
 			require.JSONEq(t, tc.expectedJSON, string(resultJSON))
-			if tc.assertConfigUnchanged {
-				configJSONAfter, err := json.Marshal(tc.config)
-				require.NoError(t, err)
-				assert.JSONEq(t, string(configJSONBefore), string(configJSONAfter))
-			}
 		})
 	}
 }
