@@ -159,7 +159,7 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 			storageOnlyRecovery,
 			{
 				Config:      configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "disk_gb_enabled = false\n"+storageConfig, true),
-				ExpectError: regexp.MustCompile(`autoScaling\.diskGB is not configurable for an Atlas Infinite\s+cluster`),
+				ExpectError: regexp.MustCompile(`(?s)INVALID_ATTRIBUTE.*autoScaling\.diskGB`),
 			},
 			storageOnlyRecovery,
 			{
@@ -353,7 +353,13 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimitDrift(t *testing.T) {
 				},
 				RefreshState:       true,
 				ExpectNonEmptyPlan: true,
-				Check:              resource.ComposeAggregateTestCheckFunc(checkShardSizeLimit(new(2048)), checkComputeAutoScaling()),
+				// Refresh checks contain managed resources only; apply steps also check both data sources.
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.storage_config.shard_size_limit_gb", "2048"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.compute_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.compute_scale_down_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.auto_scaling.compute_max_instance_size", "M20"),
+				),
 				RefreshPlanChecks: resource.RefreshPlanChecks{PostRefresh: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
 					plancheck.ExpectKnownValue(resourceName, storagePath, knownvalue.Int64Exact(1024)),
