@@ -70,7 +70,7 @@ operations:
     update:
         http_method: PATCH
         path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/adaptiveSettings
-    version_header: application/vnd.atlas.preview+json
+    version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
     singular:
         description: Returns the Adaptive Settings for the specified cluster, including client-provided overrides and the effective settings derived from those overrides and Atlas-managed defaults. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
@@ -133,6 +133,6 @@ data_sources:
         read:
             http_method: GET
             path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/adaptiveSettings
-        version_header: application/vnd.atlas.preview+json
+        version_header: application/vnd.atlas.2025-03-12+json
 name: cluster_adaptive_settings
 packageName: clusteradaptivesettings

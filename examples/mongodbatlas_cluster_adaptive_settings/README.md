@@ -2,6 +2,8 @@
 
 This example manages Adaptive Settings overrides for an existing MongoDB Atlas cluster and reads the resulting effective settings with the corresponding data source.
 
+The example enables both overrides by default. Set `load_shedding_enabled` or `search_load_shedding_enabled` to `false` to disable the corresponding behavior. The API keys are `LOAD_SHEDDING` and `SEARCH_OVERLOAD_PROTECTION`; Search Load Shedding retains the latter key.
+
 Configure MongoDB Atlas provider credentials with environment variables, then provide the project ID and cluster name:
 
 ```hcl

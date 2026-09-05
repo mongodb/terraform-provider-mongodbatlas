@@ -8,14 +8,14 @@ variable "cluster_name" {
   type        = string
 }
 
-variable "overload_protection_enabled" {
-  description = "Whether to enable the overload protection override."
+variable "load_shedding_enabled" {
+  description = "Whether to enable the Load Shedding override."
   type        = bool
   default     = true
 }
 
-variable "search_overload_protection_enabled" {
-  description = "Whether to enable the Search overload protection override."
+variable "search_load_shedding_enabled" {
+  description = "Whether to enable the Search Load Shedding override."
   type        = bool
   default     = true
 }

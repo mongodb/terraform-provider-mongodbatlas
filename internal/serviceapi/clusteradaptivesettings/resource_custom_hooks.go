@@ -8,6 +8,7 @@ import (
 	"maps"
 	"net/http"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -19,6 +20,15 @@ const (
 
 var _ autogen.PreCreateAPICallHook = &rs{}
 var _ autogen.PreUpdateAPICallHook = &rs{}
+var _ autogen.PostReadAPICallHook = &rs{}
+
+func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
+	if result.Err == nil {
+		// Atlas omits cleared overrides; the shared decoder preserves absent and null fields.
+		req.State.(*TFModel).AdaptiveSettingsOverrides = jsontypes.NewNormalizedNull()
+	}
+	return result
+}
 
 func (r *rs) PreCreateAPICall(ctx context.Context, callParams config.APICallParams, bodyReq []byte) (updatedParams config.APICallParams, updatedBody []byte, err error) {
 	updatedBody, err = r.adaptiveSettingsPatchBody(ctx, callParams, bodyReq)
@@ -37,8 +47,7 @@ func (r *rs) adaptiveSettingsPatchBody(ctx context.Context, callParams config.AP
 	}
 	rawOverrides, ok := request[adaptiveSettingsOverridesAPIField]
 	if !ok {
-		request[adaptiveSettingsOverridesAPIField] = json.RawMessage("null")
-		return marshalAdaptiveSettingsRequest(request)
+		rawOverrides = json.RawMessage("null")
 	}
 
 	var plannedOverrides map[string]json.RawMessage
@@ -47,7 +56,7 @@ func (r *rs) adaptiveSettingsPatchBody(ctx context.Context, callParams config.AP
 	}
 	if plannedOverrides == nil {
 		request[adaptiveSettingsOverridesAPIField] = json.RawMessage("null")
-		return marshalAdaptiveSettingsRequest(request)
+		return json.Marshal(request)
 	}
 
 	// The effective map provides the complete key set without coupling the provider to current setting names.
@@ -55,7 +64,15 @@ func (r *rs) adaptiveSettingsPatchBody(ctx context.Context, callParams config.AP
 	if err != nil {
 		return nil, err
 	}
-	return replaceAdaptiveSettingsOverrides(request, plannedOverrides, effectiveSettings)
+	for key := range effectiveSettings {
+		effectiveSettings[key] = json.RawMessage("null")
+	}
+	maps.Copy(effectiveSettings, plannedOverrides)
+	request[adaptiveSettingsOverridesAPIField], err = json.Marshal(effectiveSettings)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(request)
 }
 
 func (r *rs) getEffectiveAdaptiveSettings(ctx context.Context, callParams config.APICallParams) (map[string]json.RawMessage, error) {
@@ -75,44 +92,14 @@ func (r *rs) getEffectiveAdaptiveSettings(ctx context.Context, callParams config
 	if err != nil {
 		return nil, fmt.Errorf("read Adaptive Settings before PATCH: %w", err)
 	}
-	var response map[string]json.RawMessage
+	var response struct {
+		EffectiveSettings map[string]json.RawMessage `json:"effectiveAdaptiveSettings"`
+	}
 	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, fmt.Errorf("unmarshal Adaptive Settings before PATCH: %w", err)
 	}
-	rawEffectiveSettings, ok := response[effectiveAdaptiveSettingsAPIField]
-	if !ok {
-		return nil, fmt.Errorf("adaptive settings response is missing %s", effectiveAdaptiveSettingsAPIField)
+	if response.EffectiveSettings == nil {
+		return nil, fmt.Errorf("adaptive settings response contains missing or null %s", effectiveAdaptiveSettingsAPIField)
 	}
-	var effectiveSettings map[string]json.RawMessage
-	if err := json.Unmarshal(rawEffectiveSettings, &effectiveSettings); err != nil {
-		return nil, fmt.Errorf("unmarshal %s before PATCH: %w", effectiveAdaptiveSettingsAPIField, err)
-	}
-	if effectiveSettings == nil {
-		return nil, fmt.Errorf("adaptive settings response contains null %s", effectiveAdaptiveSettingsAPIField)
-	}
-	return effectiveSettings, nil
-}
-
-// replaceAdaptiveSettingsOverrides resets every effective setting before overlaying Terraform's desired overrides.
-func replaceAdaptiveSettingsOverrides(request, plannedOverrides, effectiveSettings map[string]json.RawMessage) ([]byte, error) {
-	patchOverrides := make(map[string]json.RawMessage, len(effectiveSettings))
-	for key := range effectiveSettings {
-		patchOverrides[key] = json.RawMessage("null")
-	}
-	maps.Copy(patchOverrides, plannedOverrides)
-
-	updatedOverrides, err := json.Marshal(patchOverrides)
-	if err != nil {
-		return nil, fmt.Errorf("marshal %s PATCH: %w", adaptiveSettingsOverridesAPIField, err)
-	}
-	request[adaptiveSettingsOverridesAPIField] = updatedOverrides
-	return marshalAdaptiveSettingsRequest(request)
-}
-
-func marshalAdaptiveSettingsRequest(request map[string]json.RawMessage) ([]byte, error) {
-	updatedRequest, err := json.Marshal(request)
-	if err != nil {
-		return nil, fmt.Errorf("marshal Adaptive Settings PATCH request: %w", err)
-	}
-	return updatedRequest, nil
+	return response.EffectiveSettings, nil
 }

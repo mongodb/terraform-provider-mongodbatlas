@@ -14,8 +14,8 @@ resource "mongodbatlas_cluster_adaptive_settings" "this" {
   project_id   = var.project_id
   cluster_name = var.cluster_name
   adaptive_settings_overrides = jsonencode({
-    OVERLOAD_PROTECTION        = var.overload_protection_enabled
-    SEARCH_OVERLOAD_PROTECTION = var.search_overload_protection_enabled
+    LOAD_SHEDDING              = var.load_shedding_enabled
+    SEARCH_OVERLOAD_PROTECTION = var.search_load_shedding_enabled
   })
 }
 

@@ -105,12 +105,12 @@ func TestAdaptiveSettingsRequestHookErrors(t *testing.T) {
 		"missing effective settings": {
 			statusCode:   http.StatusOK,
 			responseBody: `{}`,
-			errorText:    "missing effectiveAdaptiveSettings",
+			errorText:    "missing or null effectiveAdaptiveSettings",
 		},
 		"null effective settings": {
 			statusCode:   http.StatusOK,
 			responseBody: `{"effectiveAdaptiveSettings":null}`,
-			errorText:    "null effectiveAdaptiveSettings",
+			errorText:    "missing or null effectiveAdaptiveSettings",
 		},
 	}
 
@@ -137,6 +137,8 @@ func configuredResource(t *testing.T, statusCode int, responseBody string) (reso
 		if req.Method != http.MethodGet || req.URL.Path != "/api/atlas/v2/groups/projectID/clusters/clusterName/adaptiveSettings" {
 			t.Errorf("unexpected request: %s %s", req.Method, req.URL.Path)
 		}
+		require.Equal(t, apiVersionHeader, req.Header.Get("Accept"))
+		require.Equal(t, apiVersionHeader, req.Header.Get("Content-Type"))
 		return &http.Response{
 			StatusCode: statusCode,
 			Header:     http.Header{"Content-Type": []string{"application/json"}},
@@ -159,7 +161,7 @@ func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 
 func adaptiveSettingsCallParams() config.APICallParams {
 	return config.APICallParams{
-		VersionHeader: "application/vnd.atlas.preview+json",
+		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/adaptiveSettings",
 		PathParams: map[string]string{
 			"projectId":   "projectID",

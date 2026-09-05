@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -12,12 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/stretchr/testify/require"
 )
 
 const (
 	resourceName     = "mongodbatlas_cluster_adaptive_settings.test"
 	dataSourceName   = "data.mongodbatlas_cluster_adaptive_settings.test"
-	apiVersionHeader = "application/vnd.atlas.preview+json"
+	apiVersionHeader = "application/vnd.atlas.2025-03-12+json"
 	readPath         = "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/adaptiveSettings"
 )
 
@@ -42,20 +44,36 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 				Check: checkNoOverridesResourceAndDataSource(),
 			},
 			{
-				Config: configBasic(projectID, clusterName, `{
-					OVERLOAD_PROTECTION        = true
-					SEARCH_OVERLOAD_PROTECTION = true
-				}`),
-				Check: checkResourceAndDataSource(
-					`{"OVERLOAD_PROTECTION":true,"SEARCH_OVERLOAD_PROTECTION":true}`,
-				),
+				// Initialize an empty object when Atlas has no stored overrides.
+				Config: configBasic(projectID, clusterName, `{}`),
+				Check:  checkResourceAndDataSource(`{}`),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPostRefresh: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
+				},
 			},
 			{
 				Config: configBasic(projectID, clusterName, `{
-					OVERLOAD_PROTECTION = false
+					LOAD_SHEDDING              = true
+					SEARCH_OVERLOAD_PROTECTION = true
 				}`),
 				Check: checkResourceAndDataSource(
-					`{"OVERLOAD_PROTECTION":false}`,
+					`{"LOAD_SHEDDING":true,"SEARCH_OVERLOAD_PROTECTION":true}`,
+				),
+			},
+			{
+				// Change Load Shedding independently without changing Search Load Shedding.
+				Config: configBasic(projectID, clusterName, `{
+					LOAD_SHEDDING              = false
+					SEARCH_OVERLOAD_PROTECTION = true
+				}`),
+				Check: checkResourceAndDataSource(`{"LOAD_SHEDDING":false,"SEARCH_OVERLOAD_PROTECTION":true}`),
+			},
+			{
+				Config: configBasic(projectID, clusterName, `{
+					LOAD_SHEDDING = false
+				}`),
+				Check: checkResourceAndDataSource(
+					`{"LOAD_SHEDDING":false}`,
 				),
 			},
 			{
@@ -95,14 +113,67 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 				),
 			},
 			{
+				// Leave an override set so import and destroy verify populated settings.
+				Config: configBasic(projectID, clusterName, `{ SEARCH_OVERLOAD_PROTECTION = false }`),
+				Check:  checkResourceAndDataSource(`{"SEARCH_OVERLOAD_PROTECTION":false}`),
+			},
+			{
+				// Reset outside Terraform, then verify unchanged configuration restores the override.
+				PreConfig: func() { resetOverrides(t, projectID, clusterName) },
+				Config:    configBasic(projectID, clusterName, `{ SEARCH_OVERLOAD_PROTECTION = false }`),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply:             []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate)},
+					PostApplyPostRefresh: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
+				},
+				Check: checkResourceAndDataSource(`{"SEARCH_OVERLOAD_PROTECTION":false}`),
+			},
+			{
 				ResourceName:                         resourceName,
-				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportStateId:                        projectID + "/" + clusterName,
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "project_id",
 			},
 		},
 	})
+}
+
+func TestAccClusterAdaptiveSettings_invalidOverrides(t *testing.T) {
+	tests := map[string]struct {
+		overrides string
+		errorText string
+	}{
+		"null entry": {overrides: `{ SEARCH_OVERLOAD_PROTECTION = null }`, errorText: `Override "SEARCH_OVERLOAD_PROTECTION" is null`},
+		"JSON null":  {overrides: `null`, errorText: "Use jsonencode with an object"},
+		"array":      {overrides: `[]`, errorText: "Use jsonencode with an object"},
+		"scalar":     {overrides: `false`, errorText: "Use jsonencode with an object"},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			resource.ParallelTest(t, resource.TestCase{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Steps: []resource.TestStep{{
+					Config:      configBasic("111111111111111111111111", "test", test.overrides),
+					PlanOnly:    true,
+					ExpectError: regexp.MustCompile(test.errorText),
+				}},
+			})
+		})
+	}
+}
+
+func resetOverrides(t *testing.T, projectID, clusterName string) {
+	t.Helper()
+	resp, err := acc.MongoDBClient.UntypedAPICall(t.Context(), config.APICallParams{
+		VersionHeader: apiVersionHeader,
+		RelativePath:  readPath,
+		PathParams:    map[string]string{"projectId": projectID, "clusterName": clusterName},
+		Method:        "PATCH",
+	}, []byte(`{"adaptiveSettingsOverrides":null}`))
+	if resp != nil && resp.Body != nil {
+		defer resp.Body.Close()
+	}
+	require.NoError(t, err)
 }
 
 func configBasic(projectID, clusterName, overrides string) string {
@@ -214,17 +285,4 @@ func readAdaptiveSettings(rs *terraform.ResourceState) ([]byte, error) {
 		return nil, fmt.Errorf("reading cluster adaptive settings response: %w", err)
 	}
 	return body, nil
-}
-
-func importStateIDFunc(name string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", name)
-		}
-		return fmt.Sprintf("%s/%s",
-			rs.Primary.Attributes["project_id"],
-			rs.Primary.Attributes["cluster_name"],
-		), nil
-	}
 }

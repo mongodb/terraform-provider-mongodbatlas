@@ -6,7 +6,7 @@ subcategory: "Clusters"
 
 `mongodbatlas_cluster_adaptive_settings` provides a resource for managing Adaptive Settings overrides for one MongoDB Atlas cluster.
 
--> **NOTE:** Set `adaptive_settings_overrides` with `jsonencode`. The initial supported keys are `OVERLOAD_PROTECTION` and `SEARCH_OVERLOAD_PROTECTION`. Removing a key from the configured object resets that override. Removing the attribute or configuring an empty object resets all overrides. Destroying this resource also resets all overrides to Atlas-managed defaults and does not delete the cluster. Manage Adaptive Settings for a cluster with only one `mongodbatlas_cluster_adaptive_settings` resource. If multiple resources target the same cluster, each resource can overwrite the others, causing Terraform to repeatedly report and reapply changes.
+-> **NOTE:** Set `adaptive_settings_overrides` with `jsonencode`. Use `LOAD_SHEDDING` for Load Shedding and `SEARCH_OVERLOAD_PROTECTION` for Search Load Shedding. Both settings accept Boolean values. Removing a key from the configured object resets that override. Null-valued entries are not supported. Removing the attribute or configuring an empty object resets all overrides. Destroying this resource also resets all overrides to Atlas-managed defaults and does not delete the cluster. Manage Adaptive Settings for a cluster with only one `mongodbatlas_cluster_adaptive_settings` resource. If multiple resources target the same cluster, each resource can overwrite the others, causing Terraform to repeatedly report and reapply changes.
 
 ## Example Usages
 
@@ -16,8 +16,8 @@ resource "mongodbatlas_cluster_adaptive_settings" "this" {
   project_id   = var.project_id
   cluster_name = var.cluster_name
   adaptive_settings_overrides = jsonencode({
-    OVERLOAD_PROTECTION        = var.overload_protection_enabled
-    SEARCH_OVERLOAD_PROTECTION = var.search_overload_protection_enabled
+    LOAD_SHEDDING              = var.load_shedding_enabled
+    SEARCH_OVERLOAD_PROTECTION = var.search_load_shedding_enabled
   })
 }
 
