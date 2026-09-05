@@ -32,20 +32,20 @@ type TFExpandedModel struct {
 	ID types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
 }
 
-func (r *rs) PreCreateAPICall(callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte) {
+func (r *rs) PreCreateAPICall(_ context.Context, callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte, err error) {
 	modifiedBody, ok := prepareBody(bodyReq)
 	if !ok {
-		return callParams, bodyReq
+		return callParams, bodyReq, nil
 	}
-	return callParams, modifiedBody
+	return callParams, modifiedBody, nil
 }
 
-func (r *rs) PreUpdateAPICall(callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte) {
+func (r *rs) PreUpdateAPICall(_ context.Context, callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte, err error) {
 	modifiedBody, ok := prepareBody(bodyReq)
 	if !ok {
-		return callParams, bodyReq
+		return callParams, bodyReq, nil
 	}
-	return callParams, modifiedBody
+	return callParams, modifiedBody, nil
 }
 
 func (r *rs) PostCreateAPICall(result autogen.APICallResult) autogen.APICallResult {

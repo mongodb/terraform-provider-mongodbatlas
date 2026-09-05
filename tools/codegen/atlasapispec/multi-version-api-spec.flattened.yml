@@ -31863,13 +31863,10 @@ paths:
       responses:
         "200":
           content:
-            application/vnd.atlas.preview+json:
+            application/vnd.atlas.2025-03-12+json:
               schema:
                 $ref: "#/components/schemas/AdaptiveSettingsResponse"
-              x-xgen-preview:
-                name: adaptive-settings
-                public: "false"
-              x-xgen-version: preview
+              x-xgen-version: 2025-03-12
           description: OK.
           headers:
             RateLimit-Limit:
@@ -31908,25 +31905,18 @@ paths:
             type: string
       requestBody:
         content:
-          application/vnd.atlas.preview+json:
+          application/vnd.atlas.2025-03-12+json:
             schema:
               $ref: "#/components/schemas/AdaptiveSettingsUpdateRequest"
-            x-xgen-preview:
-              name: adaptive-settings
-              public: "false"
-            x-xgen-version: preview
         description: Adaptive Settings overrides to apply to the specified cluster. Omitting `adaptiveSettingsOverrides` is a no-op.
         required: true
       responses:
         "200":
           content:
-            application/vnd.atlas.preview+json:
+            application/vnd.atlas.2025-03-12+json:
               schema:
                 $ref: "#/components/schemas/AdaptiveSettingsResponse"
-              x-xgen-preview:
-                name: adaptive-settings
-                public: "false"
-              x-xgen-version: preview
+              x-xgen-version: 2025-03-12
           description: OK.
           headers:
             RateLimit-Limit:

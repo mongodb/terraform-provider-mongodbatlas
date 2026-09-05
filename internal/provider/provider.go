@@ -59,6 +59,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejobcollection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabasecollection"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusteradaptivesettings"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusteroverloadsimulation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/metricintegration"
@@ -320,6 +321,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		flexsnapshot.PluralDataSource,
 		flexrestorejob.DataSource,
 		flexrestorejob.PluralDataSource,
+		clusteradaptivesettings.DataSource,
 		clusteroverloadsimulation.DataSource,
 		resourcepolicy.DataSource,
 		resourcepolicy.PluralDataSource,
@@ -392,6 +394,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		mongodbemployeeaccessgrant.Resource,
 		streamprivatelinkendpoint.Resource,
 		flexcluster.Resource,
+		clusteradaptivesettings.Resource,
 		clusteroverloadsimulation.Resource,
 		resourcepolicy.Resource,
 		clouduserorgassignment.Resource,
