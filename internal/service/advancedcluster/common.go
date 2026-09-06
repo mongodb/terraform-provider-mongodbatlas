@@ -54,8 +54,8 @@ func AddIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20240805, 
 	return replicationSpecs
 }
 
-// SetShardSizeLimitGBNull includes configuration-shaped replication specs in the patch and explicitly clears the limit in every region.
-func SetShardSizeLimitGBNull(configReplicationSpecs *[]admin.ReplicationSpec20240805, patch *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
+// SetShardSizeLimitGBNull uses configured hardware and planned auto scaling while explicitly clearing the limit in every region.
+func SetShardSizeLimitGBNull(configReplicationSpecs, planReplicationSpecs *[]admin.ReplicationSpec20240805, patch *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
 	if configReplicationSpecs == nil {
 		return patch
 	}
@@ -63,7 +63,17 @@ func SetShardSizeLimitGBNull(configReplicationSpecs *[]admin.ReplicationSpec2024
 	if patch == nil {
 		patch = new(admin.ClusterDescription20240805)
 	}
-	// The caller supplies a freshly converted configuration request, so this helper owns it.
+	// The caller supplies freshly converted requests. Keep planned compute settings even when
+	// auto_scaling was removed, without sending API-computed zero-node hardware specifications.
+	if planReplicationSpecs != nil {
+		for i := range minLen(*configReplicationSpecs, *planReplicationSpecs) {
+			configRegions := (*configReplicationSpecs)[i].GetRegionConfigs()
+			planRegions := (*planReplicationSpecs)[i].GetRegionConfigs()
+			for j := range minLen(configRegions, planRegions) {
+				configRegions[j].AutoScaling = planRegions[j].AutoScaling
+			}
+		}
+	}
 	for _, spec := range *configReplicationSpecs {
 		for i := range spec.GetRegionConfigs() {
 			region := &(*spec.RegionConfigs)[i]

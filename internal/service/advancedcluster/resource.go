@@ -265,6 +265,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			schemafunc.CopyUnknowns(ctx, &plan, &configModel, nil, nil)
 			diff.clusterPatchOnlyReq = SetShardSizeLimitGBNull(
 				newReplicationSpec(ctx, configModel.ReplicationSpecs, diags),
+				planReplicationSpecs,
 				diff.clusterPatchOnlyReq,
 			)
 			if diags.HasError() {

@@ -258,11 +258,27 @@ func TestSetShardSizeLimitGBNull(t *testing.T) {
 	mixedRegions[1].AutoScaling.DiskGB = &admin.DiskGBAutoScaling{}
 	zeroNodePatch := clusterWithOptionalSpecs(nil, 0)
 	zeroNodePatch.Tags = &tags
+	preservedComputePlan := clusterWithOptionalSpecs(nil, 0)
+	preservedComputePlan.GetReplicationSpecs()[0].GetRegionConfigs()[0].AutoScaling = computeAutoScaling()
+	disabledComputePlan := clusterWithOptionalSpecs(nil, 0)
+	disabledComputePlan.GetReplicationSpecs()[0].GetRegionConfigs()[0].AutoScaling.Compute = &admin.AdvancedComputeAutoScaling{Enabled: new(false)}
 	testCases := map[string]struct {
 		config       *admin.ClusterDescription20240805
+		plan         *admin.ClusterDescription20240805
 		patch        *admin.ClusterDescription20240805
 		expectedJSON string
 	}{
+		"preserves planned compute when auto scaling is removed from configuration": {
+			config:       clusterWithElectableSpec(),
+			plan:         preservedComputePlan,
+			patch:        &admin.ClusterDescription20240805{Tags: &tags},
+			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true},"storageConfig":{"shardSizeLimitGB":null}},"electableSpecs":{"instanceSize":"M10","nodeCount":1}}]}],"tags":[{"key":"environment","value":"test"}]}`,
+		},
+		"preserves planned compute false without copying zero-node hardware": {
+			config:       clusterWithElectableSpec(),
+			plan:         disabledComputePlan,
+			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"compute":{"enabled":false},"storageConfig":{"shardSizeLimitGB":null}},"electableSpecs":{"instanceSize":"M10","nodeCount":1}}]}]}`,
+		},
 		"omits empty auto scaling and preserves configured compute": {
 			config:       mixedRegionConfig,
 			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}}},{"autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true},"storageConfig":{"shardSizeLimitGB":null}}}]}]}`,
@@ -276,7 +292,11 @@ func TestSetShardSizeLimitGBNull(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			result := advancedcluster.SetShardSizeLimitGBNull(tc.config.ReplicationSpecs, tc.patch)
+			plan := tc.plan
+			if plan == nil {
+				plan = tc.config
+			}
+			result := advancedcluster.SetShardSizeLimitGBNull(tc.config.ReplicationSpecs, plan.ReplicationSpecs, tc.patch)
 			resultJSON, err := json.Marshal(result)
 			require.NoError(t, err)
 			require.JSONEq(t, tc.expectedJSON, string(resultJSON))
