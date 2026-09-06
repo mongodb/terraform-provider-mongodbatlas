@@ -364,12 +364,16 @@ func (r *databaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 
 	connV2 := r.Client.AtlasV2
-	_, err := connV2.DatabaseUsersAPI.DeleteDatabaseUser(
+	httpResponse, err := connV2.DatabaseUsersAPI.DeleteDatabaseUser(
 		ctx,
 		state.ProjectID.ValueString(),
 		state.AuthDatabaseName.ValueString(),
 		state.Username.ValueString()).Execute()
 	if err != nil {
+		// Already deleted on the Atlas side: desired end state is reached.
+		if validate.StatusNotFound(httpResponse) {
+			return
+		}
 		resp.Diagnostics.AddError("error when destroying the database user resource", err.Error())
 		return
 	}
