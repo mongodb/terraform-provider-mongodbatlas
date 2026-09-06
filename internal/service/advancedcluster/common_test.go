@@ -262,12 +262,21 @@ func TestSetShardSizeLimitGBNull(t *testing.T) {
 	preservedComputePlan.GetReplicationSpecs()[0].GetRegionConfigs()[0].AutoScaling = computeAutoScaling()
 	disabledComputePlan := clusterWithOptionalSpecs(nil, 0)
 	disabledComputePlan.GetReplicationSpecs()[0].GetRegionConfigs()[0].AutoScaling.Compute = &admin.AdvancedComputeAutoScaling{Enabled: new(false)}
+	activeHardwarePlan := clusterWithOptionalSpecs(nil, 1)
+	activeHardwarePlan.GetReplicationSpecs()[0].GetRegionConfigs()[0].AnalyticsAutoScaling = computeAutoScaling()
+	activeHardwarePlan.GetReplicationSpecs()[0].GetRegionConfigs()[0].AnalyticsAutoScaling.DiskGB = &admin.DiskGBAutoScaling{}
+	configWithoutHardware := clusterWithShardSizeLimits(nil)
 	testCases := map[string]struct {
 		config       *admin.ClusterDescription20240805
 		plan         *admin.ClusterDescription20240805
 		patch        *admin.ClusterDescription20240805
 		expectedJSON string
 	}{
+		"preserves active planned hardware and analytics scaling when omitted from configuration": {
+			config:       configWithoutHardware,
+			plan:         activeHardwarePlan,
+			expectedJSON: `{"replicationSpecs":[{"regionConfigs":[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}},"analyticsAutoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true}},"electableSpecs":{"instanceSize":"M10","nodeCount":1},"readOnlySpecs":{"instanceSize":"M10","nodeCount":1},"analyticsSpecs":{"instanceSize":"M10","nodeCount":1}}]}]}`,
+		},
 		"preserves planned compute when auto scaling is removed from configuration": {
 			config:       clusterWithElectableSpec(),
 			plan:         preservedComputePlan,

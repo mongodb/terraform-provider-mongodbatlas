@@ -26,7 +26,7 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		majorVersion = &majorVersionFormatted
 	}
 
-	return &admin.ClusterDescription20240805{
+	result := &admin.ClusterDescription20240805{
 		AcceptDataRisksAndForceReplicaSetReconfig: acceptDataRisksAndForceReplicaSetReconfig,
 		BackupEnabled:                    conversion.NilForUnknown(input.BackupEnabled, input.BackupEnabled.ValueBoolPointer()),
 		BiConnector:                      newBiConnector(ctx, input.BiConnectorConfig, diags),
@@ -51,6 +51,16 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		AdaptiveCapacity:                              conversion.NilForUnknown(input.AdaptiveCapacity, input.AdaptiveCapacity.ValueStringPointer()),
 		AdvancedConfiguration:                         newClusterAdvancedConfiguration(ctx, &input.AdvancedConfiguration, diags),
 	}
+	if result.GetDatabaseEdition() == "INFINITE" {
+		// Empty compute and disk objects count as configured in Atlas, even without storageConfig.
+		for _, spec := range result.GetReplicationSpecs() {
+			for _, region := range spec.GetRegionConfigs() {
+				omitEmptyAutoScalingChildren(region.AutoScaling)
+				omitEmptyAutoScalingChildren(region.AnalyticsAutoScaling)
+			}
+		}
+	}
+	return result
 }
 
 func newClusterAdvancedConfiguration(ctx context.Context, objInput *types.Object, diags *diag.Diagnostics) *admin.ApiAtlasClusterAdvancedConfiguration {

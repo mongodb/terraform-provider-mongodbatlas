@@ -54,7 +54,7 @@ func AddIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20240805, 
 	return replicationSpecs
 }
 
-// SetShardSizeLimitGBNull uses configured hardware and planned auto scaling while explicitly clearing the limit in every region.
+// SetShardSizeLimitGBNull preserves configured and active planned hardware and auto scaling while explicitly clearing the limit in every region.
 func SetShardSizeLimitGBNull(configReplicationSpecs, planReplicationSpecs *[]admin.ReplicationSpec20240805, patch *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
 	if configReplicationSpecs == nil {
 		return patch
@@ -71,6 +71,17 @@ func SetShardSizeLimitGBNull(configReplicationSpecs, planReplicationSpecs *[]adm
 			planRegions := (*planReplicationSpecs)[i].GetRegionConfigs()
 			for j := range minLen(configRegions, planRegions) {
 				configRegions[j].AutoScaling = planRegions[j].AutoScaling
+				configRegions[j].AnalyticsAutoScaling = planRegions[j].AnalyticsAutoScaling
+				// Omitted active nodes are preserved by the plan; omitted zero-node blocks must stay absent.
+				if spec := planRegions[j].ElectableSpecs; configRegions[j].ElectableSpecs == nil && spec != nil && spec.GetNodeCount() > 0 {
+					configRegions[j].ElectableSpecs = spec
+				}
+				if spec := planRegions[j].ReadOnlySpecs; configRegions[j].ReadOnlySpecs == nil && spec != nil && spec.GetNodeCount() > 0 {
+					configRegions[j].ReadOnlySpecs = spec
+				}
+				if spec := planRegions[j].AnalyticsSpecs; configRegions[j].AnalyticsSpecs == nil && spec != nil && spec.GetNodeCount() > 0 {
+					configRegions[j].AnalyticsSpecs = spec
+				}
 			}
 		}
 	}
@@ -81,6 +92,7 @@ func SetShardSizeLimitGBNull(configReplicationSpecs, planReplicationSpecs *[]adm
 				region.AutoScaling = new(admin.AdvancedAutoScalingSettings)
 			}
 			omitEmptyAutoScalingChildren(region.AutoScaling)
+			omitEmptyAutoScalingChildren(region.AnalyticsAutoScaling)
 			storageConfig := new(admin.StorageConfig)
 			storageConfig.SetShardSizeLimitGBNil()
 			region.AutoScaling.StorageConfig = storageConfig
@@ -108,6 +120,9 @@ func hasShardSizeLimit(replicationSpecs []admin.ReplicationSpec20240805) bool {
 
 // Atlas treats empty compute and diskGB objects as explicitly configured on Infinite clusters.
 func omitEmptyAutoScalingChildren(autoScaling *admin.AdvancedAutoScalingSettings) {
+	if autoScaling == nil {
+		return
+	}
 	if compute := autoScaling.Compute; compute != nil &&
 		!compute.HasEnabled() && !compute.HasMaxInstanceSize() &&
 		!compute.HasMinInstanceSize() && !compute.HasScaleDownEnabled() && len(compute.NullFields) == 0 {
