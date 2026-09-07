@@ -556,14 +556,11 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		policiesItem = append(policiesItem, *ExpandPolicyItems(v.([]any), Yearly)...)
 	}
 
-	// Optional-only can still be assigned an unknown expression. Skip it like master's GetOkExists
-	// did (a NewComputed diff gave ok=false); ValueBool on unknown would silently send false.
-	if v := sdkv2config.Bool(d, "auto_export_enabled"); !v.IsUnknown() && (!v.IsNull() || v.HasChange()) {
+	if v := sdkv2config.Bool(d, "auto_export_enabled"); v.SetOrRemoved() {
 		req.AutoExportEnabled = new(v.ValueBool())
 	}
 
-	// Same unknown guard as auto_export_enabled: preserve master's GetOkExists skip.
-	if v := sdkv2config.Bool(d, "copy_policy_items_enabled"); !v.IsUnknown() && (!v.IsNull() || v.HasChange()) {
+	if v := sdkv2config.Bool(d, "copy_policy_items_enabled"); v.SetOrRemoved() {
 		req.CopyPolicyItemsEnabled = new(v.ValueBool())
 	}
 
@@ -575,13 +572,13 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		req.UseOrgAndGroupNamesInExportPrefix = new(d.Get("use_org_and_group_names_in_export_prefix").(bool))
 	}
 
-	if v := sdkv2config.Int64(d, "reference_hour_of_day"); !v.IsNull() && !v.IsUnknown() {
+	if v := sdkv2config.Int64(d, "reference_hour_of_day"); v.Set() {
 		req.ReferenceHourOfDay = new(int(v.ValueInt64()))
 	}
-	if v := sdkv2config.Int64(d, "reference_minute_of_hour"); !v.IsNull() && !v.IsUnknown() {
+	if v := sdkv2config.Int64(d, "reference_minute_of_hour"); v.Set() {
 		req.ReferenceMinuteOfHour = new(int(v.ValueInt64()))
 	}
-	if v := sdkv2config.Int64(d, "restore_window_days"); !v.IsNull() && !v.IsUnknown() {
+	if v := sdkv2config.Int64(d, "restore_window_days"); v.Set() {
 		req.RestoreWindowDays = new(int(v.ValueInt64()))
 	}
 

@@ -1,90 +1,121 @@
-// Package sdkv2config reads Terraform HCL from SDKv2 GetRawConfig as TPF-like values.
-// Use it when Get/GetOk/GetOkExists cannot tell unset from a zero value, or when
-// Optional+Computed Get still carries prior state.
+// Package sdkv2config reads Terraform HCL from SDKv2 GetRawConfig as Terraform
+// tri-state values: null (unset in HCL), unknown (expression not yet resolved),
+// or set. Use it when Get/GetOk/GetOkExists cannot tell unset from a zero value,
+// or when Optional+Computed Get still carries prior state.
 package sdkv2config
 
 import (
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// resourceView is satisfied by *schema.ResourceData and *schema.ResourceDiff.
 type resourceView interface {
 	GetRawConfig() cty.Value
 	HasChange(key string) bool
 }
 
-type hasChange bool
+// state classifies one attribute read from raw config.
+type state struct {
+	null, unknown, changed bool
+}
+
+// IsNull reports whether the attribute is unset in HCL.
+func (s state) IsNull() bool { return s.null }
+
+// IsUnknown reports whether the config expression is not yet resolved.
+// Apply-time config is usually resolved, but the ApplyResourceChange contract
+// permits unknown values, so request code must not fabricate a value.
+func (s state) IsUnknown() bool { return s.unknown }
 
 // HasChange reports ResourceData/ResourceDiff.HasChange for this attribute.
-func (h hasChange) HasChange() bool { return bool(h) }
+func (s state) HasChange() bool { return s.changed }
 
-// StringValue embeds TPF types.String so IsNull, IsUnknown, and ValueString promote.
+// Set reports a known value set in HCL. Use for Optional+Computed attributes:
+// an omitted or unknown value is left out of the request.
+func (s state) Set() bool { return !s.unknown && !s.null }
+
+// Removed reports an attribute dropped from HCL while state still holds a
+// value. Use to send an explicit API nil for the cleared field.
+func (s state) Removed() bool { return s.null && s.changed }
+
+// SetOrRemoved reports whether a request should carry the attribute's value:
+// set in HCL, or removed from it (send the zero value). Use for Optional-only
+// attributes whose value is always sent; skipping a removal leaves the server
+// value in place and drifts. Unknown is skipped so no value is fabricated.
+func (s state) SetOrRemoved() bool { return !s.unknown && (!s.null || s.changed) }
+
+// StringValue is a raw-config string: null, unknown, or set.
 type StringValue struct {
-	types.String
-	hasChange
+	value string
+	state
 }
 
-// BoolValue embeds TPF types.Bool so IsNull, IsUnknown, and ValueBool promote.
+// ValueString returns the HCL value; the Go zero value when null or unknown.
+func (v StringValue) ValueString() string { return v.value }
+
+// BoolValue is a raw-config bool: null, unknown, or set.
 type BoolValue struct {
-	types.Bool
-	hasChange
+	state
+	value bool
 }
 
-// Int64Value embeds TPF types.Int64 so IsNull, IsUnknown, and ValueInt64 promote.
+// ValueBool returns the HCL value; false when null or unknown.
+func (v BoolValue) ValueBool() bool { return v.value }
+
+// Int64Value is a raw-config int: null, unknown, or set.
 type Int64Value struct {
-	types.Int64
-	hasChange
+	state
+	value int64
 }
+
+// ValueInt64 returns the HCL value; 0 when null or unknown.
+func (v Int64Value) ValueInt64() int64 { return v.value }
 
 // String reads name from raw config. Missing, JSON null, and wrong type are null.
 // Empty string is a set value. Unknown stays unknown.
 func String(d resourceView, name string) StringValue {
-	v := StringValue{hasChange: hasChange(d.HasChange(name))}
+	v := StringValue{state: state{changed: d.HasChange(name)}}
 	raw := attrAt(d.GetRawConfig(), name)
-	if !raw.IsKnown() {
-		v.String = types.StringUnknown()
-		return v
+	switch {
+	case !raw.IsKnown():
+		v.unknown = true
+	case raw.IsNull() || raw.Type() != cty.String:
+		v.null = true
+	default:
+		v.value = raw.AsString()
 	}
-	if raw.IsNull() || raw.Type() != cty.String {
-		v.String = types.StringNull()
-		return v
-	}
-	v.String = types.StringValue(raw.AsString())
 	return v
 }
 
 // Bool reads name from raw config. Missing, JSON null, and wrong type are null.
-// false is a set value. ValueBool on null is false, so null+changed PATCHes false.
+// false is a set value. ValueBool on null is false, so a Removed value PATCHes false.
 func Bool(d resourceView, name string) BoolValue {
-	v := BoolValue{hasChange: hasChange(d.HasChange(name))}
+	v := BoolValue{state: state{changed: d.HasChange(name)}}
 	raw := attrAt(d.GetRawConfig(), name)
-	if !raw.IsKnown() {
-		v.Bool = types.BoolUnknown()
-		return v
+	switch {
+	case !raw.IsKnown():
+		v.unknown = true
+	case raw.IsNull() || raw.Type() != cty.Bool:
+		v.null = true
+	default:
+		v.value = raw.True()
 	}
-	if raw.IsNull() || raw.Type() != cty.Bool {
-		v.Bool = types.BoolNull()
-		return v
-	}
-	v.Bool = types.BoolValue(raw.True())
 	return v
 }
 
 // Int64 reads name from raw config. Schema TypeInt is a cty Number.
 // Missing, JSON null, and wrong type are null. 0 is a set value.
 func Int64(d resourceView, name string) Int64Value {
-	v := Int64Value{hasChange: hasChange(d.HasChange(name))}
+	v := Int64Value{state: state{changed: d.HasChange(name)}}
 	raw := attrAt(d.GetRawConfig(), name)
-	if !raw.IsKnown() {
-		v.Int64 = types.Int64Unknown()
-		return v
+	switch {
+	case !raw.IsKnown():
+		v.unknown = true
+	case raw.IsNull() || raw.Type() != cty.Number:
+		v.null = true
+	default:
+		v.value, _ = raw.AsBigFloat().Int64()
 	}
-	if raw.IsNull() || raw.Type() != cty.Number {
-		v.Int64 = types.Int64Null()
-		return v
-	}
-	n, _ := raw.AsBigFloat().Int64()
-	v.Int64 = types.Int64Value(n)
 	return v
 }
 

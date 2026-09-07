@@ -387,11 +387,10 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 	// The config value is always sent so the API validates it. operationsContact is
 	// cleared with an explicit null when removed from config, and omitted when it was never set.
 	contact := sdkv2config.String(d, "operations_contact")
-	if contact.IsNull() {
-		if contact.HasChange() {
-			settings.SetOperationsContactNil()
-		}
-	} else {
+	switch {
+	case contact.Removed():
+		settings.SetOperationsContactNil()
+	case !contact.IsNull():
 		settings.SetOperationsContact(contact.ValueString())
 	}
 	return settings

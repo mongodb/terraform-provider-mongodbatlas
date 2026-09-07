@@ -82,9 +82,12 @@ In general, prefer SDK getters over direct field access, e.g. `project.GetTags()
 
 Unlike the Atlas SDK getters in the previous section, this package reads Terraform HCL. SDKv2 `Get` / `GetOk` / `GetOkExists` read plan or state. They cannot tell an unset attribute from a zero value (`""`, `false`, `0`). Optional+Computed `Get()` also still returns leftover state after the user drops the attribute from HCL.
 
-[`internal/common/sdkv2config`](../internal/common/sdkv2config) reads [`GetRawConfig`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema#ResourceData.GetRawConfig) and returns TPF-like values: null, unknown, or a set value. Pass `*schema.ResourceData` or `*schema.ResourceDiff`. Do not call `GetRawConfig` at the call site. Empty string, `false`, and `0` are set values, not null.
+[`internal/common/sdkv2config`](../internal/common/sdkv2config) reads [`GetRawConfig`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema#ResourceData.GetRawConfig) and returns Terraform tri-state values: null (unset in HCL), unknown (expression not yet resolved), or set. Pass `*schema.ResourceData` or `*schema.ResourceDiff`. Do not call `GetRawConfig` at the call site. Empty string, `false`, and `0` are set values, not null.
 
-- **`String` / `Bool` / `Int64`**: Return typed null, unknown, or a set value. `HasChange` is `ResourceData.HasChange` for that attribute. Combine `IsNull` and `HasChange` when a PATCH must send explicit API nil only after the user cleared the field. For an Optional-only attribute whose value is always sent, use `!IsNull() || HasChange()` so removing the attribute from HCL still sends the zero value; a bare `!IsNull()` skip leaves the server value in place and drifts.
+- **`String` / `Bool` / `Int64`**: Return a value with `IsNull`, `IsUnknown`, `HasChange`, and the value accessor. Pick the request policy with a named predicate instead of a hand-composed condition:
+  - **`Set`**: A known value set in HCL. Use for Optional+Computed attributes whose omitted value stays out of the request.
+  - **`SetOrRemoved`**: Set in HCL or removed from it (send the zero value). Use for Optional-only attributes whose value is always sent; a bare null skip leaves the server value in place and drifts.
+  - **`Removed`**: Dropped from HCL while state still holds a value. Use when a PATCH must send explicit API nil only after the user removed the field, as in `operations_contact`.
 - **`CollectionEmpty`**: True when the named list or set is null, unknown, or length 0. False when the resource raw-config object itself is null or unknown; that is not an HCL omit.
 - **`NestedCollectionLen`**: Known length of `list[index].attr` in raw config. Returns 0 when omitted, unknown, or empty. Use it when `Get()` leftovers from Optional+Computed nested sets must not count as user-set.
 
