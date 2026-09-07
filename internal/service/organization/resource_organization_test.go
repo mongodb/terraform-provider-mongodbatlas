@@ -525,6 +525,10 @@ func configWithSettings(orgOwnerID, name, description, roleNames string, setting
 
 // withOperationsContact copies settings with a different operations contact, so a test step
 // only changes that attribute.
+// withOperationsContact returns settings with a different operations contact, so a test step only
+// changes that attribute. It takes the address of the parameter directly rather than
+// conversion.StringPtr, because StringPtr("") returns nil and would drop the attribute from the
+// emitted HCL, silently turning an intended empty string into "field absent".
 func withOperationsContact(settings *admin.OrganizationSettings, operationsContact string) *admin.OrganizationSettings {
 	updated := *settings
 	updated.OperationsContact = &operationsContact
