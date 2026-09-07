@@ -42,6 +42,11 @@ func TestAccOrgDelegationSettings_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
+				// Adopting the singleton with a bare config sends an empty PATCH body.
+				Config: configOmitted(orgID),
+				Check:  checkBare(orgID),
+			},
+			{
 				Config: configBasic(orgID, "READ_ONLY", "READ_WRITE", 3600, 86400),
 				Check:  checkBasic(orgID, "READ_ONLY", "READ_WRITE", 3600, 86400),
 			},
@@ -96,6 +101,14 @@ func checkBasic(orgID, mcpAccess, partnerAccess string, idleLifetime, maxLifetim
 		"maximum_refresh_token_lifetime": fmt.Sprintf("%d", maxLifetime),
 	}
 	checks := acc.AddAttrChecks(resourceName, nil, attrChecks)
+	checks = append(checks, checkExists(resourceName))
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+// checkBare only asserts the scope attribute and existence since the remaining
+// attribute values depend on the current settings of the organization.
+func checkBare(orgID string) resource.TestCheckFunc {
+	checks := acc.AddAttrChecks(resourceName, nil, map[string]string{"org_id": orgID})
 	checks = append(checks, checkExists(resourceName))
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
