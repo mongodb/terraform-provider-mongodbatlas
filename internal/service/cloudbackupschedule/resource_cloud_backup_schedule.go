@@ -687,44 +687,17 @@ func getRequestPolicies(policiesItem []admin.DiskBackupApiPolicyItem, respPolici
 }
 
 func copyPolicyItemsSchema(computed bool) *schema.Schema {
-	frequencyType := &schema.Schema{
-		Type:     schema.TypeString,
-		Computed: computed,
-	}
-	if !computed {
-		frequencyType.Required = true
-	}
-	retentionUnit := &schema.Schema{
-		Type:     schema.TypeString,
-		Computed: computed,
-	}
-	if !computed {
-		retentionUnit.Optional = true
-	}
-	retentionValue := &schema.Schema{
-		Type:     schema.TypeInt,
-		Computed: computed,
-	}
-	if !computed {
-		retentionValue.Optional = true
-	}
-	s := &schema.Schema{
+	return &schema.Schema{
 		Type:     schema.TypeList,
+		Optional: !computed,
 		Computed: computed,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"frequency_type":  frequencyType,
-				"retention_unit":  retentionUnit,
-				"retention_value": retentionValue,
+				"id":              {Type: schema.TypeString, Computed: true},
+				"frequency_type":  {Type: schema.TypeString, Required: !computed, Computed: computed},
+				"retention_unit":  {Type: schema.TypeString, Optional: !computed, Computed: computed},
+				"retention_value": {Type: schema.TypeInt, Optional: !computed, Computed: computed},
 			},
 		},
 	}
-	if !computed {
-		s.Optional = true
-	}
-	return s
 }
