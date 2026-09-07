@@ -98,7 +98,6 @@ Atlas enforces rate limiting for each combination of IP address and Service Acco
 
 **Solutions:**
 
-- Contact [MongoDB Support](https://support.mongodb.com/) to request a rate limit increase.
 - Create separate Service Accounts for different environments or CI/CD pipelines.
 - Distribute Terraform executions across different IP addresses.
 - Add retry logic to your automation workflows.
