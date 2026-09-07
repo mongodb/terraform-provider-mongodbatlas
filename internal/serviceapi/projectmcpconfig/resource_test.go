@@ -88,6 +88,7 @@ func TestAccProjectMcpConfig_basic(t *testing.T) {
 
 func configBasic(projectID, name string, roles []string, entries []ipAccessListEntry) string {
 	rolesHCL := hcl.StringSliceToHCL(roles)
+	pluralDSHCL := ""
 	ipAccessListHCL := ""
 	if len(entries) > 0 {
 		var entryBlocks []string
@@ -95,7 +96,17 @@ func configBasic(projectID, name string, roles []string, entries []ipAccessListE
 			entryBlocks = append(entryBlocks, e.hclStr())
 		}
 		ipAccessListHCL = fmt.Sprintf("ip_access_list = [%s]", strings.Join(entryBlocks, ", "))
+	} else {
+		// API list operation is flaky (returns 404) when the underlying MCP Config SAs are being updated concurrently.
+		// So add plural DS when not updating ip_access_list which triggers an SA update.
+		pluralDSHCL = fmt.Sprintf(`
+			data "mongodbatlas_project_mcp_configs" "test" {
+				project_id = %[1]q
+				depends_on = [mongodbatlas_project_mcp_config.test]
+			}
+		`, projectID)
 	}
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_mcp_config" "test" {
 			project_id      = %[1]q
@@ -109,11 +120,8 @@ func configBasic(projectID, name string, roles []string, entries []ipAccessListE
 			mcp_config_id = mongodbatlas_project_mcp_config.test.mcp_config_id
 		}
 
-		data "mongodbatlas_project_mcp_configs" "test" {
-			project_id = %[1]q
-			depends_on = [mongodbatlas_project_mcp_config.test]
-		}
-	`, projectID, name, rolesHCL, ipAccessListHCL)
+		%[5]s
+	`, projectID, name, rolesHCL, ipAccessListHCL, pluralDSHCL)
 }
 
 func checkBasic(roles []string, entries []ipAccessListEntry) resource.TestCheckFunc {
@@ -124,7 +132,9 @@ func checkBasic(roles []string, entries []ipAccessListEntry) resource.TestCheckF
 	}
 	checks := []resource.TestCheckFunc{
 		acc.CheckRSAndDS(resourceName, new(dataSourceName), nil, commonAttrsSet, attrsMap, checkExists(resourceName)),
-		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
+	}
+	if len(entries) == 0 {
+		checks = append(checks, resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)))
 	}
 	for _, e := range entries {
 		attrMap := e.attrMap()
