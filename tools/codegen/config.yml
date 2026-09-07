@@ -1668,3 +1668,39 @@ resources:
         overrides:
           project_id:
             description: *project_id_description
+
+  # Singleton resource in an organization.
+  # Create and Update use PATCH. The API has no DELETE endpoint (settings always exist), so delete is a no-op that removes the resource from state.
+  delegation_settings:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/delegationSettings
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/delegationSettings
+      method: PATCH
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/delegationSettings
+      method: PATCH
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      overrides:
+        org_id:
+          description: *org_id_description
+        # These attributes are optional but when not configured, Atlas returns the default value (DISALLOWED).
+        delegated_mcp_access:
+          computability:
+            optional: true
+            computed: true
+        delegated_partner_access:
+          computability:
+            optional: true
+            computed: true
+        # These attributes are optional but when not configured, the system default applies and can be returned by Atlas.
+        idle_refresh_token_lifetime:
+          computability:
+            optional: true
+            computed: true
+        maximum_refresh_token_lifetime:
+          computability:
+            optional: true
+            computed: true
