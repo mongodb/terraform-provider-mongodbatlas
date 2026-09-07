@@ -84,7 +84,7 @@ Unlike the Atlas SDK getters in the previous section, this package reads Terrafo
 
 [`internal/common/sdkv2config`](../internal/common/sdkv2config) reads [`GetRawConfig`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema#ResourceData.GetRawConfig) and returns TPF-like values: null, unknown, or a set value. Pass `*schema.ResourceData` or `*schema.ResourceDiff`. Do not call `GetRawConfig` at the call site. Empty string, `false`, and `0` are set values, not null.
 
-- **`String` / `Bool` / `Int64`**: Return typed null, unknown, or a set value. `HasChange` is `ResourceData.HasChange` for that attribute. Combine `IsNull` and `HasChange` when a PATCH must send explicit API nil only after the user cleared the field.
+- **`String` / `Bool` / `Int64`**: Return typed null, unknown, or a set value. `HasChange` is `ResourceData.HasChange` for that attribute. Combine `IsNull` and `HasChange` when a PATCH must send explicit API nil only after the user cleared the field. For an Optional-only attribute whose value is always sent, use `!IsNull() || HasChange()` so removing the attribute from HCL still sends the zero value; a bare `!IsNull()` skip leaves the server value in place and drifts.
 - **`CollectionEmpty`**: True when the named list or set is null, unknown, or length 0. False when the resource raw-config object itself is null or unknown; that is not an HCL omit.
 - **`NestedCollectionLen`**: Known length of `list[index].attr` in raw config. Returns 0 when omitted, unknown, or empty. Use it when `Get()` leftovers from Optional+Computed nested sets must not count as user-set.
 

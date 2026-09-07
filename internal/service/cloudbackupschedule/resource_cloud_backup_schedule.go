@@ -556,10 +556,13 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		policiesItem = append(policiesItem, *ExpandPolicyItems(v.([]any), Yearly)...)
 	}
 
-	if v := sdkv2config.Bool(d, "auto_export_enabled"); !v.IsNull() && !v.IsUnknown() {
+	// Optional-only can still be assigned an unknown expression. Skip it like master's GetOkExists
+	// did (a NewComputed diff gave ok=false); ValueBool on unknown would silently send false.
+	if v := sdkv2config.Bool(d, "auto_export_enabled"); !v.IsUnknown() && (!v.IsNull() || v.HasChange()) {
 		req.AutoExportEnabled = new(v.ValueBool())
 	}
 
+	// Same unknown guard as auto_export_enabled: preserve master's GetOkExists skip.
 	if v := sdkv2config.Bool(d, "copy_policy_items_enabled"); !v.IsUnknown() && (!v.IsNull() || v.HasChange()) {
 		req.CopyPolicyItemsEnabled = new(v.ValueBool())
 	}
