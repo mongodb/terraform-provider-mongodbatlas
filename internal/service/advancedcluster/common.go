@@ -54,38 +54,35 @@ func AddIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20240805, 
 	return replicationSpecs
 }
 
-// SetShardSizeLimitGBNull preserves configured and active planned hardware and auto scaling while explicitly clearing the limit in every region.
-func SetShardSizeLimitGBNull(configReplicationSpecs, planReplicationSpecs *[]admin.ReplicationSpec20240805, patch *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
-	if configReplicationSpecs == nil {
+// setShardSizeLimitGBNull preserves planned replication specs while explicitly clearing the limit in every region.
+func setShardSizeLimitGBNull(configReplicationSpecs, planReplicationSpecs *[]admin.ReplicationSpec20240805, patch *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
+	if planReplicationSpecs == nil {
 		return patch
 	}
 
 	if patch == nil {
 		patch = new(admin.ClusterDescription20240805)
 	}
-	// The caller supplies freshly converted requests. Keep planned compute settings even when
-	// auto_scaling was removed, without sending API-computed zero-node hardware specifications.
-	if planReplicationSpecs != nil {
+	// Use the freshly converted plan to retain known values omitted from configuration, including
+	// children of partially configured hardware. Only omit unconfigured zero-node hardware blocks.
+	if configReplicationSpecs != nil {
 		for i := range minLen(*configReplicationSpecs, *planReplicationSpecs) {
 			configRegions := (*configReplicationSpecs)[i].GetRegionConfigs()
 			planRegions := (*planReplicationSpecs)[i].GetRegionConfigs()
 			for j := range minLen(configRegions, planRegions) {
-				configRegions[j].AutoScaling = planRegions[j].AutoScaling
-				configRegions[j].AnalyticsAutoScaling = planRegions[j].AnalyticsAutoScaling
-				// Omitted active nodes are preserved by the plan; omitted zero-node blocks must stay absent.
-				if spec := planRegions[j].ElectableSpecs; configRegions[j].ElectableSpecs == nil && spec != nil && spec.GetNodeCount() > 0 {
-					configRegions[j].ElectableSpecs = spec
+				if spec := planRegions[j].ElectableSpecs; configRegions[j].ElectableSpecs == nil && spec != nil && spec.GetNodeCount() == 0 {
+					planRegions[j].ElectableSpecs = nil
 				}
-				if spec := planRegions[j].ReadOnlySpecs; configRegions[j].ReadOnlySpecs == nil && spec != nil && spec.GetNodeCount() > 0 {
-					configRegions[j].ReadOnlySpecs = spec
+				if spec := planRegions[j].ReadOnlySpecs; configRegions[j].ReadOnlySpecs == nil && spec != nil && spec.GetNodeCount() == 0 {
+					planRegions[j].ReadOnlySpecs = nil
 				}
-				if spec := planRegions[j].AnalyticsSpecs; configRegions[j].AnalyticsSpecs == nil && spec != nil && spec.GetNodeCount() > 0 {
-					configRegions[j].AnalyticsSpecs = spec
+				if spec := planRegions[j].AnalyticsSpecs; configRegions[j].AnalyticsSpecs == nil && spec != nil && spec.GetNodeCount() == 0 {
+					planRegions[j].AnalyticsSpecs = nil
 				}
 			}
 		}
 	}
-	for _, spec := range *configReplicationSpecs {
+	for _, spec := range *planReplicationSpecs {
 		for i := range spec.GetRegionConfigs() {
 			region := &(*spec.RegionConfigs)[i]
 			if region.AutoScaling == nil {
@@ -98,7 +95,7 @@ func SetShardSizeLimitGBNull(configReplicationSpecs, planReplicationSpecs *[]adm
 			region.AutoScaling.StorageConfig = storageConfig
 		}
 	}
-	patch.ReplicationSpecs = configReplicationSpecs
+	patch.ReplicationSpecs = planReplicationSpecs
 	return patch
 }
 

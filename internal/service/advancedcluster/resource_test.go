@@ -377,7 +377,7 @@ func TestAccClusterAdvancedCluster_infiniteAnalyticsAutoScaling(t *testing.T) {
 				name = %q
 				cluster_type = "REPLICASET"
 				database_edition = "INFINITE"
-				replication_specs = [{ region_configs = [{
+				replication_specs = [{ zone_name = "Existing zone", region_configs = [{
 					provider_name = "AWS"
 					region_name = "US_EAST_1"
 					priority = 7
@@ -391,17 +391,24 @@ func TestAccClusterAdvancedCluster_infiniteAnalyticsAutoScaling(t *testing.T) {
 			"read_only_specs": knownvalue.ObjectPartial(map[string]knownvalue.Check{"node_count": knownvalue.Int64Exact(1)}),
 			"analytics_specs": knownvalue.ObjectPartial(map[string]knownvalue.Check{"node_count": knownvalue.Int64Exact(1)}),
 		})
-		path := tfjsonpath.New("replication_specs").AtSliceIndex(0).AtMapKey("region_configs").AtSliceIndex(0)
+		replicationSpec := knownvalue.ObjectPartial(map[string]knownvalue.Check{
+			"zone_name":      knownvalue.StringExact("Existing zone"),
+			"region_configs": knownvalue.ListExact([]knownvalue.Check{region}),
+		})
+		path := tfjsonpath.New("replication_specs").AtSliceIndex(0)
 		checks := append(shardSizeLimitChecks(clusterName, limit),
-			statecheck.ExpectKnownValue(resourceName, path, region),
-			statecheck.ExpectKnownValue(dataSourceName, path, region),
-			acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(clusterName), map[string]knownvalue.Check{"replication_specs.0.region_configs.0": region}),
+			statecheck.ExpectKnownValue(resourceName, path, replicationSpec),
+			statecheck.ExpectKnownValue(dataSourceName, path, replicationSpec),
+			acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(clusterName), map[string]knownvalue.Check{"replication_specs.0": replicationSpec}),
 		)
 		return append(checks, infiniteAutoScalingChecks(clusterName, "analytics_auto_scaling", map[string]knownvalue.Check{
 			"compute_enabled": knownvalue.Bool(true), "compute_max_instance_size": knownvalue.StringExact(maxInstanceSize),
 		})...)
 	}
 	baseConfig := clusterConfig(new(1024), "M20", "", false)
+	partialHardwareConfig := strings.NewReplacer(
+		`, node_count = 2`, "", `, node_count = 1`, "", `zone_name = "Existing zone",`, "",
+	).Replace(clusterConfig(nil, "M20", "", false))
 	recovery := acc.TestStepCheckEmptyPlan(baseConfig)
 	recovery.ConfigStateChecks = checks(new(1024), "M20")
 	resource.ParallelTest(t, resource.TestCase{
@@ -414,6 +421,9 @@ func TestAccClusterAdvancedCluster_infiniteAnalyticsAutoScaling(t *testing.T) {
 			// Clearing storage while omitting computed blocks must preserve active nodes and analytics scaling.
 			{Config: clusterConfig(nil, "", "", true), ConfigStateChecks: checks(nil, "M30")},
 			acc.TestStepImportCluster(resourceName),
+			{Config: baseConfig, ConfigStateChecks: checks(new(1024), "M20")},
+			// Clearing storage must retain planned node counts and zone metadata when omitted from configuration.
+			{Config: partialHardwareConfig, ConfigStateChecks: checks(nil, "M20")},
 			{Config: baseConfig, ConfigStateChecks: checks(new(1024), "M20")},
 			{
 				Config:      clusterConfig(new(1024), "M20", "disk_gb_enabled = true", false),

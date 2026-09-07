@@ -3,17 +3,237 @@ package advancedcluster_test
 import (
 	"encoding/json"
 	"errors"
+	"maps"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 	"go.mongodb.org/atlas-sdk/v20250312024/mockadmin"
 )
+
+func TestUpdateRemovesShardSizeLimit(t *testing.T) {
+	compute := map[string]any{
+		"compute_enabled": true, "compute_scale_down_enabled": true,
+		"compute_min_instance_size": "M10", "compute_max_instance_size": "M30",
+	}
+	hardware := map[string]any{"instance_size": "M10", "node_count": int64(2)}
+	zeroNodes := map[string]any{"instance_size": "M10", "node_count": int64(0)}
+	electableOnly := map[string]any{"electable_specs": hardware}
+	withZeroNodes := func(autoScaling any) map[string]any {
+		return map[string]any{
+			"electable_specs": hardware, "read_only_specs": zeroNodes, "analytics_specs": zeroNodes,
+			"auto_scaling": autoScaling,
+		}
+	}
+	testCases := map[string]struct {
+		expectedRegions string
+		configRegions   []any
+		planRegions     []any
+		withTags        bool
+	}{
+		"preserves active planned hardware and analytics scaling when omitted from configuration": {
+			configRegions: []any{map[string]any{}},
+			planRegions: []any{map[string]any{
+				"electable_specs": hardware, "read_only_specs": hardware, "analytics_specs": hardware,
+				"analytics_auto_scaling": compute,
+			}},
+			expectedRegions: `[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}},"analyticsAutoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true}},"electableSpecs":{"instanceSize":"M10","nodeCount":2},"readOnlySpecs":{"instanceSize":"M10","nodeCount":2},"analyticsSpecs":{"instanceSize":"M10","nodeCount":2}}]`,
+		},
+		"preserves planned compute when auto scaling is removed from configuration": {
+			configRegions:   []any{electableOnly},
+			planRegions:     []any{withZeroNodes(compute)},
+			withTags:        true,
+			expectedRegions: `[{"autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true},"storageConfig":{"shardSizeLimitGB":null}},"electableSpecs":{"instanceSize":"M10","nodeCount":2}}]`,
+		},
+		"preserves planned compute false without copying zero-node hardware": {
+			configRegions:   []any{electableOnly},
+			planRegions:     []any{withZeroNodes(map[string]any{"compute_enabled": false})},
+			expectedRegions: `[{"autoScaling":{"compute":{"enabled":false},"storageConfig":{"shardSizeLimitGB":null}},"electableSpecs":{"instanceSize":"M10","nodeCount":2}}]`,
+		},
+		"omits empty auto scaling and preserves configured compute in every region": {
+			configRegions: []any{
+				map[string]any{"electable_specs": hardware, "auto_scaling": map[string]any{}},
+				map[string]any{"electable_specs": hardware, "auto_scaling": compute},
+			},
+			expectedRegions: `[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}},"electableSpecs":{"instanceSize":"M10","nodeCount":2}},{"autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true},"storageConfig":{"shardSizeLimitGB":null}},"electableSpecs":{"instanceSize":"M10","nodeCount":2}}]`,
+		},
+		"omits computed zero-node specs and preserves unrelated patch fields": {
+			configRegions:   []any{electableOnly},
+			planRegions:     []any{withZeroNodes(nil)},
+			withTags:        true,
+			expectedRegions: `[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}},"electableSpecs":{"instanceSize":"M10","nodeCount":2}}]`,
+		},
+		"preserves explicitly configured zero-node hardware": {
+			configRegions:   []any{withZeroNodes(nil)},
+			expectedRegions: `[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}},"electableSpecs":{"instanceSize":"M10","nodeCount":2},"readOnlySpecs":{"instanceSize":"M10","nodeCount":0},"analyticsSpecs":{"instanceSize":"M10","nodeCount":0}}]`,
+		},
+		"preserves zero-node hardware resolved from unknown configuration": {
+			configRegions: []any{map[string]any{
+				"electable_specs": hardware, "read_only_specs": tftypes.UnknownValue, "analytics_specs": tftypes.UnknownValue,
+			}},
+			planRegions:     []any{withZeroNodes(nil)},
+			expectedRegions: `[{"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}},"electableSpecs":{"instanceSize":"M10","nodeCount":2},"readOnlySpecs":{"instanceSize":"M10","nodeCount":0},"analyticsSpecs":{"instanceSize":"M10","nodeCount":0}}]`,
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			ctx := t.Context()
+			r := advancedcluster.Resource()
+			var schemaResp resource.SchemaResponse
+			r.Schema(ctx, resource.SchemaRequest{}, &schemaResp)
+			typ := schemaResp.Schema.Type().TerraformType(ctx)
+			model := func(regions []any, withTags bool) tfsdk.Plan {
+				attributes := map[string]any{
+					"name": "example", "project_id": dummyProjectID, "cluster_type": "REPLICASET", "database_edition": "INFINITE",
+					"replication_specs": []any{map[string]any{"region_configs": regions}},
+				}
+				if withTags {
+					attributes["tags"] = map[string]tftypes.Value{"environment": tftypes.NewValue(tftypes.String, "test")}
+				}
+				return tfsdk.Plan{Schema: schemaResp.Schema, Raw: planTestValue(typ, attributes)}
+			}
+			planRegions := tc.planRegions
+			if planRegions == nil {
+				planRegions = tc.configRegions
+			}
+			stateRegions := make([]any, len(planRegions))
+			for i, raw := range planRegions {
+				region := maps.Clone(raw.(map[string]any))
+				autoScaling, _ := region["auto_scaling"].(map[string]any)
+				autoScaling = maps.Clone(autoScaling)
+				if autoScaling == nil {
+					autoScaling = map[string]any{}
+				}
+				autoScaling["storage_config"] = map[string]any{"shard_size_limit_gb": int64(1024)}
+				region["auto_scaling"] = autoScaling
+				stateRegions[i] = region
+			}
+			api := mockadmin.NewClustersAPI(t)
+			r.(config.ImplementedResource).SetClient(&config.MongoDBClient{AtlasV2: &admin.APIClient{ClustersAPI: api}})
+			api.On("UpdateCluster", mock.Anything, dummyProjectID, "example", mock.Anything).Run(func(args mock.Arguments) {
+				payload := args[3].(*admin.ClusterDescription20240805)
+				require.Len(t, payload.GetReplicationSpecs(), 1)
+				encoded, err := json.Marshal(payload.GetReplicationSpecs()[0].GetRegionConfigs())
+				require.NoError(t, err)
+				require.JSONEq(t, tc.expectedRegions, string(encoded))
+				if tc.withTags {
+					require.Equal(t, []admin.ResourceTag{{Key: "environment", Value: "test"}}, payload.GetTags())
+				}
+			}).Return(admin.UpdateClusterApiRequest{ApiService: api}).Once()
+			// Stop after inspecting the request; polling and Atlas behavior have separate lifecycle coverage.
+			apiError := errors.New("request inspected")
+			api.EXPECT().UpdateClusterExecute(mock.Anything).Return(nil, nil, apiError).Once()
+			prior := model(stateRegions, false)
+			configuration := model(tc.configRegions, tc.withTags)
+			var resp resource.UpdateResponse
+			r.Update(ctx, resource.UpdateRequest{
+				Config: tfsdk.Config{Schema: schemaResp.Schema, Raw: configuration.Raw},
+				Plan:   model(planRegions, tc.withTags),
+				State:  tfsdk.State{Schema: schemaResp.Schema, Raw: prior.Raw},
+			}, &resp)
+			require.Len(t, resp.Diagnostics.Errors(), 1)
+			require.Contains(t, resp.Diagnostics.Errors()[0].Detail(), apiError.Error())
+		})
+	}
+}
+
+func TestUpdateRemovesShardSizeLimitPreservesPlannedValues(t *testing.T) {
+	for _, omittedField := range []string{"node_count", "zone_name"} {
+		for _, operation := range []string{"keep storage", "clear storage"} {
+			t.Run(omittedField+"/"+operation, func(t *testing.T) {
+				ctx := t.Context()
+				r := advancedcluster.Resource()
+				var schemaResp resource.SchemaResponse
+				r.Schema(ctx, resource.SchemaRequest{}, &schemaResp)
+				typ := schemaResp.Schema.Type().TerraformType(ctx)
+				model := func(withStorage, configOnly, updated bool) tfsdk.Plan {
+					scaling := map[string]any{"compute_enabled": true, "compute_max_instance_size": "M20", "compute_scale_down_enabled": false}
+					if withStorage {
+						scaling["storage_config"] = map[string]any{"shard_size_limit_gb": int64(1024)}
+					}
+					region := map[string]any{
+						"provider_name": "AWS", "region_name": "US_EAST_1", "priority": int64(7), "auto_scaling": scaling,
+					}
+					for role, nodeCount := range map[string]int64{"electable_specs": 2, "read_only_specs": 1, "analytics_specs": 1} {
+						hardware := map[string]any{"instance_size": "M10", "node_count": nodeCount}
+						if configOnly && omittedField == "node_count" {
+							delete(hardware, "node_count")
+						}
+						region[role] = hardware
+					}
+					spec := map[string]any{"zone_name": "Existing zone", "region_configs": []any{region}}
+					if !configOnly {
+						spec["external_id"] = "650000000000000000000001"
+						spec["zone_id"] = "650000000000000000000002"
+					} else if omittedField == "zone_name" {
+						delete(spec, "zone_name")
+					}
+					return tfsdk.Plan{Schema: schemaResp.Schema, Raw: planTestValue(typ, map[string]any{
+						"name": "example", "project_id": dummyProjectID, "cluster_type": "REPLICASET", "database_edition": "INFINITE",
+						"redact_client_log_data": updated, "replication_specs": []any{spec},
+					})}
+				}
+				clearStorage := operation == "clear storage"
+				prior := model(true, false, false)
+				plan := model(!clearStorage, false, true)
+				configuration := model(!clearStorage, true, true)
+				dynamic := func(value tfsdk.Plan) *tfprotov6.DynamicValue {
+					result, err := tfprotov6.NewDynamicValue(typ, value.Raw)
+					require.NoError(t, err)
+					return &result
+				}
+				server, err := acc.TestAccProviderV6Factories["mongodbatlas"]()
+				require.NoError(t, err)
+				planned, err := server.PlanResourceChange(ctx, &tfprotov6.PlanResourceChangeRequest{
+					TypeName: "mongodbatlas_advanced_cluster", PriorState: dynamic(prior),
+					ProposedNewState: dynamic(plan), Config: dynamic(configuration),
+				})
+				require.NoError(t, err)
+				require.Empty(t, planned.Diagnostics)
+				plan.Raw, err = planned.PlannedState.Unmarshal(typ)
+				require.NoError(t, err)
+
+				api := mockadmin.NewClustersAPI(t)
+				r.(config.ImplementedResource).SetClient(&config.MongoDBClient{AtlasV2: &admin.APIClient{ClustersAPI: api}})
+				api.On("UpdateCluster", mock.Anything, dummyProjectID, "example", mock.Anything).Run(func(args mock.Arguments) {
+					encoded, err := json.Marshal(args[3].(*admin.ClusterDescription20240805))
+					require.NoError(t, err)
+					expected := `{"redactClientLogData":true}`
+					if clearStorage {
+						expected = `{"redactClientLogData":true,"replicationSpecs":[{
+							"id":"650000000000000000000001","zoneId":"650000000000000000000002","zoneName":"Existing zone",
+							"regionConfigs":[{
+								"providerName":"AWS","regionName":"US_EAST_1","priority":7,
+								"electableSpecs":{"instanceSize":"M10","nodeCount":2},
+								"readOnlySpecs":{"instanceSize":"M10","nodeCount":1},
+								"analyticsSpecs":{"instanceSize":"M10","nodeCount":1},
+								"autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M20","scaleDownEnabled":false},"storageConfig":{"shardSizeLimitGB":null}}
+							}]
+						}]}`
+					}
+					require.JSONEq(t, expected, string(encoded))
+				}).Return(admin.UpdateClusterApiRequest{ApiService: api}).Once()
+				apiError := errors.New("request inspected")
+				api.EXPECT().UpdateClusterExecute(mock.Anything).Return(nil, nil, apiError).Once()
+				var resp resource.UpdateResponse
+				r.Update(ctx, resource.UpdateRequest{
+					Plan: plan, State: tfsdk.State{Schema: schemaResp.Schema, Raw: prior.Raw},
+					Config: tfsdk.Config{Schema: schemaResp.Schema, Raw: configuration.Raw},
+				}, &resp)
+				require.Len(t, resp.Diagnostics.Errors(), 1)
+				require.Contains(t, resp.Diagnostics.Errors()[0].Detail(), apiError.Error())
+			})
+		}
+	}
+}
 
 func TestAutoScalingRequestWithoutStorage(t *testing.T) {
 	testCases := map[string]struct {
