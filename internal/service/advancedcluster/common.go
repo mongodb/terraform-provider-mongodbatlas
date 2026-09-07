@@ -54,51 +54,6 @@ func AddIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20240805, 
 	return replicationSpecs
 }
 
-// setShardSizeLimitGBNull preserves planned replication specs while explicitly clearing the limit in every region.
-func setShardSizeLimitGBNull(configReplicationSpecs, planReplicationSpecs *[]admin.ReplicationSpec20240805, patch *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
-	if planReplicationSpecs == nil {
-		return patch
-	}
-
-	if patch == nil {
-		patch = new(admin.ClusterDescription20240805)
-	}
-	// Use the freshly converted plan to retain known values omitted from configuration, including
-	// children of partially configured hardware. Only omit unconfigured zero-node hardware blocks.
-	if configReplicationSpecs != nil {
-		for i := range minLen(*configReplicationSpecs, *planReplicationSpecs) {
-			configRegions := (*configReplicationSpecs)[i].GetRegionConfigs()
-			planRegions := (*planReplicationSpecs)[i].GetRegionConfigs()
-			for j := range minLen(configRegions, planRegions) {
-				if spec := planRegions[j].ElectableSpecs; configRegions[j].ElectableSpecs == nil && spec != nil && spec.GetNodeCount() == 0 {
-					planRegions[j].ElectableSpecs = nil
-				}
-				if spec := planRegions[j].ReadOnlySpecs; configRegions[j].ReadOnlySpecs == nil && spec != nil && spec.GetNodeCount() == 0 {
-					planRegions[j].ReadOnlySpecs = nil
-				}
-				if spec := planRegions[j].AnalyticsSpecs; configRegions[j].AnalyticsSpecs == nil && spec != nil && spec.GetNodeCount() == 0 {
-					planRegions[j].AnalyticsSpecs = nil
-				}
-			}
-		}
-	}
-	for _, spec := range *planReplicationSpecs {
-		for i := range spec.GetRegionConfigs() {
-			region := &(*spec.RegionConfigs)[i]
-			if region.AutoScaling == nil {
-				region.AutoScaling = new(admin.AdvancedAutoScalingSettings)
-			}
-			omitEmptyAutoScalingChildren(region.AutoScaling)
-			omitEmptyAutoScalingChildren(region.AnalyticsAutoScaling)
-			storageConfig := new(admin.StorageConfig)
-			storageConfig.SetShardSizeLimitGBNil()
-			region.AutoScaling.StorageConfig = storageConfig
-		}
-	}
-	patch.ReplicationSpecs = planReplicationSpecs
-	return patch
-}
-
 func shardSizeLimitRemoved(stateReplicationSpecs, planReplicationSpecs *[]admin.ReplicationSpec20240805) bool {
 	return stateReplicationSpecs != nil && planReplicationSpecs != nil &&
 		hasShardSizeLimit(*stateReplicationSpecs) && !hasShardSizeLimit(*planReplicationSpecs)
@@ -113,6 +68,15 @@ func hasShardSizeLimit(replicationSpecs []admin.ReplicationSpec20240805) bool {
 		}
 	}
 	return false
+}
+
+func omitEmptyAutoScaling(replicationSpecs []admin.ReplicationSpec20240805) {
+	for _, spec := range replicationSpecs {
+		for _, region := range spec.GetRegionConfigs() {
+			omitEmptyAutoScalingChildren(region.AutoScaling)
+			omitEmptyAutoScalingChildren(region.AnalyticsAutoScaling)
+		}
+	}
 }
 
 // Atlas treats empty compute and diskGB objects as explicitly configured on Infinite clusters.

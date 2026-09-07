@@ -946,15 +946,6 @@ type TFAutoScalingModel struct {
 	DiskGBEnabled           types.Bool   `tfsdk:"disk_gb_enabled"`
 }
 
-type TFAutoScalingWithStorageConfigModel struct {
-	ComputeMaxInstanceSize  types.String `tfsdk:"compute_max_instance_size"`
-	ComputeMinInstanceSize  types.String `tfsdk:"compute_min_instance_size"`
-	StorageConfig           types.Object `tfsdk:"storage_config"`
-	ComputeEnabled          types.Bool   `tfsdk:"compute_enabled"`
-	ComputeScaleDownEnabled types.Bool   `tfsdk:"compute_scale_down_enabled"`
-	DiskGBEnabled           types.Bool   `tfsdk:"disk_gb_enabled"`
-}
-
 var autoScalingObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"compute_enabled":            types.BoolType,
 	"compute_max_instance_size":  types.StringType,

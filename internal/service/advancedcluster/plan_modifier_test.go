@@ -3,6 +3,7 @@ package advancedcluster_test
 import (
 	"context"
 	"fmt"
+	"maps"
 	"testing"
 
 	frameworkresource "github.com/hashicorp/terraform-plugin-framework/resource"
@@ -126,17 +127,19 @@ func TestPlanRemoveAutoScalingStorageConfig(t *testing.T) {
 			attributes["compute_scale_down_enabled"] = false
 			attributes["compute_max_instance_size"] = "M20"
 		}
-		for _, knownPlan := range []bool{false, true} {
-			t.Run(fmt.Sprintf("compute=%t/known_plan=%t", computeEnabled, knownPlan), func(t *testing.T) {
+		withoutStorage := maps.Clone(attributes)
+		delete(withoutStorage, "storage_config")
+		for name, tc := range map[string]struct{ config, plan any }{
+			"remove parent with unknown plan": {nil, tftypes.UnknownValue},
+			"remove parent with known plan":   {nil, attributes},
+			"remove storage only":             {withoutStorage, withoutStorage},
+		} {
+			t.Run(fmt.Sprintf("compute=%t/%s", computeEnabled, name), func(t *testing.T) {
 				server, err := acc.TestAccProviderV6Factories["mongodbatlas"]()
 				require.NoError(t, err)
-				var plannedAutoScaling any = tftypes.UnknownValue
-				if knownPlan {
-					plannedAutoScaling = attributes
-				}
 				result, err := server.PlanResourceChange(ctx, &tfprotov6.PlanResourceChangeRequest{
 					TypeName:   "mongodbatlas_advanced_cluster",
-					PriorState: dynamic(model(attributes)), ProposedNewState: dynamic(model(plannedAutoScaling)), Config: dynamic(model(nil)),
+					PriorState: dynamic(model(attributes)), ProposedNewState: dynamic(model(tc.plan)), Config: dynamic(model(tc.config)),
 				})
 				require.NoError(t, err)
 				require.Empty(t, result.Diagnostics)
@@ -144,7 +147,7 @@ func TestPlanRemoveAutoScalingStorageConfig(t *testing.T) {
 				require.NoError(t, err)
 				storage, _, err := tftypes.WalkAttributePath(plan, storagePath)
 				require.NoError(t, err)
-				require.True(t, storage.(tftypes.Value).IsNull(), "removing auto_scaling must clear the configured shard limit")
+				require.True(t, storage.(tftypes.Value).IsNull(), "removing storage_config or auto_scaling must clear the configured shard limit")
 				if computeEnabled {
 					computePath := tftypes.NewAttributePath().WithAttributeName("replication_specs").WithElementKeyInt(0).
 						WithAttributeName("region_configs").WithElementKeyInt(0).WithAttributeName("auto_scaling").WithAttributeName("compute_enabled")

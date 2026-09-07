@@ -113,6 +113,11 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 	storageConfig := databaseEditionStorageConfig(new(1024))
 	storageOnlyRecovery := acc.TestStepCheckEmptyPlan(configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, storageConfig, true))
 	storageOnlyRecovery.ConfigStateChecks = shardSizeLimitChecks(clusterName, new(1024))
+	computeChecks := computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+		"compute_enabled":            knownvalue.Bool(true),
+		"compute_scale_down_enabled": knownvalue.Bool(false),
+		"compute_max_instance_size":  knownvalue.StringExact("M20"),
+	})
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -168,10 +173,9 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(1024), true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkDatabaseEdition(new("INFINITE"), "INFINITE"),
-					checkComputeAutoScaling(),
 					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
 				),
-				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(1024)),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)), computeChecks...),
 			},
 			// An unrelated replication_specs change must preserve the configured shard limit.
 			{
@@ -181,39 +185,28 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 				})...),
 			},
 			{
-				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(2048), true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkDatabaseEdition(new("INFINITE"), "INFINITE"),
-					checkComputeAutoScaling(),
-				),
-				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(2048)),
+				Config:            configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(2048), true),
+				Check:             checkDatabaseEdition(new("INFINITE"), "INFINITE"),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(2048)), computeChecks...),
 			},
 			{
-				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 3, new(2048), true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkComputeAutoScaling(),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.node_count", "3"),
-					resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.node_count", "3"),
-				),
-				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(2048)),
+				// Four electable nodes are invalid in both supported Infinite topology modes.
+				Config:      configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 4, new(2048), true),
+				ExpectError: regexp.MustCompile(`(?s)INVALID_ATTRIBUTE.*number of electable nodes`),
 			},
 			{
 				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(2048), true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkComputeAutoScaling(),
 					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.node_count", "2"),
 					resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.node_count", "2"),
 				),
-				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(2048)),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(2048)), computeChecks...),
 			},
 			acc.TestStepImportCluster(resourceName),
 			{
-				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, nil, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkDatabaseEdition(new("INFINITE"), "INFINITE"),
-					checkComputeAutoScaling(),
-				),
-				ConfigStateChecks: shardSizeLimitChecks(clusterName, nil),
+				Config:            configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, nil, true),
+				Check:             checkDatabaseEdition(new("INFINITE"), "INFINITE"),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil), computeChecks...),
 			},
 			{
 				Config:            configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(1024), true),
@@ -222,11 +215,10 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 			{
 				Config: configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2, nil),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkComputeAutoScaling(),
 					resource.TestCheckNoResourceAttr(resourceName, "tags.env"),
 					resource.TestCheckNoResourceAttr(dataSourceName, "tags.env"),
 				),
-				ConfigStateChecks: shardSizeLimitChecks(clusterName, nil),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil), computeChecks...),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -237,12 +229,21 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 2)
 	const computeConfig = `
 		compute_enabled            = true
-		compute_scale_down_enabled = true
-		compute_min_instance_size  = "M10"
 		compute_max_instance_size  = "M20"
 	`
-	configWithStorage := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, computeConfig+databaseEditionStorageConfig(new(1024)), false)
-	configWithoutStorage := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, computeConfig, false)
+	const scaleDownConfig = computeConfig + `
+		compute_scale_down_enabled = true
+		compute_min_instance_size  = "M10"
+	`
+	computeOnlyConfig := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, computeConfig, false)
+	configWithStorage := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, scaleDownConfig+databaseEditionStorageConfig(new(1024)), false)
+	configWithoutStorage := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, scaleDownConfig, false)
+	computeOnlyChecks := func(maxInstanceSize string) []statecheck.StateCheck {
+		return append(shardSizeLimitChecks(clusterName, nil), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+			"compute_enabled":           knownvalue.Bool(true),
+			"compute_max_instance_size": knownvalue.StringExact(maxInstanceSize),
+		})...)
+	}
 	computeChecks := computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
 		"compute_enabled":            knownvalue.Bool(true),
 		"compute_scale_down_enabled": knownvalue.Bool(true),
@@ -255,6 +256,24 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
+			// Create without storage so the request cannot rely on storage-triggered cleanup.
+			{
+				Config:            computeOnlyConfig,
+				Check:             checkDatabaseEdition(new("INFINITE"), "INFINITE"),
+				ConfigStateChecks: computeOnlyChecks("M20"),
+			},
+			acc.TestStepImportCluster(resourceName),
+			{
+				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, strings.ReplaceAll(computeConfig, "M20", "M30_GEN_2"), false),
+				ConfigStateChecks: computeOnlyChecks("M30_GEN_2"),
+			},
+			{
+				Config:            computeOnlyConfig,
+				ConfigStateChecks: computeOnlyChecks("M20"),
+			},
+			acc.TestStepImportCluster(resourceName),
+			// Recreate to cover compute auto-scaling both with and without storage in the create request.
+			{Config: computeOnlyConfig, Destroy: true, Check: acc.CheckDestroyCluster},
 			{
 				Config:            configWithStorage,
 				Check:             checkDatabaseEdition(new("INFINITE"), "INFINITE"),
@@ -277,54 +296,6 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 				Config:            configWithoutStorage,
 				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil), computeChecks...),
 			},
-			acc.TestStepImportCluster(resourceName),
-		},
-	})
-}
-
-func TestAccClusterAdvancedCluster_infiniteComputeAutoScalingWithoutStorage(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 2)
-	const computeConfig = `compute_enabled = true
-		compute_max_instance_size = "M20"`
-	configWithoutStorage := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, computeConfig, false)
-	checks := func(maxInstanceSize string) []statecheck.StateCheck {
-		return append(shardSizeLimitChecks(clusterName, nil), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
-			"compute_enabled":           knownvalue.Bool(true),
-			"compute_max_instance_size": knownvalue.StringExact(maxInstanceSize),
-		})...)
-	}
-	recovery := acc.TestStepCheckEmptyPlan(configWithoutStorage)
-	recovery.ConfigStateChecks = checks("M20")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			// Create without storage so the request cannot rely on storage-triggered cleanup.
-			{
-				Config:            configWithoutStorage,
-				Check:             checkDatabaseEdition(new("INFINITE"), "INFINITE"),
-				ConfigStateChecks: checks("M20"),
-			},
-			acc.TestStepImportCluster(resourceName),
-			{
-				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, strings.ReplaceAll(computeConfig, "M20", "M30"), false),
-				ConfigStateChecks: checks("M30"),
-			},
-			{
-				Config:            configWithoutStorage,
-				ConfigStateChecks: checks("M20"),
-			},
-			{
-				Config:      configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, computeConfig+"\ndisk_gb_enabled = true", false),
-				ExpectError: regexp.MustCompile(`(?s)INVALID_ATTRIBUTE.*autoScaling\.diskGB`),
-			},
-			recovery,
-			{
-				Config:      configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, computeConfig+"\ndisk_gb_enabled = false", false),
-				ExpectError: regexp.MustCompile(`(?s)INVALID_ATTRIBUTE.*autoScaling\.diskGB`),
-			},
-			recovery,
 			acc.TestStepImportCluster(resourceName),
 		},
 	})
@@ -417,9 +388,9 @@ func TestAccClusterAdvancedCluster_infiniteAnalyticsAutoScaling(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{Config: baseConfig, ConfigStateChecks: checks(new(1024), "M20")},
-			{Config: clusterConfig(new(1024), "M30", "", false), ConfigStateChecks: checks(new(1024), "M30")},
+			{Config: clusterConfig(new(1024), "M30_GEN_2", "", false), ConfigStateChecks: checks(new(1024), "M30_GEN_2")},
 			// Clearing storage while omitting computed blocks must preserve active nodes and analytics scaling.
-			{Config: clusterConfig(nil, "", "", true), ConfigStateChecks: checks(nil, "M30")},
+			{Config: clusterConfig(nil, "", "", true), ConfigStateChecks: checks(nil, "M30_GEN_2")},
 			acc.TestStepImportCluster(resourceName),
 			{Config: baseConfig, ConfigStateChecks: checks(new(1024), "M20")},
 			// Clearing storage must retain planned node counts and zone metadata when omitted from configuration.
@@ -444,6 +415,11 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimitDrift(t *testing.T) {
 	clusterConfig := configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(1024), false)
 	storagePath := tfjsonpath.New("replication_specs").AtSliceIndex(0).AtMapKey("region_configs").AtSliceIndex(0).
 		AtMapKey("auto_scaling").AtMapKey("storage_config").AtMapKey("shard_size_limit_gb")
+	checks := append(shardSizeLimitChecks(clusterName, new(1024)), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+		"compute_enabled":            knownvalue.Bool(true),
+		"compute_scale_down_enabled": knownvalue.Bool(false),
+		"compute_max_instance_size":  knownvalue.StringExact("M20"),
+	})...)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -451,8 +427,7 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimitDrift(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:            clusterConfig,
-				Check:             checkComputeAutoScaling(),
-				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(1024)),
+				ConfigStateChecks: checks,
 			},
 			{
 				PreConfig: func() {
@@ -501,8 +476,7 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimitDrift(t *testing.T) {
 			},
 			{
 				Config:            clusterConfig,
-				Check:             checkComputeAutoScaling(),
-				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(1024)),
+				ConfigStateChecks: checks,
 			},
 		},
 	})
@@ -623,18 +597,6 @@ func checkDatabaseEdition(databaseEdition *string, effectiveDatabaseEdition stri
 		)
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
-}
-
-func checkComputeAutoScaling() resource.TestCheckFunc {
-	const attrPrefix = "replication_specs.0.region_configs.0.auto_scaling."
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, attrPrefix+"compute_enabled", "true"),
-		resource.TestCheckResourceAttr(resourceName, attrPrefix+"compute_scale_down_enabled", "false"),
-		resource.TestCheckResourceAttr(resourceName, attrPrefix+"compute_max_instance_size", "M20"),
-		resource.TestCheckResourceAttr(dataSourceName, attrPrefix+"compute_enabled", "true"),
-		resource.TestCheckResourceAttr(dataSourceName, attrPrefix+"compute_scale_down_enabled", "false"),
-		resource.TestCheckResourceAttr(dataSourceName, attrPrefix+"compute_max_instance_size", "M20"),
-	)
 }
 
 func pluralDatabaseEditionChecks(clusterName string, databaseEdition *string, effectiveDatabaseEdition string) []statecheck.StateCheck {

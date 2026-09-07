@@ -13,7 +13,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
@@ -249,28 +248,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		diff := findClusterDiff(ctx, &state, &plan, diags)
 		if diags.HasError() {
 			return
-		}
-		stateReplicationSpecs := newReplicationSpec(ctx, state.ReplicationSpecs, diags)
-		planReplicationSpecs := newReplicationSpec(ctx, plan.ReplicationSpecs, diags)
-		if diags.HasError() {
-			return
-		}
-		if shardSizeLimitRemoved(stateReplicationSpecs, planReplicationSpecs) {
-			var configModel TFModel
-			diags.Append(req.Config.Get(ctx, &configModel)...)
-			if diags.HasError() {
-				return
-			}
-			// Resolve unknown configuration values before checking which hardware blocks were explicitly configured.
-			schemafunc.CopyUnknowns(ctx, &plan, &configModel, nil, nil)
-			diff.clusterPatchOnlyReq = setShardSizeLimitGBNull(
-				newReplicationSpec(ctx, configModel.ReplicationSpecs, diags),
-				planReplicationSpecs,
-				diff.clusterPatchOnlyReq,
-			)
-			if diags.HasError() {
-				return
-			}
 		}
 		switch {
 		case diff.isUpgradeTenantToFlex:
@@ -552,6 +529,11 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknown and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
+	}
+	if shardSizeLimitRemoved(stateReq.ReplicationSpecs, planReq.ReplicationSpecs) {
+		// Atlas clears an omitted shardSizeLimitGB only when replicationSpecs is included in the PATCH.
+		patchOptions.ForceUpdateAttr = []string{"replicationSpecs"}
+		omitEmptyAutoScaling(planReq.GetReplicationSpecs())
 	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
