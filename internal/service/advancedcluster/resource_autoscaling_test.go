@@ -60,6 +60,15 @@ func TestUpdateRemovesShardSizeLimit(t *testing.T) {
 			},
 			expectedRegions: `[{"autoScaling":{},"electableSpecs":{"instanceSize":"M10","nodeCount":2}},{"autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true}},"electableSpecs":{"instanceSize":"M10","nodeCount":2}}]`,
 		},
+		"forces update when only one region keeps the limit": {
+			planRegions: []any{
+				map[string]any{"electable_specs": hardware, "auto_scaling": map[string]any{}},
+				map[string]any{"electable_specs": hardware, "auto_scaling": map[string]any{
+					"storage_config": map[string]any{"shard_size_limit_gb": int64(1024)},
+				}},
+			},
+			expectedRegions: `[{"autoScaling":{},"electableSpecs":{"instanceSize":"M10","nodeCount":2}},{"autoScaling":{"storageConfig":{"shardSizeLimitGB":1024}},"electableSpecs":{"instanceSize":"M10","nodeCount":2}}]`,
+		},
 	}
 	for name, tc := range testCases {
 		for editionName, edition := range map[string]any{"INFINITE": "INFINITE", "default": nil} {

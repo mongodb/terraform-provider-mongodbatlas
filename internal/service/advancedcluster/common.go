@@ -54,20 +54,37 @@ func AddIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20240805, 
 	return replicationSpecs
 }
 
+// Detect the removal per region so a removal from only some regions still forces the PATCH.
+// Topology changes need no alignment handling here because they already put replicationSpecs in the PATCH.
 func shardSizeLimitRemoved(stateReplicationSpecs, planReplicationSpecs *[]admin.ReplicationSpec20240805) bool {
-	return stateReplicationSpecs != nil && planReplicationSpecs != nil &&
-		hasShardSizeLimit(*stateReplicationSpecs) && !hasShardSizeLimit(*planReplicationSpecs)
-}
-
-func hasShardSizeLimit(replicationSpecs []admin.ReplicationSpec20240805) bool {
-	for _, replicationSpec := range replicationSpecs {
-		for _, regionConfig := range replicationSpec.GetRegionConfigs() {
-			if regionConfig.AutoScaling != nil && regionConfig.AutoScaling.StorageConfig != nil && regionConfig.AutoScaling.StorageConfig.HasShardSizeLimitGB() {
+	if stateReplicationSpecs == nil || planReplicationSpecs == nil {
+		return false
+	}
+	stateSpecs, planSpecs := *stateReplicationSpecs, *planReplicationSpecs
+	for i := range minLen(stateSpecs, planSpecs) {
+		stateRegions, planRegions := stateSpecs[i].GetRegionConfigs(), planSpecs[i].GetRegionConfigs()
+		for j := range minLen(stateRegions, planRegions) {
+			if regionHasShardSizeLimit(&stateRegions[j]) && !regionHasShardSizeLimit(&planRegions[j]) {
 				return true
 			}
 		}
 	}
 	return false
+}
+
+func hasShardSizeLimit(replicationSpecs []admin.ReplicationSpec20240805) bool {
+	for _, replicationSpec := range replicationSpecs {
+		for _, regionConfig := range replicationSpec.GetRegionConfigs() {
+			if regionHasShardSizeLimit(&regionConfig) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func regionHasShardSizeLimit(regionConfig *admin.CloudRegionConfig20240805) bool {
+	return regionConfig.AutoScaling != nil && regionConfig.AutoScaling.StorageConfig != nil && regionConfig.AutoScaling.StorageConfig.HasShardSizeLimitGB()
 }
 
 func omitEmptyAutoScalingChildren(replicationSpecs []admin.ReplicationSpec20240805) {
