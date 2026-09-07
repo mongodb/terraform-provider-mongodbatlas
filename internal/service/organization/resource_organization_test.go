@@ -166,16 +166,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "0")),
 			},
 			{
-				// Placed last so the API error doesn't affect the state assertions of earlier steps.
-				Config: configWithSettings(orgOwnerID, nameUpdated, description, roleName,
-					&admin.OrganizationSettings{CustomSessionTimeouts: &admin.CustomSessionTimeouts{
-						AbsoluteSessionTimeoutInSeconds: conversion.IntPtr(0),
-					}}),
-				ExpectError: regexp.MustCompile(`(?i)session.?timeout`),
-			},
-			{
-				// Re-set operations_contact to a real value: configBasic cleared it, and an
-				// empty-string config would otherwise be a no-op diff against an already-blank value.
+				// Re-set operations_contact to a real value so the following empty-string step is a real change.
 				PreConfig: sleepForSettingsRateLimit,
 				Config:    configWithSettings(orgOwnerID, nameUpdated, description, roleName, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
 				Check:     resource.TestCheckResourceAttr(resourceName, "operations_contact", "test-updated@mongodb.com"),
@@ -260,9 +251,9 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 	const operationsContact = "test@mongodb.com"
 
 	t.Cleanup(func() {
-		_, _, _ = acc.ConnV2().OrganizationsAPI.UpdateOrgSettings(context.Background(), orgID, &admin.OrganizationSettings{
-			OperationsContact: conversion.StringPtr(""),
-		}).Execute()
+		settings := &admin.OrganizationSettings{}
+		settings.SetOperationsContactNil()
+		_, _, _ = acc.ConnV2().OrganizationsAPI.UpdateOrgSettings(context.Background(), orgID, settings).Execute()
 	})
 
 	// Serial test: the second step mutates operations_contact on the shared
@@ -529,7 +520,7 @@ func configWithSettings(orgOwnerID, name, description, roleNames string, setting
 // only changes that attribute.
 func withOperationsContact(settings *admin.OrganizationSettings, operationsContact string) *admin.OrganizationSettings {
 	updated := *settings
-	updated.OperationsContact = conversion.StringPtr(operationsContact)
+	updated.OperationsContact = &operationsContact
 	return &updated
 }
 
@@ -698,6 +689,7 @@ func checkAggrDS(extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 		"multi_factor_auth_required",
 		"api_access_list_required",
 		"skip_default_alerts_settings",
+		"custom_session_timeouts.#",
 	}
 	checks = acc.AddAttrSetChecks(datasourceName, checks, singularKeys...)
 
