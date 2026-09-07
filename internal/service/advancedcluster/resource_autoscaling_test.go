@@ -235,6 +235,89 @@ func TestUpdateRemovesShardSizeLimitPreservesPlannedValues(t *testing.T) {
 	}
 }
 
+func TestUpdateRemovesShardSizeLimitAcrossReplicationSpecs(t *testing.T) {
+	ctx := t.Context()
+	r := advancedcluster.Resource()
+	var schemaResp resource.SchemaResponse
+	r.Schema(ctx, resource.SchemaRequest{}, &schemaResp)
+	typ := schemaResp.Schema.Type().TerraformType(ctx)
+	// This exercises request construction; Atlas does not yet support Infinite geosharded clusters.
+	model := func(withStorage, configOnly bool) tfsdk.Plan {
+		var specs []any
+		for _, spec := range []struct {
+			id, zoneID, zoneName, instanceSize string
+			regions                            []string
+			nodeCount                          int64
+		}{
+			{"650000000000000000000001", "650000000000000000000002", "US zone", "M10", []string{"US_EAST_1", "US_WEST_2"}, 2},
+			{"650000000000000000000003", "650000000000000000000004", "EU zone", "M20", []string{"EU_WEST_1"}, 3},
+		} {
+			var regions []any
+			for i, regionName := range spec.regions {
+				hardware := map[string]any{"instance_size": spec.instanceSize}
+				region := map[string]any{
+					"provider_name": "AWS", "region_name": regionName, "priority": int64(7 - i), "electable_specs": hardware,
+				}
+				if !configOnly {
+					hardware["node_count"] = spec.nodeCount
+					region["read_only_specs"] = map[string]any{"instance_size": spec.instanceSize, "node_count": int64(0)}
+					region["analytics_specs"] = map[string]any{"instance_size": spec.instanceSize, "node_count": int64(0)}
+				}
+				if withStorage {
+					region["auto_scaling"] = map[string]any{"storage_config": map[string]any{"shard_size_limit_gb": int64(1024)}}
+				}
+				regions = append(regions, region)
+			}
+			replicationSpec := map[string]any{"region_configs": regions}
+			if !configOnly {
+				replicationSpec["external_id"] = spec.id
+				replicationSpec["zone_id"] = spec.zoneID
+				replicationSpec["zone_name"] = spec.zoneName
+			}
+			specs = append(specs, replicationSpec)
+		}
+		return tfsdk.Plan{Schema: schemaResp.Schema, Raw: planTestValue(typ, map[string]any{
+			"name": "example", "project_id": dummyProjectID, "cluster_type": "GEOSHARDED", "database_edition": "INFINITE",
+			"replication_specs": specs,
+		})}
+	}
+	api := mockadmin.NewClustersAPI(t)
+	r.(config.ImplementedResource).SetClient(&config.MongoDBClient{AtlasV2: &admin.APIClient{ClustersAPI: api}})
+	api.On("UpdateCluster", mock.Anything, dummyProjectID, "example", mock.Anything).Run(func(args mock.Arguments) {
+		encoded, err := json.Marshal(args[3].(*admin.ClusterDescription20240805))
+		require.NoError(t, err)
+		require.JSONEq(t, `{"replicationSpecs":[{
+			"id":"650000000000000000000001","zoneId":"650000000000000000000002","zoneName":"US zone",
+			"regionConfigs":[{
+				"providerName":"AWS","regionName":"US_EAST_1","priority":7,
+				"electableSpecs":{"instanceSize":"M10","nodeCount":2},
+				"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}}
+			},{
+				"providerName":"AWS","regionName":"US_WEST_2","priority":6,
+				"electableSpecs":{"instanceSize":"M10","nodeCount":2},
+				"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}}
+			}]
+		},{
+			"id":"650000000000000000000003","zoneId":"650000000000000000000004","zoneName":"EU zone",
+			"regionConfigs":[{
+				"providerName":"AWS","regionName":"EU_WEST_1","priority":7,
+				"electableSpecs":{"instanceSize":"M20","nodeCount":3},
+				"autoScaling":{"storageConfig":{"shardSizeLimitGB":null}}
+			}]
+		}]}`, string(encoded))
+	}).Return(admin.UpdateClusterApiRequest{ApiService: api}).Once()
+	apiError := errors.New("request inspected")
+	api.EXPECT().UpdateClusterExecute(mock.Anything).Return(nil, nil, apiError).Once()
+	prior, plan, configuration := model(true, false), model(false, false), model(false, true)
+	var resp resource.UpdateResponse
+	r.Update(ctx, resource.UpdateRequest{
+		Plan: plan, State: tfsdk.State{Schema: schemaResp.Schema, Raw: prior.Raw},
+		Config: tfsdk.Config{Schema: schemaResp.Schema, Raw: configuration.Raw},
+	}, &resp)
+	require.Len(t, resp.Diagnostics.Errors(), 1)
+	require.Contains(t, resp.Diagnostics.Errors()[0].Detail(), apiError.Error())
+}
+
 func TestAutoScalingRequestWithoutStorage(t *testing.T) {
 	testCases := map[string]struct {
 		edition  string
