@@ -51,9 +51,9 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		AdaptiveCapacity:                              conversion.NilForUnknown(input.AdaptiveCapacity, input.AdaptiveCapacity.ValueStringPointer()),
 		AdvancedConfiguration:                         newClusterAdvancedConfiguration(ctx, &input.AdvancedConfiguration, diags),
 	}
+	// Imported Infinite clusters can lack databaseEdition, so a shard limit also triggers cleanup.
 	if result.GetDatabaseEdition() == "INFINITE" || hasShardSizeLimit(result.GetReplicationSpecs()) {
-		// Empty compute and disk objects count as configured in Atlas, even without storageConfig.
-		omitEmptyAutoScaling(result.GetReplicationSpecs())
+		omitEmptyAutoScalingChildren(result.GetReplicationSpecs())
 	}
 	return result
 }

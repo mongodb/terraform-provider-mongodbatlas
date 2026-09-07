@@ -533,7 +533,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	if shardSizeLimitRemoved(stateReq.ReplicationSpecs, planReq.ReplicationSpecs) {
 		// Atlas clears an omitted shardSizeLimitGB only when replicationSpecs is included in the PATCH.
 		patchOptions.ForceUpdateAttr = []string{"replicationSpecs"}
-		omitEmptyAutoScaling(planReq.GetReplicationSpecs())
+		omitEmptyAutoScalingChildren(planReq.GetReplicationSpecs())
 	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
