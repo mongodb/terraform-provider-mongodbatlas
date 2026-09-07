@@ -1860,11 +1860,8 @@ resources:
           computability:
             optional: true
             computed: true
+        # Atlas resets these attributes to the system default when null is sent on update.
         idle_refresh_token_lifetime:
-          computability:
-            optional: true
-            computed: true
+          request_body_usage: send_null_as_null_on_update
         maximum_refresh_token_lifetime:
-          computability:
-            optional: true
-            computed: true
+          request_body_usage: send_null_as_null_on_update

@@ -25,12 +25,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Policy that controls whether partner delegated access is permitted within this organization. Possible values are `DISALLOWED` and `READ_WRITE`. Defaults to `DISALLOWED`.",
 			},
 			"idle_refresh_token_lifetime": schema.Int64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Maximum number of seconds a refresh token may be idle before it expires. Omit to leave unchanged; set to null to reset to the system default. Must be between 1 and 31536000 (1 year) when provided.",
 			},
 			"maximum_refresh_token_lifetime": schema.Int64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Maximum lifetime of a refresh token in seconds, regardless of activity. Omit to leave unchanged; set to null to reset to the system default. Must be between 1 and 31536000 (1 year) when provided.",
 			},
@@ -46,7 +44,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 type TFModel struct {
 	DelegatedMcpAccess          types.String `tfsdk:"delegated_mcp_access"`
 	DelegatedPartnerAccess      types.String `tfsdk:"delegated_partner_access"`
-	IdleRefreshTokenLifetime    types.Int64  `tfsdk:"idle_refresh_token_lifetime"`
-	MaximumRefreshTokenLifetime types.Int64  `tfsdk:"maximum_refresh_token_lifetime"`
+	IdleRefreshTokenLifetime    types.Int64  `tfsdk:"idle_refresh_token_lifetime" autogen:"sendnullasnullonupdate"`
+	MaximumRefreshTokenLifetime types.Int64  `tfsdk:"maximum_refresh_token_lifetime" autogen:"sendnullasnullonupdate"`
 	OrgId                       types.String `tfsdk:"org_id" autogen:"omitjson"`
 }

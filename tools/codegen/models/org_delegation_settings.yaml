@@ -25,22 +25,22 @@ schema:
           request_only_required_on_create: false
         - int64: {}
           description: Maximum number of seconds a refresh token may be idle before it expires. Omit to leave unchanged; set to null to reset to the system default. Must be between 1 and 31536000 (1 year) when provided.
-          computed_optional_required: computed_optional
+          computed_optional_required: optional
           tf_schema_name: idle_refresh_token_lifetime
           tf_model_name: IdleRefreshTokenLifetime
           api_name: idleRefreshTokenLifetime
-          req_body_usage: all_request_bodies
+          req_body_usage: send_null_as_null_on_update
           sensitive: false
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
         - int64: {}
           description: Maximum lifetime of a refresh token in seconds, regardless of activity. Omit to leave unchanged; set to null to reset to the system default. Must be between 1 and 31536000 (1 year) when provided.
-          computed_optional_required: computed_optional
+          computed_optional_required: optional
           tf_schema_name: maximum_refresh_token_lifetime
           tf_model_name: MaximumRefreshTokenLifetime
           api_name: maximumRefreshTokenLifetime
-          req_body_usage: all_request_bodies
+          req_body_usage: send_null_as_null_on_update
           sensitive: false
           create_only: false
           present_in_any_response: true

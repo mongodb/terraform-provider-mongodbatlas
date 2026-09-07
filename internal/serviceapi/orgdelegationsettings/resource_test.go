@@ -50,9 +50,11 @@ func TestAccOrgDelegationSettings_basic(t *testing.T) {
 				Check:  checkBasic(orgID, "READ_WRITE", "DISALLOWED", 7200, 43200),
 			},
 			{
-				// Omitting optional attributes keeps the values returned by Atlas and produces an empty plan.
+				// Access policies are computed, so omitting them keeps the values returned by Atlas.
+				// Token lifetimes are optional-only with send_null_as_null_on_update, so omitting them
+				// sends null and resets them to the system default (returned as null by Atlas).
 				Config: configOmitted(orgID),
-				Check:  checkBasic(orgID, "READ_WRITE", "DISALLOWED", 7200, 43200),
+				Check:  checkReset(orgID, "READ_WRITE", "DISALLOWED"),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -95,6 +97,21 @@ func checkBasic(orgID, mcpAccess, partnerAccess string, idleLifetime, maxLifetim
 	}
 	checks := acc.AddAttrChecks(resourceName, nil, attrChecks)
 	checks = append(checks, checkExists(resourceName))
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func checkReset(orgID, mcpAccess, partnerAccess string) resource.TestCheckFunc {
+	attrChecks := map[string]string{
+		"org_id":                   orgID,
+		"delegated_mcp_access":     mcpAccess,
+		"delegated_partner_access": partnerAccess,
+	}
+	checks := acc.AddAttrChecks(resourceName, nil, attrChecks)
+	checks = append(checks,
+		resource.TestCheckNoResourceAttr(resourceName, "idle_refresh_token_lifetime"),
+		resource.TestCheckNoResourceAttr(resourceName, "maximum_refresh_token_lifetime"),
+		checkExists(resourceName),
+	)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
