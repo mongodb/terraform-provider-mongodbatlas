@@ -8,8 +8,6 @@ subcategory: "Remote MCP"
 
 ~> **IMPORTANT:** This resource does not manage ingress secrets. Use [`mongodbatlas_project_mcp_config_secret`](project_mcp_config_secret.md) to create one.
 
-~> **IMPORTANT:** Deleting a `{{.Name}}` resource unlinks the MCP configuration from the project, but doesn't delete it from the organization. To fully delete it, use the org-level [`mongodbatlas_mcp_config`](mcp_config.md) resource.
-
 ## Example Usages
 
 {{ tffile (printf "examples/%s/main.tf" .Name )}}

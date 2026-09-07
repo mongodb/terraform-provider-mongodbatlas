@@ -12,6 +12,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          immutable_computed: true
         - string: {}
           description: Unique identifier for the egress Service Account client associated with this MCP configuration. This Service Account is managed by MongoDB Atlas.
           computed_optional_required: computed
@@ -23,7 +24,8 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-        - list_nested:
+          immutable_computed: true
+        - set_nested:
             nested_object:
                 attributes:
                     - string: {}
@@ -33,17 +35,6 @@ schema:
                       tf_model_name: CidrBlock
                       api_name: cidrBlock
                       req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-                    - string: {}
-                      description: Date MongoDB Cloud added the entry was added to the Access List. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-                      computed_optional_required: computed
-                      tf_schema_name: created_at
-                      tf_model_name: CreatedAt
-                      api_name: createdAt
-                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                       present_in_any_response: true
@@ -59,44 +50,11 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
-                    - string: {}
-                      description: Network address that issued the most recent request to the API. This parameter requires the address to be expressed as one Internet Protocol version 4 or version 6 address. The resource returns this parameter after this IP address makes at least one request.
-                      computed_optional_required: computed
-                      tf_schema_name: last_used_address
-                      tf_model_name: LastUsedAddress
-                      api_name: lastUsedAddress
-                      req_body_usage: omit_always
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-                    - string: {}
-                      description: Date when MongoDB Cloud received the most recent request that originated from this Internet Protocol version 4 or version 6 address. The resource returns this parameter when at least one request originates from this IP address. MongoDB Cloud updates this parameter each time a client accesses the permitted resource, with a delay of up to 5 minutes. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-                      computed_optional_required: computed
-                      tf_schema_name: last_used_at
-                      tf_model_name: LastUsedAt
-                      api_name: lastUsedAt
-                      req_body_usage: omit_always
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-                    - int64: {}
-                      description: The number of requests that has originated from this network address.
-                      computed_optional_required: computed
-                      tf_schema_name: request_count
-                      tf_model_name: RequestCount
-                      api_name: requestCount
-                      req_body_usage: omit_always
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
           description: List of IP access list entries that define allowed source addresses for this MCP configuration.
           custom_type:
             name: IpAccessList
-            model: customtypes.NestedListValue[TFIpAccessListModel]
-            schema: customtypes.NewNestedListType[TFIpAccessListModel](ctx)
+            model: customtypes.NestedSetValue[TFIpAccessListModel]
+            schema: customtypes.NewNestedSetType[TFIpAccessListModel](ctx)
             packages:
                 - customtypes
           computed_optional_required: computed_optional
@@ -119,6 +77,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          immutable_computed: true
         - string: {}
           description: Human-readable name that identifies this MCP configuration.
           computed_optional_required: required
@@ -198,7 +157,7 @@ data_sources:
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
-            - list_nested:
+            - set_nested:
                 nested_object:
                     attributes:
                         - string: {}
@@ -270,8 +229,8 @@ data_sources:
               description: List of IP access list entries that define allowed source addresses for this MCP configuration.
               custom_type:
                 name: IpAccessList
-                model: customtypes.NestedListValue[TFIpAccessListModel]
-                schema: customtypes.NewNestedListType[TFIpAccessListModel](ctx)
+                model: customtypes.NestedSetValue[TFIpAccessListModel]
+                schema: customtypes.NewNestedSetType[TFIpAccessListModel](ctx)
                 packages:
                     - customtypes
               computed_optional_required: computed
@@ -372,7 +331,7 @@ data_sources:
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false
-                        - list_nested:
+                        - set_nested:
                             nested_object:
                                 attributes:
                                     - string: {}
@@ -444,8 +403,8 @@ data_sources:
                           description: List of IP access list entries that define allowed source addresses for this MCP configuration.
                           custom_type:
                             name: ResultsIpAccessList
-                            model: customtypes.NestedListValue[TFResultsIpAccessListModel]
-                            schema: customtypes.NewNestedListType[TFResultsIpAccessListModel](ctx)
+                            model: customtypes.NestedSetValue[TFResultsIpAccessListModel]
+                            schema: customtypes.NewNestedSetType[TFResultsIpAccessListModel](ctx)
                             packages:
                                 - customtypes
                           computed_optional_required: computed

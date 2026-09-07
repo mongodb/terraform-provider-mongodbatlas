@@ -48,7 +48,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"secret_expires_after_hours": schema.Int64Attribute{
 				Optional:            true,
 				MarkdownDescription: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later.",
-				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly(), customplanmodifier.RequestOnlyRequiredOnCreate()},
+				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
 			},
 			"secrets": schema.ListNestedAttribute{
 				Computed:            true,
@@ -84,6 +84,15 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+			"system_managed": schema.BoolAttribute{
+				Computed:            true,
+				MarkdownDescription: "Indicates whether the Service Account is system managed.",
+			},
+			"without_initial_secret": schema.BoolAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "If true, creates the Service Account without generating an initial secret. `secretExpiresAfterHours` must not be set when this is true. Defaults to false, which preserves existing behavior: a secret is generated and returned in the response. Use the `CreateGroupServiceAccountSecret` endpoint to add a secret later.",
+			},
 		},
 	}
 }
@@ -97,6 +106,8 @@ type TFModel struct {
 	Roles                   customtypes.SetValue[types.String]          `tfsdk:"roles"`
 	SecretExpiresAfterHours types.Int64                                 `tfsdk:"secret_expires_after_hours" autogen:"omitjsonupdate"`
 	Secrets                 customtypes.NestedListValue[TFSecretsModel] `tfsdk:"secrets" autogen:"skipstatelistmerge,omitjson"`
+	SystemManaged           types.Bool                                  `tfsdk:"system_managed" autogen:"omitjson"`
+	WithoutInitialSecret    types.Bool                                  `tfsdk:"without_initial_secret" autogen:"omitjsonupdate"`
 }
 type TFSecretsModel struct {
 	CreatedAt         types.String `tfsdk:"created_at" autogen:"omitjson"`

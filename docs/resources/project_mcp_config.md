@@ -8,8 +8,6 @@ subcategory: "Remote MCP"
 
 ~> **IMPORTANT:** This resource does not manage ingress secrets. Use [`mongodbatlas_project_mcp_config_secret`](project_mcp_config_secret.md) to create one.
 
-~> **IMPORTANT:** Deleting a `mongodbatlas_project_mcp_config` resource unlinks the MCP configuration from the project, but doesn't delete it from the organization. To fully delete it, use the org-level [`mongodbatlas_mcp_config`](mcp_config.md) resource.
-
 ## Example Usages
 
 ```terraform
@@ -51,7 +49,7 @@ output "egress_client_id" {
 
 ### Optional
 
-- `ip_access_list` (Attributes List) List of IP access list entries that define allowed source addresses for this MCP configuration. (see [below for nested schema](#nestedatt--ip_access_list))
+- `ip_access_list` (Attributes Set) List of IP access list entries that define allowed source addresses for this MCP configuration. (see [below for nested schema](#nestedatt--ip_access_list))
 
 ### Read-Only
 
@@ -66,13 +64,6 @@ Optional:
 
 - `cidr_block` (String) Range of network addresses in the access list for the Service Account. This parameter requires the range to be expressed in Classless Inter-Domain Routing (CIDR) notation of Internet Protocol version 4 or version 6 addresses. You can set a value for this parameter or `ipAddress`, but not for both in the same request.
 - `ip_address` (String) Network address in the access list for the Service Account. This parameter requires the address to be expressed as one Internet Protocol version 4 or version 6 address. You can set a value for this parameter or `cidrBlock`, but not for both in the same request.
-
-Read-Only:
-
-- `created_at` (String) Date MongoDB Cloud added the entry was added to the Access List. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-- `last_used_address` (String) Network address that issued the most recent request to the API. This parameter requires the address to be expressed as one Internet Protocol version 4 or version 6 address. The resource returns this parameter after this IP address makes at least one request.
-- `last_used_at` (String) Date when MongoDB Cloud received the most recent request that originated from this Internet Protocol version 4 or version 6 address. The resource returns this parameter when at least one request originates from this IP address. MongoDB Cloud updates this parameter each time a client accesses the permitted resource, with a delay of up to 5 minutes. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-- `request_count` (Number) The number of requests that has originated from this network address.
 
 ## Import
 Import the MCP Config resource by using the Project ID and MCP Config ID in the format `PROJECT_ID/MCP_CONFIG_ID`, e.g.

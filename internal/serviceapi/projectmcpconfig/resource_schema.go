@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
@@ -28,11 +29,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
-			"ip_access_list": schema.ListNestedAttribute{
+			"ip_access_list": schema.SetNestedAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "List of IP access list entries that define allowed source addresses for this MCP configuration.",
-				CustomType:          customtypes.NewNestedListType[TFIpAccessListModel](ctx),
+				CustomType:          customtypes.NewNestedSetType[TFIpAccessListModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"cidr_block": schema.StringAttribute{
@@ -40,26 +41,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Optional:            true,
 							MarkdownDescription: "Range of network addresses in the access list for the Service Account. This parameter requires the range to be expressed in Classless Inter-Domain Routing (CIDR) notation of Internet Protocol version 4 or version 6 addresses. You can set a value for this parameter or `ipAddress`, but not for both in the same request.",
 						},
-						"created_at": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Date MongoDB Cloud added the entry was added to the Access List. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
-						},
 						"ip_address": schema.StringAttribute{
 							Computed:            true,
 							Optional:            true,
 							MarkdownDescription: "Network address in the access list for the Service Account. This parameter requires the address to be expressed as one Internet Protocol version 4 or version 6 address. You can set a value for this parameter or `cidrBlock`, but not for both in the same request.",
-						},
-						"last_used_address": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Network address that issued the most recent request to the API. This parameter requires the address to be expressed as one Internet Protocol version 4 or version 6 address. The resource returns this parameter after this IP address makes at least one request.",
-						},
-						"last_used_at": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Date when MongoDB Cloud received the most recent request that originated from this Internet Protocol version 4 or version 6 address. The resource returns this parameter when at least one request originates from this IP address. MongoDB Cloud updates this parameter each time a client accesses the permitted resource, with a delay of up to 5 minutes. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
-						},
-						"request_count": schema.Int64Attribute{
-							Computed:            true,
-							MarkdownDescription: "The number of requests that has originated from this network address.",
 						},
 					},
 				},
@@ -67,6 +52,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"mcp_config_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique identifier that identifies this MCP configuration.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"mcp_config_name": schema.StringAttribute{
 				Required:            true,
@@ -83,19 +69,15 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	ClientId       types.String                                     `tfsdk:"client_id" autogen:"omitjson"`
-	EgressClientId types.String                                     `tfsdk:"egress_client_id" autogen:"omitjson"`
-	ProjectId      types.String                                     `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	IpAccessList   customtypes.NestedListValue[TFIpAccessListModel] `tfsdk:"ip_access_list"`
-	McpConfigId    types.String                                     `tfsdk:"mcp_config_id" autogen:"omitjson"`
-	McpConfigName  types.String                                     `tfsdk:"mcp_config_name"`
-	Roles          customtypes.SetValue[types.String]               `tfsdk:"roles"`
+	ClientId       types.String                                    `tfsdk:"client_id" autogen:"omitjson"`
+	EgressClientId types.String                                    `tfsdk:"egress_client_id" autogen:"omitjson"`
+	ProjectId      types.String                                    `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	IpAccessList   customtypes.NestedSetValue[TFIpAccessListModel] `tfsdk:"ip_access_list"`
+	McpConfigId    types.String                                    `tfsdk:"mcp_config_id" autogen:"omitjson"`
+	McpConfigName  types.String                                    `tfsdk:"mcp_config_name"`
+	Roles          customtypes.SetValue[types.String]              `tfsdk:"roles"`
 }
 type TFIpAccessListModel struct {
-	CidrBlock       types.String `tfsdk:"cidr_block"`
-	CreatedAt       types.String `tfsdk:"created_at" autogen:"omitjson"`
-	IpAddress       types.String `tfsdk:"ip_address"`
-	LastUsedAddress types.String `tfsdk:"last_used_address" autogen:"omitjson"`
-	LastUsedAt      types.String `tfsdk:"last_used_at" autogen:"omitjson"`
-	RequestCount    types.Int64  `tfsdk:"request_count" autogen:"omitjson"`
+	CidrBlock types.String `tfsdk:"cidr_block"`
+	IpAddress types.String `tfsdk:"ip_address"`
 }
