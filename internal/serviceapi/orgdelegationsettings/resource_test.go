@@ -1,4 +1,4 @@
-package delegationsettings_test
+package orgdelegationsettings_test
 
 import (
 	"context"
@@ -16,11 +16,11 @@ import (
 )
 
 const (
-	resourceType = "mongodbatlas_delegation_settings"
+	resourceType = "mongodbatlas_org_delegation_settings"
 	resourceName = resourceType + ".this"
 )
 
-func TestAccDelegationSettings_basic(t *testing.T) {
+func TestAccOrgDelegationSettings_basic(t *testing.T) {
 	acc.SkipInUnitTest(t) // baseline capture below runs before resource.Test skips
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 
@@ -67,7 +67,7 @@ func TestAccDelegationSettings_basic(t *testing.T) {
 
 func configBasic(orgID, mcpAccess, partnerAccess string, idleLifetime, maxLifetime int) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_delegation_settings" "this" {
+		resource "mongodbatlas_org_delegation_settings" "this" {
 			org_id                        = %[1]q
 			delegated_mcp_access          = %[2]q
 			delegated_partner_access      = %[3]q
@@ -79,7 +79,7 @@ func configBasic(orgID, mcpAccess, partnerAccess string, idleLifetime, maxLifeti
 
 func configOmitted(orgID string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_delegation_settings" "this" {
+		resource "mongodbatlas_org_delegation_settings" "this" {
 			org_id = %[1]q
 		}
 	`, orgID)

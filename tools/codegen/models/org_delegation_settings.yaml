@@ -67,5 +67,5 @@ operations:
         http_method: PATCH
         path: /api/atlas/v2/orgs/{orgId}/delegationSettings
     version_header: application/vnd.atlas.2025-03-12+json
-name: delegation_settings
-packageName: delegationsettings
+name: org_delegation_settings
+packageName: orgdelegationsettings

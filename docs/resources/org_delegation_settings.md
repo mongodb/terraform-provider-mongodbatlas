@@ -2,16 +2,16 @@
 subcategory: "Organizations"
 ---
 
-# Resource: mongodbatlas_delegation_settings
+# Resource: mongodbatlas_org_delegation_settings
 
-`mongodbatlas_delegation_settings` provides a resource for managing the delegation settings of a MongoDB Atlas organization. The resource lets you control how MCP (Model Context Protocol) and partner delegated access are permitted within the organization, as well as the refresh token lifetimes.
+`mongodbatlas_org_delegation_settings` provides a resource for managing the delegation settings of a MongoDB Atlas organization. The resource lets you control how MCP (Model Context Protocol) and partner delegated access are permitted within the organization, as well as the refresh token lifetimes.
 
 -> **NOTE:** Delegation settings are a singleton at the organization level: the settings always exist, so creating this resource updates the existing settings and destroying it only removes the resource from the Terraform state without changing the settings in Atlas. Updating the settings requires the Organization Owner role.
 
 ## Example Usages
 
 ```terraform
-resource "mongodbatlas_delegation_settings" "this" {
+resource "mongodbatlas_org_delegation_settings" "this" {
   org_id                         = var.atlas_org_id
   delegated_mcp_access           = "READ_ONLY"
   delegated_partner_access       = "DISALLOWED"
@@ -19,24 +19,24 @@ resource "mongodbatlas_delegation_settings" "this" {
   maximum_refresh_token_lifetime = 86400
 }
 
-output "delegation_settings_delegated_mcp_access" {
+output "org_delegation_settings_delegated_mcp_access" {
   description = "The MCP delegated access policy of the organization."
-  value       = mongodbatlas_delegation_settings.this.delegated_mcp_access
+  value       = mongodbatlas_org_delegation_settings.this.delegated_mcp_access
 }
 
-output "delegation_settings_delegated_partner_access" {
+output "org_delegation_settings_delegated_partner_access" {
   description = "The partner delegated access policy of the organization."
-  value       = mongodbatlas_delegation_settings.this.delegated_partner_access
+  value       = mongodbatlas_org_delegation_settings.this.delegated_partner_access
 }
 
-output "delegation_settings_idle_refresh_token_lifetime" {
+output "org_delegation_settings_idle_refresh_token_lifetime" {
   description = "The maximum number of seconds a refresh token may be idle before it expires."
-  value       = mongodbatlas_delegation_settings.this.idle_refresh_token_lifetime
+  value       = mongodbatlas_org_delegation_settings.this.idle_refresh_token_lifetime
 }
 
-output "delegation_settings_maximum_refresh_token_lifetime" {
+output "org_delegation_settings_maximum_refresh_token_lifetime" {
   description = "The maximum lifetime of a refresh token in seconds, regardless of activity."
-  value       = mongodbatlas_delegation_settings.this.maximum_refresh_token_lifetime
+  value       = mongodbatlas_org_delegation_settings.this.maximum_refresh_token_lifetime
 }
 ```
 
@@ -57,7 +57,7 @@ output "delegation_settings_maximum_refresh_token_lifetime" {
 ## Import
 Import the Delegation Settings resource by using the Organization ID, e.g.
 ```
-$ terraform import mongodbatlas_delegation_settings.example 1112222b3bf99403840e8934
+$ terraform import mongodbatlas_org_delegation_settings.example 1112222b3bf99403840e8934
 ```
 
 For more information, see [Delegation Settings](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorgdelegationsettings) in the MongoDB Atlas Administration API documentation.

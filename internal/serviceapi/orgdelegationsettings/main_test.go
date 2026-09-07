@@ -1,4 +1,4 @@
-package delegationsettings_test
+package orgdelegationsettings_test
 
 import (
 	"os"

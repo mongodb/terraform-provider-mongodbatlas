@@ -1839,7 +1839,7 @@ resources:
 
   # Singleton resource in an organization.
   # Create and Update use PATCH. The API has no DELETE endpoint (settings always exist), so delete is a no-op that removes the resource from state.
-  delegation_settings:
+  org_delegation_settings:
     read:
       path: /api/atlas/v2/orgs/{orgId}/delegationSettings
       method: GET
