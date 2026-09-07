@@ -6,7 +6,7 @@ subcategory: "Organizations"
 
 `mongodbatlas_org_delegation_settings` provides a resource for managing the delegation settings of a MongoDB Atlas organization. The resource lets you control how MCP (Model Context Protocol) and partner delegated access are permitted within the organization, as well as the refresh token lifetimes.
 
--> **NOTE:** Delegation settings are a singleton at the organization level: the settings always exist, so creating this resource updates the existing settings and destroying it only removes the resource from the Terraform state without changing the settings in Atlas. Updating the settings requires the Organization Owner role.
+-> **NOTE:** Delegation settings are a singleton at the organization level: the settings always exist, so creating this resource updates the existing settings. The delete operation is a no-op that only emits a warning and performs no API calls, so the settings in Atlas are left unchanged; Terraform only removes the resource from the state. Updating the settings requires the Organization Owner role.
 
 ## Example Usages
 

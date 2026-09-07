@@ -4,7 +4,7 @@ This example shows how to configure the delegation settings of a MongoDB Atlas o
 
 ## Important Notes
 
-Delegation settings are a singleton at the organization level: the settings always exist, so creating the resource updates the existing settings and destroying it only removes the resource from the Terraform state without changing the settings in Atlas.
+Delegation settings are a singleton at the organization level: the settings always exist, so creating the resource updates the existing settings. The delete operation is a no-op that only emits a warning and performs no API calls, so the settings in Atlas are left unchanged; Terraform only removes the resource from the state.
 
 ## Variables Required to be set:
 - `atlas_client_id`: MongoDB Atlas Service Account Client ID
