@@ -49,7 +49,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 }
 ```
 
-### Example Atlas INFINITE cluster with a per-shard data-size limit
+### Example Atlas Infinite Database cluster with a per-shard data-size limit
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "infinite" {
@@ -67,7 +67,7 @@ resource "mongodbatlas_advanced_cluster" "infinite" {
           region_name   = "US_EAST_1"
           electable_specs = {
             instance_size = "M10"
-            node_count    = 3
+            node_count    = 2
           }
           auto_scaling = {
             storage_config = {
