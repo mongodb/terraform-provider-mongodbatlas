@@ -14,6 +14,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/sdkv2config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -382,15 +383,16 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 		GenAIFeaturesEnabled:    new(d.Get("gen_ai_features_enabled").(bool)),
 		SecurityContact:         new(d.Get("security_contact").(string)),
 	}
-	// SDKv2 Get() cannot distinguish an explicit empty string from an unset field, GetRawConfig() distinguishes
-	// between the two. The value in config is always sent so the API validates it, `operationsContact`
-	// is cleared with an explicit null when removed from config, and omitted when it was never set.
-	if d.GetRawConfig().GetAttr("operations_contact").IsNull() {
-		if d.HasChange("operations_contact") {
+	// SDKv2 Get() cannot distinguish an explicit empty string from an unset field.
+	// The config value is always sent so the API validates it. operationsContact is
+	// cleared with an explicit null when removed from config, and omitted when it was never set.
+	contact := sdkv2config.String(d, "operations_contact")
+	if contact.IsNull() {
+		if contact.HasChange() {
 			settings.SetOperationsContactNil()
 		}
 	} else {
-		settings.SetOperationsContact(d.Get("operations_contact").(string))
+		settings.SetOperationsContact(contact.ValueString())
 	}
 	return settings
 }
