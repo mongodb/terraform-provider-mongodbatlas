@@ -16,3 +16,4 @@ Delegation settings are a singleton at the organization level: the settings alwa
 - `org_delegation_settings_delegated_partner_access`: The partner delegated access policy of the organization
 - `org_delegation_settings_idle_refresh_token_lifetime`: The maximum number of seconds a refresh token may be idle before it expires
 - `org_delegation_settings_maximum_refresh_token_lifetime`: The maximum lifetime of a refresh token in seconds, regardless of activity
+- `org_delegation_settings_delegated_mcp_access_ds`: The MCP delegated access policy of the organization, from the data source

@@ -16,12 +16,14 @@ import (
 )
 
 const (
-	resourceType = "mongodbatlas_org_delegation_settings"
-	resourceName = resourceType + ".this"
+	resourceType   = "mongodbatlas_org_delegation_settings"
+	resourceName   = resourceType + ".this"
+	dataSourceName = "data." + resourceType + ".this"
 )
 
 func TestAccOrgDelegationSettings_basic(t *testing.T) {
 	acc.SkipInUnitTest(t) // baseline capture below runs before resource.Test skips
+	acc.PreCheckBasic(t)  // fail fast with a clear message if credentials or org id are missing
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 
 	// Delete is a no-op for this singleton resource, so the current settings are
@@ -43,7 +45,7 @@ func TestAccOrgDelegationSettings_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// Adopting the singleton with a bare config sends an empty PATCH body.
-				Config: configOmitted(orgID),
+				Config: configOmitted(orgID, false),
 				Check:  checkBare(orgID),
 			},
 			{
@@ -58,7 +60,7 @@ func TestAccOrgDelegationSettings_basic(t *testing.T) {
 				// Access policies are computed, so omitting them keeps the values returned by Atlas.
 				// Token lifetimes are optional-only with send_null_as_null_on_update, so omitting them
 				// sends null and resets them to the system default (returned as null by Atlas).
-				Config: configOmitted(orgID),
+				Config: configOmitted(orgID, true),
 				Check:  checkReset(orgID, "READ_WRITE", "DISALLOWED"),
 			},
 			{
@@ -81,15 +83,28 @@ func configBasic(orgID, mcpAccess, partnerAccess string, idleLifetime, maxLifeti
 			idle_refresh_token_lifetime   = %[4]d
 			maximum_refresh_token_lifetime = %[5]d
 		}
+
+		data "mongodbatlas_org_delegation_settings" "this" {
+			org_id = mongodbatlas_org_delegation_settings.this.org_id
+		}
 	`, orgID, mcpAccess, partnerAccess, idleLifetime, maxLifetime)
 }
 
-func configOmitted(orgID string) string {
+func configOmitted(orgID string, withDS bool) string {
+	dsConfig := ""
+	if withDS {
+		dsConfig = `
+		data "mongodbatlas_org_delegation_settings" "this" {
+			org_id = mongodbatlas_org_delegation_settings.this.org_id
+		}
+		`
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_org_delegation_settings" "this" {
 			org_id = %[1]q
 		}
-	`, orgID)
+		%[2]s
+	`, orgID, dsConfig)
 }
 
 func checkBasic(orgID, mcpAccess, partnerAccess string, idleLifetime, maxLifetime int) resource.TestCheckFunc {
@@ -101,6 +116,7 @@ func checkBasic(orgID, mcpAccess, partnerAccess string, idleLifetime, maxLifetim
 		"maximum_refresh_token_lifetime": fmt.Sprintf("%d", maxLifetime),
 	}
 	checks := acc.AddAttrChecks(resourceName, nil, attrChecks)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attrChecks)
 	checks = append(checks, checkExists(resourceName))
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
@@ -120,9 +136,12 @@ func checkReset(orgID, mcpAccess, partnerAccess string) resource.TestCheckFunc {
 		"delegated_partner_access": partnerAccess,
 	}
 	checks := acc.AddAttrChecks(resourceName, nil, attrChecks)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attrChecks)
 	checks = append(checks,
 		resource.TestCheckNoResourceAttr(resourceName, "idle_refresh_token_lifetime"),
 		resource.TestCheckNoResourceAttr(resourceName, "maximum_refresh_token_lifetime"),
+		resource.TestCheckNoResourceAttr(dataSourceName, "idle_refresh_token_lifetime"),
+		resource.TestCheckNoResourceAttr(dataSourceName, "maximum_refresh_token_lifetime"),
 		checkExists(resourceName),
 	)
 	return resource.ComposeAggregateTestCheckFunc(checks...)

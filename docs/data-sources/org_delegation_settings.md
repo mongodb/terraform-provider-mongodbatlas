@@ -2,14 +2,11 @@
 subcategory: "Organizations"
 ---
 
-# Resource: mongodbatlas_org_delegation_settings
+# Data Source: mongodbatlas_org_delegation_settings
 
-`mongodbatlas_org_delegation_settings` provides a resource for managing the delegation settings of a MongoDB Atlas organization. The resource lets you control how MCP (Model Context Protocol) and partner delegated access are permitted within the organization, as well as the refresh token lifetimes.
-
--> **NOTE:** Delegation settings are a singleton at the organization level: the settings always exist, so creating this resource updates the existing settings. The delete operation is a no-op that only emits a warning and performs no API calls, so the settings in Atlas are left unchanged; Terraform only removes the resource from the state. Updating the settings requires the Organization Owner role.
+`mongodbatlas_org_delegation_settings` describes the delegation settings of a MongoDB Atlas organization: how MCP (Model Context Protocol) and partner delegated access are permitted within the organization, as well as the refresh token lifetimes.
 
 ## Example Usages
-
 ```terraform
 resource "mongodbatlas_org_delegation_settings" "this" {
   org_id                         = var.atlas_org_id
@@ -56,17 +53,11 @@ output "org_delegation_settings_delegated_mcp_access_ds" {
 
 - `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
 
-### Optional
+### Read-Only
 
 - `delegated_mcp_access` (String) Policy that controls how MCP (Model Context Protocol) delegated access is permitted within this organization. Possible values are `DISALLOWED`, `READ_ONLY`, and `READ_WRITE`. Defaults to `DISALLOWED`.
 - `delegated_partner_access` (String) Policy that controls whether partner delegated access is permitted within this organization. Possible values are `DISALLOWED` and `READ_WRITE`. Defaults to `DISALLOWED`.
-- `idle_refresh_token_lifetime` (Number) Maximum number of seconds a refresh token may be idle before it expires. Omit to leave unchanged; set to null to reset to the system default. Must be between 1 and 31536000 (1 year) when provided.
-- `maximum_refresh_token_lifetime` (Number) Maximum lifetime of a refresh token in seconds, regardless of activity. Omit to leave unchanged; set to null to reset to the system default. Must be between 1 and 31536000 (1 year) when provided.
-
-## Import
-Import the Delegation Settings resource by using the Organization ID, e.g.
-```
-$ terraform import mongodbatlas_org_delegation_settings.example 1112222b3bf99403840e8934
-```
+- `idle_refresh_token_lifetime` (Number) Maximum number of seconds a refresh token may be idle before it expires. When not set, the system default applies.
+- `maximum_refresh_token_lifetime` (Number) Maximum lifetime of a refresh token in seconds, regardless of activity. When not set, the system default applies.
 
 For more information, see [Delegation Settings](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorgdelegationsettings) in the MongoDB Atlas Administration API documentation.

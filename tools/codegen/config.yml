@@ -1865,3 +1865,11 @@ resources:
           request_body_usage: send_null_as_null_on_update
         maximum_refresh_token_lifetime:
           request_body_usage: send_null_as_null_on_update
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/delegationSettings
+        method: GET
+      schema:
+        overrides:
+          org_id:
+            description: *org_id_description

@@ -363,6 +363,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		aimodelorgratelimit.PluralDataSource,
 		aimodelratelimit.DataSource,
 		aimodelratelimit.PluralDataSource,
+		orgdelegationsettings.DataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
