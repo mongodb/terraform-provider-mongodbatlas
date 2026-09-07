@@ -2,6 +2,7 @@ package autogen_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -30,12 +31,18 @@ func testClient(t *testing.T, handler http.Handler) *config.MongoDBClient {
 	return newClient(t, srv.URL)
 }
 
-// unreachableClient points at a server that is already closed, so calls fail without an HTTP response.
+// unreachableClient fails every request at the transport, so calls error out without any HTTP response.
 func unreachableClient(t *testing.T) *config.MongoDBClient {
 	t.Helper()
-	srv := httptest.NewServer(http.NotFoundHandler())
-	srv.Close()
-	return newClient(t, srv.URL)
+	client := newClient(t, "http://unreachable.invalid")
+	client.AtlasV2.GetConfig().HTTPClient.Transport = failingTransport{}
+	return client
+}
+
+type failingTransport struct{}
+
+func (failingTransport) RoundTrip(*http.Request) (*http.Response, error) {
+	return nil, errors.New("simulated transport failure")
 }
 
 func newClient(t *testing.T, baseURL string) *config.MongoDBClient {
@@ -235,7 +242,7 @@ func TestHandleRead(t *testing.T) {
 		"401 reports error and keeps state":                   {handler: atlasError(http.StatusUnauthorized, "unauthorized"), wantErr: true, wantErrDetail: "unauthorized"},
 		"409 reports error and keeps state":                   {handler: atlasError(http.StatusConflict, "conflict"), wantErr: true, wantErrDetail: "conflict"},
 		"500 reports error and keeps state":                   {handler: atlasError(http.StatusInternalServerError, "server error"), wantErr: true, wantErrDetail: "server error"},
-		"transport error reports error and keeps state":       {unreachable: true, wantErr: true},
+		"transport error reports error and keeps state":       {unreachable: true, wantErr: true, wantErrDetail: "simulated transport failure"},
 		"200 with invalid JSON reports error and keeps state": {handler: jsonResponse(http.StatusOK, `not-json`), wantErr: true},
 
 		"404 removes resource from state": {handler: atlasError(http.StatusNotFound, "not found"), wantRemoved: true},
@@ -243,8 +250,10 @@ func TestHandleRead(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			client := unreachableClient(t)
-			if !tc.unreachable {
+			var client *config.MongoDBClient
+			if tc.unreachable {
+				client = unreachableClient(t)
+			} else {
 				client = testClient(t, tc.handler)
 			}
 			req, state, diags := testReadRequest(t, client)
