@@ -68,12 +68,16 @@ func TestAccMcpConfig_basic(t *testing.T) {
 				Config: configBasic(orgID, name2, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
 				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
 			},
+			{ // Change name keeping ip_access_list the same, plans ip + cidr, hook removes cidr.
+				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
+				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
+			},
 			{
-				Config: configBasic(orgID, name2, []string{"ORG_MEMBER"}, []ipAccessListEntry{{cidr: "203.0.113.0/24"}}),
+				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{cidr: "203.0.113.0/24"}}),
 				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{cidr: "203.0.113.0/24"}}),
 			},
 			{
-				Config: configBasic(orgID, name2, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}),
+				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}),
 				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}),
 			},
 			{

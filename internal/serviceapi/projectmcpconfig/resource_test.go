@@ -67,12 +67,16 @@ func TestAccProjectMcpConfig_basic(t *testing.T) {
 				Config: configBasic(projectID, name2, []string{"GROUP_OWNER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
 				Check:  checkBasic([]string{"GROUP_OWNER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
 			},
+			{ // Change name keeping ip_access_list the same, plans ip + cidr, hook removes cidr.
+				Config: configBasic(projectID, name1, []string{"GROUP_OWNER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
+				Check:  checkBasic([]string{"GROUP_OWNER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
+			},
 			{
-				Config: configBasic(projectID, name2, []string{"GROUP_OWNER"}, []ipAccessListEntry{{cidr: "203.0.113.0/24"}}),
+				Config: configBasic(projectID, name1, []string{"GROUP_OWNER"}, []ipAccessListEntry{{cidr: "203.0.113.0/24"}}),
 				Check:  checkBasic([]string{"GROUP_OWNER"}, []ipAccessListEntry{{cidr: "203.0.113.0/24"}}),
 			},
 			{
-				Config: configBasic(projectID, name2, []string{"GROUP_OWNER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}),
+				Config: configBasic(projectID, name1, []string{"GROUP_OWNER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}),
 				Check:  checkBasic([]string{"GROUP_OWNER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}),
 			},
 			{
