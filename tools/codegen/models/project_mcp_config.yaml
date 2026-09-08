@@ -12,6 +12,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          immutable_computed: true
         - string: {}
           description: Unique identifier for the egress Service Account client associated with this MCP configuration. This Service Account is managed by MongoDB Atlas.
           computed_optional_required: computed
@@ -23,6 +24,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          immutable_computed: true
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
           computed_optional_required: required

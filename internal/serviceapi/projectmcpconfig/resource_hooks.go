@@ -41,7 +41,7 @@ func (r *rs) ResourceSchema(ctx context.Context, s schema.Schema) schema.Schema 
 // the entry comes from the state and was not modified in the config, and sending ip_address or cidr_block is equivalent.
 func (r *rs) PreUpdateAPICall(callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte) {
 	var body map[string]any
-	if err := json.Unmarshal(bodyReq, &body); err != nil {
+	if err := autogen.Decode(bodyReq, &body); err != nil {
 		return callParams, bodyReq
 	}
 	entries, ok := body["ipAccessList"].([]any)

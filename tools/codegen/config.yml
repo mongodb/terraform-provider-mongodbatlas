@@ -1856,6 +1856,7 @@ resources:
       # Exposing them would require a plan modifier to mark them as unknown before every update.
       # This works fine but comes at the cost of extremely verbose and potentially confusing plans.
       # Customers can access these attributes through data sources.
+      # Any new computed attribute under ip_access_list should also be ignored.
       ignores: ["ip_access_list.created_at", "ip_access_list.last_used_address", "ip_access_list.last_used_at", "ip_access_list.request_count"]
       overrides:
         org_id:
@@ -1950,6 +1951,10 @@ resources:
         project_id:
           description: *project_id_description
         mcp_config_id:
+          immutable_computed: true
+        client_id:
+          immutable_computed: true
+        egress_client_id:
           immutable_computed: true
         ip_access_list:
           computability:

@@ -19,10 +19,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"client_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique identifier for the Service Account client associated with this MCP configuration. Use this Service Account to connect to the Atlas Remote MCP.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"egress_client_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique identifier for the egress Service Account client associated with this MCP configuration. This Service Account is managed by MongoDB Atlas.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
