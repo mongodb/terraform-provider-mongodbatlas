@@ -6,7 +6,9 @@ NOTES:
 
 FEATURES:
 
+* **New Data Source:** `data-source/mongodbatlas_org_delegation_settings` ([#4709](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4709))
 * **New Guide:** Adds guidance for migrating stream connections and processors from instance_name to workspace_name ([#4682](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4682))
+* **New Resource:** `resource/mongodbatlas_org_delegation_settings` ([#4709](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4709))
 
 ENHANCEMENTS:
 
