@@ -66,7 +66,11 @@ func TestAccSearchIndexAPI_withSynonymsUpdatedToEmpty(t *testing.T) {
 	})
 }
 
-func TestAccSearchIndexAPI_MappingWithAnalyzersUpdatedToEmptyAnalyzers(t *testing.T) {
+// TestAccSearchIndexAPI_mappingsAndAnalyzers consolidates the analyzers and mappings update scenarios in a
+// single index. Every step triggers a full index rebuild and all tests in this package share one execution
+// cluster, so separate test functions per scenario made concurrent builds queue on the cluster and exceed
+// the index build timeout on slow environments.
+func TestAccSearchIndexAPI_mappingsAndAnalyzers(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
@@ -80,15 +84,21 @@ func TestAccSearchIndexAPI_MappingWithAnalyzersUpdatedToEmptyAnalyzers(t *testin
 				Config: configFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, true),
 				Check:  checkFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, true),
 			},
-			{
+			{ // analyzers updated to empty
 				Config: configFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, false),
 				Check:  checkFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, false),
+			},
+			{ // mappings updated to empty mapping
+				Config: configBasic(projectID, clusterName, indexName),
+				Check:  checkBasic(projectID, clusterName, indexName),
 			},
 		},
 	})
 }
 
-func TestAccSearchIndexAPI_MappingsUpdatedToEmptyMapping(t *testing.T) {
+// TestAccSearchIndexAPI_storedSource consolidates the stored source and explicit type update scenarios in a
+// single index. See TestAccSearchIndexAPI_mappingsAndAnalyzers for the consolidation rationale.
+func TestAccSearchIndexAPI_storedSource(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
@@ -99,12 +109,20 @@ func TestAccSearchIndexAPI_MappingsUpdatedToEmptyMapping(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, false),
-				Check:  checkFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, false),
+				Config: configWithStoredSourceBool(projectID, clusterName, indexName, false),
+				Check:  checkStoredSourceBool(projectID, clusterName, indexName, false),
 			},
 			{
-				Config: configBasic(projectID, clusterName, indexName),
-				Check:  checkBasic(projectID, clusterName, indexName),
+				Config: configWithStoredSourceBool(projectID, clusterName, indexName, true),
+				Check:  checkStoredSourceBool(projectID, clusterName, indexName, true),
+			},
+			{
+				Config: configWithStoredSourceJSON(projectID, clusterName, indexName, `{"include":["include1","include2"]}`),
+				Check:  checkStoredSourceJSON(projectID, clusterName, indexName, `{"include":["include1","include2"]}`),
+			},
+			{ // stored source with explicit type
+				Config: configWithStoredSourceBoolAndType(projectID, clusterName, indexName, "search", false),
+				Check:  checkStoredSourceBool(projectID, clusterName, indexName, false),
 			},
 		},
 	})
@@ -149,64 +167,6 @@ func TestAccSearchIndexAPI_withVector(t *testing.T) {
 			{
 				Config: configVector(projectID, clusterName, indexName),
 				Check:  checkVector(projectID, clusterName, indexName),
-			},
-		},
-	})
-}
-
-func TestAccSearchIndexAPI_withStoredSourceBool(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ClusterNameExecution(t, true)
-		indexName              = acc.RandomName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithStoredSourceBool(projectID, clusterName, indexName, false),
-				Check:  checkStoredSourceBool(projectID, clusterName, indexName, false),
-			},
-			{
-				Config: configWithStoredSourceBool(projectID, clusterName, indexName, true),
-				Check:  checkStoredSourceBool(projectID, clusterName, indexName, true),
-			},
-		},
-	})
-}
-
-func TestAccSearchIndexAPI_withStoredSourceInclude(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ClusterNameExecution(t, true)
-		indexName              = acc.RandomName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithStoredSourceJSON(projectID, clusterName, indexName, `{"include":["include1","include2"]}`),
-				Check:  checkStoredSourceJSON(projectID, clusterName, indexName, `{"include":["include1","include2"]}`),
-			},
-		},
-	})
-}
-
-func TestAccSearchIndexAPI_withStoredSourceUpdateSearchType(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ClusterNameExecution(t, true)
-		indexName              = acc.RandomName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithStoredSourceBoolAndType(projectID, clusterName, indexName, "search", false),
-				Check:  checkStoredSourceBool(projectID, clusterName, indexName, false),
 			},
 		},
 	})
