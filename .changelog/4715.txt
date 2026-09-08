@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_advanced_cluster: Preserves the requested database edition when upgrading Free or Flex clusters to dedicated and forwards configured node counts for Free upgrades
+```
