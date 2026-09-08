@@ -233,14 +233,16 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	params := new(admin.GroupMaintenanceWindowPreviewUpdateRequest)
-	// TODO(CLOUDP-440317): omitting day_of_week/hour_of_day leaves them out of the PATCH rather than
-	// clearing them, so removing an existing schedule to go wave-only does not converge. Send them as
-	// explicit null (SetDayOfWeekNil/SetHourOfDayNil) once the API honors null unset (CLOUDP-439562).
+
 	if !d.GetRawConfig().GetAttr("day_of_week").IsNull() {
-		params.DayOfWeek = new(d.Get("day_of_week").(int))
+		params.SetDayOfWeek(d.Get("day_of_week").(int))
+	} else if d.HasChange("day_of_week") {
+		params.SetDayOfWeekNil()
 	}
 	if !d.GetRawConfig().GetAttr("hour_of_day").IsNull() {
-		params.HourOfDay = new(d.Get("hour_of_day").(int))
+		params.SetHourOfDay(d.Get("hour_of_day").(int))
+	} else if d.HasChange("hour_of_day") {
+		params.SetHourOfDayNil()
 	}
 
 	if d.HasChange("auto_defer_once_enabled") {

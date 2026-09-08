@@ -244,6 +244,20 @@ func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
 				),
 			},
 			{
+				// Transition from scheduled to wave-only: removing the schedule must clear it
+				Config: configWaveOnly(orgID, projectName, 2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "2"),
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", "0"),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", "0"),
+				),
+			},
+			{
+				Config:   configWaveOnly(orgID, projectName, 2),
+				PlanOnly: true,
+			},
+			{
 				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay, nil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
