@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_maintenance_window: Clears an existing maintenance schedule when transitioning to a wave-only configuration so the resource converges instead of drifting
-```
