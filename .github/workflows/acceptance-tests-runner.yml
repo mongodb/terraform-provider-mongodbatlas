@@ -232,6 +232,8 @@ env:
   # This is because each migration test creates a new SA token in the test first step as the previous provider runs externally (equivalent to running a Terraform command).
   ACCTEST_REGEX_RUN: ${{ inputs.test_name || inputs.use_sa == true && '^TestAcc' || inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
+  # Optional comma-separated list of Atlas regions for acceptance test helpers: first is the default, the rest are fallback candidates on OUT_OF_CAPACITY (CLOUDP-401312).
+  MONGODB_ATLAS_TEST_REGIONS: ${{ vars.MONGODB_ATLAS_TEST_REGIONS }}
   MONGODB_REALM_BASE_URL: ${{ inputs.mongodb_realm_base_url }}
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
   MONGODB_ATLAS_PUBLIC_KEY: ${{ inputs.use_sa != true && secrets.mongodb_atlas_public_key || '' }}
