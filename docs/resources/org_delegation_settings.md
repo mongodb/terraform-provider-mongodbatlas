@@ -64,7 +64,7 @@ output "org_delegation_settings_delegated_mcp_access_ds" {
 - `maximum_refresh_token_lifetime` (Number) Maximum lifetime of a refresh token in seconds, regardless of activity. Omit to leave unchanged; set to null to reset to the system default. Must be between 1 and 31536000 (1 year) when provided.
 
 ## Import
-Import the Delegation Settings resource by using the Organization ID, e.g.
+Import the Delegation Settings resource by using the Organization ID. For example:
 ```
 $ terraform import mongodbatlas_org_delegation_settings.example 1112222b3bf99403840e8934
 ```
