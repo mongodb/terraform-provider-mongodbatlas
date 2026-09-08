@@ -147,6 +147,14 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 			},
 			{
 				PreConfig: sleepForSettingsRateLimit,
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, &admin.OrganizationSettings{CustomSessionTimeouts: &admin.CustomSessionTimeouts{AbsoluteSessionTimeoutInSeconds: conversion.IntPtr(3600)}}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.absolute_session_timeout_in_seconds", "3600"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.idle_session_timeout_in_seconds", "0")),
+			},
+			{
+				PreConfig: sleepForSettingsRateLimit,
 				Config:    configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(settingsConfigUpdated, "test-updated@mongodb.com")),
 				Check: checkAggr(orgOwnerID, name, description, withOperationsContact(settingsConfigUpdated, "test-updated@mongodb.com"),
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "1"),
