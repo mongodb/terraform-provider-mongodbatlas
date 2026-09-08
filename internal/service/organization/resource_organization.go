@@ -114,14 +114,12 @@ func Resource() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"absolute_session_timeout_in_seconds": {
-							Type:             schema.TypeInt,
-							Optional:         true,
-							DiffSuppressFunc: sessionTimeoutDiffSuppress,
+							Type:     schema.TypeInt,
+							Optional: true,
 						},
 						"idle_session_timeout_in_seconds": {
-							Type:             schema.TypeInt,
-							Optional:         true,
-							DiffSuppressFunc: sessionTimeoutDiffSuppress,
+							Type:     schema.TypeInt,
+							Optional: true,
 						},
 					},
 				},
@@ -469,14 +467,6 @@ func flattenCustomSessionTimeouts(cst *admin.CustomSessionTimeouts) []any {
 		obj["idle_session_timeout_in_seconds"] = w
 	}
 	return []any{obj}
-}
-
-// sessionTimeoutDiffSuppress treats a state value of 0 as equal to an unset (null) config value for the
-// nested custom_session_timeouts children. SDKv2 materializes an omitted non-Computed TypeInt child as 0,
-// which would otherwise produce a perpetual state-only plan diff. A non-zero external value is not
-// suppressed, so drift on a value the user did not set still surfaces in the plan.
-func sessionTimeoutDiffSuppress(_, old, newVal string, _ *schema.ResourceData) bool {
-	return old == "0" && newVal == ""
 }
 
 func ValidateAPIKeyIsOrgOwner(roles []string) error {
