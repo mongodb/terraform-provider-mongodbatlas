@@ -15,6 +15,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/sdkv2config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -555,12 +556,12 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		policiesItem = append(policiesItem, *ExpandPolicyItems(v.([]any), Yearly)...)
 	}
 
-	if v, ok := d.GetOkExists("auto_export_enabled"); ok {
-		req.AutoExportEnabled = new(v.(bool))
+	if v := sdkv2config.Bool(d, "auto_export_enabled"); v.SetOrRemoved() {
+		req.AutoExportEnabled = new(v.ValueBool())
 	}
 
-	if _, ok := d.GetOkExists("copy_policy_items_enabled"); ok || d.HasChange("copy_policy_items_enabled") {
-		req.CopyPolicyItemsEnabled = new(d.Get("copy_policy_items_enabled").(bool))
+	if v := sdkv2config.Bool(d, "copy_policy_items_enabled"); v.SetOrRemoved() {
+		req.CopyPolicyItemsEnabled = new(v.ValueBool())
 	}
 
 	if v, ok := d.GetOk("export"); ok {
@@ -571,14 +572,14 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		req.UseOrgAndGroupNamesInExportPrefix = new(d.Get("use_org_and_group_names_in_export_prefix").(bool))
 	}
 
-	if v, ok := d.GetOkExists("reference_hour_of_day"); ok {
-		req.ReferenceHourOfDay = new(v.(int))
+	if v := sdkv2config.Int64(d, "reference_hour_of_day"); v.Set() {
+		req.ReferenceHourOfDay = new(int(v.ValueInt64()))
 	}
-	if v, ok := d.GetOkExists("reference_minute_of_hour"); ok {
-		req.ReferenceMinuteOfHour = new(v.(int))
+	if v := sdkv2config.Int64(d, "reference_minute_of_hour"); v.Set() {
+		req.ReferenceMinuteOfHour = new(int(v.ValueInt64()))
 	}
-	if v, ok := d.GetOkExists("restore_window_days"); ok {
-		req.RestoreWindowDays = new(v.(int))
+	if v := sdkv2config.Int64(d, "restore_window_days"); v.Set() {
+		req.RestoreWindowDays = new(int(v.ValueInt64()))
 	}
 
 	value := new(d.Get("update_snapshots").(bool))
@@ -614,11 +615,8 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 // CustomizeDiff clears copy_settings in the plan when the block is omitted, but d.Get at apply time
 // still returns the pre-plan entry; raw config is the apply-time source of truth for delete-on-omit.
 func copySettingsForUpdate(d *schema.ResourceData) ([]any, bool) {
-	rawConfig := d.GetRawConfig()
-	if rawConfig.IsKnown() && !rawConfig.IsNull() {
-		if copySettingsRawConfigEmpty(copySettingsFromRawConfig(rawConfig)) {
-			return []any{}, true
-		}
+	if sdkv2config.CollectionEmpty(d, "copy_settings") {
+		return []any{}, true
 	}
 	if d.HasChange("copy_settings") || d.HasChange("copy_settings.#") {
 		_, newVal := d.GetChange("copy_settings")

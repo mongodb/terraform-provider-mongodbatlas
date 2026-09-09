@@ -5,8 +5,9 @@ import (
 	"errors"
 	"maps"
 
-	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/sdkv2config"
 )
 
 const (
@@ -24,29 +25,14 @@ const (
 // after apply). SetNew only works on the top-level copy_settings list, so we rewrite the whole
 // block: force [] when raw config omits the list, and clear frequency sets when the flag is on.
 func resourceCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ any) error {
-	copySettingsRaw := copySettingsFromRawConfig(d.GetRawConfig())
-	if err := validateCopySettingsModes(d, copySettingsRaw); err != nil {
+	if err := validateCopySettingsModes(d); err != nil {
 		return err
 	}
 	// Optional+Computed would keep last state when HCL omits copy_settings. Force an empty list so delete-on-omit stays.
-	// Do not require Get() length > 0: omitted/unknown config makes Get() empty even though planned state would keep last copies.
-	if copySettingsRawConfigEmpty(copySettingsRaw) {
+	if sdkv2config.CollectionEmpty(d, "copy_settings") {
 		return d.SetNew("copy_settings", []any{})
 	}
 	return clearFrequenciesWhenCopyPolicyEnabled(d)
-}
-
-// copySettingsRawConfigEmpty reports whether HCL omitted copy_settings. Also used at apply time by copySettingsForUpdate.
-func copySettingsRawConfigEmpty(raw cty.Value) bool {
-	// Omitted Optional+Computed nested blocks arrive as unknown (computed from state), not as null.
-	return raw.IsNull() || !raw.IsKnown() || raw.LengthInt() == 0
-}
-
-func copySettingsFromRawConfig(rawConfig cty.Value) cty.Value {
-	if rawConfig.IsNull() || !rawConfig.IsKnown() {
-		return cty.NullVal(cty.DynamicPseudoType)
-	}
-	return rawConfig.GetAttr("copy_settings")
 }
 
 func clearFrequenciesWhenCopyPolicyEnabled(d *schema.ResourceDiff) error {
@@ -81,7 +67,7 @@ func copySettingsWithEmptyFrequencies(copySettings []any) ([]any, bool) {
 	return rewritten, changed
 }
 
-func validateCopySettingsModes(d *schema.ResourceDiff, copySettingsRaw cty.Value) error {
+func validateCopySettingsModes(d *schema.ResourceDiff) error {
 	enabled, _ := d.Get("copy_policy_items_enabled").(bool)
 	updateCopy, _ := d.Get("update_copy_snapshots").(bool)
 	deleteCopy, _ := d.Get("delete_copy_snapshots").(bool)
@@ -104,7 +90,8 @@ func validateCopySettingsModes(d *schema.ResourceDiff, copySettingsRaw cty.Value
 		hasLastN := lastN > 0
 
 		modeCount := 0
-		if copySettingsEntryHasExplicitFrequencies(copySettingsRaw, i) {
+		// Raw config only: d.Get frequencies can still be leftover Optional+Computed state.
+		if sdkv2config.NestedCollectionLen(d, "copy_settings", i, "frequencies") > 0 {
 			modeCount++
 		}
 		if hasItems {
@@ -125,31 +112,6 @@ func validateCopySettingsModes(d *schema.ResourceDiff, copySettingsRaw cty.Value
 		}
 	}
 	return nil
-}
-
-// copySettingsEntryHasExplicitFrequencies reports frequencies the user set in HCL.
-// d.Get("copy_settings") also carries Optional+Computed frequencies from prior state when switching
-// to copy_policy_items or last_number_of_snapshots in one apply; those leftovers are cleared later
-// and must not count as a second mode.
-func copySettingsEntryHasExplicitFrequencies(raw cty.Value, index int) bool {
-	if raw.IsNull() || !raw.IsKnown() || index < 0 || index >= raw.LengthInt() {
-		return false
-	}
-	entry := raw.Index(cty.NumberIntVal(int64(index)))
-	if !entry.Type().IsObjectType() {
-		return false
-	}
-	if _, ok := entry.Type().AttributeTypes()["frequencies"]; !ok {
-		return false
-	}
-	return knownCollectionLen(entry.GetAttr("frequencies")) > 0
-}
-
-func knownCollectionLen(v cty.Value) int {
-	if v.IsNull() || !v.IsKnown() {
-		return 0
-	}
-	return v.LengthInt()
 }
 
 func collectionLen(v any) int {
