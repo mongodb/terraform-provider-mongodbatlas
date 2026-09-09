@@ -3,11 +3,9 @@ package advancedcluster
 import (
 	"context"
 	"slices"
-	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
@@ -28,6 +26,19 @@ var (
 		"disk_iops":     {"oplog_size_mb"},
 		"disk_size_gb":  {"oplog_size_mb"},
 		"instance_size": {"oplog_size_mb"},
+	}
+
+	// Volatile attributes, should not be copied from state as Atlas can change them on its own. Being
+	// Computed without Optional is necessary but not sufficient, so this list stays a deliberate choice.
+	volatileAttributes = []string{"connection_strings", "state_name", "mongo_db_version", "config_server_type"}
+
+	// Attributes that are Optional without Computed, so their value can only come from the configuration.
+	// An unknown one is an expression that is not resolved yet, for example a module output, and copying
+	// the state over it makes the plan contradict the configuration. Add new ones here:
+	// TestKeepUnknownAttributeLists fails when the schema and this list disagree.
+	configOnlyAttributes = []string{
+		"accept_data_risks_and_force_replica_set_reconfig", "adaptive_capacity", "backing_provider_name",
+		"labels", "pinned_fcv", "retain_backups_enabled", "tags", "timeouts", "use_effective_fields",
 	}
 )
 
@@ -61,47 +72,11 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 		return
 	}
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
-	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version", "config_server_type"} // Volatile attributes, should not be copied from state
+	keepUnknown := slices.Clone(volatileAttributes)
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
-	keepUnknown = append(keepUnknown, optionalOnlyAttributes(ctx)...)
+	keepUnknown = append(keepUnknown, configOnlyAttributes...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
-}
-
-var (
-	optionalOnlyOnce  sync.Once
-	optionalOnlyNames []string
-)
-
-// optionalOnlyAttributes returns the attribute names that are Optional without Computed, at any nesting
-// level. Their value can only come from the configuration, so an unknown one is an expression that is not
-// resolved yet, for example a module output. Copying the state value over it would make the plan contradict
-// the configuration, which Terraform rejects as an invalid plan. A known value is never copied over, so
-// keeping these names unknown is only relevant while the expression is unresolved.
-func optionalOnlyAttributes(ctx context.Context) []string {
-	optionalOnlyOnce.Do(func() {
-		optionalOnlyNames = collectOptionalOnlyAttributes(resourceSchema(ctx).Attributes)
-		slices.Sort(optionalOnlyNames)
-	})
-	return optionalOnlyNames
-}
-
-func collectOptionalOnlyAttributes(attributes map[string]schema.Attribute) []string {
-	var names []string
-	for name, attribute := range attributes {
-		if attribute.IsOptional() && !attribute.IsComputed() {
-			names = append(names, name)
-		}
-		switch nested := attribute.(type) {
-		case schema.SingleNestedAttribute:
-			names = append(names, collectOptionalOnlyAttributes(nested.Attributes)...)
-		case schema.ListNestedAttribute:
-			names = append(names, collectOptionalOnlyAttributes(nested.NestedObject.Attributes)...)
-		case schema.SetNestedAttribute:
-			names = append(names, collectOptionalOnlyAttributes(nested.NestedObject.Attributes)...)
-		}
-	}
-	return names
 }
 
 // adjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
