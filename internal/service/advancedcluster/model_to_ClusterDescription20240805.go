@@ -88,7 +88,7 @@ func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnos
 }
 
 func newComponentLabel(ctx context.Context, diags *diag.Diagnostics, input types.Map) *[]admin.ComponentLabel {
-	if input.IsUnknown() { // an unresolved expression has no elements to convert or send
+	if input.IsUnknown() { // An unresolved expression has no elements to convert or send.
 		return nil
 	}
 	elms := make(map[string]types.String, len(input.Elements()))
@@ -142,7 +142,7 @@ func resolveZoneNameOrUseDefault(item *TFReplicationSpecsModel) string {
 }
 
 func newResourceTag(ctx context.Context, diags *diag.Diagnostics, input types.Map) *[]admin.ResourceTag {
-	if input.IsUnknown() { // an unresolved expression has no elements to convert or send
+	if input.IsUnknown() { // An unresolved expression has no elements to convert or send.
 		return nil
 	}
 	elms := make(map[string]types.String, len(input.Elements()))

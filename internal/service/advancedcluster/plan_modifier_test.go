@@ -47,6 +47,16 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 				},
 			},
 			{
+				// The tags and labels attributes are Optional without Computed, so an unresolved
+				// expression must stay unknown instead of being replaced by the state value.
+				ConfigFilename: "main_unresolved_tags_and_labels.tf",
+				Checks: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("tags")),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("labels")),
+				},
+			},
+			{
 				ConfigFilename: "main_node_count_unknown.tf",
 				Checks: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
