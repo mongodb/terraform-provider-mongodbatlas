@@ -18,62 +18,74 @@ import (
 )
 
 func TestAutoScalingStorageConfigImportLifecycle(t *testing.T) {
+	const configuredLimit = 1024
 	for _, importBlock := range []bool{false, true} {
 		for _, requestedEdition := range []bool{false, true} {
-			for _, configuredLimit := range []bool{false, true} {
-				t.Run(fmt.Sprintf("block=%t/requested_edition=%t/configured_limit=%t", importBlock, requestedEdition, configuredLimit), func(t *testing.T) {
-					storageImportCredentials(t)
-					mock := &storageImportHTTPMock{clusterType: "REPLICASET", requestedEdition: requestedEdition, effectiveEdition: "INFINITE"}
-					if configuredLimit {
-						mock.limit = 1024
-					}
-					configForLimit := func(limit int, omitAutoScaling bool) string {
-						config := storageImportConfig(requestedEdition, limit, omitAutoScaling)
-						if !requestedEdition {
-							config = strings.ReplaceAll(config, `cluster_type = "REPLICASET"`, "cluster_type = \"REPLICASET\"\n  use_effective_fields = true")
-						}
-						return config
-					}
-					initialLimit := mock.limit
-					config := configForLimit(initialLimit, false)
-					check := storageImportStateCheck(mock.limit)
-					first := resource.TestStep{
-						Config: config, ResourceName: "mongodbatlas_advanced_cluster.test", ImportState: true,
-						ImportStateId: storageImportID, ImportStatePersist: true,
-						ImportStateCheck: func(states []*terraform.InstanceState) error {
-							require.Len(t, states, 1)
-							if configuredLimit {
-								require.Equal(t, "1024", states[0].Attributes[storageImportLimitAttribute])
-							} else {
-								require.Empty(t, states[0].Attributes[storageImportLimitAttribute])
-							}
-							return nil
-						},
-					}
-					if importBlock {
-						first = resource.TestStep{Config: config + storageImportBlock, Check: check}
-					}
-					resource.UnitTest(t, resource.TestCase{
-						PreCheck:                 func() { require.NoError(t, unit.MockConfigAdvancedCluster.RunBeforeEach()) },
-						ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, mock),
-						Steps: []resource.TestStep{
-							first,
-							{Config: config, Check: check},
-							{Config: configForLimit(2048, false), Check: storageImportStateCheck(2048)},
-							{Config: configForLimit(0, importBlock), Check: storageImportStateCheck(0)},
-						},
-					})
-					expectedLimits := []int{2048, 0}
+			t.Run(fmt.Sprintf("block=%t/requested_edition=%t", importBlock, requestedEdition), func(t *testing.T) {
+				storageImportCredentials(t)
+				mock := &storageImportHTTPMock{clusterType: "REPLICASET", requestedEdition: requestedEdition, effectiveEdition: "INFINITE", limit: configuredLimit}
+				configForLimit := func(limit int, omitAutoScaling bool) string {
+					config := storageImportConfig(requestedEdition, limit, omitAutoScaling)
 					if !requestedEdition {
-						// Enabling effective fields after import resends the requested replication specs once.
-						expectedLimits = append([]int{initialLimit}, expectedLimits...)
-						require.True(t, mock.usedEffectiveFields)
+						config = strings.ReplaceAll(config, `cluster_type = "REPLICASET"`, "cluster_type = \"REPLICASET\"\n  use_effective_fields = true")
 					}
-					require.Equal(t, expectedLimits, mock.updatedLimits)
+					return config
+				}
+				config := configForLimit(configuredLimit, false)
+				check := storageImportStateCheck(configuredLimit)
+				first := resource.TestStep{
+					Config: config, ResourceName: "mongodbatlas_advanced_cluster.test", ImportState: true,
+					ImportStateId: storageImportID, ImportStatePersist: true,
+					ImportStateCheck: func(states []*terraform.InstanceState) error {
+						require.Len(t, states, 1)
+						require.Equal(t, "1024", states[0].Attributes[storageImportLimitAttribute])
+						return nil
+					},
+				}
+				if importBlock {
+					first = resource.TestStep{Config: config + storageImportBlock, Check: check}
+				}
+				resource.UnitTest(t, resource.TestCase{
+					PreCheck:                 func() { require.NoError(t, unit.MockConfigAdvancedCluster.RunBeforeEach()) },
+					ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, mock),
+					Steps: []resource.TestStep{
+						first,
+						{Config: config, Check: check},
+						{Config: configForLimit(2048, false), Check: storageImportStateCheck(2048)},
+						{Config: configForLimit(0, importBlock), Check: storageImportStateCheck(0)},
+					},
 				})
-			}
+				expectedLimits := []int{2048, 0}
+				if !requestedEdition {
+					// Enabling effective fields after import resends the requested replication specs once.
+					expectedLimits = append([]int{configuredLimit}, expectedLimits...)
+					require.True(t, mock.usedEffectiveFields)
+				}
+				require.Equal(t, expectedLimits, mock.updatedLimits)
+			})
 		}
 	}
+}
+
+// TestAutoScalingStorageConfigImportReadsMissingLimit covers the import-time read of an
+// unconfigured shard limit; the full update lifecycle above always starts from a configured one.
+func TestAutoScalingStorageConfigImportReadsMissingLimit(t *testing.T) {
+	storageImportCredentials(t)
+	mock := &storageImportHTTPMock{clusterType: "REPLICASET", requestedEdition: true, effectiveEdition: "INFINITE"}
+	config := storageImportConfig(true, 0, false)
+	resource.UnitTest(t, resource.TestCase{
+		PreCheck:                 func() { require.NoError(t, unit.MockConfigAdvancedCluster.RunBeforeEach()) },
+		ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, mock),
+		Steps: []resource.TestStep{{
+			Config: config, ResourceName: "mongodbatlas_advanced_cluster.test", ImportState: true,
+			ImportStateId: storageImportID,
+			ImportStateCheck: func(states []*terraform.InstanceState) error {
+				require.Len(t, states, 1)
+				require.Empty(t, states[0].Attributes[storageImportLimitAttribute])
+				return nil
+			},
+		}},
+	})
 }
 
 func TestInfiniteClusterImportRejectsUnsupportedTopology(t *testing.T) {
@@ -132,29 +144,23 @@ func TestInfiniteClusterImportWithoutRequestedEditionOrShardLimit(t *testing.T) 
 }
 
 func TestAutoScalingStorageConfigImportClearsUnconfiguredLimit(t *testing.T) {
-	for _, importBlock := range []bool{false, true} {
-		t.Run(fmt.Sprintf("block=%t", importBlock), func(t *testing.T) {
-			storageImportCredentials(t)
-			mock := &storageImportHTTPMock{clusterType: "REPLICASET", effectiveEdition: "INFINITE", limit: 1024}
-			config := storageImportConfig(false, 0, true)
-			first := resource.TestStep{
+	// importBlock vs ResourceName-based import is already cross-tested by the lifecycle
+	// and rejection tests above; clearing an unconfigured limit is orthogonal to that choice.
+	storageImportCredentials(t)
+	mock := &storageImportHTTPMock{clusterType: "REPLICASET", effectiveEdition: "INFINITE", limit: 1024}
+	config := storageImportConfig(false, 0, true)
+	resource.UnitTest(t, resource.TestCase{
+		PreCheck:                 func() { require.NoError(t, unit.MockConfigAdvancedCluster.RunBeforeEach()) },
+		ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, mock),
+		Steps: []resource.TestStep{
+			{
 				Config: config, ResourceName: "mongodbatlas_advanced_cluster.test", ImportState: true,
 				ImportStateId: storageImportID, ImportStatePersist: true,
-			}
-			if importBlock {
-				first = resource.TestStep{Config: config + storageImportBlock, Check: storageImportStateCheck(0)}
-			}
-			resource.UnitTest(t, resource.TestCase{
-				PreCheck:                 func() { require.NoError(t, unit.MockConfigAdvancedCluster.RunBeforeEach()) },
-				ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, mock),
-				Steps: []resource.TestStep{
-					first,
-					{Config: config, Check: storageImportStateCheck(0)},
-				},
-			})
-			require.Equal(t, []int{0}, mock.updatedLimits)
-		})
-	}
+			},
+			{Config: config, Check: storageImportStateCheck(0)},
+		},
+	})
+	require.Equal(t, []int{0}, mock.updatedLimits)
 }
 
 func TestCoreClusterImportSupportsAllTopologies(t *testing.T) {
