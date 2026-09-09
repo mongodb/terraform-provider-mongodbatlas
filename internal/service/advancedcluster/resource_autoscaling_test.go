@@ -216,84 +216,6 @@ func TestUpdateRemovesShardSizeLimitPreservesPlannedValues(t *testing.T) {
 	}
 }
 
-func TestUpdateRemovesShardSizeLimitAcrossReplicationSpecs(t *testing.T) {
-	ctx := t.Context()
-	r := advancedcluster.Resource()
-	var schemaResp resource.SchemaResponse
-	r.Schema(ctx, resource.SchemaRequest{}, &schemaResp)
-	typ := schemaResp.Schema.Type().TerraformType(ctx)
-	// This exercises request construction; Atlas does not yet support Infinite geosharded clusters.
-	model := func(withStorage bool) tfsdk.Plan {
-		var specs []any
-		for _, spec := range []struct {
-			zoneName, instanceSize string
-			regions                []string
-			nodeCount              int64
-		}{
-			{"US zone", "M10", []string{"US_EAST_1", "US_WEST_2"}, 2},
-			{"EU zone", "M20", []string{"EU_WEST_1"}, 3},
-		} {
-			var regions []any
-			for i, regionName := range spec.regions {
-				region := map[string]any{
-					"provider_name": "AWS", "region_name": regionName, "priority": int64(7 - i),
-					"electable_specs": map[string]any{"instance_size": spec.instanceSize, "node_count": spec.nodeCount},
-					"read_only_specs": map[string]any{"instance_size": spec.instanceSize, "node_count": int64(0)},
-					"analytics_specs": map[string]any{"instance_size": spec.instanceSize, "node_count": int64(0)},
-				}
-				if withStorage {
-					region["auto_scaling"] = map[string]any{"storage_config": map[string]any{"shard_size_limit_gb": int64(1024)}}
-				}
-				regions = append(regions, region)
-			}
-			specs = append(specs, map[string]any{
-				"region_configs": regions, "zone_name": spec.zoneName,
-			})
-		}
-		return tfsdk.Plan{Schema: schemaResp.Schema, Raw: planTestValue(typ, map[string]any{
-			"name": "example", "project_id": dummyProjectID, "cluster_type": "GEOSHARDED", "database_edition": "INFINITE",
-			"replication_specs": specs,
-		})}
-	}
-	api := mockadmin.NewClustersAPI(t)
-	r.(config.ImplementedResource).SetClient(&config.MongoDBClient{AtlasV2: &admin.APIClient{ClustersAPI: api}})
-	api.On("UpdateCluster", mock.Anything, dummyProjectID, "example", mock.Anything).Run(func(args mock.Arguments) {
-		encoded, err := json.Marshal(args[3].(*admin.ClusterDescription20240805))
-		require.NoError(t, err)
-		require.JSONEq(t, `{"replicationSpecs":[{
-			"zoneName":"US zone",
-			"regionConfigs":[{
-				"providerName":"AWS","regionName":"US_EAST_1","priority":7,
-				"electableSpecs":{"instanceSize":"M10","nodeCount":2},
-				"readOnlySpecs":{"instanceSize":"M10","nodeCount":0},
-				"analyticsSpecs":{"instanceSize":"M10","nodeCount":0}
-			},{
-				"providerName":"AWS","regionName":"US_WEST_2","priority":6,
-				"electableSpecs":{"instanceSize":"M10","nodeCount":2},
-				"readOnlySpecs":{"instanceSize":"M10","nodeCount":0},
-				"analyticsSpecs":{"instanceSize":"M10","nodeCount":0}
-			}]
-		},{
-			"zoneName":"EU zone",
-			"regionConfigs":[{
-				"providerName":"AWS","regionName":"EU_WEST_1","priority":7,
-				"electableSpecs":{"instanceSize":"M20","nodeCount":3},
-				"readOnlySpecs":{"instanceSize":"M20","nodeCount":0},
-				"analyticsSpecs":{"instanceSize":"M20","nodeCount":0}
-			}]
-		}]}`, string(encoded))
-	}).Return(admin.UpdateClusterApiRequest{ApiService: api}).Once()
-	apiError := errors.New("request inspected")
-	api.EXPECT().UpdateClusterExecute(mock.Anything).Return(nil, nil, apiError).Once()
-	prior, plan := model(true), model(false)
-	var resp resource.UpdateResponse
-	r.Update(ctx, resource.UpdateRequest{
-		Plan: plan, State: tfsdk.State{Schema: schemaResp.Schema, Raw: prior.Raw},
-	}, &resp)
-	require.Len(t, resp.Diagnostics.Errors(), 1)
-	require.Contains(t, resp.Diagnostics.Errors()[0].Detail(), apiError.Error())
-}
-
 func TestAutoScalingRequest(t *testing.T) {
 	testCases := map[string]struct {
 		edition           string
@@ -301,14 +223,14 @@ func TestAutoScalingRequest(t *testing.T) {
 		expected          string
 		expectedAnalytics string
 	}{
-		"Infinite compute only":              {"INFINITE", map[string]any{"compute_enabled": true, "compute_max_instance_size": "M20"}, `{"compute":{"enabled":true,"maxInstanceSize":"M20"}}`, ""},
-		"Infinite disabled compute":          {"INFINITE", map[string]any{"compute_enabled": false}, `{"compute":{"enabled":false}}`, ""},
-		"Infinite empty auto scaling":        {"INFINITE", map[string]any{}, `{}`, ""},
-		"Infinite omitted auto scaling":      {"INFINITE", nil, `null`, ""},
-		"Infinite disk true reaches server":  {"INFINITE", map[string]any{"disk_gb_enabled": true}, `{"diskGB":{"enabled":true}}`, ""},
-		"Infinite disk false reaches server": {"INFINITE", map[string]any{"disk_gb_enabled": false}, `{"diskGB":{"enabled":false}}`, ""},
-		"CORE keeps empty disk":              {"CORE", map[string]any{"compute_enabled": true, "compute_max_instance_size": "M20"}, `{"compute":{"enabled":true,"maxInstanceSize":"M20"},"diskGB":{}}`, ""},
-		"default edition keeps empty disk":   {"", map[string]any{"compute_enabled": true, "compute_max_instance_size": "M20"}, `{"compute":{"enabled":true,"maxInstanceSize":"M20"},"diskGB":{}}`, ""},
+		"Infinite compute only":                 {"INFINITE", map[string]any{"compute_enabled": true, "compute_max_instance_size": "M20"}, `{"compute":{"enabled":true,"maxInstanceSize":"M20"}}`, ""},
+		"Infinite disabled compute":             {"INFINITE", map[string]any{"compute_enabled": false}, `{"compute":{"enabled":false}}`, ""},
+		"Infinite empty auto scaling":           {"INFINITE", map[string]any{}, `{}`, ""},
+		"Infinite omitted auto scaling":         {"INFINITE", nil, `null`, ""},
+		"Infinite disk true reaches server":     {"INFINITE", map[string]any{"disk_gb_enabled": true}, `{"diskGB":{"enabled":true}}`, ""},
+		"Infinite disk false reaches server":    {"INFINITE", map[string]any{"disk_gb_enabled": false}, `{"diskGB":{"enabled":false}}`, ""},
+		"CORE keeps empty disk":                 {"CORE", map[string]any{"compute_enabled": true, "compute_max_instance_size": "M20"}, `{"compute":{"enabled":true,"maxInstanceSize":"M20"},"diskGB":{}}`, ""},
+		"default CORE edition keeps empty disk": {"", map[string]any{"compute_enabled": true, "compute_max_instance_size": "M20"}, `{"compute":{"enabled":true,"maxInstanceSize":"M20"},"diskGB":{}}`, ""},
 		"Infinite compute with storage": {
 			edition: "INFINITE",
 			settings: map[string]any{
@@ -381,6 +303,12 @@ func TestAutoScalingRequest(t *testing.T) {
 					require.Len(t, resp.Diagnostics.Errors(), 1)
 					require.Contains(t, resp.Diagnostics.Errors()[0].Detail(), apiError.Error())
 				} else {
+					if tc.edition == "" {
+						api.EXPECT().GetCluster(mock.Anything, dummyProjectID, "example").Return(admin.GetClusterApiRequest{ApiService: api}).Once()
+						api.EXPECT().GetClusterExecute(mock.Anything).Return(&admin.ClusterDescription20240805{
+							ClusterType: new("REPLICASET"), EffectiveDatabaseEdition: new("CORE"),
+						}, nil, nil).Once()
+					}
 					api.On("UpdateCluster", mock.Anything, dummyProjectID, "example", mock.Anything).Run(checkPayload).
 						Return(admin.UpdateClusterApiRequest{ApiService: api}).Once()
 					api.EXPECT().UpdateClusterExecute(mock.Anything).Return(nil, nil, apiError).Once()

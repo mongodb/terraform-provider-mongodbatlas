@@ -51,7 +51,7 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		AdaptiveCapacity:                              conversion.NilForUnknown(input.AdaptiveCapacity, input.AdaptiveCapacity.ValueStringPointer()),
 		AdvancedConfiguration:                         newClusterAdvancedConfiguration(ctx, &input.AdvancedConfiguration, diags),
 	}
-	// Imported Infinite clusters can lack databaseEdition, so a shard limit also triggers cleanup.
+	// A shard limit also triggers cleanup when the requested databaseEdition is absent.
 	if result.GetDatabaseEdition() == "INFINITE" || hasShardSizeLimit(result.GetReplicationSpecs()) {
 		omitEmptyAutoScalingChildren(result.GetReplicationSpecs())
 	}

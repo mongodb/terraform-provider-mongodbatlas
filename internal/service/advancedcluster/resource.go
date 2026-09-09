@@ -80,12 +80,22 @@ type rs struct {
 // 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
 // 2. Adding the different UseStateForUnknown is very verbose.
 func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update
+	if req.Plan.Raw.IsNull() {
 		return
 	}
-	var plan, state TFModel
+	var plan TFModel
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
+	validateInfiniteClusterType(diags, plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), "")
+	if diags.HasError() || req.State.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update.
+		return
+	}
+	// Wait for configured expressions to resolve before copying state into unknown plan values.
+	// Otherwise an old value can conflict with the configuration resolved during apply.
+	if !req.Config.Raw.IsFullyKnown() {
+		return
+	}
+	var state TFModel
 	diags.Append(req.State.Get(ctx, &state)...)
 	if diags.HasError() {
 		return
@@ -113,6 +123,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	var plan TFModel
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
+	validateInfiniteClusterType(diags, plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), "")
 	if diags.HasError() {
 		return
 	}
@@ -149,6 +160,23 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	clusterResp := createCluster(ctx, diags, r.Client, latestReq, waitParams)
+	if diags.HasError() {
+		return
+	}
+	var editionDiags diag.Diagnostics
+	validateInfiniteClusterType(&editionDiags, clusterResp.GetClusterType(), clusterResp.GetDatabaseEdition(), clusterResp.GetEffectiveDatabaseEdition())
+	if editionDiags.HasError() {
+		// Atlas chooses the edition when it is omitted. Retain a newly created unsupported
+		// cluster in state for cleanup, and stop before additional configuration writes.
+		modelOut := newTFModel(ctx, clusterResp, diags, nil)
+		if !diags.HasError() {
+			modelOut.AdvancedConfiguration = types.ObjectNull(advancedConfigurationObjType.AttrTypes)
+			OverrideAttributesWithPrevStateValue(&plan, modelOut, diags)
+			diags.Append(resp.State.Set(ctx, modelOut)...)
+		}
+		diags.Append(editionDiags...)
+		return
+	}
 
 	emptyAdvancedConfiguration := types.ObjectNull(advancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadCluster(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
@@ -233,7 +261,22 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
+	validateInfiniteClusterType(diags, plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), "")
+	if !diags.HasError() {
+		validateInfiniteClusterType(diags, plan.ClusterType.ValueString(), state.DatabaseEdition.ValueString(), "")
+	}
+	if diags.HasError() {
+		return
+	}
 	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
+	if diags.HasError() {
+		return
+	}
+	diff := findClusterDiff(ctx, &state, &plan, diags)
+	if diags.HasError() {
+		return
+	}
+	r.prepareUpdateDatabaseEdition(ctx, diags, &state, &plan, diff.clusterPatchOnlyReq)
 	if diags.HasError() {
 		return
 	}
@@ -244,32 +287,26 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	{
-		diff := findClusterDiff(ctx, &state, &plan, diags)
-		if diags.HasError() {
-			return
+	switch {
+	case diff.isUpgradeTenantToFlex:
+		if flexOut := handleFlexUpgrade(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
+			diags.Append(resp.State.Set(ctx, flexOut)...)
 		}
-		switch {
-		case diff.isUpgradeTenantToFlex:
-			if flexOut := handleFlexUpgrade(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
-				diags.Append(resp.State.Set(ctx, flexOut)...)
-			}
-			return
-		case diff.isUpdateOfFlex:
-			if flexOut := handleFlexUpdate(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
-				diags.Append(resp.State.Set(ctx, flexOut)...)
-			}
-			return
-		case diff.upgradeFlexToDedicatedReq != nil:
-			clusterResp = upgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
-		case diff.upgradeTenantReq != nil:
-			clusterResp = upgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
-		case diff.clusterPatchOnlyReq != nil:
-			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
+		return
+	case diff.isUpdateOfFlex:
+		if flexOut := handleFlexUpdate(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
+			diags.Append(resp.State.Set(ctx, flexOut)...)
 		}
-		if diags.HasError() {
-			return
-		}
+		return
+	case diff.upgradeFlexToDedicatedReq != nil:
+		clusterResp = upgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
+	case diff.upgradeTenantReq != nil:
+		clusterResp = upgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
+	case diff.clusterPatchOnlyReq != nil:
+		clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
+	}
+	if diags.HasError() {
+		return
 	}
 	// adaptive_capacity removed from config: needs special handling, see clearAdaptiveCapacity.
 	if !plan.AdaptiveCapacity.Equal(state.AdaptiveCapacity) && plan.AdaptiveCapacity.IsNull() {
@@ -406,6 +443,10 @@ func clearAdaptiveCapacity(ctx context.Context, diags *diag.Diagnostics, client 
 }
 
 func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
+	validateInfiniteClusterType(diags, clusterResp.GetClusterType(), clusterResp.GetDatabaseEdition(), clusterResp.GetEffectiveDatabaseEdition())
+	if diags.HasError() {
+		return nil
+	}
 	containerIDs := resolveContainerIDsOrError(ctx, diags, clusterResp, client.AtlasV2.NetworkPeeringAPI)
 	if diags.HasError() {
 		return nil
@@ -464,6 +505,11 @@ func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	clusterResp := AwaitChanges(ctx, client, waitParams, operationCreate, diags)
 	if diags.HasError() {
 		return nil
+	}
+	var editionDiags diag.Diagnostics
+	validateInfiniteClusterType(&editionDiags, clusterResp.GetClusterType(), clusterResp.GetDatabaseEdition(), clusterResp.GetEffectiveDatabaseEdition())
+	if editionDiags.HasError() {
+		return clusterResp
 	}
 	if pauseAfter {
 		clusterResp = updateCluster(ctx, diags, client, &pauseRequest, waitParams, operationPauseAfterCreate)
