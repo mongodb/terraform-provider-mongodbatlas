@@ -1837,6 +1837,43 @@ resources:
           project_id:
             description: *project_id_description
 
+  org_delegation_settings:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/delegationSettings
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/delegationSettings
+      method: PATCH
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/delegationSettings
+      method: PATCH
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      overrides:
+        org_id:
+          description: *org_id_description
+        delegated_mcp_access:
+          computability:
+            optional: true
+            computed: true
+        delegated_partner_access:
+          computability:
+            optional: true
+            computed: true
+        # Atlas resets these attributes to the system default when null is sent on update.
+        idle_refresh_token_lifetime:
+          request_body_usage: send_null_as_null_on_update
+        maximum_refresh_token_lifetime:
+          request_body_usage: send_null_as_null_on_update
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/delegationSettings
+        method: GET
+      schema:
+        overrides:
+          org_id:
+            description: *org_id_description
+
   mcp_config:
     read:
       path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
