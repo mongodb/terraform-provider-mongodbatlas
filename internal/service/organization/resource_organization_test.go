@@ -139,6 +139,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
+				// Create the org with both timeouts configured (3600 / 300).
 				Config: configWithSettings(orgOwnerID, name, description, roleName, settingsConfig),
 				Check: checkAggr(orgOwnerID, name, description, settingsConfig,
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "1"),
@@ -146,14 +147,16 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.idle_session_timeout_in_seconds", "300")),
 			},
 			{
+				// Remove only the idle timeout: the block stays with absolute 3600 and idle returns as 0.
 				PreConfig: sleepForSettingsRateLimit,
-				Config:    configWithSettings(orgOwnerID, name, description, roleName, &admin.OrganizationSettings{CustomSessionTimeouts: &admin.CustomSessionTimeouts{AbsoluteSessionTimeoutInSeconds: conversion.IntPtr(3600)}}),
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, withTimeouts(&admin.OrganizationSettings{}, conversion.IntPtr(3600), nil)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.absolute_session_timeout_in_seconds", "3600"),
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.idle_session_timeout_in_seconds", "0")),
 			},
 			{
+				// Update both timeouts to 7200 / 600 and re-set the operations contact.
 				PreConfig: sleepForSettingsRateLimit,
 				Config:    configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(settingsConfigUpdated, "test-updated@mongodb.com")),
 				Check: checkAggr(orgOwnerID, name, description, withOperationsContact(settingsConfigUpdated, "test-updated@mongodb.com"),
@@ -162,11 +165,13 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.idle_session_timeout_in_seconds", "600")),
 			},
 			{
+				// Drop the operations contact (settingsConfigUpdated has none set).
 				PreConfig: sleepForSettingsRateLimit,
 				Config:    configWithSettings(orgOwnerID, name, description, roleName, settingsConfigUpdated),
 				Check:     checkAggr(orgOwnerID, name, description, settingsConfigUpdated),
 			},
 			{
+				// Remove the settings block and rename the org: timeouts clear to 0 items.
 				PreConfig: sleepForSettingsRateLimit,
 				Config:    configBasic(orgOwnerID, nameUpdated, description, roleName, false, nil),
 				Check: checkAggr(orgOwnerID, nameUpdated, description, settingsConfigUpdated,
@@ -174,22 +179,40 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "0")),
 			},
 			{
+				// Re-add only the absolute timeout after the block was removed.
 				PreConfig: sleepForSettingsRateLimit,
-				Config:    configWithSettings(orgOwnerID, nameUpdated, description, roleName, &admin.OrganizationSettings{CustomSessionTimeouts: &admin.CustomSessionTimeouts{AbsoluteSessionTimeoutInSeconds: conversion.IntPtr(3600)}}),
+				Config:    configWithSettings(orgOwnerID, nameUpdated, description, roleName, withTimeouts(&admin.OrganizationSettings{}, conversion.IntPtr(3600), nil)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.absolute_session_timeout_in_seconds", "3600")),
 			},
 			{
-				// Re-set operations_contact to a real value so the following empty-string step is a real change.
+				// Re-set the operations contact so the following empty-string step is a real change.
 				PreConfig: sleepForSettingsRateLimit,
 				Config:    configWithSettings(orgOwnerID, nameUpdated, description, roleName, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
 				Check:     resource.TestCheckResourceAttr(resourceName, "operations_contact", "test-updated@mongodb.com"),
 			},
 			{
+				// An empty-string operations contact is rejected by the API.
 				PreConfig:   sleepForSettingsRateLimit,
 				Config:      configWithSettings(orgOwnerID, nameUpdated, description, roleName, withOperationsContact(settingsConfig, "")),
 				ExpectError: regexp.MustCompile(`INVALID_OPERATIONS_CONTACT_EMAIL`),
+			},
+			{
+				// Reset both timeouts with an empty block (both children null): the API resets both and
+				// returns the field as absent, so state converges to 0 items (see
+				// customSessionTimeoutsEmptyBlockSuppress). This shape used to re-propose the 1 -> 0 count diff.
+				PreConfig: sleepForSettingsRateLimit,
+				Config:    configWithSettings(orgOwnerID, nameUpdated, description, roleName, withTimeouts(&admin.OrganizationSettings{}, nil, nil)),
+				Check:     resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "0"),
+			},
+			{
+				// Regression guard: the all-null block must not re-propose the 1 -> 0 count diff.
+				// customSessionTimeoutsEmptyBlockSuppress hides it when state is empty, so this plan
+				// is empty (PlanOnly with ExpectNonEmptyPlan=false fails otherwise).
+				PreConfig: sleepForSettingsRateLimit,
+				Config:    configWithSettings(orgOwnerID, nameUpdated, description, roleName, withTimeouts(&admin.OrganizationSettings{}, nil, nil)),
+				PlanOnly:  true,
 			},
 		},
 	})
@@ -540,6 +563,17 @@ func configWithSettings(orgOwnerID, name, description, roleNames string, setting
 func withOperationsContact(settings *admin.OrganizationSettings, operationsContact string) *admin.OrganizationSettings {
 	updated := *settings
 	updated.OperationsContact = &operationsContact
+	return &updated
+}
+
+// withTimeouts returns settings with the custom session timeouts block replaced, so a test step
+// only changes those two attributes.
+func withTimeouts(settings *admin.OrganizationSettings, absolute, idle *int) *admin.OrganizationSettings {
+	updated := *settings
+	updated.CustomSessionTimeouts = &admin.CustomSessionTimeouts{
+		AbsoluteSessionTimeoutInSeconds: absolute,
+		IdleSessionTimeoutInSeconds:     idle,
+	}
 	return &updated
 }
 
