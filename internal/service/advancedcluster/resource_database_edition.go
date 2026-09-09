@@ -34,10 +34,19 @@ func resolveDatabaseEdition(databaseEdition, effectiveDatabaseEdition string) st
 	return databaseEdition
 }
 
+// unsupportedInfiniteTopology reports whether the INFINITE edition runs on a topology this provider version rejects.
+func unsupportedInfiniteTopology(clusterType, databaseEdition, effectiveDatabaseEdition string) bool {
+	return isShardedClusterType(clusterType) && resolveDatabaseEdition(databaseEdition, effectiveDatabaseEdition) == "INFINITE"
+}
+
+func addUnsupportedInfiniteTopologyError(diags *diag.Diagnostics, clusterType string) {
+	diags.AddAttributeError(path.Root("cluster_type"), "Unsupported INFINITE cluster type",
+		fmt.Sprintf("INFINITE clusters with cluster_type = %q are not supported by this version of the MongoDB Atlas Terraform provider. Support for SHARDED and GEOSHARDED requires a newer provider version that explicitly enables these topologies once available.", clusterType))
+}
+
 func validateInfiniteClusterType(diags *diag.Diagnostics, clusterType, databaseEdition, effectiveDatabaseEdition string) {
-	if isShardedClusterType(clusterType) && resolveDatabaseEdition(databaseEdition, effectiveDatabaseEdition) == "INFINITE" {
-		diags.AddAttributeError(path.Root("cluster_type"), "Unsupported INFINITE cluster type",
-			fmt.Sprintf("INFINITE clusters with cluster_type = %q are not supported by this version of the MongoDB Atlas Terraform provider. Support for SHARDED and GEOSHARDED requires a newer provider version that explicitly enables these topologies once available.", clusterType))
+	if unsupportedInfiniteTopology(clusterType, databaseEdition, effectiveDatabaseEdition) {
+		addUnsupportedInfiniteTopologyError(diags, clusterType)
 	}
 }
 
@@ -58,11 +67,14 @@ func (r *rs) prepareUpdateDatabaseEdition(ctx context.Context, diags *diag.Diagn
 		diags.AddError("Unable to verify cluster database edition", "The cluster no longer exists. Refresh the Terraform state before trying again.")
 		return
 	}
-	validateInfiniteClusterType(diags, clusterType, cluster.GetDatabaseEdition(), cluster.GetEffectiveDatabaseEdition())
-	if !diags.HasError() {
-		validateInfiniteClusterType(diags, cluster.GetClusterType(), cluster.GetDatabaseEdition(), cluster.GetEffectiveDatabaseEdition())
+	edition, effectiveEdition := cluster.GetDatabaseEdition(), cluster.GetEffectiveDatabaseEdition()
+	for _, current := range []string{clusterType, cluster.GetClusterType()} {
+		if unsupportedInfiniteTopology(current, edition, effectiveEdition) {
+			addUnsupportedInfiniteTopologyError(diags, current)
+			return
+		}
 	}
-	if resolveDatabaseEdition(cluster.GetDatabaseEdition(), cluster.GetEffectiveDatabaseEdition()) == "INFINITE" {
+	if resolveDatabaseEdition(edition, effectiveEdition) == "INFINITE" {
 		omitEmptyAutoScalingChildren(patch.GetReplicationSpecs())
 	}
 }

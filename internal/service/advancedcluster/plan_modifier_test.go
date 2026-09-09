@@ -183,3 +183,57 @@ func planTestValue(typ tftypes.Type, value any) tftypes.Value {
 		return tftypes.NewValue(typ, value)
 	}
 }
+
+// TestPlanUnknownConfigKeepsStateCopy pins the scope of unknownInConfig: an unresolved expression must keep
+// its own attribute unknown without discarding the state values that ModifyPlan copies into everything else.
+func TestPlanUnknownConfigKeepsStateCopy(t *testing.T) {
+	ctx := t.Context()
+	schemaResponse := frameworkresource.SchemaResponse{}
+	advancedcluster.Resource().Schema(ctx, frameworkresource.SchemaRequest{}, &schemaResponse)
+	typ := schemaResponse.Schema.Type().TerraformType(ctx)
+	computedAttributes := []string{"cluster_id", "backup_enabled", "encryption_at_rest_provider", "root_cert_type"}
+	model := func(instanceSize string, majorVersion any) map[string]any {
+		return map[string]any{
+			"name": "example", "project_id": "111111111111111111111111", "cluster_type": "REPLICASET",
+			"mongo_db_major_version": majorVersion,
+			"replication_specs": []any{map[string]any{"region_configs": []any{map[string]any{
+				"provider_name": "AWS", "region_name": "US_EAST_1", "priority": int64(7),
+				"electable_specs": map[string]any{"instance_size": instanceSize, "node_count": int64(3)},
+			}}}},
+		}
+	}
+	dynamic := func(value map[string]any) *tfprotov6.DynamicValue {
+		result, err := tfprotov6.NewDynamicValue(typ, planTestValue(typ, value))
+		require.NoError(t, err)
+		return &result
+	}
+	prior := model("M10", "8.0")
+	maps.Copy(prior, map[string]any{
+		"cluster_id": "333333333333333333333333", "backup_enabled": true,
+		"encryption_at_rest_provider": "NONE", "root_cert_type": "ISRGROOTX1",
+	})
+	for name, majorVersion := range map[string]any{"known": "8.0", "unknown": tftypes.UnknownValue} {
+		t.Run("mongo_db_major_version="+name, func(t *testing.T) {
+			proposed := model("M20", majorVersion)
+			for _, attribute := range computedAttributes {
+				proposed[attribute] = tftypes.UnknownValue
+			}
+			server, err := acc.TestAccProviderV6Factories["mongodbatlas"]()
+			require.NoError(t, err)
+			result, err := server.PlanResourceChange(ctx, &tfprotov6.PlanResourceChangeRequest{
+				TypeName: "mongodbatlas_advanced_cluster", PriorState: dynamic(prior),
+				ProposedNewState: dynamic(proposed), Config: dynamic(model("M20", majorVersion)),
+			})
+			require.NoError(t, err)
+			require.Empty(t, result.Diagnostics)
+			plan, err := result.PlannedState.Unmarshal(typ)
+			require.NoError(t, err)
+			for _, attribute := range computedAttributes {
+				value, _, err := tftypes.WalkAttributePath(plan, tftypes.NewAttributePath().WithAttributeName(attribute))
+				require.NoError(t, err)
+				require.True(t, value.(tftypes.Value).IsKnown(),
+					"%s must keep its state value: only the unresolved attribute needs to stay unknown", attribute)
+			}
+		})
+	}
+}
