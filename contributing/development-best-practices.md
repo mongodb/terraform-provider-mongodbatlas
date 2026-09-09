@@ -85,7 +85,7 @@ Unlike the Atlas SDK getters in the previous section, this package reads Terrafo
 [`internal/common/sdkv2config`](../internal/common/sdkv2config) reads [`GetRawConfig`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema#ResourceData.GetRawConfig) and returns Terraform tri-state values: null (unset in HCL), unknown (expression not yet resolved), or set. Pass `*schema.ResourceData` or `*schema.ResourceDiff`. Do not call `GetRawConfig` at the call site. Empty string, `false`, and `0` are set values, not null.
 
 - **`String` / `Bool` / `Int64`**: Return a value with `IsNull`, `IsUnknown`, `HasChange`, and the value accessor. Pick the request policy with a named predicate instead of a hand-composed condition:
-  - **`Set`**: A known value set in HCL. Use for Optional+Computed attributes whose omitted value stays out of the request.
+  - **`Set`**: True only for a known value set in HCL. Null (unset or removed) and unknown both return false, so the request omits the attribute and an unresolved expression never fabricates a value. Use for Optional+Computed attributes, or for an API-validated field where an explicit `""` in HCL is still sent.
   - **`SetOrRemoved`**: Set in HCL or removed from it (send the zero value). Use for Optional-only attributes whose value is always sent; a bare null skip leaves the server value in place and drifts.
   - **`Removed`**: Dropped from HCL while state still holds a value. Use when a PATCH must send explicit API nil only after the user removed the field, as in `operations_contact`.
 - **`CollectionEmpty`**: True when the named list or set is null, unknown, or length 0. False when the resource raw-config object itself is null or unknown; that is not an HCL omit.
