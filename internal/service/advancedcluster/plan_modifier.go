@@ -61,7 +61,22 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version", "config_server_type"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
+	keepUnknown = append(keepUnknown, determineKeepUnknownsUnresolvedMaps(plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
+}
+
+// determineKeepUnknownsUnresolvedMaps keeps tags and labels unknown while their configured expression is
+// unresolved. They are Optional without Computed, so an unknown plan value can only come from the
+// configuration, and copying the state value would contradict what the expression resolves to during apply.
+func determineKeepUnknownsUnresolvedMaps(plan *TFModel) []string {
+	var keepUnknown []string
+	if plan.Tags.IsUnknown() {
+		keepUnknown = append(keepUnknown, "tags")
+	}
+	if plan.Labels.IsUnknown() {
+		keepUnknown = append(keepUnknown, "labels")
+	}
+	return keepUnknown
 }
 
 // adjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
