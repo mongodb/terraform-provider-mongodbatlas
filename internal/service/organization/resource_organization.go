@@ -108,9 +108,10 @@ func Resource() *schema.Resource {
 				Optional: true,
 			},
 			"custom_session_timeouts": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:             schema.TypeList,
+				Optional:         true,
+				MaxItems:         1,
+				DiffSuppressFunc: customSessionTimeoutsEmptyBlockSuppress,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"absolute_session_timeout_in_seconds": {
@@ -467,6 +468,27 @@ func flattenCustomSessionTimeouts(cst *admin.CustomSessionTimeouts) []any {
 		obj["idle_session_timeout_in_seconds"] = w
 	}
 	return []any{obj}
+}
+
+// customSessionTimeoutsEmptyBlockSuppress hides the plan diff for a block whose children are all
+// null while state already holds no custom session timeouts.
+func customSessionTimeoutsEmptyBlockSuppress(_, old, _ string, d *schema.ResourceData) bool {
+	if old != "0" && old != "" {
+		return false // state holds a value; keep the diff so the reset is applied
+	}
+	return customSessionTimeoutsAllNullConfig(d)
+}
+
+// customSessionTimeoutsAllNullConfig reports whether raw config declares the
+// custom_session_timeouts block with both children unset.
+func customSessionTimeoutsAllNullConfig(d *schema.ResourceData) bool {
+	raw := d.GetRawConfig().GetAttr("custom_session_timeouts")
+	if raw.IsNull() || !raw.IsKnown() || raw.LengthInt() == 0 {
+		return false
+	}
+	elem := raw.Index(cty.NumberIntVal(0))
+	return elem.GetAttr("absolute_session_timeout_in_seconds").IsNull() &&
+		elem.GetAttr("idle_session_timeout_in_seconds").IsNull()
 }
 
 func ValidateAPIKeyIsOrgOwner(roles []string) error {
