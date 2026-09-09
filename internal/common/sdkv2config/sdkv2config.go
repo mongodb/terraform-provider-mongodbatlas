@@ -5,6 +5,8 @@
 package sdkv2config
 
 import (
+	"math/big"
+
 	"github.com/hashicorp/go-cty/cty"
 )
 
@@ -105,6 +107,8 @@ func Bool(d resourceView, name string) BoolValue {
 
 // Int64 reads name from raw config. Schema TypeInt is a cty Number.
 // Missing, JSON null, and wrong type are null. 0 is a set value.
+// A number that is not an exact int64 (fractional or out of range) is unknown,
+// so no predicate can send a truncated or clamped value.
 func Int64(d resourceView, name string) Int64Value {
 	v := Int64Value{state: state{changed: d.HasChange(name)}}
 	raw := attrAt(d.GetRawConfig(), name)
@@ -114,7 +118,11 @@ func Int64(d resourceView, name string) Int64Value {
 	case raw.IsNull() || raw.Type() != cty.Number:
 		v.null = true
 	default:
-		v.value, _ = raw.AsBigFloat().Int64()
+		if n, acc := raw.AsBigFloat().Int64(); acc == big.Exact {
+			v.value = n
+		} else {
+			v.unknown = true
+		}
 	}
 	return v
 }

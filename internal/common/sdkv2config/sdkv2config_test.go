@@ -205,6 +205,16 @@ func TestInt64(t *testing.T) {
 			raw:  obj(map[string]cty.Value{"reference_hour_of_day": cty.StringVal("7")}),
 			null: true,
 		},
+		{
+			name:    "fractional number is unknown, not truncated",
+			raw:     obj(map[string]cty.Value{"reference_hour_of_day": cty.NumberFloatVal(1.5)}),
+			unknown: true,
+		},
+		{
+			name:    "out-of-range number is unknown, not clamped",
+			raw:     obj(map[string]cty.Value{"reference_hour_of_day": cty.NumberFloatVal(1e30)}),
+			unknown: true,
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

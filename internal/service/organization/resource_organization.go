@@ -390,9 +390,11 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 	switch {
 	case contact.Removed():
 		settings.SetOperationsContactNil()
-	case !contact.IsNull():
+	case contact.Set():
 		settings.SetOperationsContact(contact.ValueString())
 	}
+	// Unknown config (an expression resolved during apply) matches no case: OperationsContact is
+	// omitempty, so the PATCH omits the field and the server value is left untouched.
 	return settings
 }
 
