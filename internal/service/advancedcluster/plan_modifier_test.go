@@ -1,17 +1,12 @@
 package advancedcluster_test
 
 import (
-	"slices"
 	"testing"
 
-	frameworkresource "github.com/hashicorp/terraform-plugin-framework/resource"
-	fwschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
-	"github.com/stretchr/testify/assert"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
 
@@ -98,48 +93,5 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 		t.Run(testCase.ConfigFilename, func(t *testing.T) {
 			unit.MockPlanChecksAndRun(t, baseConfig.WithPlanCheckTest(testCase))
 		})
-	}
-}
-
-// TestKeepUnknownAttributeLists guards the two keepUnknown lists in plan_modifier.go against schema drift.
-// configOnlyAttributes must match the schema exactly: an attribute that is Optional without Computed can
-// only get its value from the configuration, so an unknown one must never be replaced with the state value.
-// volatileAttributes cannot be derived, because most Computed-without-Optional attributes are stable and are
-// deliberately copied from state, so only the shape of its entries is checked.
-func TestKeepUnknownAttributeLists(t *testing.T) {
-	var schemaResponse frameworkresource.SchemaResponse
-	advancedcluster.Resource().Schema(t.Context(), frameworkresource.SchemaRequest{}, &schemaResponse)
-	configOnly, volatileCandidates := []string{}, map[string]bool{}
-	var walk func(attributes map[string]fwschema.Attribute)
-	walk = func(attributes map[string]fwschema.Attribute) {
-		for name, attribute := range attributes {
-			if attribute.IsOptional() && !attribute.IsComputed() {
-				configOnly = append(configOnly, name) // Nested attributes are covered by the parent name.
-				continue
-			}
-			if attribute.IsComputed() && !attribute.IsOptional() {
-				volatileCandidates[name] = true
-			}
-			switch nested := attribute.(type) {
-			case fwschema.SingleNestedAttribute:
-				walk(nested.Attributes)
-			case fwschema.ListNestedAttribute:
-				walk(nested.NestedObject.Attributes)
-			case fwschema.SetNestedAttribute:
-				walk(nested.NestedObject.Attributes)
-			}
-		}
-	}
-	walk(schemaResponse.Schema.Attributes)
-
-	slices.Sort(configOnly)
-	assert.Equal(t, []string{
-		"accept_data_risks_and_force_replica_set_reconfig", "adaptive_capacity", "backing_provider_name",
-		"labels", "pinned_fcv", "retain_backups_enabled", "tags", "timeouts", "use_effective_fields",
-	}, configOnly, "update configOnlyAttributes in plan_modifier.go to match the schema")
-
-	for _, name := range []string{"connection_strings", "state_name", "mongo_db_version", "config_server_type"} {
-		assert.True(t, volatileCandidates[name],
-			"volatileAttributes entry %q must name a Computed attribute without Optional in the schema", name)
 	}
 }

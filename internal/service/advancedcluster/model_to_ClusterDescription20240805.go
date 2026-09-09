@@ -16,7 +16,8 @@ import (
 const defaultZoneName = "ZoneName managed by Terraform"
 
 func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
-	// NilForUnknown keeps an unresolved expression out of the parser, which would reject its empty value.
+	// ValueStringPointer only returns nil for a null value, so without NilForUnknown an unresolved
+	// expression reaches the parser as an empty string and is rejected.
 	acceptDataRisksAndForceReplicaSetReconfig, ok := conversion.StringPtrToTimePtr(
 		conversion.NilForUnknown(input.AcceptDataRisksAndForceReplicaSetReconfig, input.AcceptDataRisksAndForceReplicaSetReconfig.ValueStringPointer()))
 	if !ok {
@@ -90,7 +91,8 @@ func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnos
 }
 
 func newComponentLabel(ctx context.Context, diags *diag.Diagnostics, input types.Map) *[]admin.ComponentLabel {
-	if input.IsUnknown() { // An unresolved expression has no elements to convert or send.
+	// An unresolved expression is not an empty map: nil omits the attribute, an empty slice clears it.
+	if input.IsUnknown() {
 		return nil
 	}
 	elms := make(map[string]types.String, len(input.Elements()))
@@ -144,7 +146,8 @@ func resolveZoneNameOrUseDefault(item *TFReplicationSpecsModel) string {
 }
 
 func newResourceTag(ctx context.Context, diags *diag.Diagnostics, input types.Map) *[]admin.ResourceTag {
-	if input.IsUnknown() { // An unresolved expression has no elements to convert or send.
+	// An unresolved expression is not an empty map: nil omits the attribute, an empty slice clears it.
+	if input.IsUnknown() {
 		return nil
 	}
 	elms := make(map[string]types.String, len(input.Elements()))

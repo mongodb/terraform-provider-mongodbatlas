@@ -2,7 +2,6 @@ package advancedcluster
 
 import (
 	"context"
-	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -26,19 +25,6 @@ var (
 		"disk_iops":     {"oplog_size_mb"},
 		"disk_size_gb":  {"oplog_size_mb"},
 		"instance_size": {"oplog_size_mb"},
-	}
-
-	// Volatile attributes, should not be copied from state as Atlas can change them on its own. Being
-	// Computed without Optional is necessary but not sufficient, so this list stays a deliberate choice.
-	volatileAttributes = []string{"connection_strings", "state_name", "mongo_db_version", "config_server_type"}
-
-	// Attributes that are Optional without Computed, so their value can only come from the configuration.
-	// An unknown one is an expression that is not resolved yet, for example a module output, and copying
-	// the state over it makes the plan contradict the configuration. Add new ones here:
-	// TestKeepUnknownAttributeLists fails when the schema and this list disagree.
-	configOnlyAttributes = []string{
-		"accept_data_risks_and_force_replica_set_reconfig", "adaptive_capacity", "backing_provider_name",
-		"labels", "pinned_fcv", "retain_backups_enabled", "tags", "timeouts", "use_effective_fields",
 	}
 )
 
@@ -72,10 +58,11 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 		return
 	}
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
-	keepUnknown := slices.Clone(volatileAttributes)
+	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version", "config_server_type"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
-	keepUnknown = append(keepUnknown, configOnlyAttributes...)
+	// Optional attributes without Computed, an unknown value is an unresolved configuration expression and the state value would contradict it
+	keepUnknown = append(keepUnknown, "accept_data_risks_and_force_replica_set_reconfig", "adaptive_capacity", "backing_provider_name", "labels", "pinned_fcv", "retain_backups_enabled", "tags", "timeouts", "use_effective_fields")
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
 }
 
