@@ -58,11 +58,11 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 		return
 	}
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
-	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version", "config_server_type"} // Volatile attributes, should not be copied from state
+	// Optional attributes without Computed, an unknown value is an unresolved config expression, not a state value
+	keepUnknown := []string{"accept_data_risks_and_force_replica_set_reconfig", "adaptive_capacity", "backing_provider_name", "labels", "pinned_fcv", "retain_backups_enabled", "tags", "timeouts", "use_effective_fields"}
+	keepUnknown = append(keepUnknown, "connection_strings", "state_name", "mongo_db_version", "config_server_type") // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
-	// Optional attributes without Computed, an unknown value is an unresolved configuration expression and the state value would contradict it
-	keepUnknown = append(keepUnknown, "accept_data_risks_and_force_replica_set_reconfig", "adaptive_capacity", "backing_provider_name", "labels", "pinned_fcv", "retain_backups_enabled", "tags", "timeouts", "use_effective_fields")
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
 }
 

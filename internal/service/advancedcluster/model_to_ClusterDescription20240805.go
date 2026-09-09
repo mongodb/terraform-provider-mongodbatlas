@@ -16,8 +16,7 @@ import (
 const defaultZoneName = "ZoneName managed by Terraform"
 
 func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
-	// ValueStringPointer only returns nil for a null value, so without NilForUnknown an unresolved
-	// expression reaches the parser as an empty string and is rejected.
+	// NilForUnknown is needed as an unresolved expression would reach the parser as an empty string.
 	acceptDataRisksAndForceReplicaSetReconfig, ok := conversion.StringPtrToTimePtr(
 		conversion.NilForUnknown(input.AcceptDataRisksAndForceReplicaSetReconfig, input.AcceptDataRisksAndForceReplicaSetReconfig.ValueStringPointer()))
 	if !ok {
