@@ -350,6 +350,50 @@ func configPartialSchedule(orgID, projectName, attr string, value int) string {
 		}`, orgID, projectName, attr, value)
 }
 
+// TestAccConfigRSMaintenanceWindow_waveAssignmentMidnight covers a midnight schedule (hour_of_day = 0)
+// transitioning to wave-only
+func TestAccConfigRSMaintenanceWindow_waveAssignmentMidnight(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		dayOfWeek   = 7
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				// schedule at midnight: hour_of_day = 0 is a valid value AND the TypeInt zero value.
+				Config: configWithWave(orgID, projectName, dayOfWeek, 0, 1),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", "0"),
+					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "1"),
+				),
+			},
+			{
+				// transition to wave-only: must clear the schedule even though hour_of_day=0
+				// matches its TypeInt zero value and produces no standalone diff.
+				Config: configWaveOnly(orgID, projectName, 1),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", "0"),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", "0"),
+					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "1"),
+				),
+			},
+			{
+				// the wave-only resource must converge (no phantom drift).
+				Config:   configWaveOnly(orgID, projectName, 1),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
 func checkBasic(dayOfWeek, hourOfDay int, protectedHours *admin.ProtectedHours) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
