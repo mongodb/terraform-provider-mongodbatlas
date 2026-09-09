@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_advanced_cluster: Fixes a plan error when `tags` or `labels` are set from an expression that is not resolved yet
+```
