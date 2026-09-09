@@ -376,7 +376,6 @@ func TestAccConfigRSMaintenanceWindow_waveAssignmentMidnight(t *testing.T) {
 			},
 			{
 				// transition to wave-only: must clear the schedule even though hour_of_day=0
-				// matches its TypeInt zero value and produces no standalone diff.
 				Config: configWaveOnly(orgID, projectName, 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -386,7 +385,6 @@ func TestAccConfigRSMaintenanceWindow_waveAssignmentMidnight(t *testing.T) {
 				),
 			},
 			{
-				// the wave-only resource must converge (no phantom drift).
 				Config:   configWaveOnly(orgID, projectName, 1),
 				PlanOnly: true,
 			},
