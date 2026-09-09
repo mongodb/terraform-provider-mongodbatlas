@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -20,8 +19,8 @@ const dataSourcePluralName = "data.mongodbatlas_project_mcp_config_secrets.test"
 
 func TestAccProjectMcpConfigSecret_basic(t *testing.T) {
 	var (
-		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		name      = acc.RandomName()
+		projectID  = acc.ProjectIDExecution(t)
+		configName = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -30,7 +29,7 @@ func TestAccProjectMcpConfigSecret_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, name, 720),
+				Config: configBasic(projectID, configName, 720),
 				Check:  checkBasic(true),
 			},
 			{
@@ -47,8 +46,8 @@ func TestAccProjectMcpConfigSecret_basic(t *testing.T) {
 
 func TestAccProjectMcpConfigSecret_rotate(t *testing.T) {
 	var (
-		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		name          = acc.RandomName()
+		projectID     = acc.ProjectIDExecution(t)
+		configName    = acc.RandomName()
 		firstSecretID string
 	)
 
@@ -59,7 +58,7 @@ func TestAccProjectMcpConfigSecret_rotate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// create the original secret.
-				Config: configSecrets(projectID, name, 720, "test"),
+				Config: configSecrets(projectID, configName, 720, "test"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					func(s *terraform.State) error {
@@ -69,7 +68,7 @@ func TestAccProjectMcpConfigSecret_rotate(t *testing.T) {
 			},
 			{
 				// add a second secret.
-				Config: configSecrets(projectID, name, 720, "test", "test_2"),
+				Config: configSecrets(projectID, configName, 720, "test", "test_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					checkExists(resourceName+"_2"),
@@ -80,7 +79,7 @@ func TestAccProjectMcpConfigSecret_rotate(t *testing.T) {
 				// `taint` is deprecated in favor of -replace (https://developer.hashicorp.com/terraform/cli/commands/taint)
 				// but testing plugin doesn't support -replace so using taint instead.
 				Taint:  []string{resourceName},
-				Config: configSecrets(projectID, name, 720, "test", "test_2"),
+				Config: configSecrets(projectID, configName, 720, "test", "test_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					checkExists(resourceName+"_2"),
@@ -102,7 +101,7 @@ func TestAccProjectMcpConfigSecret_rotate(t *testing.T) {
 
 // builds a mongodbatlas_project_mcp_config_secret resource for each given address
 // without data sources.
-func configSecrets(projectID, name string, secretExpiresAfterHours int, addrs ...string) string {
+func configSecrets(projectID, configName string, secretExpiresAfterHours int, addrs ...string) string {
 	var secretsHCL strings.Builder
 	for _, addr := range addrs {
 		fmt.Fprintf(&secretsHCL, `
@@ -121,7 +120,7 @@ func configSecrets(projectID, name string, secretExpiresAfterHours int, addrs ..
 		}
 
 		%[3]s
-	`, projectID, name, secretsHCL.String())
+	`, projectID, configName, secretsHCL.String())
 }
 
 // builds a single mongodbatlas_project_mcp_config_secret resource + its singular/plural data sources.
@@ -216,9 +215,6 @@ func checkDestroy(s *terraform.State) error {
 		if _, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetGroupMcpSecret(context.Background(), projectID, mcpConfigID, secretID).Execute(); err == nil {
 			errs = append(errs, fmt.Errorf("mcp config secret (%s/%s/%s) still exists", projectID, mcpConfigID, secretID))
 		}
-	}
-	if err := acc.CheckDestroyDeleteOrgMcpConfigs(s); err != nil {
-		errs = append(errs, err)
 	}
 	return errors.Join(errs...)
 }

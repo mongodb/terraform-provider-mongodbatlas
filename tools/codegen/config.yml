@@ -754,130 +754,6 @@ resources:
       aliases:
         resourcePolicyId: id # path param name does not match the API response property
 
-  mcp_config:
-    read:
-      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
-      method: GET
-    create:
-      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs
-      method: POST
-    update:
-      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
-      method: DELETE
-    version_header: application/vnd.atlas.2025-03-12+json
-    schema:
-      overrides:
-        org_id:
-          description: *org_id_description
-        # API always echoes back both cidr_block and ip_address regardless of which one
-        # was submitted, so both must be optional+computed
-        ip_access_list:
-          computability:
-            optional: true
-            computed: true
-        ip_access_list.cidr_block:
-          computability:
-            optional: true
-            computed: true
-        ip_access_list.ip_address:
-          computability:
-            optional: true
-            computed: true
-        # API spec lacks uniqueItems for this property. Role order is not meaningful.
-        roles:
-          type: set
-    datasources:
-      read:
-        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
-        method: GET
-      list:
-        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs
-        method: GET
-      schema:
-        overrides:
-          org_id:
-            description: *org_id_description
-          roles:
-            type: set
-
-  mcp_config_secret:
-    read:
-      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
-      method: GET
-    create:
-      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets
-      method: POST
-    delete:
-      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
-      method: DELETE
-    version_header: application/vnd.atlas.2025-03-12+json
-    id_attributes: ["org_id", "mcp_config_id", "secret_id"]
-    schema:
-      aliases:
-        id: secretId
-      overrides:
-        org_id:
-          description: *org_id_description
-        secret:
-          sensitive: true
-        secret_expires_after_hours:
-          description: "The expiration time of the new ingress Service Account secret, provided in hours. This attribute is required when creating the secret and cannot be updated later."
-    datasources:
-      read:
-        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
-        method: GET
-      list:
-        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets
-        method: GET
-      schema:
-        ignores: ["secret", "results.secret"] # `secret` is only ever populated in the create response
-        aliases:
-          id: secretId
-        overrides:
-          org_id:
-            description: *org_id_description
-
-  project_mcp_config_secret:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
-      method: GET
-    create:
-      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets
-      method: POST
-    delete:
-      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
-      method: DELETE
-    version_header: application/vnd.atlas.2025-03-12+json
-    id_attributes: ["project_id", "mcp_config_id", "secret_id"]
-    schema:
-      aliases:
-        id: secretId
-        groupId: projectId
-      overrides:
-        project_id:
-          description: *project_id_description
-        secret:
-          sensitive: true
-        secret_expires_after_hours:
-          description: "The expiration time of the new ingress Service Account secret, provided in hours. This attribute is required when creating the secret and cannot be updated later."
-    datasources:
-      read:
-        path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
-        method: GET
-      list:
-        path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets
-        method: GET
-      schema:
-        ignores: ["secret", "results.secret"] # `secret` is only ever populated in the create response
-        aliases:
-          id: secretId
-          groupId: projectId
-        overrides:
-          project_id:
-            description: *project_id_description
   search_deployment_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
@@ -1401,59 +1277,6 @@ resources:
             description: *org_id_description
           secrets:
             type: list
-
-  project_mcp_config:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}
-      method: GET
-    create:
-      path: /api/atlas/v2/groups/{groupId}/mcpConfigs
-      method: POST
-    update:
-      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}
-      method: DELETE
-    version_header: application/vnd.atlas.2025-03-12+json
-    schema:
-      aliases:
-        groupId: projectId
-      overrides:
-        project_id:
-          description: *project_id_description
-        # API always echoes back both cidr_block and ip_address regardless of which one
-        # was submitted, so both must be optional+computed
-        ip_access_list:
-          computability:
-            optional: true
-            computed: true
-        ip_access_list.cidr_block:
-          computability:
-            optional: true
-            computed: true
-        ip_access_list.ip_address:
-          computability:
-            optional: true
-            computed: true
-        # API spec lacks uniqueItems for this property. Role order is not meaningful.
-        roles:
-          type: set
-    datasources:
-      read:
-        path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}
-        method: GET
-      list:
-        path: /api/atlas/v2/groups/{groupId}/mcpConfigs
-        method: GET
-      schema:
-        aliases:
-          groupId: projectId
-        overrides:
-          project_id:
-            description: *project_id_description
-          roles:
-            type: set
 
   project_service_account:
     read: &project-service-account-read-op
@@ -2010,6 +1833,189 @@ resources:
         aliases:
           groupId: projectId
         ignores: [results.links]
+        overrides:
+          project_id:
+            description: *project_id_description
+
+  mcp_config:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      # These fields are computed within the ip_access_list set.
+      # Exposing them would require a plan modifier to mark them as unknown before every update.
+      # This works fine but comes at the cost of extremely verbose and potentially confusing plans.
+      # Customers can access these attributes through data sources.
+      # Any new computed attribute under ip_access_list should also be ignored.
+      ignores: ["ip_access_list.created_at", "ip_access_list.last_used_address", "ip_access_list.last_used_at", "ip_access_list.request_count"]
+      overrides:
+        org_id:
+          description: *org_id_description
+        mcp_config_id:
+          immutable_computed: true
+        client_id:
+          immutable_computed: true
+        egress_client_id:
+          immutable_computed: true
+        # The API returns both cidr_block and ip_address when they are equivalent, regardless of which one was sent. Setting both to optional+computed.
+        ip_access_list:
+          computability:
+            optional: true
+            computed: true
+        ip_access_list.cidr_block:
+          computability:
+            optional: true
+            computed: true
+        ip_access_list.ip_address:
+          computability:
+            optional: true
+            computed: true
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+        method: GET
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs
+        method: GET
+      schema:
+        overrides:
+          org_id:
+            description: *org_id_description
+
+  mcp_config_secret:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets
+      method: POST
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        id: secretId
+      overrides:
+        org_id:
+          description: *org_id_description
+        secret:
+          sensitive: true
+        secret_expires_after_hours:
+          description: "The expiration time of the new ingress Service Account secret, provided in hours. This attribute is required when creating the secret and cannot be updated later."
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+        method: GET
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets
+        method: GET
+      schema:
+        ignores: ["secret", "results.secret"] # `secret` is only ever populated in the create response
+        aliases:
+          id: secretId
+        overrides:
+          org_id:
+            description: *org_id_description
+
+  project_mcp_config:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        groupId: projectId
+      # See mcp_config comments.
+      ignores: ["ip_access_list.created_at", "ip_access_list.last_used_address", "ip_access_list.last_used_at", "ip_access_list.request_count"]
+      overrides:
+        project_id:
+          description: *project_id_description
+        mcp_config_id:
+          immutable_computed: true
+        client_id:
+          immutable_computed: true
+        egress_client_id:
+          immutable_computed: true
+        ip_access_list:
+          computability:
+            optional: true
+            computed: true
+        ip_access_list.cidr_block:
+          computability:
+            optional: true
+            computed: true
+        ip_access_list.ip_address:
+          computability:
+            optional: true
+            computed: true
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/mcpConfigs
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description
+
+  project_mcp_config_secret:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets
+      method: POST
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        id: secretId
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+        secret:
+          sensitive: true
+        secret_expires_after_hours:
+          description: "The expiration time of the new ingress Service Account secret, provided in hours. This attribute is required when creating the secret and cannot be updated later."
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets
+        method: GET
+      schema:
+        ignores: ["secret", "results.secret"] # `secret` is only ever populated in the create response
+        aliases:
+          id: secretId
+          groupId: projectId
         overrides:
           project_id:
             description: *project_id_description

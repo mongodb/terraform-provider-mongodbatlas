@@ -6,8 +6,6 @@ This example shows how to create a project-level Remote MCP configuration in Mon
 
 This resource does not manage ingress secrets. Use [`mongodbatlas_project_mcp_config_secret`](../mongodbatlas_project_mcp_config_secret/README.md) to create one.
 
-Deleting a `mongodbatlas_project_mcp_config` resource unlinks the MCP configuration from the project, but doesn't delete it from the organization. To fully delete it, use the org-level [`mongodbatlas_mcp_config`](../mongodbatlas_mcp_config/README.md) resource.
-
 ## Required Variables
 - `atlas_client_id`: The MongoDB Atlas Service Account Client ID
 - `atlas_client_secret`: The MongoDB Atlas Service Account Client Secret

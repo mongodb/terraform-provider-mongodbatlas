@@ -19,8 +19,8 @@ const dataSourcePluralName = "data.mongodbatlas_mcp_config_secrets.test"
 
 func TestAccMcpConfigSecret_basic(t *testing.T) {
 	var (
-		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		name  = acc.RandomName()
+		orgID      = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		configName = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -29,7 +29,7 @@ func TestAccMcpConfigSecret_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name, 720),
+				Config: configBasic(orgID, configName, 720),
 				Check:  checkBasic(true),
 			},
 			{
@@ -47,7 +47,7 @@ func TestAccMcpConfigSecret_basic(t *testing.T) {
 func TestAccMcpConfigSecret_rotate(t *testing.T) {
 	var (
 		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		name          = acc.RandomName()
+		configName    = acc.RandomName()
 		firstSecretID string
 	)
 
@@ -58,7 +58,7 @@ func TestAccMcpConfigSecret_rotate(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// create the original secret.
-				Config: configSecrets(orgID, name, 720, "test"),
+				Config: configSecrets(orgID, configName, 720, "test"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					func(s *terraform.State) error {
@@ -68,7 +68,7 @@ func TestAccMcpConfigSecret_rotate(t *testing.T) {
 			},
 			{
 				// add a second secret.
-				Config: configSecrets(orgID, name, 720, "test", "test_2"),
+				Config: configSecrets(orgID, configName, 720, "test", "test_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					checkExists(resourceName+"_2"),
@@ -79,7 +79,7 @@ func TestAccMcpConfigSecret_rotate(t *testing.T) {
 				// `taint` is deprecated in favor of -replace (https://developer.hashicorp.com/terraform/cli/commands/taint)
 				// but testing plugin doesn't support -replace so using taint instead.
 				Taint:  []string{resourceName},
-				Config: configSecrets(orgID, name, 720, "test", "test_2"),
+				Config: configSecrets(orgID, configName, 720, "test", "test_2"),
 				Check: resource.ComposeTestCheckFunc(
 					checkExists(resourceName),
 					checkExists(resourceName+"_2"),
@@ -101,7 +101,7 @@ func TestAccMcpConfigSecret_rotate(t *testing.T) {
 
 // builds a mongodbatlas_mcp_config_secret resource for each given address
 // without data sources.
-func configSecrets(orgID, name string, secretExpiresAfterHours int, addrs ...string) string {
+func configSecrets(orgID, configName string, secretExpiresAfterHours int, addrs ...string) string {
 	var secretsHCL strings.Builder
 	for _, addr := range addrs {
 		fmt.Fprintf(&secretsHCL, `
@@ -120,11 +120,11 @@ func configSecrets(orgID, name string, secretExpiresAfterHours int, addrs ...str
 		}
 
 		%[3]s
-	`, orgID, name, secretsHCL.String())
+	`, orgID, configName, secretsHCL.String())
 }
 
 // builds a single mongodbatlas_mcp_config_secret resource + its singular/plural data sources.
-func configBasic(orgID, name string, secretExpiresAfterHours int) string {
+func configBasic(orgID, configName string, secretExpiresAfterHours int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_mcp_config" "test" {
 			org_id          = %[1]q
@@ -149,7 +149,7 @@ func configBasic(orgID, name string, secretExpiresAfterHours int) string {
 			mcp_config_id = mongodbatlas_mcp_config.test.mcp_config_id
 			depends_on    = [mongodbatlas_mcp_config_secret.test]
 		}
-	`, orgID, name, secretExpiresAfterHours)
+	`, orgID, configName, secretExpiresAfterHours)
 }
 
 func checkBasic(isCreate bool) resource.TestCheckFunc {
@@ -200,8 +200,8 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_mcp_config_secret" {
+	for name, rs := range s.RootModule().Resources {
+		if !strings.HasPrefix(name, "mongodbatlas_mcp_config_secret.") {
 			continue
 		}
 		orgID := rs.Primary.Attributes["org_id"]
@@ -210,8 +210,8 @@ func checkDestroy(s *terraform.State) error {
 		if orgID == "" || mcpConfigID == "" || secretID == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetOrgMcpSecret(context.Background(), orgID, mcpConfigID, secretID).Execute()
-		if err == nil {
+
+		if _, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetOrgMcpSecret(context.Background(), orgID, mcpConfigID, secretID).Execute(); err == nil {
 			return fmt.Errorf("mcp config secret (%s/%s/%s) still exists", orgID, mcpConfigID, secretID)
 		}
 	}

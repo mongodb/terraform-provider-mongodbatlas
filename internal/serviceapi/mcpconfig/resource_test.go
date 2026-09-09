@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -22,28 +23,25 @@ type ipAccessListEntry struct {
 	ip   string
 }
 
-func (e ipAccessListEntry) hclStr() string {
-	if e.cidr != "" {
-		return fmt.Sprintf("cidr_block = %q", e.cidr)
-	}
-	if e.ip != "" {
-		return fmt.Sprintf("ip_address = %q", e.ip)
-	}
-	return ""
-}
-
 func (e ipAccessListEntry) attrMap() map[string]string {
-	if e.cidr == "" && e.ip == "" {
-		return nil
-	}
-	result := map[string]string{"ip_access_list.#": "1"}
+	result := map[string]string{}
 	if e.cidr != "" {
-		result["ip_access_list.0.cidr_block"] = e.cidr
+		result["cidr_block"] = e.cidr
 	}
 	if e.ip != "" {
-		result["ip_access_list.0.ip_address"] = e.ip
+		result["ip_address"] = e.ip
 	}
 	return result
+}
+
+func (e ipAccessListEntry) hclStr() string {
+	if e.cidr != "" {
+		return fmt.Sprintf("{cidr_block = %q}", e.cidr)
+	}
+	if e.ip != "" {
+		return fmt.Sprintf("{ip_address = %q}", e.ip)
+	}
+	return ""
 }
 
 func TestAccMcpConfig_basic(t *testing.T) {
@@ -59,20 +57,28 @@ func TestAccMcpConfig_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name1, []string{"ORG_READ_ONLY"}, ipAccessListEntry{}),
-				Check:  checkBasic(ipAccessListEntry{}),
+				Config: configBasic(orgID, name1, []string{"ORG_READ_ONLY"}, nil),
+				Check:  checkBasic([]string{"ORG_READ_ONLY"}, nil),
 			},
 			{
-				Config: configBasic(orgID, name2, []string{"ORG_MEMBER"}, ipAccessListEntry{}),
-				Check:  checkBasic(ipAccessListEntry{}),
+				Config: configBasic(orgID, name2, []string{"ORG_MEMBER", "ORG_READ_ONLY"}, nil),
+				Check:  checkBasic([]string{"ORG_MEMBER", "ORG_READ_ONLY"}, nil),
 			},
 			{
-				Config: configBasic(orgID, name2, []string{"ORG_MEMBER"}, ipAccessListEntry{ip: "203.0.113.10"}),
-				Check:  checkBasic(ipAccessListEntry{ip: "203.0.113.10"}),
+				Config: configBasic(orgID, name2, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
+				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
+			},
+			{ // Change name keeping ip_access_list the same, plans ip + cidr, hook removes cidr.
+				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
+				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
 			},
 			{
-				Config: configBasic(orgID, name2, []string{"ORG_MEMBER"}, ipAccessListEntry{cidr: "203.0.113.0/24"}),
-				Check:  checkBasic(ipAccessListEntry{cidr: "203.0.113.0/24"}),
+				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{cidr: "203.0.113.0/24"}}),
+				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{cidr: "203.0.113.0/24"}}),
+			},
+			{
+				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}),
+				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -85,17 +91,27 @@ func TestAccMcpConfig_basic(t *testing.T) {
 	})
 }
 
-func configBasic(orgID, name string, roles []string, entry ipAccessListEntry) string {
+func configBasic(orgID, name string, roles []string, entries []ipAccessListEntry) string {
 	rolesHCL := hcl.StringSliceToHCL(roles)
+	pluralDSHCL := ""
 	ipAccessListHCL := ""
-	if entryHCL := entry.hclStr(); entryHCL != "" {
-		ipAccessListHCL = fmt.Sprintf(`
-			ip_access_list = [
-				{
-					%s
-				}
-			]`, entryHCL)
+	if len(entries) > 0 {
+		var entryBlocks []string
+		for _, e := range entries {
+			entryBlocks = append(entryBlocks, e.hclStr())
+		}
+		ipAccessListHCL = fmt.Sprintf("ip_access_list = [%s]", strings.Join(entryBlocks, ", "))
+	} else {
+		// API list operation is flaky (returns 404) when the underlying MCP Config SAs are being updated concurrently.
+		// So add plural DS when not updating ip_access_list which triggers an SA update.
+		pluralDSHCL = fmt.Sprintf(`
+			data "mongodbatlas_mcp_configs" "test" {
+				org_id     = %[1]q
+				depends_on = [mongodbatlas_mcp_config.test]
+			}
+		`, orgID)
 	}
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_mcp_config" "test" {
 			org_id          = %[1]q
@@ -109,17 +125,30 @@ func configBasic(orgID, name string, roles []string, entry ipAccessListEntry) st
 			mcp_config_id = mongodbatlas_mcp_config.test.mcp_config_id
 		}
 
-		data "mongodbatlas_mcp_configs" "test" {
-			org_id     = %[1]q
-			depends_on = [mongodbatlas_mcp_config.test]
-		}
-	`, orgID, name, rolesHCL, ipAccessListHCL)
+		%[5]s
+	`, orgID, name, rolesHCL, ipAccessListHCL, pluralDSHCL)
 }
 
-func checkBasic(entry ipAccessListEntry) resource.TestCheckFunc {
+func checkBasic(roles []string, entries []ipAccessListEntry) resource.TestCheckFunc {
 	commonAttrsSet := []string{"mcp_config_id", "client_id", "egress_client_id"}
-	checks := acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName), commonAttrsSet, entry.attrMap(), checkExists(resourceName))
-	return checks
+	attrsMap := map[string]string{
+		"roles.#":          fmt.Sprintf("%d", len(roles)),
+		"ip_access_list.#": fmt.Sprintf("%d", len(entries)),
+	}
+	checks := []resource.TestCheckFunc{
+		acc.CheckRSAndDS(resourceName, new(dataSourceName), nil, commonAttrsSet, attrsMap, checkExists(resourceName)),
+	}
+	if len(entries) == 0 {
+		checks = append(checks, resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)))
+	}
+	for _, e := range entries {
+		attrMap := e.attrMap()
+		checks = append(checks,
+			resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_access_list.*", attrMap),
+			resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "ip_access_list.*", attrMap),
+		)
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
@@ -142,8 +171,8 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_mcp_config" {
+	for name, rs := range s.RootModule().Resources {
+		if name != resourceName {
 			continue
 		}
 		orgID := rs.Primary.Attributes["org_id"]
@@ -152,8 +181,7 @@ func checkDestroy(s *terraform.State) error {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
 
-		_, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetOrgMcpConfig(context.Background(), orgID, mcpConfigID).Execute()
-		if err == nil {
+		if _, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetOrgMcpConfig(context.Background(), orgID, mcpConfigID).Execute(); err == nil {
 			return fmt.Errorf("mcp config (%s/%s) still exists", orgID, mcpConfigID)
 		}
 	}
