@@ -16,7 +16,9 @@ import (
 const defaultZoneName = "ZoneName managed by Terraform"
 
 func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
-	acceptDataRisksAndForceReplicaSetReconfig, ok := conversion.StringPtrToTimePtr(input.AcceptDataRisksAndForceReplicaSetReconfig.ValueStringPointer())
+	// NilForUnknown keeps an unresolved expression out of the parser, which would reject its empty value.
+	acceptDataRisksAndForceReplicaSetReconfig, ok := conversion.StringPtrToTimePtr(
+		conversion.NilForUnknown(input.AcceptDataRisksAndForceReplicaSetReconfig, input.AcceptDataRisksAndForceReplicaSetReconfig.ValueStringPointer()))
 	if !ok {
 		diags.AddError("error converting AcceptDataRisksAndForceReplicaSetReconfig", fmt.Sprintf("not a valid time: %s", input.AcceptDataRisksAndForceReplicaSetReconfig.ValueString()))
 	}

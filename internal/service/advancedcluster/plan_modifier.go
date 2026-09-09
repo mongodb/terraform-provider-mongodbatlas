@@ -2,9 +2,12 @@ package advancedcluster
 
 import (
 	"context"
+	"slices"
+	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
@@ -61,22 +64,44 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version", "config_server_type"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
-	keepUnknown = append(keepUnknown, determineKeepUnknownsUnresolvedMaps(plan)...)
+	keepUnknown = append(keepUnknown, optionalOnlyAttributes(ctx)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
 }
 
-// determineKeepUnknownsUnresolvedMaps keeps tags and labels unknown while their configured expression is
-// unresolved. They are Optional without Computed, so an unknown plan value can only come from the
-// configuration, and copying the state value would contradict what the expression resolves to during apply.
-func determineKeepUnknownsUnresolvedMaps(plan *TFModel) []string {
-	var keepUnknown []string
-	if plan.Tags.IsUnknown() {
-		keepUnknown = append(keepUnknown, "tags")
+var (
+	optionalOnlyOnce  sync.Once
+	optionalOnlyNames []string
+)
+
+// optionalOnlyAttributes returns the attribute names that are Optional without Computed, at any nesting
+// level. Their value can only come from the configuration, so an unknown one is an expression that is not
+// resolved yet, for example a module output. Copying the state value over it would make the plan contradict
+// the configuration, which Terraform rejects as an invalid plan. A known value is never copied over, so
+// keeping these names unknown is only relevant while the expression is unresolved.
+func optionalOnlyAttributes(ctx context.Context) []string {
+	optionalOnlyOnce.Do(func() {
+		optionalOnlyNames = collectOptionalOnlyAttributes(resourceSchema(ctx).Attributes)
+		slices.Sort(optionalOnlyNames)
+	})
+	return optionalOnlyNames
+}
+
+func collectOptionalOnlyAttributes(attributes map[string]schema.Attribute) []string {
+	var names []string
+	for name, attribute := range attributes {
+		if attribute.IsOptional() && !attribute.IsComputed() {
+			names = append(names, name)
+		}
+		switch nested := attribute.(type) {
+		case schema.SingleNestedAttribute:
+			names = append(names, collectOptionalOnlyAttributes(nested.Attributes)...)
+		case schema.ListNestedAttribute:
+			names = append(names, collectOptionalOnlyAttributes(nested.NestedObject.Attributes)...)
+		case schema.SetNestedAttribute:
+			names = append(names, collectOptionalOnlyAttributes(nested.NestedObject.Attributes)...)
+		}
 	}
-	if plan.Labels.IsUnknown() {
-		keepUnknown = append(keepUnknown, "labels")
-	}
-	return keepUnknown
+	return names
 }
 
 // adjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
