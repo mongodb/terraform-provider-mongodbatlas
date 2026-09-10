@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
@@ -29,26 +28,6 @@ var (
 		"instance_size": {"oplog_size_mb"},
 	}
 )
-
-// unknownInConfig lists the top-level attributes the configuration still leaves unknown, using the naming of
-// keepUnknown. Planning their state value hides a change that the plan re-run during apply then reveals, so the
-// apply fails with "Provider produced inconsistent final plan". The Optional-without-Computed rule in
-// CopyUnknowns does not cover this: cluster_type and auto_scaling are also Computed. The name is top-level
-// because an unknown nested in replication_specs hides whether that list changes.
-func unknownInConfig(config tftypes.Value) []string {
-	attributes := map[string]tftypes.Value{}
-	if config.IsNull() || !config.Type().Is(tftypes.Object{}) || config.As(&attributes) != nil {
-		return nil
-	}
-	var names []string
-	for name, value := range attributes {
-		if !value.IsFullyKnown() {
-			names = append(names, name)
-		}
-	}
-	slices.Sort(names)
-	return names
-}
 
 // handleModifyPlan should be called only in Update, because of findClusterDiff
 func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, unknownConfigAttrs []string) {

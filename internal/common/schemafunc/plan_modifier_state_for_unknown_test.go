@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/stretchr/testify/assert"
 )
@@ -462,4 +463,42 @@ func combineReplicationSpecs(specs ...types.List) types.List {
 		combined = append(combined, spec.Elements()...)
 	}
 	return types.ListValueMust(ReplicationSpecsObjType, combined)
+}
+
+func TestUnknownInConfig(t *testing.T) {
+	objType := tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+		"name": tftypes.String, "tags": tftypes.Map{ElementType: tftypes.String},
+		"specs": tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{"size": tftypes.String}}},
+	}}
+	specs := func(size tftypes.Value) tftypes.Value {
+		element := tftypes.Object{AttributeTypes: map[string]tftypes.Type{"size": tftypes.String}}
+		return tftypes.NewValue(tftypes.List{ElementType: element},
+			[]tftypes.Value{tftypes.NewValue(element, map[string]tftypes.Value{"size": size})})
+	}
+	object := func(name, tags, specs tftypes.Value) tftypes.Value {
+		return tftypes.NewValue(objType, map[string]tftypes.Value{"name": name, "tags": tags, "specs": specs})
+	}
+	knownName := tftypes.NewValue(tftypes.String, "example")
+	nullTags := tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil)
+	knownSize := tftypes.NewValue(tftypes.String, "M10")
+	unknownSize := tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
+	testCases := map[string]struct {
+		config   tftypes.Value
+		expected []string
+	}{
+		"all known":                {object(knownName, nullTags, specs(knownSize)), nil},
+		"unknown attribute":        {object(knownName, tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tftypes.UnknownValue), specs(knownSize)), []string{"tags"}},
+		"unknown nested in a list": {object(knownName, nullTags, specs(unknownSize)), []string{"specs"}},
+		"sorted names":             {object(tftypes.NewValue(tftypes.String, tftypes.UnknownValue), nullTags, specs(unknownSize)), []string{"name", "specs"}},
+		// Degenerate values must not panic, ModifyPlan is called for destroy plans too.
+		"zero value":     {tftypes.Value{}, nil},
+		"null object":    {tftypes.NewValue(objType, nil), nil},
+		"unknown object": {tftypes.NewValue(objType, tftypes.UnknownValue), nil},
+		"not an object":  {tftypes.NewValue(tftypes.String, "example"), nil},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, schemafunc.UnknownInConfig(tc.config))
+		})
+	}
 }

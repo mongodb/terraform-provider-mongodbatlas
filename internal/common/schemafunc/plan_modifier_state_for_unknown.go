@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // HasUnknowns uses reflection to check if the object has any unknown fields
@@ -34,6 +35,27 @@ func HasUnknowns(obj any) bool {
 		}
 	}
 	return false
+}
+
+// UnknownInConfig lists the top-level attributes that the configuration leaves unknown, to be passed as
+// keepUnknown to CopyUnknowns. Planning their state value hides a change that the plan Terraform re-runs
+// during apply then reveals, so the apply fails with "Provider produced inconsistent final plan". This is
+// not covered by CopyUnknowns keeping the Optional-without-Computed attributes unknown, which leaves out the
+// Optional+Computed ones. The name is top-level because an unknown nested in a list also hides whether that
+// list changes.
+func UnknownInConfig(config tftypes.Value) []string {
+	attributes := map[string]tftypes.Value{}
+	if config.IsNull() || !config.Type().Is(tftypes.Object{}) || config.As(&attributes) != nil {
+		return nil
+	}
+	var names []string
+	for name, value := range attributes {
+		if !value.IsFullyKnown() {
+			names = append(names, name)
+		}
+	}
+	slices.Sort(names)
+	return names
 }
 
 // CopyUnknowns use reflection to copy unknown fields from src to dest.

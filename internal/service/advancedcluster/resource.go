@@ -13,6 +13,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
@@ -97,7 +98,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 
-	handleModifyPlan(ctx, diags, &state, &plan, unknownInConfig(req.Config.Raw))
+	handleModifyPlan(ctx, diags, &state, &plan, schemafunc.UnknownInConfig(req.Config.Raw))
 	if diags.HasError() {
 		return
 	}
