@@ -416,12 +416,12 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 	case contact.Set():
 		settings.SetOperationsContact(contact.ValueString())
 	}
-	if raw := d.GetRawConfig().GetAttr("custom_session_timeouts"); raw.IsNull() {
-		if d.HasChange("custom_session_timeouts") {
-			settings.SetCustomSessionTimeoutsNil()
-		}
-	} else {
+	raw := d.GetRawConfig().GetAttr("custom_session_timeouts")
+	switch {
+	case raw.IsKnown() && !raw.IsNull() && raw.LengthInt() > 0:
 		settings.SetCustomSessionTimeouts(*expandCustomSessionTimeouts(d))
+	case d.HasChange("custom_session_timeouts"):
+		settings.SetCustomSessionTimeoutsNil()
 	}
 	// Unknown config (an expression resolved during apply) matches no case: OperationsContact is
 	// omitempty, so the PATCH omits the field and the server value is left untouched.
@@ -433,11 +433,6 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 func expandCustomSessionTimeouts(d *schema.ResourceData) *admin.CustomSessionTimeouts {
 	raw := d.GetRawConfig().GetAttr("custom_session_timeouts")
 	cst := &admin.CustomSessionTimeouts{}
-	if raw.LengthInt() == 0 { // block present but empty -> reset both to defaults
-		cst.SetAbsoluteSessionTimeoutInSecondsNil()
-		cst.SetIdleSessionTimeoutInSecondsNil()
-		return cst
-	}
 	elem := raw.Index(cty.NumberIntVal(0))
 	if v := elem.GetAttr("absolute_session_timeout_in_seconds"); v.IsNull() {
 		cst.SetAbsoluteSessionTimeoutInSecondsNil()
