@@ -97,7 +97,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 
-	handleModifyPlan(ctx, diags, &state, &plan)
+	handleModifyPlan(ctx, diags, &state, &plan, unknownInConfig(req.Config.Raw))
 	if diags.HasError() {
 		return
 	}

@@ -68,6 +68,17 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 				},
 			},
 			{
+				// auto_scaling is Optional+Computed, so the schema rule in CopyUnknowns does not keep it unknown.
+				// Planning its state value, and the read_only_specs derived from it, is rejected during apply.
+				ConfigFilename: "main_unresolved_optional_computed.tf",
+				Checks: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("auto_scaling")),
+					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("read_only_specs")),
+					plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("cluster_id"), knownvalue.StringExact("67d01a2d01d3561b07caf76e")),
+				},
+			},
+			{
 				ConfigFilename: "main_node_count_unknown.tf",
 				Checks: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),

@@ -2,11 +2,13 @@ package advancedcluster
 
 import (
 	"context"
+	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
@@ -28,8 +30,28 @@ var (
 	}
 )
 
+// unknownInConfig lists the top-level attributes the configuration still leaves unknown, using the naming of
+// keepUnknown. Planning their state value hides a change that the plan re-run during apply then reveals, so the
+// apply fails with "Provider produced inconsistent final plan". The Optional-without-Computed rule in
+// CopyUnknowns does not cover this: cluster_type and auto_scaling are also Computed. The name is top-level
+// because an unknown nested in replication_specs hides whether that list changes.
+func unknownInConfig(config tftypes.Value) []string {
+	attributes := map[string]tftypes.Value{}
+	if config.IsNull() || !config.Type().Is(tftypes.Object{}) || config.As(&attributes) != nil {
+		return nil
+	}
+	var names []string
+	for name, value := range attributes {
+		if !value.IsFullyKnown() {
+			names = append(names, name)
+		}
+	}
+	slices.Sort(names)
+	return names
+}
+
 // handleModifyPlan should be called only in Update, because of findClusterDiff
-func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, unknownConfigAttrs []string) {
 	// Special logic for use_effective_fields changes, as normal optimization is not safe.
 	if state.UseEffectiveFields.ValueBool() != plan.UseEffectiveFields.ValueBool() {
 		if isReadOnlySpecsDeleted(ctx, diags, state, plan) {
@@ -51,7 +73,7 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 		return
 	}
 
-	adjustRegionConfigsChildren(ctx, diags, state, plan)
+	adjustRegionConfigsChildren(ctx, diags, state, plan, unknownConfigAttrs)
 
 	diff := findClusterDiff(ctx, state, plan, diags)
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
@@ -61,12 +83,16 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version", "config_server_type"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
+	keepUnknown = append(keepUnknown, unknownConfigAttrs...)
 	schemafunc.CopyUnknowns(ctx, state, plan, resourceSchema(ctx).Attributes, keepUnknown)
 }
 
 // adjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
 // This ensures proper handling of removing auto scaling and specs attributes by preserving state values.
-func adjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+func adjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, unknownConfigAttrs []string) {
+	if slices.Contains(unknownConfigAttrs, "replication_specs") {
+		return // the configured specs are not resolved yet, so state values must not be planned for them
+	}
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	if diags.HasError() {
