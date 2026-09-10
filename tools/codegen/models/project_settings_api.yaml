@@ -14,7 +14,7 @@ schema:
           request_only_required_on_create: false
         - bool: {}
           description: Flag that indicates whether the MongoDB Assistant on the Atlas Home Page is enabled for the specified project.
-          computed_optional_required: optional
+          computed_optional_required: computed_optional
           tf_schema_name: is_atlas_home_page_ai_assistant_enabled
           tf_model_name: IsAtlasHomePageAiAssistantEnabled
           api_name: isAtlasHomePageAiAssistantEnabled
