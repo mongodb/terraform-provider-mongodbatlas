@@ -468,8 +468,8 @@ func flattenCustomSessionTimeouts(cst *admin.CustomSessionTimeouts) []any {
 	return []any{obj}
 }
 
-// customSessionTimeoutsEmptyBlockSuppress hides the plan diff for a block whose children are all
-// null while state already holds no custom session timeouts.
+// customSessionTimeoutsEmptyBlockSuppress hides the plan diff. This allows us to support
+// custom_session_timeouts {} to unset both timeouts.
 func customSessionTimeoutsEmptyBlockSuppress(_, old, _ string, d *schema.ResourceData) bool {
 	if old != "0" && old != "" {
 		return false // state holds a value; keep the diff so the reset is applied
