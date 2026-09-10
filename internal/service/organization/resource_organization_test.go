@@ -149,7 +149,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 			{
 				// Remove only the idle timeout: the block stays with absolute 3600 and idle returns as 0.
 				PreConfig: sleepForSettingsRateLimit,
-				Config:    configWithSettings(orgOwnerID, name, description, roleName, withTimeouts(&admin.OrganizationSettings{}, conversion.IntPtr(3600), nil)),
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, withTimeouts(settingsConfig, conversion.IntPtr(3600), nil)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.absolute_session_timeout_in_seconds", "3600"),
@@ -181,7 +181,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 			{
 				// Re-add only the absolute timeout after the block was removed.
 				PreConfig: sleepForSettingsRateLimit,
-				Config:    configWithSettings(orgOwnerID, nameUpdated, description, roleName, withTimeouts(&admin.OrganizationSettings{}, conversion.IntPtr(3600), nil)),
+				Config:    configWithSettings(orgOwnerID, nameUpdated, description, roleName, withTimeouts(settingsConfig, conversion.IntPtr(3600), nil)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.absolute_session_timeout_in_seconds", "3600")),
@@ -203,7 +203,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 				// returns the field as absent, so state converges to 0 items (see
 				// customSessionTimeoutsEmptyBlockSuppress). This shape used to re-propose the 1 -> 0 count diff.
 				PreConfig: sleepForSettingsRateLimit,
-				Config:    configWithSettings(orgOwnerID, nameUpdated, description, roleName, withTimeouts(&admin.OrganizationSettings{}, nil, nil)),
+				Config:    configWithSettings(orgOwnerID, nameUpdated, description, roleName, withTimeouts(settingsConfig, nil, nil)),
 				Check:     resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "0"),
 			},
 			{
@@ -211,7 +211,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 				// customSessionTimeoutsEmptyBlockSuppress hides it when state is empty, so this plan
 				// is empty (PlanOnly with ExpectNonEmptyPlan=false fails otherwise).
 				PreConfig: sleepForSettingsRateLimit,
-				Config:    configWithSettings(orgOwnerID, nameUpdated, description, roleName, withTimeouts(&admin.OrganizationSettings{}, nil, nil)),
+				Config:    configWithSettings(orgOwnerID, nameUpdated, description, roleName, withTimeouts(settingsConfig, nil, nil)),
 				PlanOnly:  true,
 			},
 		},
