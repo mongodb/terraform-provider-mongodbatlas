@@ -156,27 +156,24 @@ func TestAccConfigRSOrganization_Settings_OperationsContact(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				// Create the org with an operations contact set.
 				Config: configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(defaultSettings, "test@mongodb.com")),
 				Check:  checkAggr(orgOwnerID, name, description, withOperationsContact(defaultSettings, "test@mongodb.com")),
 			},
 			{
-				// Update the operations contact.
 				PreConfig: sleepForSettingsRateLimit,
 				Config:    configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(defaultSettings, "test-updated@mongodb.com")),
 				Check:     checkAggr(orgOwnerID, name, description, withOperationsContact(defaultSettings, "test-updated@mongodb.com")),
+			},
+			{
+				PreConfig:   sleepForSettingsRateLimit,
+				Config:      configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(defaultSettings, "")),
+				ExpectError: regexp.MustCompile(`INVALID_OPERATIONS_CONTACT_EMAIL`),
 			},
 			{
 				// Remove the operations contact from the config: cleared with an explicit null.
 				PreConfig: sleepForSettingsRateLimit,
 				Config:    configWithSettings(orgOwnerID, name, description, roleName, defaultSettings),
 				Check:     checkAggr(orgOwnerID, name, description, defaultSettings),
-			},
-			{
-				// An empty-string operations contact is rejected by the API.
-				PreConfig:   sleepForSettingsRateLimit,
-				Config:      configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(defaultSettings, "")),
-				ExpectError: regexp.MustCompile(`INVALID_OPERATIONS_CONTACT_EMAIL`),
 			},
 		},
 	})
