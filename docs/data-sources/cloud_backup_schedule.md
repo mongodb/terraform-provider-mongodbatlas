@@ -44,17 +44,22 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
     retention_value    = 14
   }
 
+  copy_policy_items_enabled = true
+
   copy_settings {
-    cloud_provider = "AWS"
-    frequencies = ["HOURLY",
-		   "DAILY",
-		   "WEEKLY",
-		   "MONTHLY",
-		   "YEARLY",
-		   "ON_DEMAND"]
-    region_name = "US_EAST_1"
-    zone_id = mongodbatlas_advanced_cluster.my_cluster.replication_specs.*.zone_id[0]
+    cloud_provider     = "AWS"
+    region_name        = "US_EAST_1"
+    zone_id            = mongodbatlas_advanced_cluster.my_cluster.replication_specs.*.zone_id[0]
     should_copy_oplogs = false
+
+    copy_policy_items {
+      frequency_type  = "daily"
+      retention_unit  = "days"
+      retention_value = 7
+    }
+    copy_policy_items {
+      frequency_type = "ondemand"
+    }
   }
 }
 
@@ -80,6 +85,7 @@ In addition to all arguments above, the following attributes are exported:
 * `reference_minute_of_hour` - UTC Minute of day between 0 and 59 representing which minute of the `reference_hour_of_day` that Atlas takes the snapshot.
 * `restore_window_days` - Specifies a restore window in days for cloud backup to maintain.
 * `id_policy` - Unique identifier of the backup policy.
+* `copy_policy_items_enabled` - Flag that indicates whether copy settings use `copy_policy_items` or `last_number_of_snapshots` instead of `frequencies`.
 * `policy_item_hourly` - (Optional) Hourly policy item. See [below](#policy_item_hourly)
 * `policy_item_daily` - (Optional) Daily policy item. See [below](#policy_item_daily)
 * `policy_item_weekly` - (Optional) Weekly policy item. See [below](#policy_item_weekly)
@@ -136,11 +142,19 @@ In addition to all arguments above, the following attributes are exported:
 
 ### copy_settings
 * `cloud_provider` - Human-readable label that identifies the cloud provider that stores the snapshot copy. i.e. "AWS" "AZURE" "GCP"
-* `frequencies` - List that describes which types of snapshots to copy. i.e. "HOURLY" "DAILY" "WEEKLY" "MONTHLY" "YEARLY" "ON_DEMAND"
+* `frequencies` - (Deprecated) List that describes which types of snapshots to copy when `copy_policy_items_enabled` is false. Values: `HOURLY`, `DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`, `ON_DEMAND`. Use `copy_policy_items` or `last_number_of_snapshots` instead.
+* `copy_policy_items` - Copy-policy items when `copy_policy_items_enabled` is true. See [below](#copy_policy_items).
+* `last_number_of_snapshots` - Number of most recent snapshots copied when `copy_policy_items_enabled` is true.
 * `region_name` - Target region to copy snapshots belonging to replicationSpecId to. Please supply the 'Atlas Region' which can be found under https://www.mongodb.com/docs/atlas/reference/cloud-providers/ 'regions' link
 * `zone_id` - Unique 24-hexadecimal digit string that identifies the zone in a cluster. For global clusters, there can be multiple zones to choose from. For sharded clusters and replica set clusters, there is only one zone in the cluster.
 * `should_copy_oplogs` - Flag that indicates whether to copy the oplogs to the target region. You can use the oplogs to perform point-in-time restores.
 
-**Note** The parameter deleteCopiedBackups is not supported in terraform please leverage Atlas Admin API or AtlasCLI instead to manage the lifecycle of backup snaphot copies.
+### copy_policy_items
+* `frequency_type` - Frequency associated with the copy policy item: `hourly`, `daily`, `weekly`, `monthly`, `yearly`, or `ondemand`.
+* `retention_unit` - Unit of time for copy retention: `days`, `weeks`, `months`, or `years`.
+* `retention_value` - Value to associate with `retention_unit`.
+* `id` - Unique identifier of the copy policy item.
+
+**Note** The write-only array `deleteCopiedBackups` is not supported in Terraform. Use the Atlas Admin API or Atlas CLI to manage that array. It is not the same as `delete_copy_snapshots` on the resource.
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/schedule/get-all-schedules/).
