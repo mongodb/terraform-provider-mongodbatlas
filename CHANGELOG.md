@@ -26,6 +26,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* resource/mongodbatlas_advanced_cluster: Fixes plan and apply errors when attributes are not known until apply ([#4718](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4718))
 * resource/mongodbatlas_network_peering: Emits a warning instead of returning an error when a peering connection in `FAILED` status is refreshed, and allows peerings in `FAILED` status to be deleted ([#4698](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4698))
 
 ## 2.17.0 (August 27, 2026)
