@@ -1,0 +1,135 @@
+schema:
+    description: Updates the delegation settings for the specified organization. Only fields present in the request body are updated; omitted fields retain their current values.
+    attributes:
+        - string: {}
+          description: Policy that controls how MCP (Model Context Protocol) delegated access is permitted within this organization. Possible values are `DISALLOWED`, `READ_ONLY`, and `READ_WRITE`. Defaults to `DISALLOWED`.
+          computed_optional_required: computed_optional
+          tf_schema_name: delegated_mcp_access
+          tf_model_name: DelegatedMcpAccess
+          api_name: delegatedMcpAccess
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Policy that controls whether partner delegated access is permitted within this organization. Possible values are `DISALLOWED` and `READ_WRITE`. Defaults to `DISALLOWED`.
+          computed_optional_required: computed_optional
+          tf_schema_name: delegated_partner_access
+          tf_model_name: DelegatedPartnerAccess
+          api_name: delegatedPartnerAccess
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - int64: {}
+          description: Maximum number of seconds a refresh token may be idle before it expires. Omit to leave unchanged; set to null to reset to the system default. Must be between 1 and 31536000 (1 year) when provided.
+          computed_optional_required: optional
+          tf_schema_name: idle_refresh_token_lifetime
+          tf_model_name: IdleRefreshTokenLifetime
+          api_name: idleRefreshTokenLifetime
+          req_body_usage: send_null_as_null_on_update
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - int64: {}
+          description: Maximum lifetime of a refresh token in seconds, regardless of activity. Omit to leave unchanged; set to null to reset to the system default. Must be between 1 and 31536000 (1 year) when provided.
+          computed_optional_required: optional
+          tf_schema_name: maximum_refresh_token_lifetime
+          tf_model_name: MaximumRefreshTokenLifetime
+          api_name: maximumRefreshTokenLifetime
+          req_body_usage: send_null_as_null_on_update
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+          computed_optional_required: required
+          tf_schema_name: org_id
+          tf_model_name: OrgId
+          api_name: orgId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+operations:
+    create:
+        http_method: PATCH
+        path: /api/atlas/v2/orgs/{orgId}/delegationSettings
+    read:
+        http_method: GET
+        path: /api/atlas/v2/orgs/{orgId}/delegationSettings
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/orgs/{orgId}/delegationSettings
+    version_header: application/vnd.atlas.2025-03-12+json
+data_sources:
+    singular:
+        description: Returns the delegation settings for the specified organization.
+        attributes:
+            - string: {}
+              description: Policy that controls how MCP (Model Context Protocol) delegated access is permitted within this organization. Possible values are `DISALLOWED`, `READ_ONLY`, and `READ_WRITE`. Defaults to `DISALLOWED`.
+              computed_optional_required: computed
+              tf_schema_name: delegated_mcp_access
+              tf_model_name: DelegatedMcpAccess
+              api_name: delegatedMcpAccess
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Policy that controls whether partner delegated access is permitted within this organization. Possible values are `DISALLOWED` and `READ_WRITE`. Defaults to `DISALLOWED`.
+              computed_optional_required: computed
+              tf_schema_name: delegated_partner_access
+              tf_model_name: DelegatedPartnerAccess
+              api_name: delegatedPartnerAccess
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - int64: {}
+              description: Maximum number of seconds a refresh token may be idle before it expires. When not set, the system default applies.
+              computed_optional_required: computed
+              tf_schema_name: idle_refresh_token_lifetime
+              tf_model_name: IdleRefreshTokenLifetime
+              api_name: idleRefreshTokenLifetime
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - int64: {}
+              description: Maximum lifetime of a refresh token in seconds, regardless of activity. When not set, the system default applies.
+              computed_optional_required: computed
+              tf_schema_name: maximum_refresh_token_lifetime
+              tf_model_name: MaximumRefreshTokenLifetime
+              api_name: maximumRefreshTokenLifetime
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+              computed_optional_required: required
+              tf_schema_name: org_id
+              tf_model_name: OrgId
+              api_name: orgId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/orgs/{orgId}/delegationSettings
+        version_header: application/vnd.atlas.2025-03-12+json
+name: org_delegation_settings
+packageName: orgdelegationsettings
