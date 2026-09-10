@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -35,32 +36,40 @@ func HasUnknowns(obj any) bool {
 	return false
 }
 
-type KeepUnknownFunc func(string, attr.Value) bool
-
 // CopyUnknowns use reflection to copy unknown fields from src to dest.
 // The implementation is similar to internal/common/conversion/model_generation.go#CopyModel
+// attributes are the schema attributes of src and dest, see shouldKeepUnknown. Blocks are not traversed.
 // keepUnknown is a list of fields that should not be copied, should always use the TF config name (snake_case)
 // nestedStructMapping is a map of field names to their type: object, list. (`set` not implemented yet)
-func CopyUnknowns(ctx context.Context, src, dest any, keepUnknown []string, keepUnknownCall KeepUnknownFunc) {
+func CopyUnknowns(ctx context.Context, src, dest any, attributes map[string]schema.Attribute, keepUnknown []string) {
 	validateKeepUnknown(keepUnknown)
-	slicesContains := func(name string, value attr.Value) bool {
-		return slices.Contains(keepUnknown, name)
-	}
-	copyUnknowns(ctx, src, dest, KeepUnknownFuncOr(slicesContains, keepUnknownCall))
+	copyUnknowns(ctx, src, dest, attributes, keepUnknown)
 }
 
-func KeepUnknownFuncOr(calls ...KeepUnknownFunc) KeepUnknownFunc {
-	return func(name string, value attr.Value) bool {
-		for _, call := range calls {
-			if call != nil && call(name, value) {
-				return true
-			}
-		}
-		return false
+// shouldKeepUnknown reports whether the attribute is in the keepUnknown list, or is Optional without
+// Computed: an unknown value is then an unresolved config expression and copying the state over it would
+// make the plan contradict the configuration, which Terraform rejects as an invalid plan.
+func shouldKeepUnknown(attributes map[string]schema.Attribute, keepUnknown []string, name string) bool {
+	if slices.Contains(keepUnknown, name) {
+		return true
 	}
+	attribute, found := attributes[name]
+	return found && attribute.IsOptional() && !attribute.IsComputed()
 }
 
-func copyUnknowns(ctx context.Context, src, dest any, keepUnknownCall KeepUnknownFunc) {
+// nestedAttributes returns the attributes of a nested object, nil if the attribute has none.
+// Only object and list are supported, the same nested types copyUnknowns traverses.
+func nestedAttributes(attributes map[string]schema.Attribute, name string) map[string]schema.Attribute {
+	switch attribute := attributes[name].(type) {
+	case schema.SingleNestedAttribute:
+		return attribute.Attributes
+	case schema.ListNestedAttribute:
+		return attribute.NestedObject.Attributes
+	}
+	return nil
+}
+
+func copyUnknowns(ctx context.Context, src, dest any, attributes map[string]schema.Attribute, keepUnknown []string) {
 	valSrc, valDest := validateStructPointers(src, dest)
 	typeSrc := valSrc.Type()
 	typeDest := valDest.Type()
@@ -68,25 +77,26 @@ func copyUnknowns(ctx context.Context, src, dest any, keepUnknownCall KeepUnknow
 		fieldDest := typeDest.Field(i)
 		name, tfName := fieldNameTFName(&fieldDest)
 		srcValue := valSrc.FieldByName(name).Interface()
-		if keepUnknownCall(tfName, srcValue.(attr.Value)) {
+		if shouldKeepUnknown(attributes, keepUnknown, tfName) {
 			continue
 		}
 		_, found := typeSrc.FieldByName(name)
 		if !found || !valDest.Field(i).CanSet() {
 			continue
 		}
+		nestedAttrs := nestedAttributes(attributes, tfName)
 		nestedDest := valDest.FieldByName(name).Interface()
 		objValueSrc, okSrc := srcValue.(types.Object)
 		objValueDest, okDest := nestedDest.(types.Object)
 		if okSrc && okDest {
-			objValueNew := copyUnknownsFromObject(ctx, objValueSrc, objValueDest, keepUnknownCall)
+			objValueNew := copyUnknownsFromObject(ctx, objValueSrc, objValueDest, nestedAttrs, keepUnknown)
 			valDest.Field(i).Set(reflect.ValueOf(objValueNew))
 			continue
 		}
 		listValueSrc, okSrc := srcValue.(types.List)
 		listValueDest, okDest := nestedDest.(types.List)
 		if okSrc && okDest {
-			listValueNew := copyUnknownsFromList(ctx, listValueSrc, listValueDest, keepUnknownCall)
+			listValueNew := copyUnknownsFromList(ctx, listValueSrc, listValueDest, nestedAttrs, keepUnknown)
 			valDest.Field(i).Set(reflect.ValueOf(listValueNew))
 			continue
 		}
@@ -150,7 +160,7 @@ func validateKeepUnknown(keepUnknown []string) {
 	}
 }
 
-func copyUnknownsFromObject(ctx context.Context, src, dest types.Object, keepUnknownCall func(string, attr.Value) bool) types.Object {
+func copyUnknownsFromObject(ctx context.Context, src, dest types.Object, attributes map[string]schema.Attribute, keepUnknown []string) types.Object {
 	// if something is null in the state and unknown in plan, we expect it to remain null
 	if src.IsNull() && dest.IsUnknown() {
 		return src
@@ -167,20 +177,20 @@ func copyUnknownsFromObject(ctx context.Context, src, dest types.Object, keepUnk
 		attributesDest = fillUnknowns(ctx, attributesSrc)
 	}
 	for name, attr := range attributesDest {
-		replacement := attributesSrc[name]
-		if keepUnknownCall(name, replacement) {
+		if shouldKeepUnknown(attributes, keepUnknown, name) {
 			attributesMerged[name] = attr
 			continue
 		}
+		nestedAttrs := nestedAttributes(attributes, name)
 		tfListDest, isList := attr.(types.List)
 		tfObjectDest, isObject := attr.(types.Object)
 		if attr.IsUnknown() {
 			tflog.Info(ctx, fmt.Sprintf("Copying unknown field: %s\n", name))
 			switch {
 			case isObject:
-				attr = copyUnknownsFromObject(ctx, attributesSrc[name].(types.Object), tfObjectDest, keepUnknownCall)
+				attr = copyUnknownsFromObject(ctx, attributesSrc[name].(types.Object), tfObjectDest, nestedAttrs, keepUnknown)
 			case isList:
-				attr = copyUnknownsFromList(ctx, attributesSrc[name].(types.List), tfListDest, keepUnknownCall)
+				attr = copyUnknownsFromList(ctx, attributesSrc[name].(types.List), tfListDest, nestedAttrs, keepUnknown)
 			default:
 				attr = attributesSrc[name]
 			}
@@ -189,11 +199,11 @@ func copyUnknownsFromObject(ctx context.Context, src, dest types.Object, keepUnk
 		}
 		if isList {
 			tfListSrc := attributesSrc[name].(types.List)
-			attr = copyUnknownsFromList(ctx, tfListSrc, tfListDest, keepUnknownCall)
+			attr = copyUnknownsFromList(ctx, tfListSrc, tfListDest, nestedAttrs, keepUnknown)
 		}
 		if isObject {
 			tfObjectSrc := attributesSrc[name].(types.Object)
-			newObject := copyUnknownsFromObject(ctx, tfObjectSrc, tfObjectDest, keepUnknownCall)
+			newObject := copyUnknownsFromObject(ctx, tfObjectSrc, tfObjectDest, nestedAttrs, keepUnknown)
 			attr = newObject
 		}
 		attributesMerged[name] = attr
@@ -214,7 +224,7 @@ func fillUnknowns(ctx context.Context, attributesSrc map[string]attr.Value) map[
 	return unknownAttributes
 }
 
-func copyUnknownsFromList(ctx context.Context, src, dest types.List, keepUnknownCall func(string, attr.Value) bool) types.List {
+func copyUnknownsFromList(ctx context.Context, src, dest types.List, attributes map[string]schema.Attribute, keepUnknown []string) types.List {
 	srcElements := src.Elements()
 	destElements := dest.Elements()
 	count := len(srcElements)
@@ -225,7 +235,7 @@ func copyUnknownsFromList(ctx context.Context, src, dest types.List, keepUnknown
 	for i := range count {
 		srcObj := srcElements[i].(types.Object)
 		destObj := destElements[i].(types.Object)
-		newObj := copyUnknownsFromObject(ctx, srcObj, destObj, keepUnknownCall)
+		newObj := copyUnknownsFromObject(ctx, srcObj, destObj, attributes, keepUnknown)
 		merged[i] = newObj
 	}
 	return types.ListValueMust(dest.ElementType(ctx), merged)

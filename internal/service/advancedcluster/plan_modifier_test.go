@@ -47,8 +47,7 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 				},
 			},
 			{
-				// These attributes are Optional without Computed, so an unresolved expression must
-				// stay unknown instead of being replaced by the state value.
+				// Every Optional-only attribute is unresolved, it must stay unknown instead of using the state value.
 				ConfigFilename: "main_unresolved_optional_attributes.tf",
 				Checks: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
@@ -57,6 +56,8 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("retain_backups_enabled")),
 					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("adaptive_capacity")),
 					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("use_effective_fields")),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("pinned_fcv")),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("timeouts")),
 					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("accept_data_risks_and_force_replica_set_reconfig")),
 					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("backing_provider_name")),
 				},

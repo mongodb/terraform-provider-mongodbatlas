@@ -14,6 +14,14 @@ resource "terraform_data" "unresolved_date" {
   input = "2099-01-01T00:00:00Z"
 }
 
+resource "terraform_data" "unresolved_pinned_fcv" {
+  input = { version = "8.0", expiration_date = "2099-01-01T00:00:00Z" }
+}
+
+resource "terraform_data" "unresolved_timeouts" {
+  input = { create = "60m", update = "90m", delete = "120m" }
+}
+
 resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = "111111111111111111111111"
   name         = "mocked-cluster"
@@ -24,6 +32,8 @@ resource "mongodbatlas_advanced_cluster" "test" {
   retain_backups_enabled = terraform_data.unresolved_bool.output
   adaptive_capacity      = terraform_data.unresolved_string.output
   use_effective_fields   = terraform_data.unresolved_bool.output
+  pinned_fcv             = terraform_data.unresolved_pinned_fcv.output
+  timeouts               = terraform_data.unresolved_timeouts.output
 
   accept_data_risks_and_force_replica_set_reconfig = terraform_data.unresolved_date.output
 
