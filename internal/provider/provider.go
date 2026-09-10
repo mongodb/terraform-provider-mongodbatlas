@@ -62,6 +62,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabasecollection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orgdelegationsettings"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orgmaintenancesettings"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive"
 	autogenprojectipaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectipaccesslist"
@@ -364,6 +365,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		aimodelorgratelimit.PluralDataSource,
 		aimodelratelimit.DataSource,
 		aimodelratelimit.PluralDataSource,
+		orgdelegationsettings.DataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
@@ -411,6 +413,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		privatelinkendpointservicedatafederationonlinearchive.Resource,
 		aimodelapikey.Resource,
 		aimodelratelimit.Resource,
+		orgdelegationsettings.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {
