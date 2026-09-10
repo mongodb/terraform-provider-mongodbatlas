@@ -60,6 +60,11 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("timeouts")),
 					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("accept_data_risks_and_force_replica_set_reconfig")),
 					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("backing_provider_name")),
+					// Only the unresolved attributes stay unknown: the computed ones still keep their state value.
+					plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("cluster_id"), knownvalue.StringExact("67d01a2d01d3561b07caf76e")),
+					plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("encryption_at_rest_provider"), knownvalue.StringExact("NONE")),
+					plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("root_cert_type"), knownvalue.StringExact("ISRGROOTX1")),
+					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("electable_specs").AtMapKey("instance_size"), knownvalue.StringExact("M10")),
 				},
 			},
 			{
