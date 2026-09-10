@@ -292,6 +292,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
 `
 
 func Test_ClusterResourceHcl(t *testing.T) {
+	t.Setenv(acc.TestRegionsEnvName, constant.UsWest2)
 	var (
 		clusterName = "my-name"
 		testCases   = map[string]struct {

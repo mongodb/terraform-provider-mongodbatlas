@@ -1,15 +1,23 @@
 ## (Unreleased)
 
+NOTES:
+
+* resource/mongodbatlas_cloud_backup_schedule: Deprecates `copy_settings.frequencies` in favor of `copy_settings.copy_policy_items` and `copy_settings.last_number_of_snapshots` ([#4693](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4693))
+
 FEATURES:
 
+* **New Data Source:** `data-source/mongodbatlas_org_delegation_settings` ([#4709](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4709))
 * **New Guide:** Adds guidance for migrating stream connections and processors from instance_name to workspace_name ([#4682](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4682))
+* **New Resource:** `resource/mongodbatlas_org_delegation_settings` ([#4709](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4709))
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_cloud_backup_schedule: Adds `copy_policy_items_enabled`, `copy_settings.copy_policy_items`, and `copy_settings.last_number_of_snapshots` attributes ([#4693](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4693))
 * data-source/mongodbatlas_organization: Adds `operations_contact` attribute ([#4700](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4700))
 * data-source/mongodbatlas_organizations: Adds `operations_contact` attribute ([#4700](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4700))
 * data-source/mongodbatlas_project_service_accounts: Adds `include_system_managed` attribute to optionally include system-managed Service Accounts in the response ([#4699](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4699))
 * data-source/mongodbatlas_service_accounts: Adds `include_system_managed` attribute to optionally include system-managed Service Accounts in the response ([#4699](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4699))
+* resource/mongodbatlas_cloud_backup_schedule: Adds `copy_policy_items_enabled`, `copy_settings.copy_policy_items`, `copy_settings.last_number_of_snapshots`, `update_copy_snapshots`, and `delete_copy_snapshots` attributes ([#4693](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4693))
 * resource/mongodbatlas_organization: Adds `operations_contact` attribute ([#4700](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4700))
 * resource/mongodbatlas_stream_processor: Adds `options.resume_from_checkpoint` to allow modifying the `$source` stage of a `pipeline`, which the Atlas Admin API rejects while resuming from an existing checkpoint. Only applied to updates that change the `$source` or a window stage, the changes the API rejects while resuming from a checkpoint. ([#4608](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4608))
 
