@@ -220,6 +220,16 @@ var (
 	}
 )
 
+// configOnlyObjectAttributes makes advanced_config Optional without Computed, with a Computed child.
+var configOnlyObjectAttributes = map[string]schema.Attribute{
+	"project_id":     schema.StringAttribute{Optional: true},
+	"name":           schema.StringAttribute{Optional: true, Computed: true},
+	"backup_enabled": schema.BoolAttribute{Computed: true},
+	"advanced_config": schema.SingleNestedAttribute{Optional: true, Attributes: map[string]schema.Attribute{
+		"javascript_enabled": schema.BoolAttribute{Computed: true},
+	}},
+}
+
 func TestCopyUnknowns(t *testing.T) {
 	tests := map[string]struct {
 		src          *TFSimpleModel
@@ -250,6 +260,38 @@ func TestCopyUnknowns(t *testing.T) {
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigProviderNameUnknown}),
 			},
 			attributes: simpleModelAttributes,
+		},
+		"config-only object is traversed for its Computed children": {
+			src: &TFSimpleModel{
+				AdvancedConfig: advancedConfigTrue,
+				Name:           types.StringValue("src-name"),
+			},
+			dest: &TFSimpleModel{
+				// the object is known, only its Computed child is unknown, as Terraform proposes it
+				AdvancedConfig: types.ObjectValueMust(AdvancedConfigObjType.AttrTypes,
+					map[string]attr.Value{"javascript_enabled": types.BoolUnknown()}),
+				Name: types.StringUnknown(),
+			},
+			expectedDest: &TFSimpleModel{
+				AdvancedConfig: advancedConfigTrue,
+				Name:           types.StringValue("src-name"),
+			},
+			attributes: configOnlyObjectAttributes,
+		},
+		"config-only object left unknown when the configuration does not resolve it": {
+			src: &TFSimpleModel{
+				AdvancedConfig: advancedConfigTrue,
+				Name:           types.StringValue("src-name"),
+			},
+			dest: &TFSimpleModel{
+				AdvancedConfig: types.ObjectUnknown(AdvancedConfigObjType.AttrTypes),
+				Name:           types.StringUnknown(),
+			},
+			expectedDest: &TFSimpleModel{
+				AdvancedConfig: types.ObjectUnknown(AdvancedConfigObjType.AttrTypes),
+				Name:           types.StringValue("src-name"),
+			},
+			attributes: configOnlyObjectAttributes,
 		},
 		"schema and keepUnknown are combined": {
 			src: &TFSimpleModel{

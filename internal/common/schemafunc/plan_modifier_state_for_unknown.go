@@ -68,15 +68,16 @@ func CopyUnknowns(ctx context.Context, src, dest any, attributes map[string]sche
 	copyUnknowns(ctx, src, dest, attributes, keepUnknown)
 }
 
-// shouldKeepUnknown reports whether the attribute is in the keepUnknown list, or is Optional without
-// Computed: an unknown value is then an unresolved config expression and copying the state over it would
-// make the plan contradict the configuration, which Terraform rejects as an invalid plan.
-func shouldKeepUnknown(attributes map[string]schema.Attribute, keepUnknown []string, name string) bool {
+// shouldKeepUnknown reports whether the destination value must stay unknown: it is in the keepUnknown list,
+// or it is an unknown value of an attribute that is not Computed, whose value can only come from the
+// configuration, so the state value would contradict the expression it resolves to. Known values are not
+// kept, so an object is still traversed to reach its Computed children, such as pinned_fcv.version.
+func shouldKeepUnknown(attributes map[string]schema.Attribute, keepUnknown []string, name string, destUnknown bool) bool {
 	if slices.Contains(keepUnknown, name) {
 		return true
 	}
 	attribute, found := attributes[name]
-	return found && attribute.IsOptional() && !attribute.IsComputed()
+	return found && !attribute.IsComputed() && destUnknown
 }
 
 // nestedAttributes returns the attributes of a nested object, nil if the attribute has none.
@@ -99,7 +100,7 @@ func copyUnknowns(ctx context.Context, src, dest any, attributes map[string]sche
 		fieldDest := typeDest.Field(i)
 		name, tfName := fieldNameTFName(&fieldDest)
 		srcValue := valSrc.FieldByName(name).Interface()
-		if shouldKeepUnknown(attributes, keepUnknown, tfName) {
+		if shouldKeepUnknown(attributes, keepUnknown, tfName, isUnknown(valDest.Field(i))) {
 			continue
 		}
 		_, found := typeSrc.FieldByName(name)
@@ -199,7 +200,7 @@ func copyUnknownsFromObject(ctx context.Context, src, dest types.Object, attribu
 		attributesDest = fillUnknowns(ctx, attributesSrc)
 	}
 	for name, attr := range attributesDest {
-		if shouldKeepUnknown(attributes, keepUnknown, name) {
+		if shouldKeepUnknown(attributes, keepUnknown, name, attr.IsUnknown()) {
 			attributesMerged[name] = attr
 			continue
 		}
