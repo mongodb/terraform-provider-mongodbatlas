@@ -85,6 +85,41 @@ func TestAccProjectServiceAccount_createOnlyAttributes(t *testing.T) {
 	})
 }
 
+func TestAccProjectServiceAccount_pluralDSIncludeSystemManaged(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		name      = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				// The MCP config creates a system-managed Service Account (egress_client_id),
+				// Using an output to verify that it's returned in the plural DS.
+				Config: fmt.Sprintf(`
+					resource "mongodbatlas_project_mcp_config" "test" {
+						project_id     = %[1]q
+						mcp_config_name = %[2]q
+						roles           = ["GROUP_READ_ONLY"]
+					}
+
+					data "mongodbatlas_project_service_accounts" "test" {
+						project_id             = %[1]q
+						include_system_managed = true
+						depends_on             = [mongodbatlas_project_mcp_config.test]
+					}
+
+					output "includes_egress_service_account" {
+						value = contains([for sa in data.mongodbatlas_project_service_accounts.test.results : sa.client_id], mongodbatlas_project_mcp_config.test.egress_client_id)
+					}
+				`, projectID, name),
+				Check: resource.TestCheckOutput("includes_egress_service_account", "true"),
+			},
+		},
+	})
+}
+
 func configBasic(projectID, name, description string, roles []string, secretExpiresAfterHours int) string {
 	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	rolesHCL := fmt.Sprintf("[%s]", rolesStr)

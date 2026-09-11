@@ -13,6 +13,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
@@ -90,7 +91,6 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() || req.State.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update.
 		return
 	}
-	unknownConfigAttrs := unknownInConfig(req.Config.Raw)
 	var state TFModel
 	diags.Append(req.State.Get(ctx, &state)...)
 	if diags.HasError() {
@@ -103,7 +103,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 
-	handleModifyPlan(ctx, diags, &state, &plan, unknownConfigAttrs)
+	handleModifyPlan(ctx, diags, &state, &plan, schemafunc.UnknownInConfig(req.Config.Raw))
 	if diags.HasError() {
 		return
 	}

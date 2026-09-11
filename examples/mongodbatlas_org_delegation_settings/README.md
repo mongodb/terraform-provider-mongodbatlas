@@ -1,0 +1,19 @@
+# MongoDB Atlas Provider -- Delegation Settings
+
+This example shows how to configure the delegation settings of a MongoDB Atlas organization with the `mongodbatlas_org_delegation_settings` resource. Delegation settings control how MCP (Model Context Protocol) and partner delegated access are permitted within the organization, as well as the refresh token lifetimes.
+
+## Important Notes
+
+Delegation settings are a singleton at the organization level: the settings always exist, so creating the resource updates the existing settings. The delete operation is a no-op that only emits a warning and performs no API calls, so the settings in Atlas are left unchanged; Terraform only removes the resource from the state.
+
+## Variables Required to be set:
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
+- `atlas_org_id`: Organization ID where the Delegation Settings will be configured
+
+## Outputs
+- `org_delegation_settings_delegated_mcp_access`: The MCP delegated access policy of the organization
+- `org_delegation_settings_delegated_partner_access`: The partner delegated access policy of the organization
+- `org_delegation_settings_idle_refresh_token_lifetime`: The maximum number of seconds a refresh token may be idle before it expires
+- `org_delegation_settings_maximum_refresh_token_lifetime`: The maximum lifetime of a refresh token in seconds, regardless of activity
+- `org_delegation_settings_delegated_mcp_access_ds`: The MCP delegated access policy of the organization, from the data source

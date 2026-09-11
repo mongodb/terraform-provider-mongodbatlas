@@ -1,0 +1,7 @@
+```release-note:new-resource
+resource/mongodbatlas_org_delegation_settings
+```
+
+```release-note:new-datasource
+data-source/mongodbatlas_org_delegation_settings
+```

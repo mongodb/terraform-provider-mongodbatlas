@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
@@ -30,26 +29,6 @@ var (
 		"instance_size": {"oplog_size_mb"},
 	}
 )
-
-// unknownInConfig lists the top-level attributes that the configuration still leaves unknown, using the
-// naming of keepUnknown. Copying state into them would promise the old value in the plan and then apply
-// whatever the expression resolves to. Reporting the top-level name is deliberate: an unknown nested in
-// replication_specs also hides whether that list changes, and the plan Terraform re-runs during apply
-// keeps the whole subtree unknown once the change becomes visible.
-func unknownInConfig(config tftypes.Value) []string {
-	attributes := map[string]tftypes.Value{}
-	if config.IsNull() || !config.Type().Is(tftypes.Object{}) || config.As(&attributes) != nil {
-		return nil
-	}
-	var names []string
-	for name, value := range attributes {
-		if !value.IsFullyKnown() {
-			names = append(names, name)
-		}
-	}
-	slices.Sort(names)
-	return names
-}
 
 // handleModifyPlan should be called only in Update, because of findClusterDiff
 func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, unknownConfigAttrs []string) {
@@ -85,7 +64,7 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	keepUnknown = append(keepUnknown, unknownConfigAttrs...)
-	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
+	schemafunc.CopyUnknowns(ctx, state, plan, resourceSchema(ctx).Attributes, keepUnknown)
 }
 
 // adjustRegionConfigsChildren modifies the planned values of region configs based on the current state.

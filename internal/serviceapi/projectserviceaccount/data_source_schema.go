@@ -69,18 +69,23 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 					},
 				},
 			},
+			"system_managed": dsschema.BoolAttribute{
+				Computed:            true,
+				MarkdownDescription: "Indicates whether the Service Account is system managed.",
+			},
 		},
 	}
 }
 
 type TFDSModel struct {
-	ClientId    types.String                                  `tfsdk:"client_id" autogen:"omitjson"`
-	CreatedAt   types.String                                  `tfsdk:"created_at" autogen:"omitjson"`
-	Description types.String                                  `tfsdk:"description" autogen:"omitjson"`
-	Name        types.String                                  `tfsdk:"name" autogen:"omitjson"`
-	ProjectId   types.String                                  `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Roles       customtypes.SetValue[types.String]            `tfsdk:"roles" autogen:"omitjson"`
-	Secrets     customtypes.NestedListValue[TFDSSecretsModel] `tfsdk:"secrets" autogen:"omitjson"`
+	ClientId      types.String                                  `tfsdk:"client_id" autogen:"omitjson"`
+	CreatedAt     types.String                                  `tfsdk:"created_at" autogen:"omitjson"`
+	Description   types.String                                  `tfsdk:"description" autogen:"omitjson"`
+	Name          types.String                                  `tfsdk:"name" autogen:"omitjson"`
+	ProjectId     types.String                                  `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	Roles         customtypes.SetValue[types.String]            `tfsdk:"roles" autogen:"omitjson"`
+	Secrets       customtypes.NestedListValue[TFDSSecretsModel] `tfsdk:"secrets" autogen:"omitjson"`
+	SystemManaged types.Bool                                    `tfsdk:"system_managed" autogen:"omitjson"`
 }
 type TFDSSecretsModel struct {
 	CreatedAt         types.String `tfsdk:"created_at" autogen:"omitjson"`
