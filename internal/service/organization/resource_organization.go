@@ -385,7 +385,7 @@ func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizat
 				Name:                    saMap["name"].(string),
 				Description:             saMap["description"].(string),
 				Roles:                   conversion.ExpandStringList(saMap["roles"].(*schema.Set).List()),
-				SecretExpiresAfterHours: saMap["secret_expires_after_hours"].(int),
+				SecretExpiresAfterHours: conversion.IntPtr(saMap["secret_expires_after_hours"].(int)),
 			}
 		}
 	} else {

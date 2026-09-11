@@ -120,7 +120,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	params := new(admin.GroupMaintenanceWindow)
 
-	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
+	params.DayOfWeek = conversion.IntPtr(cast.ToInt(d.Get("day_of_week")))
 	params.HourOfDay = new(cast.ToInt(d.Get("hour_of_day")))
 
 	if autoDeferOnceEnabled, ok := d.GetOk("auto_defer_once_enabled"); ok {
@@ -229,7 +229,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	params := new(admin.GroupMaintenanceWindow)
-	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
+	params.DayOfWeek = conversion.IntPtr(cast.ToInt(d.Get("day_of_week")))
 
 	if d.HasChange("hour_of_day") {
 		params.HourOfDay = new(cast.ToInt(d.Get("hour_of_day")))
