@@ -79,6 +79,10 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 								},
 							},
 						},
+						"system_managed": dsschema.BoolAttribute{
+							Computed:            true,
+							MarkdownDescription: "Indicates whether the Service Account is system managed.",
+						},
 					},
 				},
 			},
@@ -92,12 +96,13 @@ type TFPluralDSModel struct {
 	Results              customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
 }
 type TFPluralDSResultsModel struct {
-	ClientId    types.String                                               `tfsdk:"client_id" autogen:"omitjson"`
-	CreatedAt   types.String                                               `tfsdk:"created_at" autogen:"omitjson"`
-	Description types.String                                               `tfsdk:"description" autogen:"omitjson"`
-	Name        types.String                                               `tfsdk:"name" autogen:"omitjson"`
-	Roles       customtypes.SetValue[types.String]                         `tfsdk:"roles" autogen:"omitjson"`
-	Secrets     customtypes.NestedListValue[TFPluralDSResultsSecretsModel] `tfsdk:"secrets" autogen:"omitjson"`
+	ClientId      types.String                                               `tfsdk:"client_id" autogen:"omitjson"`
+	CreatedAt     types.String                                               `tfsdk:"created_at" autogen:"omitjson"`
+	Description   types.String                                               `tfsdk:"description" autogen:"omitjson"`
+	Name          types.String                                               `tfsdk:"name" autogen:"omitjson"`
+	Roles         customtypes.SetValue[types.String]                         `tfsdk:"roles" autogen:"omitjson"`
+	Secrets       customtypes.NestedListValue[TFPluralDSResultsSecretsModel] `tfsdk:"secrets" autogen:"omitjson"`
+	SystemManaged types.Bool                                                 `tfsdk:"system_managed" autogen:"omitjson"`
 }
 type TFPluralDSResultsSecretsModel struct {
 	CreatedAt         types.String `tfsdk:"created_at" autogen:"omitjson"`
