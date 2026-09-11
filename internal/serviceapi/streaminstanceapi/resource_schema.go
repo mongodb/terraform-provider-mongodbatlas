@@ -177,13 +177,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"config": schema.MapAttribute{
 							Computed:            true,
-							MarkdownDescription: "Optional for type: Kafka. A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.",
+							MarkdownDescription: "Optional for type: Kafka. Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters.",
 							CustomType:          customtypes.NewMapType[types.String](ctx),
 							ElementType:         types.StringType,
 						},
 						"db_role_to_execute": schema.SingleNestedAttribute{
 							Computed:            true,
-							MarkdownDescription: "Optional for type: Cluster. The name of a built-in or custom DB Role to connect to an Atlas Cluster.",
+							MarkdownDescription: "Optional for type: Cluster. Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster.",
 							CustomType:          customtypes.NewObjectType[TFConnectionsDbRoleToExecuteModel](ctx),
 							Attributes: map[string]schema.Attribute{
 								"role": schema.StringAttribute{
@@ -250,7 +250,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									Attributes: map[string]schema.Attribute{
 										"connection_id": schema.StringAttribute{
 											Computed:            true,
-											MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type.",
+											MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type. Setting this field with any other networking access type returns a validation error.",
 										},
 										"name": schema.StringAttribute{
 											Computed:            true,
@@ -330,7 +330,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"region": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The connection region.",
+							MarkdownDescription: "Connection region.",
 						},
 						"schema_registry_authentication": schema.SingleNestedAttribute{
 							Computed:            true,
@@ -374,11 +374,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"state": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The connection state.",
+							MarkdownDescription: "Connection state.",
 						},
 						"type": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The connection type.",
+							MarkdownDescription: "Connection type.",
 						},
 						"url": schema.StringAttribute{
 							Computed:            true,
@@ -492,11 +492,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"max_tier_size": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "Max tier size for the Stream Workspace. Configures Memory / VCPU allowances.",
+						MarkdownDescription: "Max tier size for the Stream Workspace. Configures Memory or VCPU allowances.",
 					},
 					"tier": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.",
+						MarkdownDescription: "Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.",
 					},
 				},
 			},

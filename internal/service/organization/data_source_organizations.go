@@ -93,6 +93,22 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"custom_session_timeouts": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"absolute_session_timeout_in_seconds": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"idle_session_timeout_in_seconds": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -165,6 +181,7 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 			"gen_ai_features_enabled":      settings.GenAIFeaturesEnabled,
 			"security_contact":             settings.SecurityContact,
 			"operations_contact":           settings.OperationsContact,
+			"custom_session_timeouts":      flattenCustomSessionTimeouts(settings.CustomSessionTimeouts),
 		}
 	}
 	return results, nil

@@ -9,6 +9,7 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -106,6 +107,24 @@ func Resource() *schema.Resource {
 			"operations_contact": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"custom_session_timeouts": {
+				Type:             schema.TypeList,
+				Optional:         true,
+				MaxItems:         1,
+				DiffSuppressFunc: customSessionTimeoutsEmptyBlockSuppress,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"absolute_session_timeout_in_seconds": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"idle_session_timeout_in_seconds": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
 			},
 			"service_account": {
 				Type:     schema.TypeList,
@@ -279,6 +298,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err := d.Set("operations_contact", settings.OperationsContact); err != nil {
 		return diag.Errorf("error setting `operations_contact` for organization (%s): %s", orgID, err)
 	}
+	if err := d.Set("custom_session_timeouts", flattenCustomSessionTimeouts(settings.CustomSessionTimeouts)); err != nil {
+		return diag.Errorf("error setting `custom_session_timeouts` for organization (%s): %s", orgID, err)
+	}
 	return nil
 }
 
@@ -307,7 +329,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		d.HasChange("restrict_employee_access") ||
 		d.HasChange("gen_ai_features_enabled") ||
 		d.HasChange("security_contact") ||
-		d.HasChange("operations_contact") {
+		d.HasChange("operations_contact") ||
+		d.HasChange("custom_session_timeouts") {
 		if _, _, err := conn.OrganizationsAPI.UpdateOrgSettings(ctx, orgID, newOrganizationSettings(d)).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization settings: %s", err))
 		}
@@ -394,9 +417,77 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 	case contact.Set():
 		settings.SetOperationsContact(contact.ValueString())
 	}
+	raw := d.GetRawConfig().GetAttr("custom_session_timeouts")
+	switch {
+	case raw.IsKnown() && !raw.IsNull() && raw.LengthInt() > 0:
+		settings.SetCustomSessionTimeouts(*expandCustomSessionTimeouts(d))
+	case d.HasChange("custom_session_timeouts"):
+		settings.SetCustomSessionTimeoutsNil()
+	}
 	// Unknown config (an expression resolved during apply) matches no case: OperationsContact is
 	// omitempty, so the PATCH omits the field and the server value is left untouched.
 	return settings
+}
+
+// expandCustomSessionTimeouts maps the block into the SDK object using raw config so an
+// unset child is sent as an explicit null.
+func expandCustomSessionTimeouts(d *schema.ResourceData) *admin.CustomSessionTimeouts {
+	raw := d.GetRawConfig().GetAttr("custom_session_timeouts")
+	cst := &admin.CustomSessionTimeouts{}
+	elem := raw.Index(cty.NumberIntVal(0))
+	if v := elem.GetAttr("absolute_session_timeout_in_seconds"); v.IsNull() {
+		cst.SetAbsoluteSessionTimeoutInSecondsNil()
+	} else {
+		n, _ := v.AsBigFloat().Int64()
+		cst.SetAbsoluteSessionTimeoutInSeconds(int(n))
+	}
+	if v := elem.GetAttr("idle_session_timeout_in_seconds"); v.IsNull() {
+		cst.SetIdleSessionTimeoutInSecondsNil()
+	} else {
+		n, _ := v.AsBigFloat().Int64()
+		cst.SetIdleSessionTimeoutInSeconds(int(n))
+	}
+	return cst
+}
+
+func flattenCustomSessionTimeouts(cst *admin.CustomSessionTimeouts) []any {
+	if cst == nil {
+		return nil
+	}
+	obj := map[string]any{}
+	v, absOK := cst.GetAbsoluteSessionTimeoutInSecondsOk()
+	w, idleOK := cst.GetIdleSessionTimeoutInSecondsOk()
+	if !absOK && !idleOK {
+		return nil
+	}
+	if absOK {
+		obj["absolute_session_timeout_in_seconds"] = v
+	}
+	if idleOK {
+		obj["idle_session_timeout_in_seconds"] = w
+	}
+	return []any{obj}
+}
+
+// customSessionTimeoutsEmptyBlockSuppress hides the plan diff. This allows us to support
+// custom_session_timeouts {} to unset both timeouts.
+func customSessionTimeoutsEmptyBlockSuppress(_, old, _ string, d *schema.ResourceData) bool {
+	if old != "0" && old != "" {
+		return false // state holds a value; keep the diff so the reset is applied
+	}
+	return customSessionTimeoutsAllNullConfig(d)
+}
+
+// customSessionTimeoutsAllNullConfig reports whether raw config declares the
+// custom_session_timeouts block with both children unset.
+func customSessionTimeoutsAllNullConfig(d *schema.ResourceData) bool {
+	raw := d.GetRawConfig().GetAttr("custom_session_timeouts")
+	if raw.IsNull() || !raw.IsKnown() || raw.LengthInt() == 0 {
+		return false
+	}
+	elem := raw.Index(cty.NumberIntVal(0))
+	return elem.GetAttr("absolute_session_timeout_in_seconds").IsNull() &&
+		elem.GetAttr("idle_session_timeout_in_seconds").IsNull()
 }
 
 func ValidateAPIKeyIsOrgOwner(roles []string) error {

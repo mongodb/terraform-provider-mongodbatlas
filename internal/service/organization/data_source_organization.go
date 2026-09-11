@@ -75,6 +75,22 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"custom_session_timeouts": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"absolute_session_timeout_in_seconds": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"idle_session_timeout_in_seconds": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -134,6 +150,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	if err := d.Set("operations_contact", settings.OperationsContact); err != nil {
 		return diag.Errorf("error setting `operations_contact` for organization (%s): %s", orgID, err)
+	}
+	if err := d.Set("custom_session_timeouts", flattenCustomSessionTimeouts(settings.CustomSessionTimeouts)); err != nil {
+		return diag.Errorf("error setting `custom_session_timeouts` for organization (%s): %s", orgID, err)
 	}
 
 	d.SetId(organization.GetId())
