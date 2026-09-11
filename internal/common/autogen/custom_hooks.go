@@ -24,7 +24,7 @@ type PostReadAggregatedListAPICallHook interface {
 }
 
 type PreCreateAPICallHook interface {
-	PreCreateAPICall(ctx context.Context, callParams config.APICallParams, bodyReq []byte) (config.APICallParams, []byte, error)
+	PreCreateAPICall(callParams config.APICallParams, bodyReq []byte) (config.APICallParams, []byte)
 }
 
 type PostCreateAPICallHook interface {
@@ -40,7 +40,7 @@ type PostDeleteAPICallHook interface {
 }
 
 type PreUpdateAPICallHook interface {
-	PreUpdateAPICall(ctx context.Context, callParams config.APICallParams, bodyReq []byte) (config.APICallParams, []byte, error)
+	PreUpdateAPICall(callParams config.APICallParams, bodyReq []byte) (config.APICallParams, []byte)
 }
 
 type PostUpdateAPICallHook interface {

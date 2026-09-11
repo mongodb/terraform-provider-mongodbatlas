@@ -39,14 +39,14 @@ func (r *rs) ResourceSchema(ctx context.Context, s schema.Schema) schema.Schema 
 // However, modifications to other attributes would plan both ip_address + cidr_block to be sent in the PATCH for all entries that have them set in the state.
 // So here we drop the cidr_block if ip_address is already set. This is a safe assumption since the only way for both to get to this point is because
 // the entry comes from the state and was not modified in the config, and sending ip_address or cidr_block is equivalent.
-func (r *rs) PreUpdateAPICall(_ context.Context, callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte, err error) {
+func (r *rs) PreUpdateAPICall(callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte) {
 	var body map[string]any
 	if err := autogen.Decode(bodyReq, &body); err != nil {
-		return callParams, bodyReq, nil
+		return callParams, bodyReq
 	}
 	entries, ok := body["ipAccessList"].([]any)
 	if !ok {
-		return callParams, bodyReq, nil
+		return callParams, bodyReq
 	}
 	for _, e := range entries {
 		entry, ok := e.(map[string]any)
@@ -61,7 +61,7 @@ func (r *rs) PreUpdateAPICall(_ context.Context, callParams config.APICallParams
 	}
 	updated, err := json.Marshal(body)
 	if err != nil {
-		return callParams, bodyReq, nil
+		return callParams, bodyReq
 	}
-	return callParams, updated, nil
+	return callParams, updated
 }

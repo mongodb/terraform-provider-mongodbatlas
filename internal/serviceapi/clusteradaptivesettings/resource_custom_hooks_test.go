@@ -1,6 +1,7 @@
 package clusteradaptivesettings_test
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -16,115 +17,40 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusteradaptivesettings"
 )
 
-func TestAdaptiveSettingsRequestHooks(t *testing.T) {
+// TestAdaptiveSettingsPostReadHook verifies that the PostRead hook normalizes
+// the state when Atlas omits adaptiveSettingsOverrides after a whole-map reset.
+func TestAdaptiveSettingsPostReadHook(t *testing.T) {
 	t.Parallel()
 
-	testCases := map[string]struct {
-		request      string
-		expected     string
-		expectedGETs int32
-	}{
-		"omitted overrides reset the whole map": {
-			request:  `{}`,
-			expected: `{"adaptiveSettingsOverrides":null}`,
-		},
-		"empty overrides reset every effective key": {
-			request:      `{"adaptiveSettingsOverrides":{}}`,
-			expected:     `{"adaptiveSettingsOverrides":{"key1":null,"key2":null}}`,
-			expectedGETs: 2,
-		},
-		"planned overrides replace effective candidates": {
-			request:      `{"adaptiveSettingsOverrides":{"key2":"val22"}}`,
-			expected:     `{"adaptiveSettingsOverrides":{"key1":null,"key2":"val22"}}`,
-			expectedGETs: 2,
-		},
-		"new planned keys are preserved": {
-			request:      `{"adaptiveSettingsOverrides":{"key3":{"enabled":true}}}`,
-			expected:     `{"adaptiveSettingsOverrides":{"key1":null,"key2":null,"key3":{"enabled":true}}}`,
-			expectedGETs: 2,
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			resourceInstance, getCalls := configuredResource(t, http.StatusOK, `{"effectiveAdaptiveSettings":{"key1":true,"key2":false}}`)
-			createHook, ok := resourceInstance.(autogen.PreCreateAPICallHook)
-			require.True(t, ok)
-			updateHook, ok := resourceInstance.(autogen.PreUpdateAPICallHook)
-			require.True(t, ok)
-
-			callParams := adaptiveSettingsCallParams()
-			createParams, createBody, err := createHook.PreCreateAPICall(t.Context(), callParams, []byte(testCase.request))
-			require.NoError(t, err)
-			require.Equal(t, callParams, createParams)
-			require.JSONEq(t, testCase.expected, string(createBody))
-
-			updateParams, updateBody, err := updateHook.PreUpdateAPICall(t.Context(), callParams, []byte(testCase.request))
-			require.NoError(t, err)
-			require.Equal(t, callParams, updateParams)
-			require.JSONEq(t, testCase.expected, string(updateBody))
-			require.Equal(t, testCase.expectedGETs, getCalls.Load())
-		})
-	}
-}
-
-func TestRemovedAdaptiveSettingsOverridesResetTheWholeMap(t *testing.T) {
-	t.Parallel()
-
-	plan := clusteradaptivesettings.TFModel{
-		AdaptiveSettingsOverrides: jsontypes.NewNormalizedNull(),
-	}
-	bodyReq, err := autogen.Marshal(&plan, true)
-	require.NoError(t, err)
-	require.JSONEq(t, `{"adaptiveSettingsOverrides":null}`, string(bodyReq))
-
-	resourceInstance, getCalls := configuredResource(t, http.StatusOK, `{"effectiveAdaptiveSettings":{"key1":true,"key2":false}}`)
-	hook, ok := resourceInstance.(autogen.PreUpdateAPICallHook)
+	r, _ := configuredResource(t, http.StatusOK, `{"effectiveAdaptiveSettings":{"LOAD_SHEDDING":true}}`)
+	hook, ok := r.(autogen.PostReadAPICallHook)
 	require.True(t, ok)
-	_, updatedBody, err := hook.PreUpdateAPICall(t.Context(), adaptiveSettingsCallParams(), bodyReq)
-	require.NoError(t, err)
-	require.JSONEq(t, `{"adaptiveSettingsOverrides":null}`, string(updatedBody))
-	require.Zero(t, getCalls.Load())
+
+	state := &clusteradaptivesettings.TFModel{
+		AdaptiveSettingsOverrides: jsontypes.NewNormalizedValue(`{"LOAD_SHEDDING":true}`),
+	}
+	result := hook.PostReadAPICall(autogen.HandleReadReq{State: state}, autogen.APICallResult{Body: []byte(`{}`)})
+	require.NoError(t, result.Err)
+	require.Equal(t, jsontypes.NewNormalizedNull(), state.AdaptiveSettingsOverrides)
 }
 
-func TestAdaptiveSettingsRequestHookErrors(t *testing.T) {
+// TestAdaptiveSettingsPostReadHookPreservesError verifies that the hook does
+// not clear the state when the read failed.
+func TestAdaptiveSettingsPostReadHookPreservesError(t *testing.T) {
 	t.Parallel()
 
-	testCases := map[string]struct {
-		responseBody string
-		errorText    string
-		statusCode   int
-	}{
-		"GET error": {
-			statusCode:   http.StatusInternalServerError,
-			responseBody: `{"error":500}`,
-			errorText:    "get Adaptive Settings before PATCH",
-		},
-		"missing effective settings": {
-			statusCode:   http.StatusOK,
-			responseBody: `{}`,
-			errorText:    "missing or null effectiveAdaptiveSettings",
-		},
-		"null effective settings": {
-			statusCode:   http.StatusOK,
-			responseBody: `{"effectiveAdaptiveSettings":null}`,
-			errorText:    "missing or null effectiveAdaptiveSettings",
-		},
-	}
+	r, _ := configuredResource(t, http.StatusOK, `{"effectiveAdaptiveSettings":{"LOAD_SHEDDING":true}}`)
+	hook, ok := r.(autogen.PostReadAPICallHook)
+	require.True(t, ok)
 
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			resourceInstance, _ := configuredResource(t, testCase.statusCode, testCase.responseBody)
-			hook, ok := resourceInstance.(autogen.PreUpdateAPICallHook)
-			require.True(t, ok)
-			_, _, err := hook.PreUpdateAPICall(t.Context(), adaptiveSettingsCallParams(), []byte(`{"adaptiveSettingsOverrides":{"key1":true}}`))
-			require.ErrorContains(t, err, testCase.errorText)
-		})
+	overrides := jsontypes.NewNormalizedValue(`{"LOAD_SHEDDING":true}`)
+	state := &clusteradaptivesettings.TFModel{
+		AdaptiveSettingsOverrides: overrides,
 	}
+	testErr := errors.New("test error")
+	result := hook.PostReadAPICall(autogen.HandleReadReq{State: state}, autogen.APICallResult{Err: testErr})
+	require.Equal(t, testErr, result.Err)
+	require.Equal(t, overrides, state.AdaptiveSettingsOverrides)
 }
 
 func configuredResource(t *testing.T, statusCode int, responseBody string) (resource.Resource, *atomic.Int32) {
@@ -157,16 +83,4 @@ type roundTripFunc func(*http.Request) (*http.Response, error)
 
 func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 	return f(req)
-}
-
-func adaptiveSettingsCallParams() config.APICallParams {
-	return config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/adaptiveSettings",
-		PathParams: map[string]string{
-			"projectId":   "projectID",
-			"clusterName": "clusterName",
-		},
-		Method: http.MethodPatch,
-	}
 }

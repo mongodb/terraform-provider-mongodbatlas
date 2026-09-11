@@ -172,7 +172,7 @@ resources:
         adaptive_settings_overrides:
           # OpenAPI models this field as an object, but Terraform exposes it as a normalized JSON string.
           description: &adaptive_settings_overrides_description "JSON-encoded map of customer-specified Adaptive Settings overrides, applied on a best-effort basis. Use `jsonencode` to configure this attribute. Each supported entry that you specify takes precedence over the corresponding Atlas-managed default."
-          # Preserve explicit null during update so removing the attribute clears all overrides through JSON Merge Patch.
+          # Preserve explicit null during update so removing the attribute clears all overrides through replacement PATCH semantics.
           request_body_usage: "send_null_as_null_on_update"
         effective_adaptive_settings:
           # OpenAPI models this field as an object, but Terraform exposes it as a normalized JSON string.

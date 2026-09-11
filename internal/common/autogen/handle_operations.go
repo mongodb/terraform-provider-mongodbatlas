@@ -470,11 +470,7 @@ func callCreateWithHooks(ctx context.Context, client *config.MongoDBClient, call
 	var modifiedParams = callParams
 	var modifiedBody = bodyReq
 	if preCreateHook, ok := hooks.(PreCreateAPICallHook); ok {
-		var err error
-		modifiedParams, modifiedBody, err = preCreateHook.PreCreateAPICall(ctx, callParams, bodyReq)
-		if err != nil {
-			return APICallResult{Err: err}
-		}
+		modifiedParams, modifiedBody = preCreateHook.PreCreateAPICall(callParams, bodyReq)
 	}
 	callResult := callAPI(ctx, client, modifiedParams, modifiedBody)
 	if postCreateHook, ok := hooks.(PostCreateAPICallHook); ok {
@@ -520,11 +516,7 @@ func callUpdateWithHooks(ctx context.Context, client *config.MongoDBClient, call
 	var modifiedParams = callParams
 	var modifiedBody = bodyReq
 	if preUpdateHook, ok := hooks.(PreUpdateAPICallHook); ok {
-		var err error
-		modifiedParams, modifiedBody, err = preUpdateHook.PreUpdateAPICall(ctx, callParams, bodyReq)
-		if err != nil {
-			return APICallResult{Err: err}
-		}
+		modifiedParams, modifiedBody = preUpdateHook.PreUpdateAPICall(callParams, bodyReq)
 	}
 	callResult := callAPI(ctx, client, modifiedParams, modifiedBody)
 	if postUpdateHook, ok := hooks.(PostUpdateAPICallHook); ok {
