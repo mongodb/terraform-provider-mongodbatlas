@@ -16,7 +16,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkpeering"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
+	"go.mongodb.org/atlas-sdk/v20250312025/admin"
 )
 
 var (

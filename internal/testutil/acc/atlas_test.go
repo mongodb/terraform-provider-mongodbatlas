@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
+	"go.mongodb.org/atlas-sdk/v20250312025/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
