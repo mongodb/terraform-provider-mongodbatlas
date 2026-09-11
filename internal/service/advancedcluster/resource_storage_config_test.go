@@ -9,11 +9,9 @@ import (
 	"sync"
 	"testing"
 
-	frameworkresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 	"github.com/stretchr/testify/require"
@@ -22,11 +20,9 @@ import (
 
 func TestPlanAutoScalingStorageConfigUnknown(t *testing.T) {
 	ctx := t.Context()
-	var schemaResponse frameworkresource.SchemaResponse
-	advancedcluster.Resource().Schema(ctx, frameworkresource.SchemaRequest{}, &schemaResponse)
-	typ := schemaResponse.Schema.Type().TerraformType(ctx)
+	_, typ := clusterSchema(ctx, t)
 	model := func(autoScaling any) *tfprotov6.DynamicValue {
-		value := planTestValue(typ, map[string]any{
+		return clusterDynamic(t, typ, map[string]any{
 			"name": "example", "project_id": "111111111111111111111111", "cluster_type": "REPLICASET", "database_edition": "INFINITE",
 			"replication_specs": []any{map[string]any{"region_configs": []any{map[string]any{
 				"provider_name": "AWS", "region_name": "US_EAST_1", "priority": int64(7),
@@ -34,9 +30,6 @@ func TestPlanAutoScalingStorageConfigUnknown(t *testing.T) {
 				"auto_scaling":    autoScaling,
 			}}}},
 		})
-		result, err := tfprotov6.NewDynamicValue(typ, value)
-		require.NoError(t, err)
-		return &result
 	}
 	settings := func(storage any) map[string]any {
 		return map[string]any{

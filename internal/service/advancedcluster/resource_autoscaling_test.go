@@ -75,9 +75,7 @@ func TestUpdateRemovesShardSizeLimit(t *testing.T) {
 			t.Run(name+"/"+editionName, func(t *testing.T) {
 				ctx := t.Context()
 				r := advancedcluster.Resource()
-				var schemaResp resource.SchemaResponse
-				r.Schema(ctx, resource.SchemaRequest{}, &schemaResp)
-				typ := schemaResp.Schema.Type().TerraformType(ctx)
+				schemaResp, typ := clusterSchema(ctx, t)
 				model := func(regions []any, withTags bool) tfsdk.Plan {
 					attributes := map[string]any{
 						"name": "example", "project_id": dummyProjectID, "cluster_type": "REPLICASET", "database_edition": edition,
@@ -86,7 +84,7 @@ func TestUpdateRemovesShardSizeLimit(t *testing.T) {
 					if withTags {
 						attributes["tags"] = map[string]tftypes.Value{"environment": tftypes.NewValue(tftypes.String, "test")}
 					}
-					return tfsdk.Plan{Schema: schemaResp.Schema, Raw: planTestValue(typ, attributes)}
+					return tfsdk.Plan{Schema: schemaResp, Raw: planTestValue(typ, attributes)}
 				}
 				stateRegions := make([]any, len(tc.planRegions))
 				for i, raw := range tc.planRegions {
@@ -119,7 +117,7 @@ func TestUpdateRemovesShardSizeLimit(t *testing.T) {
 				var resp resource.UpdateResponse
 				r.Update(ctx, resource.UpdateRequest{
 					Plan:  model(tc.planRegions, tc.withTags),
-					State: tfsdk.State{Schema: schemaResp.Schema, Raw: prior.Raw},
+					State: tfsdk.State{Schema: schemaResp, Raw: prior.Raw},
 				}, &resp)
 				require.Len(t, resp.Diagnostics.Errors(), 1)
 				require.Contains(t, resp.Diagnostics.Errors()[0].Detail(), apiError.Error())
@@ -133,9 +131,7 @@ func TestUpdateRemovesShardSizeLimitPreservesPlannedValues(t *testing.T) {
 		t.Run(operation, func(t *testing.T) {
 			ctx := t.Context()
 			r := advancedcluster.Resource()
-			var schemaResp resource.SchemaResponse
-			r.Schema(ctx, resource.SchemaRequest{}, &schemaResp)
-			typ := schemaResp.Schema.Type().TerraformType(ctx)
+			schemaResp, typ := clusterSchema(ctx, t)
 			model := func(withStorage, configOnly, updated bool) tfsdk.Plan {
 				scaling := map[string]any{"compute_enabled": true, "compute_max_instance_size": "M20", "compute_scale_down_enabled": false}
 				if withStorage {
@@ -158,7 +154,7 @@ func TestUpdateRemovesShardSizeLimitPreservesPlannedValues(t *testing.T) {
 				} else {
 					delete(spec, "zone_name")
 				}
-				return tfsdk.Plan{Schema: schemaResp.Schema, Raw: planTestValue(typ, map[string]any{
+				return tfsdk.Plan{Schema: schemaResp, Raw: planTestValue(typ, map[string]any{
 					"name": "example", "project_id": dummyProjectID, "cluster_type": "REPLICASET", "database_edition": "INFINITE",
 					"redact_client_log_data": updated, "replication_specs": []any{spec},
 				})}
@@ -207,8 +203,8 @@ func TestUpdateRemovesShardSizeLimitPreservesPlannedValues(t *testing.T) {
 			api.EXPECT().UpdateClusterExecute(mock.Anything).Return(nil, nil, apiError).Once()
 			var resp resource.UpdateResponse
 			r.Update(ctx, resource.UpdateRequest{
-				Plan: plan, State: tfsdk.State{Schema: schemaResp.Schema, Raw: prior.Raw},
-				Config: tfsdk.Config{Schema: schemaResp.Schema, Raw: configuration.Raw},
+				Plan: plan, State: tfsdk.State{Schema: schemaResp, Raw: prior.Raw},
+				Config: tfsdk.Config{Schema: schemaResp, Raw: configuration.Raw},
 			}, &resp)
 			require.Len(t, resp.Diagnostics.Errors(), 1)
 			require.Contains(t, resp.Diagnostics.Errors()[0].Detail(), apiError.Error())
@@ -246,9 +242,7 @@ func TestAutoScalingRequest(t *testing.T) {
 			t.Run(name+"/"+operation, func(t *testing.T) {
 				ctx := t.Context()
 				r := advancedcluster.Resource()
-				var schemaResp resource.SchemaResponse
-				r.Schema(ctx, resource.SchemaRequest{}, &schemaResp)
-				typ := schemaResp.Schema.Type().TerraformType(ctx)
+				schemaResp, typ := clusterSchema(ctx, t)
 				model := func(settings map[string]any, instanceSize string) tfsdk.Plan {
 					var autoScaling, analyticsAutoScaling, edition any
 					if settings != nil {
@@ -268,7 +262,7 @@ func TestAutoScalingRequest(t *testing.T) {
 							"auto_scaling":    autoScaling, "analytics_auto_scaling": analyticsAutoScaling,
 						})
 					}
-					return tfsdk.Plan{Schema: schemaResp.Schema, Raw: planTestValue(typ, map[string]any{
+					return tfsdk.Plan{Schema: schemaResp, Raw: planTestValue(typ, map[string]any{
 						"name": "example", "project_id": dummyProjectID, "cluster_type": "REPLICASET", "database_edition": edition,
 						"replication_specs": []any{map[string]any{"region_configs": regions}},
 					})}
@@ -314,7 +308,7 @@ func TestAutoScalingRequest(t *testing.T) {
 					api.EXPECT().UpdateClusterExecute(mock.Anything).Return(nil, nil, apiError).Once()
 					prior := model(tc.settings, "M20")
 					var resp resource.UpdateResponse
-					r.Update(ctx, resource.UpdateRequest{Plan: plan, State: tfsdk.State{Schema: schemaResp.Schema, Raw: prior.Raw}}, &resp)
+					r.Update(ctx, resource.UpdateRequest{Plan: plan, State: tfsdk.State{Schema: schemaResp, Raw: prior.Raw}}, &resp)
 					require.Len(t, resp.Diagnostics.Errors(), 1)
 					require.Contains(t, resp.Diagnostics.Errors()[0].Detail(), apiError.Error())
 				}

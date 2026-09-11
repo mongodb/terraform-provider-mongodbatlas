@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	frameworkresource "github.com/hashicorp/terraform-plugin-framework/resource"
+	rsschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -130,9 +131,7 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 
 func TestPlanRemoveAutoScalingStorageConfig(t *testing.T) {
 	ctx := context.Background()
-	schemaResponse := frameworkresource.SchemaResponse{}
-	advancedcluster.Resource().Schema(ctx, frameworkresource.SchemaRequest{}, &schemaResponse)
-	typ := schemaResponse.Schema.Type().TerraformType(ctx)
+	_, typ := clusterSchema(ctx, t)
 	model := func(autoScaling any) tftypes.Value {
 		return planTestValue(typ, map[string]any{
 			"name": "example", "project_id": "111111111111111111111111", "cluster_type": "REPLICASET", "database_edition": "INFINITE",
@@ -192,6 +191,22 @@ func TestPlanRemoveAutoScalingStorageConfig(t *testing.T) {
 	}
 }
 
+// clusterSchema returns the advanced_cluster resource schema and its Terraform type for plan tests.
+func clusterSchema(ctx context.Context, t *testing.T) (rsschema.Schema, tftypes.Type) {
+	t.Helper()
+	var resp frameworkresource.SchemaResponse
+	advancedcluster.Resource().Schema(ctx, frameworkresource.SchemaRequest{}, &resp)
+	return resp.Schema, resp.Schema.Type().TerraformType(ctx)
+}
+
+// clusterDynamic encodes attributes as a DynamicValue following the current resource schema.
+func clusterDynamic(t *testing.T, typ tftypes.Type, attributes map[string]any) *tfprotov6.DynamicValue {
+	t.Helper()
+	result, err := tfprotov6.NewDynamicValue(typ, planTestValue(typ, attributes))
+	require.NoError(t, err)
+	return &result
+}
+
 // planTestValue fills omitted attributes with typed nulls so the fixture follows the current resource schema.
 func planTestValue(typ tftypes.Type, value any) tftypes.Value {
 	if value == nil || value == tftypes.UnknownValue {
@@ -220,9 +235,7 @@ func planTestValue(typ tftypes.Type, value any) tftypes.Value {
 // its own attribute unknown without discarding the state values that ModifyPlan copies into everything else.
 func TestPlanUnknownConfigKeepsStateCopy(t *testing.T) {
 	ctx := t.Context()
-	schemaResponse := frameworkresource.SchemaResponse{}
-	advancedcluster.Resource().Schema(ctx, frameworkresource.SchemaRequest{}, &schemaResponse)
-	typ := schemaResponse.Schema.Type().TerraformType(ctx)
+	_, typ := clusterSchema(ctx, t)
 	computedAttributes := []string{"cluster_id", "backup_enabled", "encryption_at_rest_provider", "root_cert_type"}
 	model := func(instanceSize string, majorVersion any) map[string]any {
 		return map[string]any{
@@ -235,9 +248,7 @@ func TestPlanUnknownConfigKeepsStateCopy(t *testing.T) {
 		}
 	}
 	dynamic := func(value map[string]any) *tfprotov6.DynamicValue {
-		result, err := tfprotov6.NewDynamicValue(typ, planTestValue(typ, value))
-		require.NoError(t, err)
-		return &result
+		return clusterDynamic(t, typ, value)
 	}
 	prior := model("M10", "8.0")
 	maps.Copy(prior, map[string]any{
