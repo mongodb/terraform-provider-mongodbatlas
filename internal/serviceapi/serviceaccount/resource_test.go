@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -96,8 +97,98 @@ func TestAccServiceAccount_createOnlyAttributes(t *testing.T) {
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile("org_id cannot be updated"),
 			},
+			{
+				Config:      configWithoutInitialSecret(orgID, name, "description", []string{"ORG_READ_ONLY"}, false),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile("without_initial_secret cannot be updated"),
+			},
 		},
 	})
+}
+
+func TestAccServiceAccount_withoutInitialSecret(t *testing.T) {
+	if !withoutInitialSecretEnabled() {
+		t.Skip("MONGODB_ATLAS_SERVICE_ACCOUNT_WITHOUT_INITIAL_SECRET not enabled; the withoutInitialSecret flag requires cloud-dev")
+	}
+	var (
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		name  = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithoutInitialSecret(orgID, name, "Without initial secret", []string{"ORG_READ_ONLY"}, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "secrets.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "without_initial_secret", "true"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "client_id"),
+				),
+			},
+			{
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportStateVerifyIdentifierAttribute: "client_id",
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIgnore:              []string{"without_initial_secret"},
+			},
+		},
+	})
+}
+
+// TestAccServiceAccount_withoutInitialSecretWithExpiration verifies the API mutual exclusion contract:
+// sending withoutInitialSecret together with secretExpiresAfterHours fails the apply with the API error.
+func TestAccServiceAccount_withoutInitialSecretWithExpiration(t *testing.T) {
+	if !withoutInitialSecretEnabled() {
+		t.Skip("MONGODB_ATLAS_SERVICE_ACCOUNT_WITHOUT_INITIAL_SECRET not enabled; the withoutInitialSecret flag requires cloud-dev")
+	}
+	var (
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		name  = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configWithoutInitialSecret(orgID, name, "Without initial secret", []string{"ORG_READ_ONLY"}, true, "secret_expires_after_hours = 24"),
+				ExpectError: regexp.MustCompile("(?i)mutually|withoutInitialSecret|exclusive"),
+			},
+		},
+	})
+}
+
+// withoutInitialSecretEnabled gates tests that hit the cloud-dev only withoutInitialSecret API flag.
+func withoutInitialSecretEnabled() bool {
+	enabled, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_SERVICE_ACCOUNT_WITHOUT_INITIAL_SECRET"))
+	return enabled
+}
+
+func configWithoutInitialSecret(orgID, name, description string, roles []string, withoutInitialSecret bool, extraArgs ...string) string {
+	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
+	rolesHCL := fmt.Sprintf("[%s]", rolesStr)
+	extra := ""
+	if len(extraArgs) > 0 {
+		extra = "\n\t\t\t" + strings.Join(extraArgs, "\n\t\t\t")
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_service_account" "test" {
+			org_id                 = %[1]q
+			name                   = %[2]q
+			description            = %[3]q
+			roles                  = %[4]s
+			without_initial_secret = %[5]t%[6]s
+		}
+
+		data "mongodbatlas_service_account" "test" {
+			org_id    = %[1]q
+			client_id = mongodbatlas_service_account.test.client_id
+		}
+	`, orgID, name, description, rolesHCL, withoutInitialSecret, extra)
 }
 
 func TestAccServiceAccount_pluralDSIncludeSystemManaged(t *testing.T) {
