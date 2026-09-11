@@ -8,6 +8,8 @@ subcategory: "Clusters"
 
 To create an Atlas Infinite Database cluster, set the `database_edition` attribute to `INFINITE`. For more information, including supported features and limitations, see the [Atlas Infinite Database documentation](https://www.mongodb.com/docs/atlas/infinite/atlas-infinite-landing/).
 
+This provider version supports Atlas Infinite Database clusters only with `cluster_type = "REPLICASET"`. It explicitly rejects `SHARDED` and `GEOSHARDED` Infinite clusters, including imports. When Atlas makes these topologies available, you must upgrade to a provider version that explicitly supports them.
+
 We recommend all MongoDB Atlas Terraform users start with the [`Official MongoDB Atlas Cluster Module`](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/cluster/mongodbatlas/latest). This module simplifies cluster deployment and implements MongoDB Atlas best practices by default.
 
 ~> **IMPORTANT:** If you are upgrading to our Terraform Provider v2.0.0 or later from v1.x.x, you must update your existing `mongodbatlas_advanced_cluster` resource configuration according to [this guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-advanced-cluster-2.0).

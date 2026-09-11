@@ -1,0 +1,3 @@
+```release-note:note
+resource/mongodbatlas_advanced_cluster: Rejects INFINITE clusters with `cluster_type` `SHARDED` or `GEOSHARDED`, which this provider version does not support
+```
