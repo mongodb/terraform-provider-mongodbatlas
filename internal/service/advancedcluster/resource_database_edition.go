@@ -2,29 +2,10 @@ package advancedcluster
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"go.mongodb.org/atlas-sdk/v20250312024/admin"
 )
-
-var _ resource.ResourceWithValidateConfig = &rs{}
-
-func (r *rs) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
-	var clusterType, databaseEdition types.String
-	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("cluster_type"), &clusterType)...)
-	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("database_edition"), &databaseEdition)...)
-	if !resp.Diagnostics.HasError() {
-		validateInfiniteClusterType(&resp.Diagnostics, clusterType.ValueString(), databaseEdition.ValueString(), "")
-	}
-}
-
-func isShardedClusterType(clusterType string) bool {
-	return clusterType == "SHARDED" || clusterType == "GEOSHARDED"
-}
 
 // resolveDatabaseEdition prefers effectiveDatabaseEdition: databaseEdition is only requested intent.
 func resolveDatabaseEdition(databaseEdition, effectiveDatabaseEdition string) string {
@@ -34,31 +15,15 @@ func resolveDatabaseEdition(databaseEdition, effectiveDatabaseEdition string) st
 	return databaseEdition
 }
 
-// unsupportedInfiniteTopology reports whether the INFINITE edition runs on a topology this provider version rejects.
-func unsupportedInfiniteTopology(clusterType, databaseEdition, effectiveDatabaseEdition string) bool {
-	return isShardedClusterType(clusterType) && resolveDatabaseEdition(databaseEdition, effectiveDatabaseEdition) == "INFINITE"
-}
-
-func addUnsupportedInfiniteTopologyError(diags *diag.Diagnostics, clusterType string) {
-	diags.AddAttributeError(path.Root("cluster_type"), "Unsupported INFINITE cluster type",
-		fmt.Sprintf("INFINITE clusters with cluster_type = %q are not supported by this version of the MongoDB Atlas Terraform provider. Support for SHARDED and GEOSHARDED requires a newer provider version that explicitly enables these topologies once available.", clusterType))
-}
-
-func validateInfiniteClusterType(diags *diag.Diagnostics, clusterType, databaseEdition, effectiveDatabaseEdition string) {
-	if unsupportedInfiniteTopology(clusterType, databaseEdition, effectiveDatabaseEdition) {
-		addUnsupportedInfiniteTopologyError(diags, clusterType)
-	}
-}
-
+// prepareUpdateDatabaseEdition omits the empty auto-scaling children that INFINITE rejects. It resolves the
+// edition from Atlas when state or plan leaves it unset, e.g. after an import, because only Atlas knows it then.
 func (r *rs) prepareUpdateDatabaseEdition(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, patch *admin.ClusterDescription20240805) {
-	clusterType := plan.ClusterType.ValueString()
 	if !state.DatabaseEdition.IsNull() && !plan.DatabaseEdition.IsNull() {
 		return
 	}
-	if !isShardedClusterType(clusterType) && !hasEmptyAutoScalingDiskGB(patch.GetReplicationSpecs()) {
+	if !hasEmptyAutoScalingDiskGB(patch.GetReplicationSpecs()) {
 		return
 	}
-	// State or plan edition may be unset (e.g. just imported); the effective edition is authoritative either way.
 	cluster, flexCluster := GetClusterDetails(ctx, diags, state.ProjectID.ValueString(), state.Name.ValueString(), r.Client, false, state.UseEffectiveFields.ValueBool())
 	if diags.HasError() || flexCluster != nil {
 		return
@@ -67,14 +32,7 @@ func (r *rs) prepareUpdateDatabaseEdition(ctx context.Context, diags *diag.Diagn
 		diags.AddError("Unable to verify cluster database edition", "The cluster no longer exists. Refresh the Terraform state before trying again.")
 		return
 	}
-	edition, effectiveEdition := cluster.GetDatabaseEdition(), cluster.GetEffectiveDatabaseEdition()
-	for _, current := range []string{clusterType, cluster.GetClusterType()} {
-		if unsupportedInfiniteTopology(current, edition, effectiveEdition) {
-			addUnsupportedInfiniteTopologyError(diags, current)
-			return
-		}
-	}
-	if resolveDatabaseEdition(edition, effectiveEdition) == "INFINITE" {
+	if resolveDatabaseEdition(cluster.GetDatabaseEdition(), cluster.GetEffectiveDatabaseEdition()) == "INFINITE" {
 		omitEmptyAutoScalingChildren(patch.GetReplicationSpecs())
 	}
 }

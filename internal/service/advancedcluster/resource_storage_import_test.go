@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"regexp"
 	"strings"
 	"sync"
 	"testing"
@@ -88,33 +87,6 @@ func TestAutoScalingStorageConfigImportReadsMissingLimit(t *testing.T) {
 	})
 }
 
-func TestInfiniteClusterImportRejectsUnsupportedTopology(t *testing.T) {
-	// SHARDED and GEOSHARDED share one rejection path, pinned by TestInfiniteClusterTypeValidation. The rejection
-	// resolves effectiveDatabaseEdition, which the requested database_edition = "CORE" below cannot override.
-	const clusterType = "SHARDED"
-	for _, importBlock := range []bool{false, true} {
-		t.Run(fmt.Sprintf("block=%t", importBlock), func(t *testing.T) {
-			storageImportCredentials(t)
-			mock := &storageImportHTTPMock{clusterType: clusterType, requestedEdition: true, effectiveEdition: "INFINITE"}
-			config := strings.ReplaceAll(storageImportConfig(true, 0, false), `"REPLICASET"`, fmt.Sprintf("%q", clusterType))
-			config = strings.ReplaceAll(config, `database_edition = "INFINITE"`, `database_edition = "CORE"`)
-			step := resource.TestStep{
-				Config: config, ResourceName: "mongodbatlas_advanced_cluster.test", ImportState: true,
-				ImportStateId: storageImportID, ExpectError: regexp.MustCompile("Unsupported INFINITE cluster type"),
-			}
-			if importBlock {
-				step.ImportStateKind = resource.ImportBlockWithID
-			}
-			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, mock),
-				Steps:                    []resource.TestStep{step},
-			})
-			require.Empty(t, mock.updatedLimits)
-			require.False(t, mock.deleted)
-		})
-	}
-}
-
 func TestInfiniteClusterImportWithoutRequestedEditionOrShardLimit(t *testing.T) {
 	for _, explicitFalse := range []bool{false, true} {
 		t.Run(fmt.Sprintf("explicit_false=%t", explicitFalse), func(t *testing.T) {
@@ -144,7 +116,7 @@ func TestInfiniteClusterImportWithoutRequestedEditionOrShardLimit(t *testing.T) 
 
 func TestAutoScalingStorageConfigImportClearsUnconfiguredLimit(t *testing.T) {
 	// importBlock vs ResourceName-based import is already cross-tested by the lifecycle
-	// and rejection tests above; clearing an unconfigured limit is orthogonal to that choice.
+	// test above; clearing an unconfigured limit is orthogonal to that choice.
 	storageImportCredentials(t)
 	mock := &storageImportHTTPMock{clusterType: "REPLICASET", effectiveEdition: "INFINITE", limit: 1024}
 	config := storageImportConfig(false, 0, true)
@@ -163,7 +135,7 @@ func TestAutoScalingStorageConfigImportClearsUnconfiguredLimit(t *testing.T) {
 }
 
 func TestCoreClusterImportSupportsAllTopologies(t *testing.T) {
-	// GEOSHARDED is omitted: it shares the SHARDED code path in isShardedClusterType.
+	// GEOSHARDED is omitted: it shares the SHARDED import path.
 	for _, clusterType := range []string{"REPLICASET", "SHARDED"} {
 		t.Run(clusterType, func(t *testing.T) {
 			storageImportCredentials(t)
