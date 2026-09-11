@@ -81,12 +81,17 @@ type rs struct {
 // 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
 // 2. Adding the different UseStateForUnknown is very verbose.
 func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update
+	if req.Plan.Raw.IsNull() {
 		return
 	}
-	var plan, state TFModel
+	var plan TFModel
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
+	validateInfiniteClusterType(diags, plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), "")
+	if diags.HasError() || req.State.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update.
+		return
+	}
+	var state TFModel
 	diags.Append(req.State.Get(ctx, &state)...)
 	if diags.HasError() {
 		return
@@ -114,6 +119,9 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	var plan TFModel
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
+	// Redundant with ModifyPlan and ValidateConfig by design: no Atlas write may happen for an
+	// unsupported topology, whatever path reaches Create.
+	validateInfiniteClusterType(diags, plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), "")
 	if diags.HasError() {
 		return
 	}
@@ -150,6 +158,21 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	clusterResp := createCluster(ctx, diags, r.Client, latestReq, waitParams)
+	if diags.HasError() {
+		return
+	}
+	if unsupportedInfiniteTopology(clusterResp.GetClusterType(), clusterResp.GetDatabaseEdition(), clusterResp.GetEffectiveDatabaseEdition()) {
+		// Atlas chooses the edition when it is omitted. Retain a newly created unsupported
+		// cluster in state for cleanup, and stop before additional configuration writes.
+		modelOut := newTFModel(ctx, clusterResp, diags, nil)
+		if !diags.HasError() {
+			modelOut.AdvancedConfiguration = types.ObjectNull(advancedConfigurationObjType.AttrTypes)
+			OverrideAttributesWithPrevStateValue(&plan, modelOut, diags)
+			diags.Append(resp.State.Set(ctx, modelOut)...)
+		}
+		addUnsupportedInfiniteTopologyError(diags, clusterResp.GetClusterType())
+		return
+	}
 
 	emptyAdvancedConfiguration := types.ObjectNull(advancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadCluster(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
@@ -231,6 +254,18 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
+	if diags.HasError() {
+		return
+	}
+	// The plan check is redundant with ModifyPlan, kept so no Atlas write may happen for an
+	// unsupported topology. The state check is not: it also catches an edition only Atlas knows.
+	clusterType := plan.ClusterType.ValueString()
+	if unsupportedInfiniteTopology(clusterType, plan.DatabaseEdition.ValueString(), "") ||
+		unsupportedInfiniteTopology(clusterType, state.DatabaseEdition.ValueString(), "") {
+		addUnsupportedInfiniteTopologyError(diags, clusterType)
+		return
+	}
+	r.verifyInfiniteTopologyOnUpdate(ctx, diags, &state, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -407,6 +442,10 @@ func clearAdaptiveCapacity(ctx context.Context, diags *diag.Diagnostics, client 
 }
 
 func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
+	validateInfiniteClusterType(diags, clusterResp.GetClusterType(), clusterResp.GetDatabaseEdition(), clusterResp.GetEffectiveDatabaseEdition())
+	if diags.HasError() {
+		return nil
+	}
 	containerIDs := resolveContainerIDsOrError(ctx, diags, clusterResp, client.AtlasV2.NetworkPeeringAPI)
 	if diags.HasError() {
 		return nil
@@ -465,6 +504,10 @@ func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	clusterResp := AwaitChanges(ctx, client, waitParams, operationCreate, diags)
 	if diags.HasError() {
 		return nil
+	}
+	// Create rejects the unsupported topology, so skip the pause and any other follow-up write.
+	if unsupportedInfiniteTopology(clusterResp.GetClusterType(), clusterResp.GetDatabaseEdition(), clusterResp.GetEffectiveDatabaseEdition()) {
+		return clusterResp
 	}
 	if pauseAfter {
 		clusterResp = updateCluster(ctx, diags, client, &pauseRequest, waitParams, operationPauseAfterCreate)
