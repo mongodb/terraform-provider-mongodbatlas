@@ -2,6 +2,7 @@ package advancedcluster
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -55,8 +56,21 @@ func readIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnosti
 	return configNew
 }
 
-func upgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
-	_, _, err := client.AtlasV2.ClustersAPI.UpgradeTenantUpgrade(ctx, waitParams.ProjectID, req).Execute()
+func upgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *tenantUpgradeRequest) *admin.ClusterDescription20240805 {
+	body, err := json.Marshal(req)
+	if err != nil {
+		addErrorDiag(diags, operationTenantUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
+		return nil
+	}
+	apiResp, err := client.UntypedAPICall(ctx, config.APICallParams{
+		VersionHeader: "application/vnd.atlas.2023-01-01+json",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/tenantUpgrade",
+		PathParams:    map[string]string{"groupId": waitParams.ProjectID},
+		Method:        http.MethodPost,
+	}, body)
+	if apiResp != nil && apiResp.Body != nil {
+		apiResp.Body.Close()
+	}
 	if err != nil {
 		addErrorDiag(diags, operationTenantUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil

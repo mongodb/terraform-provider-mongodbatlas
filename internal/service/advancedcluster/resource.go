@@ -499,7 +499,7 @@ func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.D
 
 type clusterDiff struct {
 	clusterPatchOnlyReq       *admin.ClusterDescription20240805
-	upgradeTenantReq          *admin.LegacyAtlasTenantClusterUpgradeRequest
+	upgradeTenantReq          *tenantUpgradeRequest
 	upgradeFlexToDedicatedReq *admin.AtlasTenantClusterUpgradeRequest20240805
 	isUpgradeTenantToFlex     bool
 	isUpdateOfFlex            bool
@@ -545,10 +545,10 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	if update.IsZeroValues(patchReq) { // No changes to cluster
 		return clusterDiff{}
 	}
-	if upgradeFlexToDedicatedReq := getUpgradeFlexToDedicatedRequest(stateReq, patchReq); upgradeFlexToDedicatedReq != nil {
+	if upgradeFlexToDedicatedReq := getUpgradeFlexToDedicatedRequest(stateReq, planReq, patchReq); upgradeFlexToDedicatedReq != nil {
 		return clusterDiff{upgradeFlexToDedicatedReq: upgradeFlexToDedicatedReq}
 	}
-	if upgradeTenantReq := getUpgradeTenantRequest(stateReq, patchReq); upgradeTenantReq != nil {
+	if upgradeTenantReq := getUpgradeTenantRequest(stateReq, planReq, patchReq); upgradeTenantReq != nil {
 		return clusterDiff{upgradeTenantReq: upgradeTenantReq}
 	}
 	return clusterDiff{clusterPatchOnlyReq: patchReq}
