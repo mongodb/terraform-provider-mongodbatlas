@@ -39,8 +39,15 @@ data "mongodbatlas_organizations" "test" {
 * `gen_ai_features_enabled` - (Optional) Flag that indicates whether this organization has access to generative AI features. This setting only applies to Atlas Commercial and defaults to `true`. With this setting on, Project Owners may be able to enable or disable individual AI features at the project level. To learn more, see https://www.mongodb.com/docs/generative-ai-faq/.
 * `security_contact` - (Optional) String that specifies a single email address for the specified organization to receive security-related notifications. Specifying a security contact does not grant them authorization or access to Atlas for security decisions or approvals.
 * `operations_contact` - (Optional) String that specifies a distribution list email address for the specified organization to receive proactive notifications about its infrastructure. The operations contact is used for notifications only and is not authorized to make decisions or approvals.
+* `custom_session_timeouts` - (Optional) Block that specifies the custom session timeout settings for the organization. See [Custom Session Timeouts](#custom-session-timeouts).
 * `skip_default_alerts_settings` - (Optional) Flag that indicates whether to prevent Atlas from automatically creating organization-level alerts not explicitly managed through Terraform. Defaults to `true`. 
 
+
+
+### Custom Session Timeouts
+
+* `absolute_session_timeout_in_seconds` - (Optional) Absolute session timeout duration in seconds for users of the organization. Returned only when the organization has configured a custom absolute session timeout.
+* `idle_session_timeout_in_seconds` - (Optional) Idle session timeout duration in seconds for users of the organization. Returned only when the organization has configured a custom idle session timeout. When this value is absent, Atlas applies the environment default, which is no idle timeout for Atlas Commercial and 600 seconds (10 minutes) for Atlas for Government.
 
 ### Users
 * `id` - Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.

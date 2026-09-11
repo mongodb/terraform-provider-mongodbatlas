@@ -1,0 +1,14 @@
+---
+subcategory: "Organizations"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes the delegation settings of a MongoDB Atlas organization: how MCP (Model Context Protocol) and partner delegated access are permitted within the organization, as well as the refresh token lifetimes.
+
+## Example Usages
+{{ tffile (printf "examples/%s/main.tf" "mongodbatlas_org_delegation_settings" )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information, see [Delegation Settings](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorgdelegationsettings) in the MongoDB Atlas Administration API documentation.

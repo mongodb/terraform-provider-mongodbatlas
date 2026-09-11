@@ -3899,6 +3899,9 @@ components:
                 - westeurope
                 - brazilsouth
                 - australiaeast
+                - northeurope
+                - eastasia
+                - southeastasia
             type: string
         ApiStreamsGCPRegionView:
             description: Atlas Streams GCP Regions.
@@ -3906,6 +3909,7 @@ components:
                 - US_CENTRAL1
                 - EUROPE_WEST1
                 - US_EAST4
+                - US_WEST1
             type: string
         ApiUserEventTypeViewForNdsGroup:
             description: Unique identifier of event type.
@@ -45075,7 +45079,7 @@ info:
     termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
     title: MongoDB Atlas Administration API
     version: "2.0"
-    x-xgen-sha: 5838ca6b2bce4c1e69826c978b07cd6ac80094a7
+    x-xgen-sha: 402d84cbd16da31e96204c8b2d159beee0e448da
 openapi: 3.0.1
 paths:
     /api/atlas/v2:
