@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
-	"go.mongodb.org/atlas-sdk/v20250312024/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312025/admin"
+	"go.mongodb.org/atlas-sdk/v20250312025/mockadmin"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
