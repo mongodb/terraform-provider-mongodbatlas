@@ -238,6 +238,14 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
+	diff := findClusterDiff(ctx, &state, &plan, diags)
+	if diags.HasError() {
+		return
+	}
+	r.prepareUpdateDatabaseEdition(ctx, diags, &state, &plan, diff.clusterPatchOnlyReq)
+	if diags.HasError() {
+		return
+	}
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
 	clusterResp := r.applyPinnedFCVChanges(ctx, diags, &state, &plan, waitParams)
@@ -245,32 +253,26 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	{
-		diff := findClusterDiff(ctx, &state, &plan, diags)
-		if diags.HasError() {
-			return
+	switch {
+	case diff.isUpgradeTenantToFlex:
+		if flexOut := handleFlexUpgrade(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
+			diags.Append(resp.State.Set(ctx, flexOut)...)
 		}
-		switch {
-		case diff.isUpgradeTenantToFlex:
-			if flexOut := handleFlexUpgrade(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
-				diags.Append(resp.State.Set(ctx, flexOut)...)
-			}
-			return
-		case diff.isUpdateOfFlex:
-			if flexOut := handleFlexUpdate(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
-				diags.Append(resp.State.Set(ctx, flexOut)...)
-			}
-			return
-		case diff.upgradeFlexToDedicatedReq != nil:
-			clusterResp = upgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
-		case diff.upgradeTenantReq != nil:
-			clusterResp = upgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
-		case diff.clusterPatchOnlyReq != nil:
-			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
+		return
+	case diff.isUpdateOfFlex:
+		if flexOut := handleFlexUpdate(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
+			diags.Append(resp.State.Set(ctx, flexOut)...)
 		}
-		if diags.HasError() {
-			return
-		}
+		return
+	case diff.upgradeFlexToDedicatedReq != nil:
+		clusterResp = upgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
+	case diff.upgradeTenantReq != nil:
+		clusterResp = upgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
+	case diff.clusterPatchOnlyReq != nil:
+		clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
+	}
+	if diags.HasError() {
+		return
 	}
 	// adaptive_capacity removed from config: needs special handling, see clearAdaptiveCapacity.
 	if !plan.AdaptiveCapacity.Equal(state.AdaptiveCapacity) && plan.AdaptiveCapacity.IsNull() {
@@ -530,6 +532,11 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknown and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
+	}
+	if shardSizeLimitRemoved(stateReq.ReplicationSpecs, planReq.ReplicationSpecs) {
+		// Atlas clears an omitted shardSizeLimitGB only when replicationSpecs is included in the PATCH.
+		patchOptions.ForceUpdateAttr = []string{"replicationSpecs"}
+		omitEmptyAutoScalingChildren(planReq.GetReplicationSpecs())
 	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
