@@ -1,9 +1,13 @@
 ---
 name: acceptance-test-patterns
-description: Best practices for writing and organizing acceptance tests in this Terraform provider. Use when creating new acceptance tests, modifying existing tests, fixing flaky tests, or reviewing test code. Covers test consolidation, avoiding duplicates, plural data source ordering, and plan-only validation tests.
+description: Best practices for writing and organizing acceptance and unit tests in this Terraform provider. Use when creating new tests, modifying existing tests, fixing flaky tests, or reviewing test code. Covers black-box test packages, test consolidation, avoiding duplicates, plural data source ordering, and plan-only validation tests.
 ---
 
 # Acceptance Test Patterns
+
+## Test Organization and Black-Box Testing
+
+Test types, file layout, and unit test rules are defined in [contributing/testing-best-practices.md](../../../contributing/testing-best-practices.md). Read it before adding or moving tests. Black-box testing is enforced there: tests live in a separate `_test` package and reach behavior through exported identifiers.
 
 ## Test Consolidation
 

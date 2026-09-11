@@ -1,0 +1,71 @@
+```release-note:new-resource
+resource/mongodbatlas_mcp_config
+```
+
+```release-note:new-resource
+resource/mongodbatlas_project_mcp_config
+```
+
+```release-note:new-resource
+resource/mongodbatlas_mcp_config_secret
+```
+
+```release-note:new-resource
+resource/mongodbatlas_project_mcp_config_secret
+```
+
+```release-note:new-datasource
+data-source/mongodbatlas_mcp_config
+```
+
+```release-note:new-datasource
+data-source/mongodbatlas_mcp_configs
+```
+
+```release-note:new-datasource
+data-source/mongodbatlas_project_mcp_config
+```
+
+```release-note:new-datasource
+data-source/mongodbatlas_project_mcp_configs
+```
+
+```release-note:new-datasource
+data-source/mongodbatlas_mcp_config_secret
+```
+
+```release-note:new-datasource
+data-source/mongodbatlas_mcp_config_secrets
+```
+
+```release-note:new-datasource
+data-source/mongodbatlas_project_mcp_config_secret
+```
+
+```release-note:new-datasource
+data-source/mongodbatlas_project_mcp_config_secrets
+```
+
+```release-note:enhancement
+resource/mongodbatlas_service_account: Adds `system_managed` computed attribute to indicate whether the Service Account is system managed
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_service_account: Adds `system_managed` computed attribute to indicate whether the Service Account is system managed
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_service_accounts: Adds `system_managed` computed attribute to indicate whether the Service Account is system managed
+```
+
+```release-note:enhancement
+resource/mongodbatlas_project_service_account: Adds `system_managed` computed attribute to indicate whether the Service Account is system managed
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_project_service_account: Adds `system_managed` computed attribute to indicate whether the Service Account is system managed
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_project_service_accounts: Adds `system_managed` computed attribute to indicate whether the Service Account is system managed
+```

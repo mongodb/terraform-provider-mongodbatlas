@@ -14,6 +14,7 @@ This document is the single source of truth for Terraform provider development b
   - [Collections: Sets vs Lists](#collections-sets-vs-lists)
   - [Validation](#validation)
   - [SDK Getters](#sdk-getters)
+  - [SDKv2 raw config (`sdkv2config`)](#sdkv2-raw-config-sdkv2config)
 - [Resource and Data Source Design](#resource-and-data-source-design)
   - [Pagination in Plural Data Sources](#pagination-in-plural-data-sources)
   - [Auto-Generated Data Source Schemas](#auto-generated-data-source-schemas)
@@ -76,6 +77,25 @@ In general, prefer to skip validation in the Terraform provider and keep validat
 ### SDK Getters
 
 In general, prefer SDK getters over direct field access, e.g. `project.GetTags()` (see [PR #2135 discussion](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2135/files#r1560682050)).
+
+### SDKv2 raw config (`sdkv2config`)
+
+Unlike the Atlas SDK getters in the previous section, this package reads Terraform HCL. SDKv2 `Get` / `GetOk` / `GetOkExists` read plan or state. They cannot tell an unset attribute from a zero value (`""`, `false`, `0`). Optional+Computed `Get()` also still returns leftover state after the user drops the attribute from HCL.
+
+[`internal/common/sdkv2config`](../internal/common/sdkv2config) reads [`GetRawConfig`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema#ResourceData.GetRawConfig) and returns Terraform tri-state values: null (unset in HCL), unknown (expression not yet resolved), or set. Pass `*schema.ResourceData` or `*schema.ResourceDiff`. Do not call `GetRawConfig` at the call site. Empty string, `false`, and `0` are set values, not null.
+
+- **`String` / `Bool` / `Int64`**: Return a value with `IsNull`, `IsUnknown`, `HasChange`, and the value accessor. Pick the request policy with a named predicate instead of a hand-composed condition:
+  - **`Set`**: True only for a known value set in HCL. Null (unset or removed) and unknown both return false, so the request omits the attribute and an unresolved expression never fabricates a value. Use for Optional+Computed attributes, or for an API-validated field where an explicit `""` in HCL is still sent.
+  - **`SetOrRemoved`**: Set in HCL or removed from it (send the zero value). Use for Optional-only attributes whose value is always sent; a bare null skip leaves the server value in place and drifts.
+  - **`Removed`**: Dropped from HCL while state still holds a value. Use when a PATCH must send explicit API nil only after the user removed the field, as in `operations_contact`.
+- **`CollectionEmpty`**: True when the named list or set is null, unknown, or length 0. False when the resource raw-config object itself is null or unknown; that is not an HCL omit.
+- **`NestedCollectionLen`**: Known length of `list[index].attr` in raw config. Returns 0 when omitted, unknown, or empty. Use it when `Get()` leftovers from Optional+Computed nested sets must not count as user-set.
+
+`IsUnknown()` and `IsNull()` are different. A value like `project_id = mongodbatlas_project.this.id` is unknown at plan because `id` is computed until Terraform creates that project. Check `IsUnknown()` separately and skip the PATCH field until apply. Do not send explicit nil or `""` for that plan.
+
+Examples: [`mongodbatlas_cloud_backup_schedule`](../internal/service/cloudbackupschedule) and `operations_contact` on [`mongodbatlas_organization`](../internal/service/organization/resource_organization.go).
+
+`GetRawPlan` / `GetRawState`, `SetNew` wrappers, and nested primitives such as `mongodbatlas_cluster` `advanced_configuration.0.*` stay out of this package until a caller needs them.
 
 ## Resource and Data Source Design
 
@@ -236,4 +256,3 @@ An example implementation can be found in:
 - `internal/serviceapi/orgserviceaccountsecretapi/resource_custom_hooks.go`
 
 In this example, a custom `PostReadAPICall` implementation filters the raw API response to return only the specific secret matching the Terraform resource’s ID, mimicking the read response of a single secret which is not available in the API.
-

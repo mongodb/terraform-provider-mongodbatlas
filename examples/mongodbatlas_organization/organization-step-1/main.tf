@@ -7,6 +7,11 @@ resource "mongodbatlas_organization" "test" {
   restrict_employee_access   = true
   api_access_list_required   = false
   security_contact           = var.security_contact
+  operations_contact         = var.operations_contact
+  custom_session_timeouts {
+    absolute_session_timeout_in_seconds = var.absolute_session_timeout_in_seconds
+    idle_session_timeout_in_seconds     = var.idle_session_timeout_in_seconds
+  }
 }
 
 output "org_id" {

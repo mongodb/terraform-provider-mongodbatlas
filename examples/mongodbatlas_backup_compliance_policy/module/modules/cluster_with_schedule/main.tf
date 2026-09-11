@@ -43,16 +43,21 @@ resource "mongodbatlas_cloud_backup_schedule" "this" {
     retention_unit     = "days"
     retention_value    = 1
   }
+  copy_policy_items_enabled = true
+
   copy_settings {
-    cloud_provider = "AWS"
-    frequencies = ["HOURLY",
-      "DAILY",
-      "WEEKLY",
-      "MONTHLY",
-      "YEARLY",
-    "ON_DEMAND"]
+    cloud_provider     = "AWS"
     region_name        = "US_EAST_2"
     zone_id            = mongodbatlas_advanced_cluster.this.replication_specs[0].zone_id
     should_copy_oplogs = false
+
+    copy_policy_items {
+      frequency_type  = "daily"
+      retention_unit  = "days"
+      retention_value = 1
+    }
+    copy_policy_items {
+      frequency_type = "ondemand"
+    }
   }
 }

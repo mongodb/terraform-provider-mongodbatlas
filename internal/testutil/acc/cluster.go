@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
+	"go.mongodb.org/atlas-sdk/v20250312025/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -135,7 +135,7 @@ func (r *ReplicationSpecRequest) AddDefaults() {
 		r.ZoneName = "Zone 1"
 	}
 	if r.Region == "" {
-		r.Region = "US_WEST_2"
+		r.Region = DefaultRegion()
 	}
 	if r.InstanceSize == "" {
 		r.InstanceSize = "M10"

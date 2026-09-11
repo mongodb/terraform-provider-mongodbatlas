@@ -66,6 +66,7 @@ output "service_accounts_results" {
 - `client_id` (String) The Client ID of the Service Account.
 - `created_at` (String) The date that the Service Account was created on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 - `secrets` (Attributes List) A list of secrets associated with the specified Service Account. (see [below for nested schema](#nestedatt--secrets))
+- `system_managed` (Boolean) Indicates whether the Service Account is system managed.
 
 <a id="nestedatt--secrets"></a>
 ### Nested Schema for `secrets`

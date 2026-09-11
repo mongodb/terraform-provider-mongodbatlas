@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
+	"go.mongodb.org/atlas-sdk/v20250312025/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -89,6 +89,26 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"operations_contact": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"custom_session_timeouts": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"absolute_session_timeout_in_seconds": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"idle_session_timeout_in_seconds": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -160,6 +180,8 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 			"restrict_employee_access":     settings.RestrictEmployeeAccess,
 			"gen_ai_features_enabled":      settings.GenAIFeaturesEnabled,
 			"security_contact":             settings.SecurityContact,
+			"operations_contact":           settings.OperationsContact,
+			"custom_session_timeouts":      flattenCustomSessionTimeouts(settings.CustomSessionTimeouts),
 		}
 	}
 	return results, nil
