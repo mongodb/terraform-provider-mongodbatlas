@@ -36,7 +36,7 @@ operations:
     update:
         http_method: PATCH
         path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
-    version_header: application/vnd.atlas.preview+json
+    version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
     singular:
         description: Returns maintenance settings for the specified organization.
@@ -78,6 +78,6 @@ data_sources:
         read:
             http_method: GET
             path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
-        version_header: application/vnd.atlas.preview+json
+        version_header: application/vnd.atlas.2025-03-12+json
 name: org_maintenance_settings
 packageName: orgmaintenancesettings

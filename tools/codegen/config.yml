@@ -642,8 +642,7 @@ resources:
     delete:
       path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings:reset
       method: POST
-      # TODO: version header will need to be updated before merge to master
-    version_header: application/vnd.atlas.preview+json
+    version_header: application/vnd.atlas.2025-03-12+json
     schema:
       ignores: ["effective_wave_assignment_mode"]
       overrides:
