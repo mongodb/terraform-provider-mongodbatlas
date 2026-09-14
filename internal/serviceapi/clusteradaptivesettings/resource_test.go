@@ -54,19 +54,19 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 			{
 				Config: configBasic(projectID, clusterName, `{
 					LOAD_SHEDDING              = true
-					SEARCH_OVERLOAD_PROTECTION = true
+					SEARCH_LOAD_SHEDDING = true
 				}`),
 				Check: checkResourceAndDataSource(
-					`{"LOAD_SHEDDING":true,"SEARCH_OVERLOAD_PROTECTION":true}`,
+					`{"LOAD_SHEDDING":true,"SEARCH_LOAD_SHEDDING":true}`,
 				),
 			},
 			{
 				// Change Load Shedding independently without changing Search Load Shedding.
 				Config: configBasic(projectID, clusterName, `{
 					LOAD_SHEDDING              = false
-					SEARCH_OVERLOAD_PROTECTION = true
+					SEARCH_LOAD_SHEDDING = true
 				}`),
-				Check: checkResourceAndDataSource(`{"LOAD_SHEDDING":false,"SEARCH_OVERLOAD_PROTECTION":true}`),
+				Check: checkResourceAndDataSource(`{"LOAD_SHEDDING":false,"SEARCH_LOAD_SHEDDING":true}`),
 			},
 			{
 				Config: configBasic(projectID, clusterName, `{
@@ -91,10 +91,10 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 			},
 			{
 				Config: configBasic(projectID, clusterName, `{
-					SEARCH_OVERLOAD_PROTECTION = false
+					SEARCH_LOAD_SHEDDING = false
 				}`),
 				Check: checkResourceAndDataSource(
-					`{"SEARCH_OVERLOAD_PROTECTION":false}`,
+					`{"SEARCH_LOAD_SHEDDING":false}`,
 				),
 			},
 			{
@@ -114,18 +114,18 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 			},
 			{
 				// Leave an override set so import and destroy verify populated settings.
-				Config: configBasic(projectID, clusterName, `{ SEARCH_OVERLOAD_PROTECTION = false }`),
-				Check:  checkResourceAndDataSource(`{"SEARCH_OVERLOAD_PROTECTION":false}`),
+				Config: configBasic(projectID, clusterName, `{ SEARCH_LOAD_SHEDDING = false }`),
+				Check:  checkResourceAndDataSource(`{"SEARCH_LOAD_SHEDDING":false}`),
 			},
 			{
 				// Reset outside Terraform, then verify unchanged configuration restores the override.
 				PreConfig: func() { resetOverrides(t, projectID, clusterName) },
-				Config:    configBasic(projectID, clusterName, `{ SEARCH_OVERLOAD_PROTECTION = false }`),
+				Config:    configBasic(projectID, clusterName, `{ SEARCH_LOAD_SHEDDING = false }`),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply:             []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate)},
 					PostApplyPostRefresh: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
 				},
-				Check: checkResourceAndDataSource(`{"SEARCH_OVERLOAD_PROTECTION":false}`),
+				Check: checkResourceAndDataSource(`{"SEARCH_LOAD_SHEDDING":false}`),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -143,7 +143,7 @@ func TestAccClusterAdaptiveSettings_invalidOverrides(t *testing.T) {
 		overrides string
 		errorText string
 	}{
-		"null entry": {overrides: `{ SEARCH_OVERLOAD_PROTECTION = null }`, errorText: `Override "SEARCH_OVERLOAD_PROTECTION" is null`},
+		"null entry": {overrides: `{ SEARCH_LOAD_SHEDDING = null }`, errorText: `Override "SEARCH_LOAD_SHEDDING" is null`},
 		"JSON null":  {overrides: `null`, errorText: "Use jsonencode with an object"},
 		"array":      {overrides: `[]`, errorText: "Use jsonencode with an object"},
 		"scalar":     {overrides: `false`, errorText: "Use jsonencode with an object"},

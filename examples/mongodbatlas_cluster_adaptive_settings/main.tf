@@ -4,7 +4,7 @@ resource "mongodbatlas_cluster_adaptive_settings" "this" {
   cluster_name = var.cluster_name
   adaptive_settings_overrides = jsonencode({
     LOAD_SHEDDING              = var.load_shedding_enabled
-    SEARCH_OVERLOAD_PROTECTION = var.search_load_shedding_enabled
+    SEARCH_LOAD_SHEDDING = var.search_load_shedding_enabled
   })
 }
 

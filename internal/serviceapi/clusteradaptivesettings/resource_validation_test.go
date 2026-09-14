@@ -28,7 +28,7 @@ func TestAdaptiveSettingsValidateConfig(t *testing.T) {
 		"empty object":   {value: jsontypes.NewNormalizedValue(`{}`)},
 		"configured":     {value: jsontypes.NewNormalizedValue(`{"LOAD_SHEDDING":false}`)},
 		"future setting": {value: jsontypes.NewNormalizedValue(`{"future":{"enabled":true,"limit":9007199254740993}}`)},
-		"null entry":     {value: jsontypes.NewNormalizedValue(`{"SEARCH_OVERLOAD_PROTECTION": null}`), invalid: true},
+		"null entry":     {value: jsontypes.NewNormalizedValue(`{"SEARCH_LOAD_SHEDDING": null}`), invalid: true},
 		"JSON null":      {value: jsontypes.NewNormalizedValue(`null`), invalid: true},
 		"array":          {value: jsontypes.NewNormalizedValue(`[]`), invalid: true},
 		"scalar":         {value: jsontypes.NewNormalizedValue(`false`), invalid: true},
