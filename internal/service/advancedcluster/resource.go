@@ -415,7 +415,7 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 	if diags.HasError() {
 		return nil
 	}
-	OverrideAttributesWithPrevStateValue(modelIn, modelOut, diags)
+	OverrideAttributesWithPrevStateValue(ctx, modelIn, modelOut, diags)
 	return modelOut
 }
 

@@ -56,7 +56,7 @@ func TestAdvancedCluster_warnIfMajorVersionChanged(t *testing.T) {
 		}
 		var diags diag.Diagnostics
 
-		advancedcluster.OverrideAttributesWithPrevStateValue(modelIn, modelOut, &diags)
+		advancedcluster.OverrideAttributesWithPrevStateValue(t.Context(), modelIn, modelOut, &diags)
 
 		assert.Equal(t, 0, diags.WarningsCount())
 		assert.Equal(t, "8.0", modelOut.MongoDBMajorVersion.ValueString())
@@ -76,7 +76,7 @@ func TestAdvancedCluster_warnIfMajorVersionChanged(t *testing.T) {
 		}
 		var diags diag.Diagnostics
 
-		advancedcluster.OverrideAttributesWithPrevStateValue(modelIn, modelOut, &diags)
+		advancedcluster.OverrideAttributesWithPrevStateValue(t.Context(), modelIn, modelOut, &diags)
 
 		assert.Equal(t, 0, diags.WarningsCount())
 		assert.Equal(t, "8.0", modelOut.MongoDBMajorVersion.ValueString())
@@ -96,7 +96,7 @@ func TestAdvancedCluster_warnIfMajorVersionChanged(t *testing.T) {
 			}
 			var diags diag.Diagnostics
 
-			advancedcluster.OverrideAttributesWithPrevStateValue(modelIn, modelOut, &diags)
+			advancedcluster.OverrideAttributesWithPrevStateValue(t.Context(), modelIn, modelOut, &diags)
 
 			assert.False(t, diags.HasError())
 			if tc.expectWarning {

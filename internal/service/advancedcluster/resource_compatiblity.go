@@ -8,6 +8,7 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20250312025/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -91,10 +92,11 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 	return containerIDs, nil
 }
 
-func OverrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel, diags *diag.Diagnostics) {
+func OverrideAttributesWithPrevStateValue(ctx context.Context, modelIn, modelOut *TFModel, diags *diag.Diagnostics) {
 	if modelIn == nil || modelOut == nil || diags == nil {
 		return
 	}
+	overrideUnreportedInactiveSpecs(ctx, modelIn, modelOut, diags)
 	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())
 	afterVersion := conversion.NilForUnknown(modelOut.MongoDBMajorVersion, modelOut.MongoDBMajorVersion.ValueStringPointer())
 	if beforeVersion != nil {
@@ -111,6 +113,121 @@ func OverrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel, diags *dia
 	modelOut.DeleteOnCreateTimeout = modelIn.DeleteOnCreateTimeout
 	modelOut.RetainBackupsEnabled = modelIn.RetainBackupsEnabled
 	modelOut.UseEffectiveFields = modelIn.UseEffectiveFields
+}
+
+// overrideUnreportedInactiveSpecs keeps previously known hardware spec attributes that Atlas didn't
+// report back for a spec describing no nodes (node_count = 0).
+//
+// A spec with no nodes has no hardware provisioned for it, so Atlas may omit its hardware attributes
+// instead of echoing what was sent. This is most visible with use_effective_fields enabled, where
+// the specs returned describe the effective (actually provisioned) hardware.
+//
+// Writing those omissions to state as null contradicts a value the practitioner set in the config,
+// which Terraform reports as "Provider produced inconsistent result after apply", and which would
+// otherwise show up as a permanent diff on every subsequent plan. modelIn is the plan in Create and
+// Update and the prior state in Read, so in every case it holds the value to fall back to.
+func overrideUnreportedInactiveSpecs(ctx context.Context, modelIn, modelOut *TFModel, diags *diag.Diagnostics) {
+	// Flex clusters and unresolved configs can have no usable replication specs to reconcile.
+	for _, repSpecs := range []types.List{modelIn.ReplicationSpecs, modelOut.ReplicationSpecs} {
+		if !isKnown(repSpecs) {
+			return
+		}
+	}
+	inRepSpecs := TFModelList[TFReplicationSpecsModel](ctx, diags, modelIn.ReplicationSpecs)
+	outRepSpecs := TFModelList[TFReplicationSpecsModel](ctx, diags, modelOut.ReplicationSpecs)
+	if diags.HasError() {
+		return
+	}
+	anyChanged := false
+	for i := range minLen(outRepSpecs, inRepSpecs) {
+		inRegionConfigs := TFModelList[TFRegionConfigsModel](ctx, diags, inRepSpecs[i].RegionConfigs)
+		outRegionConfigs := TFModelList[TFRegionConfigsModel](ctx, diags, outRepSpecs[i].RegionConfigs)
+		if diags.HasError() {
+			return
+		}
+		regionConfigsChanged := false
+		for j := range minLen(outRegionConfigs, inRegionConfigs) {
+			specs := []struct{ in, out *types.Object }{
+				{&inRegionConfigs[j].AnalyticsSpecs, &outRegionConfigs[j].AnalyticsSpecs},
+				{&inRegionConfigs[j].ElectableSpecs, &outRegionConfigs[j].ElectableSpecs},
+				{&inRegionConfigs[j].ReadOnlySpecs, &outRegionConfigs[j].ReadOnlySpecs},
+			}
+			for _, spec := range specs {
+				if overrideUnreportedSpecAttrs(ctx, diags, spec.in, spec.out) {
+					regionConfigsChanged = true
+				}
+				if diags.HasError() {
+					return
+				}
+			}
+		}
+		if !regionConfigsChanged {
+			continue
+		}
+		listRegionConfigs, diagsLocal := types.ListValueFrom(ctx, regionConfigsObjType, outRegionConfigs)
+		diags.Append(diagsLocal...)
+		if diags.HasError() {
+			return
+		}
+		outRepSpecs[i].RegionConfigs = listRegionConfigs
+		anyChanged = true
+	}
+	if !anyChanged {
+		return
+	}
+	listRepSpecs, diagsLocal := types.ListValueFrom(ctx, replicationSpecsObjType, outRepSpecs)
+	diags.Append(diagsLocal...)
+	if diags.HasError() {
+		return
+	}
+	modelOut.ReplicationSpecs = listRepSpecs
+}
+
+// overrideUnreportedSpecAttrs fills the attributes of specOut that Atlas didn't report, using specIn.
+// It returns true if specOut was changed. Only specs describing no nodes are considered: when a spec
+// has nodes, Atlas reports the hardware actually backing them and that value must win.
+func overrideUnreportedSpecAttrs(ctx context.Context, diags *diag.Diagnostics, specIn, specOut *types.Object) bool {
+	if specIn.IsNull() || specOut.IsNull() {
+		return false
+	}
+	in := TFModelObject[TFSpecsModel](ctx, *specIn)
+	out := TFModelObject[TFSpecsModel](ctx, *specOut)
+	if in == nil || out == nil {
+		return false
+	}
+	nodeCount := out.NodeCount // prefer what Atlas reported, fall back to the previous model
+	if !isKnown(nodeCount) {
+		nodeCount = in.NodeCount
+	}
+	if nodeCount.ValueInt64() != 0 {
+		return false
+	}
+	changed := copyAttrIfUnreported(&in.DiskSizeGb, &out.DiskSizeGb)
+	changed = copyAttrIfUnreported(&in.DiskIops, &out.DiskIops) || changed
+	changed = copyAttrIfUnreported(&in.EbsVolumeType, &out.EbsVolumeType) || changed
+	changed = copyAttrIfUnreported(&in.InstanceSize, &out.InstanceSize) || changed
+	changed = copyAttrIfUnreported(&in.NodeCount, &out.NodeCount) || changed
+	if !changed {
+		return false
+	}
+	objType, diagsLocal := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, out)
+	diags.Append(diagsLocal...)
+	if diags.HasError() {
+		return false
+	}
+	*specOut = objType
+	return true
+}
+
+// copyAttrIfUnreported copies src into dest when Atlas reported no value (dest is null) and src holds
+// a usable one, returning true if the copy happened. src can come from the plan, where computed
+// attributes are unknown, and unknown must never reach the state, so src is only used when known.
+func copyAttrIfUnreported[T attr.Value](src, dest *T) bool {
+	if !(*dest).IsNull() || !isKnown(*src) {
+		return false
+	}
+	*dest = *src
+	return true
 }
 
 func warnIfMajorVersionChanged(before string, after *string, diags *diag.Diagnostics) {

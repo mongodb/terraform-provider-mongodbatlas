@@ -129,7 +129,7 @@ func newTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *a
 		return nil
 	}
 	modelOut.AdvancedConfiguration = types.ObjectNull(advancedConfigurationObjType.AttrTypes)
-	OverrideAttributesWithPrevStateValue(modelIn, modelOut, diags)
+	OverrideAttributesWithPrevStateValue(ctx, modelIn, modelOut, diags)
 	return modelOut
 }
 
