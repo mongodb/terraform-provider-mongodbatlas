@@ -28,7 +28,7 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// The first apply verifies that omitting the optional overrides creates stable state.
-				Config: configWithoutOverrides(projectID, clusterName),
+				Config: configBasic(projectID, clusterName, ""),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
 						plancheck.ExpectEmptyPlan(),
@@ -71,7 +71,7 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 			},
 			{
 				// Removing the attribute after a non-empty map resets the whole API map with null.
-				Config: configWithoutOverrides(projectID, clusterName),
+				Config: configBasic(projectID, clusterName, ""),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
@@ -122,32 +122,22 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 }
 
 func configBasic(projectID, clusterName, overrides string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster_adaptive_settings" "test" {
-			project_id                  = %[1]q
-			cluster_name                = %[2]q
-			adaptive_settings_overrides = jsonencode(%[3]s)
-		}
-
-		data "mongodbatlas_cluster_adaptive_settings" "test" {
-			project_id   = mongodbatlas_cluster_adaptive_settings.test.project_id
-			cluster_name = mongodbatlas_cluster_adaptive_settings.test.cluster_name
-		}
-	`, projectID, clusterName, overrides)
-}
-
-func configWithoutOverrides(projectID, clusterName string) string {
+	overridesLine := ""
+	if overrides != "" {
+		overridesLine = fmt.Sprintf("adaptive_settings_overrides = jsonencode(%s)", overrides)
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster_adaptive_settings" "test" {
 			project_id   = %[1]q
 			cluster_name = %[2]q
+			%[3]s
 		}
 
 		data "mongodbatlas_cluster_adaptive_settings" "test" {
 			project_id   = mongodbatlas_cluster_adaptive_settings.test.project_id
 			cluster_name = mongodbatlas_cluster_adaptive_settings.test.cluster_name
 		}
-	`, projectID, clusterName)
+	`, projectID, clusterName, overridesLine)
 }
 
 func checkResourceAndDataSource(expectedOverrides string) resource.TestCheckFunc {
