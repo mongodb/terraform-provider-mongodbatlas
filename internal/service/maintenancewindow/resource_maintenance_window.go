@@ -7,10 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	admin "github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	admin "go.mongodb.org/atlas-sdk/v20250312025/admin"
 )
 
 const (
@@ -99,7 +99,7 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
 	if deferValue := d.Get("defer").(bool); deferValue {
@@ -109,13 +109,15 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	params := new(admin.GroupMaintenanceWindowPreviewUpdateRequest)
+	params := new(admin.GroupMaintenanceWindow)
 
 	if !d.GetRawConfig().GetAttr("day_of_week").IsNull() {
-		params.DayOfWeek = new(d.Get("day_of_week").(int))
+		day := d.Get("day_of_week").(int)
+		params.DayOfWeek = &day
 	}
 	if !d.GetRawConfig().GetAttr("hour_of_day").IsNull() {
-		params.HourOfDay = new(d.Get("hour_of_day").(int))
+		hour := d.Get("hour_of_day").(int)
+		params.HourOfDay = &hour
 	}
 
 	if autoDeferOnceEnabled, ok := d.GetOk("auto_defer_once_enabled"); ok {
@@ -159,7 +161,7 @@ func newProtectedHours(d *schema.ResourceData) *admin.ProtectedHours {
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Id()
 
 	maintenanceWindow, resp, err := connV2.MaintenanceWindowsAPI.GetMaintenanceWindow(ctx, projectID).Execute()
@@ -222,7 +224,7 @@ func flattenProtectedHours(protectedHours admin.ProtectedHours) []map[string]int
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Id()
 
 	if d.HasChange("defer") {
@@ -232,7 +234,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	params := new(admin.GroupMaintenanceWindowPreviewUpdateRequest)
+	params := new(admin.GroupMaintenanceWindow)
 
 	// Both fields are RequiredWith, gate on either since hour_of_day=0 (midnight) has no diff on its own.
 	if !d.GetRawConfig().GetAttr("day_of_week").IsNull() {
@@ -290,7 +292,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Id()
 
 	_, err := connV2.MaintenanceWindowsAPI.ResetMaintenanceWindow(ctx, projectID).Execute()

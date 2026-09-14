@@ -6,23 +6,45 @@ NOTES:
 
 FEATURES:
 
+* **New Data Source:** `data-source/mongodbatlas_mcp_config` ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
+* **New Data Source:** `data-source/mongodbatlas_mcp_config_secret` ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
+* **New Data Source:** `data-source/mongodbatlas_mcp_config_secrets` ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
+* **New Data Source:** `data-source/mongodbatlas_mcp_configs` ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
 * **New Data Source:** `data-source/mongodbatlas_org_delegation_settings` ([#4709](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4709))
+* **New Data Source:** `data-source/mongodbatlas_project_mcp_config` ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
+* **New Data Source:** `data-source/mongodbatlas_project_mcp_config_secret` ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
+* **New Data Source:** `data-source/mongodbatlas_project_mcp_config_secrets` ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
+* **New Data Source:** `data-source/mongodbatlas_project_mcp_configs` ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
 * **New Guide:** Adds guidance for migrating stream connections and processors from instance_name to workspace_name ([#4682](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4682))
+* **New Resource:** `resource/mongodbatlas_mcp_config` ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
+* **New Resource:** `resource/mongodbatlas_mcp_config_secret` ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
 * **New Resource:** `resource/mongodbatlas_org_delegation_settings` ([#4709](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4709))
+* **New Resource:** `resource/mongodbatlas_project_mcp_config` ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
+* **New Resource:** `resource/mongodbatlas_project_mcp_config_secret` ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
 
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_cloud_backup_schedule: Adds `copy_policy_items_enabled`, `copy_settings.copy_policy_items`, and `copy_settings.last_number_of_snapshots` attributes ([#4693](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4693))
+* data-source/mongodbatlas_organization: Adds `custom_session_timeouts` attribute ([#4713](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4713))
 * data-source/mongodbatlas_organization: Adds `operations_contact` attribute ([#4700](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4700))
+* data-source/mongodbatlas_organizations: Adds `custom_session_timeouts` attribute ([#4713](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4713))
 * data-source/mongodbatlas_organizations: Adds `operations_contact` attribute ([#4700](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4700))
+* data-source/mongodbatlas_project_service_account: Adds `system_managed` computed attribute to indicate whether the Service Account is system managed ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
 * data-source/mongodbatlas_project_service_accounts: Adds `include_system_managed` attribute to optionally include system-managed Service Accounts in the response ([#4699](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4699))
+* data-source/mongodbatlas_project_service_accounts: Adds `system_managed` computed attribute to indicate whether the Service Account is system managed ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
+* data-source/mongodbatlas_service_account: Adds `system_managed` computed attribute to indicate whether the Service Account is system managed ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
 * data-source/mongodbatlas_service_accounts: Adds `include_system_managed` attribute to optionally include system-managed Service Accounts in the response ([#4699](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4699))
+* data-source/mongodbatlas_service_accounts: Adds `system_managed` computed attribute to indicate whether the Service Account is system managed ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
 * resource/mongodbatlas_cloud_backup_schedule: Adds `copy_policy_items_enabled`, `copy_settings.copy_policy_items`, `copy_settings.last_number_of_snapshots`, `update_copy_snapshots`, and `delete_copy_snapshots` attributes ([#4693](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4693))
+* resource/mongodbatlas_organization: Adds `custom_session_timeouts` attribute ([#4713](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4713))
 * resource/mongodbatlas_organization: Adds `operations_contact` attribute ([#4700](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4700))
+* resource/mongodbatlas_project_service_account: Adds `system_managed` computed attribute to indicate whether the Service Account is system managed ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
+* resource/mongodbatlas_service_account: Adds `system_managed` computed attribute to indicate whether the Service Account is system managed ([#4673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4673))
 * resource/mongodbatlas_stream_processor: Adds `options.resume_from_checkpoint` to allow modifying the `$source` stage of a `pipeline`, which the Atlas Admin API rejects while resuming from an existing checkpoint. Only applied to updates that change the `$source` or a window stage, the changes the API rejects while resuming from a checkpoint. ([#4608](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4608))
 
 BUG FIXES:
 
+* resource/mongodbatlas_advanced_cluster: Fixes plan and apply errors when attributes are not known until apply ([#4718](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4718))
 * resource/mongodbatlas_network_peering: Emits a warning instead of returning an error when a peering connection in `FAILED` status is refreshed, and allows peerings in `FAILED` status to be deleted ([#4698](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4698))
 
 ## 2.17.0 (August 27, 2026)

@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_organization: Adds `custom_session_timeouts` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_organization: Adds `custom_session_timeouts` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_organizations: Adds `custom_session_timeouts` attribute
+```

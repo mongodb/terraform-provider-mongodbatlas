@@ -61,6 +61,7 @@ output "service_accounts_results" {
 - `name` (String) Human-readable name for the Service Account.
 - `roles` (Set of String) A list of Project roles associated with the Service Account.
 - `secrets` (Attributes List) A list of secrets associated with the specified Service Account. (see [below for nested schema](#nestedatt--secrets))
+- `system_managed` (Boolean) Indicates whether the Service Account is system managed.
 
 <a id="nestedatt--secrets"></a>
 ### Nested Schema for `secrets`

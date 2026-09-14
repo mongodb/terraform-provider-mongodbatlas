@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
+	"go.mongodb.org/atlas-sdk/v20250312025/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -32,6 +32,14 @@ var (
 		MultiFactorAuthRequired: new(false),
 		RestrictEmployeeAccess:  new(false),
 		GenAIFeaturesEnabled:    new(true),
+	}
+
+	settingsUpdated = &admin.OrganizationSettings{
+		ApiAccessListRequired:   new(false),
+		MultiFactorAuthRequired: new(true),
+		RestrictEmployeeAccess:  new(true),
+		GenAIFeaturesEnabled:    new(false),
+		SecurityContact:         conversion.StringPtr("test@mongodb.com"),
 	}
 )
 
@@ -105,24 +113,8 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 	var (
 		orgOwnerID  = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
 		name        = acc.RandomName()
-		nameUpdated = "org-name-updated"
 		description = "test Key for Acceptance tests"
 		roleName    = "ORG_OWNER"
-
-		settingsConfig = &admin.OrganizationSettings{
-			ApiAccessListRequired:   new(false),
-			MultiFactorAuthRequired: new(true),
-			GenAIFeaturesEnabled:    new(false),
-			SecurityContact:         conversion.StringPtr("test@mongodb.com"),
-			OperationsContact:       conversion.StringPtr("test@mongodb.com"),
-		}
-
-		settingsConfigUpdated = &admin.OrganizationSettings{
-			ApiAccessListRequired:   new(false),
-			MultiFactorAuthRequired: new(true),
-			RestrictEmployeeAccess:  new(false),
-			GenAIFeaturesEnabled:    new(true),
-		}
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -131,36 +123,123 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithSettings(orgOwnerID, name, description, roleName, settingsConfig),
-				Check:  checkAggr(orgOwnerID, name, description, settingsConfig),
+				Config: configWithSettings(orgOwnerID, name, description, roleName, defaultSettings),
+				Check:  checkAggr(orgOwnerID, name, description, defaultSettings),
 			},
 			{
 				PreConfig: sleepForSettingsRateLimit,
-				Config:    configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
-				Check:     checkAggr(orgOwnerID, name, description, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, settingsUpdated),
+				Check:     checkAggr(orgOwnerID, name, description, settingsUpdated),
 			},
 			{
 				PreConfig: sleepForSettingsRateLimit,
-				Config:    configWithSettings(orgOwnerID, name, description, roleName, settingsConfigUpdated),
-				Check:     checkAggr(orgOwnerID, name, description, settingsConfigUpdated),
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, settingsUpdated),
+				PlanOnly:  true,
+			},
+		},
+	})
+}
+
+func TestAccConfigRSOrganization_Settings_OperationsContact(t *testing.T) {
+	acc.SkipTestForCI(t) // affects the org
+
+	var (
+		orgOwnerID  = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
+		name        = acc.RandomName()
+		description = "test Key for Acceptance tests"
+		roleName    = "ORG_OWNER"
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(defaultSettings, "test@mongodb.com")),
+				Check:  checkAggr(orgOwnerID, name, description, withOperationsContact(defaultSettings, "test@mongodb.com")),
 			},
 			{
 				PreConfig: sleepForSettingsRateLimit,
-				Config:    configBasic(orgOwnerID, nameUpdated, description, roleName, false, nil),
-				Check: checkAggr(orgOwnerID, nameUpdated, description, settingsConfigUpdated,
-					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "true")),
-			},
-			{
-				// Re-set operations_contact to a real value: configBasic cleared it, and an
-				// empty-string config would otherwise be a no-op diff against an already-blank value.
-				PreConfig: sleepForSettingsRateLimit,
-				Config:    configWithSettings(orgOwnerID, nameUpdated, description, roleName, withOperationsContact(settingsConfig, "test-updated@mongodb.com")),
-				Check:     resource.TestCheckResourceAttr(resourceName, "operations_contact", "test-updated@mongodb.com"),
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(defaultSettings, "test-updated@mongodb.com")),
+				Check:     checkAggr(orgOwnerID, name, description, withOperationsContact(defaultSettings, "test-updated@mongodb.com")),
 			},
 			{
 				PreConfig:   sleepForSettingsRateLimit,
-				Config:      configWithSettings(orgOwnerID, nameUpdated, description, roleName, withOperationsContact(settingsConfig, "")),
+				Config:      configWithSettings(orgOwnerID, name, description, roleName, withOperationsContact(defaultSettings, "")),
 				ExpectError: regexp.MustCompile(`INVALID_OPERATIONS_CONTACT_EMAIL`),
+			},
+			{
+				// Remove the operations contact from the config: cleared with an explicit null.
+				PreConfig: sleepForSettingsRateLimit,
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, defaultSettings),
+				Check:     checkAggr(orgOwnerID, name, description, defaultSettings),
+			},
+		},
+	})
+}
+
+func TestAccConfigRSOrganization_Settings_Timeouts(t *testing.T) {
+	acc.SkipTestForCI(t) // affects the org
+
+	var (
+		orgOwnerID  = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
+		name        = acc.RandomName()
+		description = "test Key for Acceptance tests"
+		roleName    = "ORG_OWNER"
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithSettings(orgOwnerID, name, description, roleName, withTimeouts(defaultSettings, conversion.IntPtr(3600), conversion.IntPtr(300))),
+				Check: checkAggr(orgOwnerID, name, description, defaultSettings,
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.absolute_session_timeout_in_seconds", "3600"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.idle_session_timeout_in_seconds", "300")),
+			},
+			{
+				PreConfig: sleepForSettingsRateLimit,
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, withTimeouts(defaultSettings, conversion.IntPtr(3600), nil)),
+				Check: checkAggr(orgOwnerID, name, description, defaultSettings,
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.absolute_session_timeout_in_seconds", "3600"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.idle_session_timeout_in_seconds", "0")),
+			},
+			{
+				PreConfig: sleepForSettingsRateLimit,
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, withTimeouts(defaultSettings, conversion.IntPtr(7200), conversion.IntPtr(600))),
+				Check: checkAggr(orgOwnerID, name, description, defaultSettings,
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.absolute_session_timeout_in_seconds", "7200"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.idle_session_timeout_in_seconds", "600")),
+			},
+			{
+				PreConfig: sleepForSettingsRateLimit,
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, defaultSettings),
+				Check: checkAggr(orgOwnerID, name, description, defaultSettings,
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "0")),
+			},
+			{
+				PreConfig: sleepForSettingsRateLimit,
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, withTimeouts(defaultSettings, conversion.IntPtr(3600), nil)),
+				Check: checkAggr(orgOwnerID, name, description, defaultSettings,
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.0.absolute_session_timeout_in_seconds", "3600")),
+			},
+			{
+				PreConfig: sleepForSettingsRateLimit,
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, withTimeouts(defaultSettings, nil, nil)),
+				Check: checkAggr(orgOwnerID, name, description, defaultSettings,
+					resource.TestCheckResourceAttr(resourceName, "custom_session_timeouts.#", "0")),
+			},
+			{
+				PreConfig: sleepForSettingsRateLimit,
+				Config:    configWithSettings(orgOwnerID, name, description, roleName, withTimeouts(defaultSettings, nil, nil)),
+				PlanOnly:  true,
 			},
 		},
 	})
@@ -237,9 +316,9 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 	const operationsContact = "test@mongodb.com"
 
 	t.Cleanup(func() {
-		_, _, _ = acc.ConnV2().OrganizationsAPI.UpdateOrgSettings(context.Background(), orgID, &admin.OrganizationSettings{
-			OperationsContact: conversion.StringPtr(""),
-		}).Execute()
+		settings := &admin.OrganizationSettings{}
+		settings.SetOperationsContactNil()
+		_, _, _ = acc.ConnV2().OrganizationsAPI.UpdateOrgSettings(context.Background(), orgID, settings).Execute()
 	})
 
 	// Serial test: the second step mutates operations_contact on the shared
@@ -504,9 +583,24 @@ func configWithSettings(orgOwnerID, name, description, roleNames string, setting
 
 // withOperationsContact copies settings with a different operations contact, so a test step
 // only changes that attribute.
+// withOperationsContact returns settings with a different operations contact, so a test step only
+// changes that attribute. It takes the address of the parameter directly rather than
+// conversion.StringPtr, because StringPtr("") returns nil and would drop the attribute from the
+// emitted HCL, silently turning an intended empty string into "field absent".
 func withOperationsContact(settings *admin.OrganizationSettings, operationsContact string) *admin.OrganizationSettings {
 	updated := *settings
-	updated.OperationsContact = conversion.StringPtr(operationsContact)
+	updated.OperationsContact = &operationsContact
+	return &updated
+}
+
+// withTimeouts returns settings with the custom session timeouts block replaced, so a test step
+// only changes those two attributes.
+func withTimeouts(settings *admin.OrganizationSettings, absolute, idle *int) *admin.OrganizationSettings {
+	updated := *settings
+	updated.CustomSessionTimeouts = &admin.CustomSessionTimeouts{
+		AbsoluteSessionTimeoutInSeconds: absolute,
+		IdleSessionTimeoutInSeconds:     idle,
+	}
 	return &updated
 }
 
@@ -530,6 +624,21 @@ func getSettingsConfig(settings *admin.OrganizationSettings) string {
 	}
 	if settings.OperationsContact != nil {
 		configs = append(configs, fmt.Sprintf("operations_contact = %q", *settings.OperationsContact))
+	}
+	if settings.CustomSessionTimeouts != nil {
+		var fields []string
+		if settings.CustomSessionTimeouts.AbsoluteSessionTimeoutInSeconds != nil {
+			fields = append(fields, fmt.Sprintf("absolute_session_timeout_in_seconds = %d", *settings.CustomSessionTimeouts.AbsoluteSessionTimeoutInSeconds))
+		}
+		if settings.CustomSessionTimeouts.IdleSessionTimeoutInSeconds != nil {
+			fields = append(fields, fmt.Sprintf("idle_session_timeout_in_seconds = %d", *settings.CustomSessionTimeouts.IdleSessionTimeoutInSeconds))
+		}
+		block := "custom_session_timeouts {\n"
+		if len(fields) > 0 {
+			block += "\t" + strings.Join(fields, "\n\t") + "\n"
+		}
+		block += "}"
+		configs = append(configs, block)
 	}
 
 	return strings.Join(configs, "\n")
@@ -660,6 +769,7 @@ func checkAggrDS(extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 		"multi_factor_auth_required",
 		"api_access_list_required",
 		"skip_default_alerts_settings",
+		"custom_session_timeouts.#",
 	}
 	checks = acc.AddAttrSetChecks(datasourceName, checks, singularKeys...)
 

@@ -4,7 +4,11 @@ import (
 	"context"
 	"log"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/mcpconfig"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/mcpconfigsecret"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/metricintegration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectmcpconfig"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectmcpconfigsecret"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -366,6 +370,14 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		aimodelratelimit.DataSource,
 		aimodelratelimit.PluralDataSource,
 		orgdelegationsettings.DataSource,
+		mcpconfig.DataSource,
+		mcpconfig.PluralDataSource,
+		mcpconfigsecret.DataSource,
+		mcpconfigsecret.PluralDataSource,
+		projectmcpconfig.DataSource,
+		projectmcpconfig.PluralDataSource,
+		projectmcpconfigsecret.DataSource,
+		projectmcpconfigsecret.PluralDataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
@@ -414,6 +426,10 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		aimodelapikey.Resource,
 		aimodelratelimit.Resource,
 		orgdelegationsettings.Resource,
+		mcpconfig.Resource,
+		mcpconfigsecret.Resource,
+		projectmcpconfig.Resource,
+		projectmcpconfigsecret.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {
