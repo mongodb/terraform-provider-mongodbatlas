@@ -19,6 +19,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
+			"is_atlas_home_page_ai_assistant_enabled": schema.BoolAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether the MongoDB Assistant on the Atlas Home Page is enabled for the specified project.",
+			},
 			"is_cluster_ai_assistant_enabled": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
@@ -80,6 +85,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	ProjectId                                       types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	IsAtlasHomePageAiAssistantEnabled               types.Bool   `tfsdk:"is_atlas_home_page_ai_assistant_enabled"`
 	IsClusterAiAssistantEnabled                     types.Bool   `tfsdk:"is_cluster_ai_assistant_enabled"`
 	IsCollectDatabaseSpecificsStatisticsEnabled     types.Bool   `tfsdk:"is_collect_database_specifics_statistics_enabled"`
 	IsDataExplorerEnabled                           types.Bool   `tfsdk:"is_data_explorer_enabled"`

@@ -1,6 +1,17 @@
 schema:
     description: Create one Stream Processor within the specified stream workspace.
     attributes:
+        - string: {}
+          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          computed_optional_required: computed
+          tf_schema_name: effective_tier
+          tf_model_name: EffectiveTier
+          api_name: effectiveTier
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - bool: {}
           description: Flag that indicates whether the stream processor is eligible for failover.
           computed_optional_required: computed
@@ -51,6 +62,119 @@ schema:
         - single_nested:
             nested_object:
                 attributes:
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - bool: {}
+                                  description: |-
+                                    Flag that indicates whether autoscaling is enabled.
+
+                                    - **Omitted, `null`, or `false`:**
+                                      - On `CREATE`: a no-op, there is no persisted setting yet to disable or clear.
+                                      - On `MODIFY` or `:startWith`: omitted preserves the current setting. `null` or `false` disables autoscaling and clears its configuration.
+                                    - **`true`** on `CREATE`, `MODIFY`, or `:startWith`: enables autoscaling.
+                                  computed_optional_required: optional
+                                  tf_schema_name: enabled
+                                  tf_model_name: Enabled
+                                  api_name: enabled
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - list_nested:
+                                    nested_object:
+                                        attributes:
+                                            - string: {}
+                                              description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                              computed_optional_required: computed
+                                              tf_schema_name: href
+                                              tf_model_name: Href
+                                              api_name: href
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                              computed_optional_required: computed
+                                              tf_schema_name: rel
+                                              tf_model_name: Rel
+                                              api_name: rel
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                  description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                                  custom_type:
+                                    name: OptionsAutoscalingLinks
+                                    model: customtypes.NestedListValue[TFOptionsAutoscalingLinksModel]
+                                    schema: customtypes.NewNestedListType[TFOptionsAutoscalingLinksModel](ctx)
+                                    packages:
+                                        - customtypes
+                                  computed_optional_required: computed
+                                  tf_schema_name: links
+                                  tf_model_name: Links
+                                  api_name: links
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: |-
+                                    Tier ceiling for autoscaling (scale-up limit).
+
+                                    - **Omitted:**
+                                      - On `CREATE`: falls back to the workspace max tier (there is no current bound to preserve).
+                                      - On `MODIFY` or `:startWith`: the current bound is preserved.
+                                    - **`null`** on `CREATE`, `MODIFY`, or `:startWith`: resets the bound to the workspace max tier.
+                                    - **A tier value** on `CREATE`, `MODIFY`, or `:startWith`: sets the bound to that tier.
+                                  computed_optional_required: optional
+                                  tf_schema_name: max_tier
+                                  tf_model_name: MaxTier
+                                  api_name: maxTier
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: |-
+                                    Tier floor for autoscaling (scale-down limit).
+
+                                    - **Omitted:**
+                                      - On `CREATE`: falls back to the workspace default tier (there is no current bound to preserve).
+                                      - On `MODIFY` or `:startWith`: the current bound is preserved.
+                                    - **`null`** on `CREATE`, `MODIFY`, or `:startWith`: resets the bound to the workspace default tier.
+                                    - **A tier value** on `CREATE`, `MODIFY`, or `:startWith`: sets the bound to that tier.
+                                  computed_optional_required: optional
+                                  tf_schema_name: min_tier
+                                  tf_model_name: MinTier
+                                  api_name: minTier
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: Autoscaling configuration for a stream processor.
+                      custom_type:
+                        name: OptionsAutoscaling
+                        model: customtypes.ObjectValue[TFOptionsAutoscalingModel]
+                        schema: customtypes.NewObjectType[TFOptionsAutoscalingModel](ctx)
+                        packages:
+                            - customtypes
+                      computed_optional_required: optional
+                      tf_schema_name: autoscaling
+                      tf_model_name: Autoscaling
+                      api_name: autoscaling
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - single_nested:
                         nested_object:
                             attributes:
@@ -189,7 +313,7 @@ schema:
           present_in_any_response: false
           request_only_required_on_create: false
         - string: {}
-          description: Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.
+          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
           computed_optional_required: computed_optional
           tf_schema_name: tier
           tf_model_name: Tier

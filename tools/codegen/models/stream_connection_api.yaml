@@ -482,7 +482,7 @@ schema:
           request_only_required_on_create: false
         - map:
             element_type: 4
-          description: 'Optional for type: Kafka. A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have ''.'' characters.'
+          description: 'Optional for type: Kafka. Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have ''.'' characters.'
           custom_type:
             model: customtypes.MapValue[types.String]
             schema: customtypes.NewMapType[types.String](ctx)
@@ -522,7 +522,7 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
-          description: 'Optional for type: Cluster. The name of a built-in or custom DB Role to connect to an Atlas Cluster.'
+          description: 'Optional for type: Cluster. Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster.'
           custom_type:
             name: DbRoleToExecute
             model: customtypes.ObjectValue[TFDbRoleToExecuteModel]
@@ -666,7 +666,7 @@ schema:
                         nested_object:
                             attributes:
                                 - string: {}
-                                  description: Reserved. Will be used by `PRIVATE_LINK` connection type.
+                                  description: Reserved. Will be used by `PRIVATE_LINK` connection type. Setting this field with any other networking access type returns a validation error.
                                   computed_optional_required: optional
                                   tf_schema_name: connection_id
                                   tf_model_name: ConnectionId
@@ -895,7 +895,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: The connection region.
+          description: Connection region.
           computed_optional_required: computed_optional
           tf_schema_name: region
           tf_model_name: Region
@@ -1034,7 +1034,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: The connection state.
+          description: Connection state.
           computed_optional_required: computed
           tf_schema_name: state
           tf_model_name: State
@@ -1056,7 +1056,7 @@ schema:
           present_in_any_response: false
           request_only_required_on_create: false
         - string: {}
-          description: The connection type.
+          description: Connection type.
           computed_optional_required: required
           tf_schema_name: type
           tf_model_name: Type

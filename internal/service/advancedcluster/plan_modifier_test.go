@@ -47,6 +47,38 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 				},
 			},
 			{
+				// Every Optional-only attribute is unresolved, it must stay unknown instead of using the state value.
+				ConfigFilename: "main_unresolved_optional_attributes.tf",
+				Checks: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("tags")),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("labels")),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("retain_backups_enabled")),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("adaptive_capacity")),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("use_effective_fields")),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("pinned_fcv")),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("timeouts")),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("accept_data_risks_and_force_replica_set_reconfig")),
+					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("backing_provider_name")),
+					// Only the unresolved attributes stay unknown: the computed ones still keep their state value.
+					plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("cluster_id"), knownvalue.StringExact("67d01a2d01d3561b07caf76e")),
+					plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("encryption_at_rest_provider"), knownvalue.StringExact("NONE")),
+					plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("root_cert_type"), knownvalue.StringExact("ISRGROOTX1")),
+					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("electable_specs").AtMapKey("instance_size"), knownvalue.StringExact("M10")),
+				},
+			},
+			{
+				// auto_scaling is Optional+Computed, so the schema rule in CopyUnknowns does not keep it unknown.
+				// Planning its state value, and the read_only_specs derived from it, is rejected during apply.
+				ConfigFilename: "main_unresolved_optional_computed.tf",
+				Checks: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("auto_scaling")),
+					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("read_only_specs")),
+					plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("cluster_id"), knownvalue.StringExact("67d01a2d01d3561b07caf76e")),
+				},
+			},
+			{
 				ConfigFilename: "main_node_count_unknown.tf",
 				Checks: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),

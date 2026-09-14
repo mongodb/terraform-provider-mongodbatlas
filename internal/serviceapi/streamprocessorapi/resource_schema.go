@@ -17,6 +17,10 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"effective_tier": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.",
+			},
 			"eligible_for_failover": schema.BoolAttribute{
 				Computed:            true,
 				MarkdownDescription: "Flag that indicates whether the stream processor is eligible for failover.",
@@ -41,6 +45,42 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Optional configuration for the stream processor.",
 				CustomType:          customtypes.NewObjectType[TFOptionsModel](ctx),
 				Attributes: map[string]schema.Attribute{
+					"autoscaling": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "Autoscaling configuration for a stream processor.",
+						CustomType:          customtypes.NewObjectType[TFOptionsAutoscalingModel](ctx),
+						Attributes: map[string]schema.Attribute{
+							"enabled": schema.BoolAttribute{
+								Optional:            true,
+								MarkdownDescription: "Flag that indicates whether autoscaling is enabled.\n\n- **Omitted, `null`, or `false`:**\n  - On `CREATE`: a no-op, there is no persisted setting yet to disable or clear.\n  - On `MODIFY` or `:startWith`: omitted preserves the current setting. `null` or `false` disables autoscaling and clears its configuration.\n- **`true`** on `CREATE`, `MODIFY`, or `:startWith`: enables autoscaling.",
+							},
+							"links": schema.ListNestedAttribute{
+								Computed:            true,
+								MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
+								CustomType:          customtypes.NewNestedListType[TFOptionsAutoscalingLinksModel](ctx),
+								NestedObject: schema.NestedAttributeObject{
+									Attributes: map[string]schema.Attribute{
+										"href": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
+										},
+										"rel": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
+										},
+									},
+								},
+							},
+							"max_tier": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "Tier ceiling for autoscaling (scale-up limit).\n\n- **Omitted:**\n  - On `CREATE`: falls back to the workspace max tier (there is no current bound to preserve).\n  - On `MODIFY` or `:startWith`: the current bound is preserved.\n- **`null`** on `CREATE`, `MODIFY`, or `:startWith`: resets the bound to the workspace max tier.\n- **A tier value** on `CREATE`, `MODIFY`, or `:startWith`: sets the bound to that tier.",
+							},
+							"min_tier": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "Tier floor for autoscaling (scale-down limit).\n\n- **Omitted:**\n  - On `CREATE`: falls back to the workspace default tier (there is no current bound to preserve).\n  - On `MODIFY` or `:startWith`: the current bound is preserved.\n- **`null`** on `CREATE`, `MODIFY`, or `:startWith`: resets the bound to the workspace default tier.\n- **A tier value** on `CREATE`, `MODIFY`, or `:startWith`: sets the bound to that tier.",
+							},
+						},
+					},
 					"dlq": schema.SingleNestedAttribute{
 						Optional:            true,
 						MarkdownDescription: "Dead letter queue for the stream processor.",
@@ -90,7 +130,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"tier": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.",
+				MarkdownDescription: "Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.",
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed:            true,
@@ -108,6 +148,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
+	EffectiveTier         types.String                                `tfsdk:"effective_tier" autogen:"omitjson"`
 	EligibleForFailover   types.Bool                                  `tfsdk:"eligible_for_failover" autogen:"omitjson"`
 	FailoverEnabled       types.Bool                                  `tfsdk:"failover_enabled"`
 	GroupId               types.String                                `tfsdk:"group_id" autogen:"omitjson"`
@@ -122,8 +163,19 @@ type TFModel struct {
 	Timeouts              timeouts.Value                              `tfsdk:"timeouts" autogen:"omitjson"`
 }
 type TFOptionsModel struct {
-	Dlq                  customtypes.ObjectValue[TFOptionsDlqModel] `tfsdk:"dlq"`
-	ResumeFromCheckpoint types.Bool                                 `tfsdk:"resume_from_checkpoint"`
+	Autoscaling          customtypes.ObjectValue[TFOptionsAutoscalingModel] `tfsdk:"autoscaling"`
+	Dlq                  customtypes.ObjectValue[TFOptionsDlqModel]         `tfsdk:"dlq"`
+	ResumeFromCheckpoint types.Bool                                         `tfsdk:"resume_from_checkpoint"`
+}
+type TFOptionsAutoscalingModel struct {
+	Enabled types.Bool                                                  `tfsdk:"enabled"`
+	Links   customtypes.NestedListValue[TFOptionsAutoscalingLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	MaxTier types.String                                                `tfsdk:"max_tier"`
+	MinTier types.String                                                `tfsdk:"min_tier"`
+}
+type TFOptionsAutoscalingLinksModel struct {
+	Href types.String `tfsdk:"href" autogen:"omitjson"`
+	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
 }
 type TFOptionsDlqModel struct {
 	Coll           types.String `tfsdk:"coll"`
