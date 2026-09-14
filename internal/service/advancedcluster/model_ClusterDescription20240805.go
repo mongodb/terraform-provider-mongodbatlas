@@ -35,6 +35,7 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 		ConnectionStrings:                connectionStrings,
 		CreateDate:                       types.StringValue(conversion.SafeValue(conversion.TimePtrToStringPtr(input.CreateDate))),
 		DatabaseEdition:                  types.StringPointerValue(input.DatabaseEdition),
+		EffectiveDatabaseEdition:         types.StringPointerValue(input.EffectiveDatabaseEdition),
 		EncryptionAtRestProvider:         types.StringValue(conversion.SafeValue(input.EncryptionAtRestProvider)),
 		GlobalClusterSelfManagedSharding: types.BoolValue(conversion.SafeValue(input.GlobalClusterSelfManagedSharding)),
 		ProjectID:                        types.StringValue(conversion.SafeValue(input.GroupId)),
@@ -65,7 +66,6 @@ func newTFModelDS(ctx context.Context, input *admin.ClusterDescription20240805, 
 		return nil
 	}
 	dsModel := conversion.CopyModel[TFModelDS](resourceModel)
-	dsModel.EffectiveDatabaseEdition = types.StringPointerValue(input.EffectiveDatabaseEdition)
 	dsModel.ReplicationSpecs = newReplicationSpecsDSObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
 	return dsModel
 }
