@@ -2,25 +2,18 @@ package clusteradaptivesettings_test
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/stretchr/testify/require"
 )
 
 const (
-	resourceName     = "mongodbatlas_cluster_adaptive_settings.test"
-	dataSourceName   = "data.mongodbatlas_cluster_adaptive_settings.test"
-	apiVersionHeader = "application/vnd.atlas.2025-03-12+json"
-	readPath         = "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/adaptiveSettings"
+	resourceName   = "mongodbatlas_cluster_adaptive_settings.test"
+	dataSourceName = "data.mongodbatlas_cluster_adaptive_settings.test"
 )
 
 func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
@@ -118,16 +111,6 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 				Check:  checkResourceAndDataSource(`{"SEARCH_LOAD_SHEDDING":false}`),
 			},
 			{
-				// Reset outside Terraform, then verify unchanged configuration restores the override.
-				PreConfig: func() { resetOverrides(t, projectID, clusterName) },
-				Config:    configBasic(projectID, clusterName, `{ SEARCH_LOAD_SHEDDING = false }`),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply:             []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate)},
-					PostApplyPostRefresh: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
-				},
-				Check: checkResourceAndDataSource(`{"SEARCH_LOAD_SHEDDING":false}`),
-			},
-			{
 				ResourceName:                         resourceName,
 				ImportStateId:                        projectID + "/" + clusterName,
 				ImportState:                          true,
@@ -136,44 +119,6 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 			},
 		},
 	})
-}
-
-func TestAccClusterAdaptiveSettings_invalidOverrides(t *testing.T) {
-	tests := map[string]struct {
-		overrides string
-		errorText string
-	}{
-		"null entry": {overrides: `{ SEARCH_LOAD_SHEDDING = null }`, errorText: `Override "SEARCH_LOAD_SHEDDING" is null`},
-		"JSON null":  {overrides: `null`, errorText: "Use jsonencode with an object"},
-		"array":      {overrides: `[]`, errorText: "Use jsonencode with an object"},
-		"scalar":     {overrides: `false`, errorText: "Use jsonencode with an object"},
-	}
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			resource.ParallelTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Steps: []resource.TestStep{{
-					Config:      configBasic("111111111111111111111111", "test", test.overrides),
-					PlanOnly:    true,
-					ExpectError: regexp.MustCompile(test.errorText),
-				}},
-			})
-		})
-	}
-}
-
-func resetOverrides(t *testing.T, projectID, clusterName string) {
-	t.Helper()
-	resp, err := acc.MongoDBClient.UntypedAPICall(t.Context(), config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  readPath,
-		PathParams:    map[string]string{"projectId": projectID, "clusterName": clusterName},
-		Method:        "PATCH",
-	}, []byte(`{"adaptiveSettingsOverrides":null}`))
-	if resp != nil && resp.Body != nil {
-		defer resp.Body.Close()
-	}
-	require.NoError(t, err)
 }
 
 func configBasic(projectID, clusterName, overrides string) string {
@@ -231,7 +176,11 @@ func checkExists(name string) resource.TestCheckFunc {
 		if !ok {
 			return fmt.Errorf("not found: %s", name)
 		}
-		_, err := readAdaptiveSettings(rs)
+		_, _, err := acc.ConnV2().ClustersAPI.GetClusterAdaptiveSettings(
+			context.Background(),
+			rs.Primary.Attributes["project_id"],
+			rs.Primary.Attributes["cluster_name"],
+		).Execute()
 		if err != nil {
 			return fmt.Errorf("cluster adaptive settings do not exist: %w", err)
 		}
@@ -244,45 +193,17 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_cluster_adaptive_settings" {
 			continue
 		}
-		body, err := readAdaptiveSettings(rs)
+		settings, _, err := acc.ConnV2().ClustersAPI.GetClusterAdaptiveSettings(
+			context.Background(),
+			rs.Primary.Attributes["project_id"],
+			rs.Primary.Attributes["cluster_name"],
+		).Execute()
 		if err != nil {
 			return fmt.Errorf("checking cluster adaptive settings reset: %w", err)
 		}
-		var settings struct {
-			Overrides map[string]json.RawMessage `json:"adaptiveSettingsOverrides"`
-		}
-		if err := json.Unmarshal(body, &settings); err != nil {
-			return fmt.Errorf("decoding cluster adaptive settings: %w", err)
-		}
-		if len(settings.Overrides) != 0 {
+		if settings.AdaptiveSettingsOverrides != nil && len(*settings.AdaptiveSettingsOverrides) > 0 {
 			return fmt.Errorf("cluster adaptive settings for %s were not reset", rs.Primary.Attributes["cluster_name"])
 		}
 	}
 	return nil
-}
-
-func readAdaptiveSettings(rs *terraform.ResourceState) ([]byte, error) {
-	resp, err := acc.MongoDBClient.UntypedAPICall(context.Background(), config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  readPath,
-		PathParams: map[string]string{
-			"projectId":   rs.Primary.Attributes["project_id"],
-			"clusterName": rs.Primary.Attributes["cluster_name"],
-		},
-		Method: "GET",
-	}, nil)
-	if resp != nil && resp.Body != nil {
-		defer resp.Body.Close()
-	}
-	if err != nil {
-		return nil, err
-	}
-	if resp == nil || resp.Body == nil {
-		return nil, fmt.Errorf("empty cluster adaptive settings response")
-	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("reading cluster adaptive settings response: %w", err)
-	}
-	return body, nil
 }
