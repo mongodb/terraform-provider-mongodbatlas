@@ -1,19 +1,20 @@
 variable "atlas_client_id" {
   description = "MongoDB Atlas Service Account Client ID"
   type        = string
-  default     = ""
 }
 variable "atlas_client_secret" {
   description = "MongoDB Atlas Service Account Client Secret"
   type        = string
-  sensitive   = true
-  default     = ""
 }
 variable "org_id" {
-  description = "Atlas Organization ID"
+  description = "MongoDB Atlas Organization ID"
   type        = string
 }
-variable "project_name" {
-  description = "Name of the MongoDB Atlas project"
+variable "dev_project_name" {
+  description = "Name of the development MongoDB Atlas project"
+  type        = string
+}
+variable "prod_project_name" {
+  description = "Name of the production MongoDB Atlas project"
   type        = string
 }
