@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -34,11 +33,11 @@ func TestAccServiceAccount_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name1, description1, []string{"ORG_OWNER"}, 24),
+				Config: configBasic(orgID, name1, description1, []string{"ORG_OWNER"}, new(24)),
 				Check:  checkBasic(true),
 			},
 			{
-				Config: configBasic(orgID, name2, description2, []string{"ORG_READ_ONLY"}, 24),
+				Config: configBasic(orgID, name2, description2, []string{"ORG_READ_ONLY"}, new(24)),
 				Check:  checkBasic(false),
 			},
 			{
@@ -64,11 +63,11 @@ func TestAccServiceAccount_rolesOrdering(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name, "Roles Update", []string{"ORG_BILLING_ADMIN", "ORG_READ_ONLY"}, 24),
+				Config: configBasic(orgID, name, "Roles Update", []string{"ORG_BILLING_ADMIN", "ORG_READ_ONLY"}, new(24)),
 			},
 			{
 				// change order
-				Config: configBasic(orgID, name, "Roles Update", []string{"ORG_READ_ONLY", "ORG_BILLING_ADMIN"}, 24),
+				Config: configBasic(orgID, name, "Roles Update", []string{"ORG_READ_ONLY", "ORG_BILLING_ADMIN"}, new(24)),
 			},
 		},
 	})
@@ -84,21 +83,22 @@ func TestAccServiceAccount_createOnlyAttributes(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, 24),
+				Config: configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, new(24)),
 				Check:  checkExists(resourceName),
 			},
 			{
-				Config:      configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, 48),
+				Config:      configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, new(48)),
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile("secret_expires_after_hours cannot be updated"),
 			},
 			{
-				Config:      configBasic("updated-org-id", name, "description", []string{"ORG_READ_ONLY"}, 24),
+				Config:      configBasic("updated-org-id", name, "description", []string{"ORG_READ_ONLY"}, new(24)),
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile("org_id cannot be updated"),
 			},
 			{
-				Config:      configWithoutInitialSecret(orgID, name, "description", []string{"ORG_READ_ONLY"}, false),
+				// without_initial_secret defaults to false on create, so setting it to true on update must be rejected.
+				Config:      configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, nil, "without_initial_secret = true"),
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile("without_initial_secret cannot be updated"),
 			},
@@ -107,9 +107,6 @@ func TestAccServiceAccount_createOnlyAttributes(t *testing.T) {
 }
 
 func TestAccServiceAccount_withoutInitialSecret(t *testing.T) {
-	if !withoutInitialSecretEnabled() {
-		t.Skip("MONGODB_ATLAS_SERVICE_ACCOUNT_WITHOUT_INITIAL_SECRET not enabled; the withoutInitialSecret flag requires cloud-dev")
-	}
 	var (
 		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name  = acc.RandomName()
@@ -120,7 +117,7 @@ func TestAccServiceAccount_withoutInitialSecret(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithoutInitialSecret(orgID, name, "Without initial secret", []string{"ORG_READ_ONLY"}, true),
+				Config: configBasic(orgID, name, "Without initial secret", []string{"ORG_READ_ONLY"}, nil, "without_initial_secret = true"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "secrets.#", "0"),
@@ -143,9 +140,6 @@ func TestAccServiceAccount_withoutInitialSecret(t *testing.T) {
 // TestAccServiceAccount_withoutInitialSecretWithExpiration verifies the API mutual exclusion contract:
 // sending withoutInitialSecret together with secretExpiresAfterHours fails the apply with the API error.
 func TestAccServiceAccount_withoutInitialSecretWithExpiration(t *testing.T) {
-	if !withoutInitialSecretEnabled() {
-		t.Skip("MONGODB_ATLAS_SERVICE_ACCOUNT_WITHOUT_INITIAL_SECRET not enabled; the withoutInitialSecret flag requires cloud-dev")
-	}
 	var (
 		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name  = acc.RandomName()
@@ -155,40 +149,11 @@ func TestAccServiceAccount_withoutInitialSecretWithExpiration(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configWithoutInitialSecret(orgID, name, "Without initial secret", []string{"ORG_READ_ONLY"}, true, "secret_expires_after_hours = 24"),
+				Config:      configBasic(orgID, name, "Without initial secret", []string{"ORG_READ_ONLY"}, new(24), "without_initial_secret = true"),
 				ExpectError: regexp.MustCompile("(?i)mutually|withoutInitialSecret|exclusive"),
 			},
 		},
 	})
-}
-
-// withoutInitialSecretEnabled gates tests that hit the cloud-dev only withoutInitialSecret API flag.
-func withoutInitialSecretEnabled() bool {
-	enabled, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_SERVICE_ACCOUNT_WITHOUT_INITIAL_SECRET"))
-	return enabled
-}
-
-func configWithoutInitialSecret(orgID, name, description string, roles []string, withoutInitialSecret bool, extraArgs ...string) string {
-	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
-	rolesHCL := fmt.Sprintf("[%s]", rolesStr)
-	extra := ""
-	if len(extraArgs) > 0 {
-		extra = "\n\t\t\t" + strings.Join(extraArgs, "\n\t\t\t")
-	}
-	return fmt.Sprintf(`
-		resource "mongodbatlas_service_account" "test" {
-			org_id                 = %[1]q
-			name                   = %[2]q
-			description            = %[3]q
-			roles                  = %[4]s
-			without_initial_secret = %[5]t%[6]s
-		}
-
-		data "mongodbatlas_service_account" "test" {
-			org_id    = %[1]q
-			client_id = mongodbatlas_service_account.test.client_id
-		}
-	`, orgID, name, description, rolesHCL, withoutInitialSecret, extra)
 }
 
 func TestAccServiceAccount_pluralDSIncludeSystemManaged(t *testing.T) {
@@ -226,16 +191,23 @@ func TestAccServiceAccount_pluralDSIncludeSystemManaged(t *testing.T) {
 	})
 }
 
-func configBasic(orgID, name, description string, roles []string, secretExpiresAfterHours int) string {
+func configBasic(orgID, name, description string, roles []string, secretExpiresAfterHours *int, extraArgs ...string) string {
 	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	rolesHCL := fmt.Sprintf("[%s]", rolesStr)
+	secretExpiresLine := ""
+	if secretExpiresAfterHours != nil {
+		secretExpiresLine = fmt.Sprintf("\n\t\t\tsecret_expires_after_hours = %d", *secretExpiresAfterHours)
+	}
+	extra := ""
+	if len(extraArgs) > 0 {
+		extra = "\n\t\t\t" + strings.Join(extraArgs, "\n\t\t\t")
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_service_account" "test" {
 			org_id                     = %[1]q
 			name                       = %[2]q
 			description                = %[3]q
-			roles                      = %[4]s
-			secret_expires_after_hours = %[5]d
+			roles                      = %[4]s%[5]s%[6]s
 		}
 
 		data "mongodbatlas_service_account" "test" {
@@ -246,7 +218,7 @@ func configBasic(orgID, name, description string, roles []string, secretExpiresA
 			org_id = %[1]q
 			depends_on = [mongodbatlas_service_account.test]
 		}
-	`, orgID, name, description, rolesHCL, secretExpiresAfterHours)
+	`, orgID, name, description, rolesHCL, secretExpiresLine, extra)
 }
 
 func checkBasic(isCreate bool) resource.TestCheckFunc {
