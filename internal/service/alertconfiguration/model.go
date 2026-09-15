@@ -342,7 +342,7 @@ func newTFThresholdModels(
 // mirroring the read-path precedence of newTFThresholdModels (metric first).
 // Update rebuilds its request from GetAlertConfig, which returns both fields for the
 // OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD event type (see newTFThresholdModels and HELP-91242), so echoing the
-// response back fails with HTTP 400 DUPLICATE_THRESHOLD_FIELD. See issue #4729.
+// response back fails with HTTP 400 DUPLICATE_THRESHOLD_FIELD.
 // When the plan declares no threshold block, apiReq is left untouched so the configuration read back is re-sent as is.
 func PopulateThresholdFromPlan(apiReq *admin.GroupAlertsConfig, metricThreshold []TfMetricThresholdConfigModel, threshold []TfThresholdConfigModel) {
 	metricThresholdModel := NewMetricThreshold(metricThreshold)

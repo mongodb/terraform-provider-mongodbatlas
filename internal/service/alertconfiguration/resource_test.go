@@ -104,6 +104,7 @@ func TestAccConfigRSAlertConfiguration_outsideStreamProcessorMetricThreshold(t *
 				),
 			},
 			{
+				// Regression test for https://github.com/mongodb/terraform-provider-mongodbatlas/issues/4729.
 				// Notification-only update on the event type for which the read returns both metricThreshold and threshold.
 				// Before the fix the PUT payload carried both fields and the API rejected it with DUPLICATE_THRESHOLD_FIELD.
 				Config: configOutsideStreamProcessorMetricThresholdAlert(projectID, 10),
