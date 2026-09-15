@@ -6,7 +6,7 @@ subcategory: "Clusters"
 
 `{{.Name}}` provides a resource for managing Adaptive Settings overrides for one MongoDB Atlas cluster.
 
--> **NOTE:** Set `adaptive_settings_overrides` with `jsonencode`. See the Atlas API documentation for the current list of supported keys. If omitted on create, no overrides are modified. If set to `{}` or removed after being set, all overrides are reset. The configured map replaces the entire override map in Atlas, so removing a key resets that override. Destroying this resource resets all overrides to Atlas-managed defaults, including any set outside this resource. The cluster itself is not deleted. Manage Adaptive Settings for a cluster with only one `mongodbatlas_cluster_adaptive_settings` resource. If multiple resources target the same cluster, each resource can overwrite the others, causing Terraform to repeatedly report and reapply changes.
+-> **NOTE:** Set `adaptive_settings_overrides` with `jsonencode`. See [Intelligent Workload Management](https://www.mongodb.com/docs/atlas/intelligent-workload-management/#load-shedding) for the current list of supported keys. If omitted on create, no overrides are modified. If set to `{}` or removed after being set, all overrides are reset. The configured map replaces the entire override map in Atlas, so removing a key resets that override. Destroying this resource resets all overrides to Atlas-managed defaults, including any set outside this resource. The cluster itself is not deleted. Manage Adaptive Settings for a cluster with only one `mongodbatlas_cluster_adaptive_settings` resource. If multiple resources target the same cluster, each resource can overwrite the others, causing Terraform to repeatedly report and reapply changes.
 
 ## Example Usages
 

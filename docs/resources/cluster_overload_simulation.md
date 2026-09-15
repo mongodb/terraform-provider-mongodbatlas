@@ -6,7 +6,7 @@ subcategory: "Clusters"
 
 `mongodbatlas_cluster_overload_simulation` starts and deletes an overload protection simulation for one MongoDB Atlas cluster.
 
-~> **IMPORTANT:** An overload protection simulation intentionally applies load to the target cluster. Use it only in an environment where the resulting performance impact is acceptable.
+~> **IMPORTANT:** An overload protection simulation intentionally applies load to the target cluster. Use it only in an environment where the resulting performance impact is acceptable. See [Intelligent Workload Management](https://www.mongodb.com/docs/atlas/intelligent-workload-management/#load-shedding) for more information.
 
 -> **NOTE:** Only one overload protection simulation can exist per cluster at a time. To change its configuration, remove the existing resource and apply, then add it with the new values and apply again.
 
