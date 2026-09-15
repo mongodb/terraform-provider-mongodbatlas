@@ -1,0 +1,13 @@
+---
+subcategory: "Clusters"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes the Adaptive Settings overrides and effective settings for one MongoDB Atlas cluster.
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
