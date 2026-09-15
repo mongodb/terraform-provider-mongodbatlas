@@ -92,7 +92,7 @@ func TestAccConfigRSAlertConfiguration_outsideStreamProcessorMetricThreshold(t *
 		CheckDestroy:             checkDestroy(),
 		Steps: []resource.TestStep{
 			{
-				Config: configOutsideStreamProcessorMetricThresholdAlert(projectID),
+				Config: configOutsideStreamProcessorMetricThresholdAlert(projectID, 5),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "event_type", "OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD"),
@@ -101,6 +101,18 @@ func TestAccConfigRSAlertConfiguration_outsideStreamProcessorMetricThreshold(t *
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "0"),
+				),
+			},
+			{
+				// Notification-only update on the event type for which the read returns both metricThreshold and threshold.
+				// Before the fix the PUT payload carried both fields and the API rejected it with DUPLICATE_THRESHOLD_FIELD.
+				Config: configOutsideStreamProcessorMetricThresholdAlert(projectID, 10),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "event_type", "OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD"),
+					resource.TestCheckResourceAttr(resourceName, "notification.0.interval_min", "10"),
+					resource.TestCheckResourceAttr(resourceName, "metric_threshold_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "threshold_config.#", "0"),
 				),
 			},
 			{
@@ -821,7 +833,7 @@ func configBasic(projectID string, enabled bool) string {
 	`, projectID, enabled)
 }
 
-func configOutsideStreamProcessorMetricThresholdAlert(projectID string) string {
+func configOutsideStreamProcessorMetricThresholdAlert(projectID string, intervalMin int) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_alert_configuration" "test" {
 		project_id = %[1]q
@@ -830,7 +842,7 @@ func configOutsideStreamProcessorMetricThresholdAlert(projectID string) string {
 
 		notification {
 			type_name     = "GROUP"
-			interval_min  = 5
+			interval_min  = %[2]d
 			delay_min     = 0
 			sms_enabled   = false
 			email_enabled = true
@@ -849,7 +861,7 @@ func configOutsideStreamProcessorMetricThresholdAlert(projectID string) string {
 		project_id             = mongodbatlas_alert_configuration.test.project_id
 		alert_configuration_id = mongodbatlas_alert_configuration.test.id
 	}
-	`, projectID)
+	`, projectID, intervalMin)
 }
 
 func configWithNotifications(projectID string, enabled, smsEnabled, emailEnabled bool) string {
