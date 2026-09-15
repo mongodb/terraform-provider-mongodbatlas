@@ -260,9 +260,10 @@ func TestAccClusterAdvancedCluster_infiniteEmptyAutoScaling(t *testing.T) {
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, nil),
 			},
 			{
-				Config: configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "compute_enabled = true", false),
+				Config: configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "compute_enabled = true\ncompute_max_instance_size = \"M20\"", false),
 				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
-					"compute_enabled": knownvalue.Bool(true),
+					"compute_enabled":           knownvalue.Bool(true),
+					"compute_max_instance_size": knownvalue.StringExact("M20"),
 				})...),
 			},
 			acc.TestStepImportCluster(resourceName),

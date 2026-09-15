@@ -72,6 +72,7 @@ resource "mongodbatlas_advanced_cluster" "infinite" {
             node_count    = 2
           }
           auto_scaling = {
+            compute_enabled = false
             storage_config = {
               shard_size_limit_gb = 1024 # Required when storage_config is present. Omit storage_config to use the Atlas default limit.
             }
