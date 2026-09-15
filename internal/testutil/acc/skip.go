@@ -3,6 +3,7 @@ package acc
 import (
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -71,4 +72,18 @@ func SkipIfNotSA(tb testing.TB) {
 	if !HasSACreds() {
 		tb.Skip("MONGODB_ATLAS_CLIENT_ID and MONGODB_ATLAS_CLIENT_SECRET required")
 	}
+}
+
+// SkipUnlessCloudDev skips the test when MONGODB_ATLAS_BASE_URL does not target the cloud-dev
+// environment. Use it for acceptance tests that exercise API features not yet rolled out to QA or prod.
+func SkipUnlessCloudDev(tb testing.TB, description string) {
+	tb.Helper()
+	if !InCloudDev() {
+		tb.Skip(description)
+	}
+}
+
+// InCloudDev reports whether the acceptance test target is the cloud-dev environment.
+func InCloudDev() bool {
+	return strings.Contains(os.Getenv("MONGODB_ATLAS_BASE_URL"), "cloud-dev")
 }

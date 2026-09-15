@@ -46,7 +46,8 @@ func TestAccServiceAccount_basic(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "client_id",
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				ImportStateVerifyIgnore:              []string{"secret_expires_after_hours"},
+				// without_initial_secret is not populated during import (not in the API response) while the create path stores the default false.
+				ImportStateVerifyIgnore: []string{"secret_expires_after_hours", "without_initial_secret"},
 			},
 		},
 	})
