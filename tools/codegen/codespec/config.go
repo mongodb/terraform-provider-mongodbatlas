@@ -449,8 +449,14 @@ func ApplyDeleteOnCreateTimeoutTransformation(resource *Resource) {
 }
 
 func setCreateOnlyValue(attr *Attribute) {
-	// CreateOnly plan modifier will not be applied for computed attributes
-	if attr.ComputedOptionalRequired == Computed || attr.ComputedOptionalRequired == ComputedOptional {
+	// A plain CreateOnly plan modifier is not applied to computed attributes: their value may be
+	// unknown at plan time, which would falsely fail the update validation. The exception is a
+	// computed optional bool with a default that the API never returns, where
+	// CreateOnlyBoolWithDefault sets the default and keeps the create-only behavior.
+	if attr.ComputedOptionalRequired == Computed {
+		return
+	}
+	if attr.ComputedOptionalRequired == ComputedOptional && !isCreateOnlyBoolWithDefault(attr) {
 		return
 	}
 
@@ -458,6 +464,10 @@ func setCreateOnlyValue(attr *Attribute) {
 	if attr.ReqBodyUsage == OmitAlways || attr.ReqBodyUsage == OmitInUpdateBody {
 		attr.CreateOnly = true
 	}
+}
+
+func isCreateOnlyBoolWithDefault(attr *Attribute) bool {
+	return attr.Bool != nil && attr.Bool.Default != nil && !attr.PresentInAnyResponse
 }
 
 func attrPathForOverrides(attrPathName string) string {

@@ -1260,9 +1260,10 @@ resources:
           # Clarifying that the attribute is required unless the account is created without an initial secret, and can't be updated later.
           description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. Required when `without_initial_secret` is false or omitted. Must not be set when `without_initial_secret` is true. Cannot be updated after creation."
         without_initial_secret:
-          # Optional (not computed_optional) so the create-only plan modifier applies: the value is sent on create only and cannot change afterwards.
+          # Optional+Computed because the create-only plan modifier injects a default in the plan on create.
           computability:
             optional: true
+            computed: true
           description: "When true, creates the Service Account without generating an initial secret. `secret_expires_after_hours` must not be set when this is true. Defaults to false."
         secrets:
           type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
