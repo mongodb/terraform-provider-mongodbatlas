@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/stretchr/testify/require"
+	"go.mongodb.org/atlas-sdk/v20250312025/admin"
 )
 
 const (
@@ -111,6 +113,18 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 				Check:  checkResourceAndDataSource(`{"SEARCH_LOAD_SHEDDING":false}`),
 			},
 			{
+				// Reset outside Terraform, then verify unchanged configuration restores the override.
+				// This step would fail without the PostRead hook: the decoder skips the absent
+				// field, state stays stale, and Terraform reports no drift.
+				PreConfig: func() { resetOverrides(t, projectID, clusterName) },
+				Config:    configBasic(projectID, clusterName, `{ SEARCH_LOAD_SHEDDING = false }`),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply:             []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate)},
+					PostApplyPostRefresh: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
+				},
+				Check: checkResourceAndDataSource(`{"SEARCH_LOAD_SHEDDING":false}`),
+			},
+			{
 				ResourceName:                         resourceName,
 				ImportStateId:                        projectID + "/" + clusterName,
 				ImportState:                          true,
@@ -119,6 +133,14 @@ func TestAccClusterAdaptiveSettings_basic(t *testing.T) {
 			},
 		},
 	})
+}
+
+func resetOverrides(t *testing.T, projectID, clusterName string) {
+	t.Helper()
+	req := admin.NewAdaptiveSettingsUpdateRequest()
+	req.NullFields = []string{"AdaptiveSettingsOverrides"}
+	_, _, err := acc.ConnV2().ClustersAPI.UpdateClusterAdaptiveSettings(t.Context(), projectID, clusterName, req).Execute()
+	require.NoError(t, err)
 }
 
 func configBasic(projectID, clusterName, overrides string) string {
