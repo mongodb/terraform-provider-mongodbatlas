@@ -99,7 +99,7 @@ func TestAccServiceAccount_createOnlyAttributes(t *testing.T) {
 			},
 			{
 				// without_initial_secret defaults to false on create, so setting it to true on update must be rejected.
-				Config:      configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, nil, "without_initial_secret = true"),
+				Config:      configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, new(24), "without_initial_secret = true"),
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile("without_initial_secret cannot be updated"),
 			},
