@@ -1685,6 +1685,8 @@ resources:
         overrides:
           project_id:
             description: *project_id_description
+          oauth.signing_key_info:
+            description: "Read-only metadata for the Atlas-managed signing key used by `PRIVATE_KEY_JWT`. Present only for that method. Register the jwks_uri with your identity provider. Atlas rotates the underlying key without changing this URL."
 
   # Collection-level restore (GA 2025-03-12). Jobs are immutable and have no public DELETE/cancel.
   cloud_backup_collection_restore_job:

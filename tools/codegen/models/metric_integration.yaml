@@ -558,7 +558,7 @@ data_sources:
                                       create_only: false
                                       present_in_any_response: false
                                       request_only_required_on_create: false
-                          description: Read-only metadata for the Atlas-managed signing key used by `PRIVATE_KEY_JWT`. Present only for that method. Register the `jwksUri` with your identity provider. Atlas rotates the underlying key without changing this URL.
+                          description: Read-only metadata for the Atlas-managed signing key used by `PRIVATE_KEY_JWT`. Present only for that method. Register the jwks_uri with your identity provider. Atlas rotates the underlying key without changing this URL.
                           custom_type:
                             name: OauthSigningKeyInfo
                             model: customtypes.ObjectValue[TFOauthSigningKeyInfoModel]
@@ -881,7 +881,7 @@ data_sources:
                                                   create_only: false
                                                   present_in_any_response: false
                                                   request_only_required_on_create: false
-                                      description: Read-only metadata for the Atlas-managed signing key used by `PRIVATE_KEY_JWT`. Present only for that method. Register the `jwksUri` with your identity provider. Atlas rotates the underlying key without changing this URL.
+                                      description: Read-only metadata for the Atlas-managed signing key used by `PRIVATE_KEY_JWT`. Present only for that method. Register the jwks_uri with your identity provider. Atlas rotates the underlying key without changing this URL.
                                       custom_type:
                                         name: ResultsOauthSigningKeyInfo
                                         model: customtypes.ObjectValue[TFResultsOauthSigningKeyInfoModel]
