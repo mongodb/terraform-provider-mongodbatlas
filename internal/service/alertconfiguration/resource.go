@@ -465,8 +465,8 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// The read returns both metricThreshold and threshold for some event types, so the request must be reduced to the
-	// single threshold block the plan declares.
-	PopulateThresholdFromPlan(apiReq, alertConfigPlan.MetricThresholdConfig, alertConfigPlan.ThresholdConfig)
+	// single threshold block the plan declares (or cleared when a block is removed).
+	PopulateThresholdFromPlan(apiReq, alertConfigPlan.MetricThresholdConfig, alertConfigPlan.ThresholdConfig, alertConfigState.MetricThresholdConfig, alertConfigState.ThresholdConfig)
 
 	if !reflect.DeepEqual(alertConfigPlan.Matcher, alertConfigState.Matcher) {
 		apiReq.Matchers = NewMatcherList(alertConfigPlan.Matcher)

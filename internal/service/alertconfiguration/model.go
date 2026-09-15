@@ -343,17 +343,30 @@ func newTFThresholdModels(
 // Update rebuilds its request from GetAlertConfig, which returns both fields for the
 // OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD event type (see newTFThresholdModels and HELP-91242), so echoing the
 // response back fails with HTTP 400 DUPLICATE_THRESHOLD_FIELD.
-// When the plan declares no threshold block, apiReq is left untouched so the configuration read back is re-sent as is.
-func PopulateThresholdFromPlan(apiReq *admin.GroupAlertsConfig, metricThreshold []TfMetricThresholdConfigModel, threshold []TfThresholdConfigModel) {
-	metricThresholdModel := NewMetricThreshold(metricThreshold)
-	thresholdModel := NewThreshold(threshold)
+// When the plan removes a threshold block that prior state still has, both API fields are cleared so the removal
+// reaches the API. When neither the plan nor prior state declares a threshold block, apiReq is left untouched so the
+// configuration read back is re-sent as is.
+func PopulateThresholdFromPlan(
+	apiReq *admin.GroupAlertsConfig,
+	planMetricThreshold []TfMetricThresholdConfigModel,
+	planThreshold []TfThresholdConfigModel,
+	stateMetricThreshold []TfMetricThresholdConfigModel,
+	stateThreshold []TfThresholdConfigModel,
+) {
+	planMetricThresholdModel := NewMetricThreshold(planMetricThreshold)
+	planThresholdModel := NewThreshold(planThreshold)
 
 	switch {
-	case metricThresholdModel != nil:
-		apiReq.MetricThreshold = metricThresholdModel
+	case planMetricThresholdModel != nil:
+		apiReq.MetricThreshold = planMetricThresholdModel
 		apiReq.Threshold = nil
-	case thresholdModel != nil:
+	case planThresholdModel != nil:
 		apiReq.MetricThreshold = nil
-		apiReq.Threshold = thresholdModel
+		apiReq.Threshold = planThresholdModel
+	case NewMetricThreshold(stateMetricThreshold) != nil, NewThreshold(stateThreshold) != nil:
+		// A configured threshold block was removed, so both API fields are cleared instead of echoing
+		// back what GetAlertConfig returned.
+		apiReq.MetricThreshold = nil
+		apiReq.Threshold = nil
 	}
 }
