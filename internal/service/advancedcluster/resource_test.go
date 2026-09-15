@@ -162,6 +162,7 @@ func configDatabaseEdition(projectID, clusterName string, databaseEdition *strin
 func checkDatabaseEdition(databaseEdition *string, effectiveDatabaseEdition string) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{
 		acc.CheckExistsCluster(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "effective_database_edition", effectiveDatabaseEdition),
 		resource.TestCheckResourceAttr(dataSourceName, "effective_database_edition", effectiveDatabaseEdition),
 	}
 	if databaseEdition == nil {
