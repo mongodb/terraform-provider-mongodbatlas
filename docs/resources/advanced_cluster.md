@@ -950,6 +950,7 @@ lifecycle {
 In addition to all arguments above, the following attributes are exported:
 
 * `cluster_id` - The cluster ID.
+* `effective_database_edition` - Database edition that the cluster currently uses. Valid values are `CORE` and `INFINITE`.
 * `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
 * `connection_strings` - Set of connection strings that your applications use to connect to this cluster. More information in [Connection-strings](https://www.mongodb.com/docs/manual/reference/connection-string/). Use the parameters in this object to connect your applications to this cluster. To learn more about the formats of connection strings, see [Connection String Options](https://www.mongodb.com/docs/atlas/reference/faq/connection-changes/). NOTE: Atlas returns the contents of this object after the cluster is operational, not while it builds the cluster.
 

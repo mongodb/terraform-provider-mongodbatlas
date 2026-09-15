@@ -13,8 +13,8 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
-	"go.mongodb.org/atlas-sdk/v20250312024/detectaiagent"
+	"go.mongodb.org/atlas-sdk/v20250312025/admin"
+	"go.mongodb.org/atlas-sdk/v20250312025/detectaiagent"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"

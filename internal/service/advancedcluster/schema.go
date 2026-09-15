@@ -169,6 +169,10 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: descDatabaseEdition,
 			},
+			"effective_database_edition": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: descEffectiveDatabaseEdition,
+			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
@@ -392,11 +396,7 @@ func dataSourceOverridenFields() map[string]dsschema.Attribute {
 	return map[string]dsschema.Attribute{
 		"accept_data_risks_and_force_replica_set_reconfig": nil,
 		"delete_on_create_timeout":                         nil,
-		"effective_database_edition": dsschema.StringAttribute{
-			Computed:            true,
-			MarkdownDescription: descEffectiveDatabaseEdition,
-		},
-		"retain_backups_enabled": nil,
+		"retain_backups_enabled":                           nil,
 		"use_effective_fields": dsschema.BoolAttribute{
 			Optional:            true,
 			MarkdownDescription: descUseEffectiveFields,
@@ -734,6 +734,7 @@ type TFModel struct {
 	ClusterType                                   types.String   `tfsdk:"cluster_type"`
 	CreateDate                                    types.String   `tfsdk:"create_date"`
 	DatabaseEdition                               types.String   `tfsdk:"database_edition"`
+	EffectiveDatabaseEdition                      types.String   `tfsdk:"effective_database_edition"`
 	AcceptDataRisksAndForceReplicaSetReconfig     types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
 	EncryptionAtRestProvider                      types.String   `tfsdk:"encryption_at_rest_provider"`
 	Timeouts                                      timeouts.Value `tfsdk:"timeouts"`
