@@ -254,6 +254,10 @@ func TestAutoScalingRequest(t *testing.T) {
 					if tc.edition != "" {
 						edition = tc.edition
 					}
+					effectiveEdition := tc.edition
+					if effectiveEdition == "" {
+						effectiveEdition = "CORE"
+					}
 					regions := []any{}
 					for _, region := range []string{"US_EAST_1", "US_WEST_2"} {
 						regions = append(regions, map[string]any{
@@ -264,7 +268,8 @@ func TestAutoScalingRequest(t *testing.T) {
 					}
 					return tfsdk.Plan{Schema: schemaResp, Raw: planTestValue(typ, map[string]any{
 						"name": "example", "project_id": dummyProjectID, "cluster_type": "REPLICASET", "database_edition": edition,
-						"replication_specs": []any{map[string]any{"region_configs": regions}},
+						"effective_database_edition": effectiveEdition,
+						"replication_specs":          []any{map[string]any{"region_configs": regions}},
 					})}
 				}
 				plan := model(tc.settings, "M10")
@@ -297,12 +302,6 @@ func TestAutoScalingRequest(t *testing.T) {
 					require.Len(t, resp.Diagnostics.Errors(), 1)
 					require.Contains(t, resp.Diagnostics.Errors()[0].Detail(), apiError.Error())
 				} else {
-					if tc.edition == "" {
-						api.EXPECT().GetCluster(mock.Anything, dummyProjectID, "example").Return(admin.GetClusterApiRequest{ApiService: api}).Once()
-						api.EXPECT().GetClusterExecute(mock.Anything).Return(&admin.ClusterDescription20240805{
-							ClusterType: new("REPLICASET"), EffectiveDatabaseEdition: new("CORE"),
-						}, nil, nil).Once()
-					}
 					api.On("UpdateCluster", mock.Anything, dummyProjectID, "example", mock.Anything).Run(checkPayload).
 						Return(admin.UpdateClusterApiRequest{ApiService: api}).Once()
 					api.EXPECT().UpdateClusterExecute(mock.Anything).Return(nil, nil, apiError).Once()

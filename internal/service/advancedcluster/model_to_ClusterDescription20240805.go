@@ -53,8 +53,9 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		AdaptiveCapacity:                              conversion.NilForUnknown(input.AdaptiveCapacity, input.AdaptiveCapacity.ValueStringPointer()),
 		AdvancedConfiguration:                         newClusterAdvancedConfiguration(ctx, &input.AdvancedConfiguration, diags),
 	}
-	// A shard limit also triggers cleanup when the requested databaseEdition is absent.
-	if result.GetDatabaseEdition() == "INFINITE" || hasShardSizeLimit(result.GetReplicationSpecs()) {
+	// INFINITE rejects the empty auto-scaling children the converter emits. In Create only database_edition is
+	// available yet; Update reads the authoritative effective_database_edition in resource.go instead.
+	if result.GetDatabaseEdition() == "INFINITE" {
 		omitEmptyAutoScalingChildren(result.GetReplicationSpecs())
 	}
 	return result

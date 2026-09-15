@@ -242,9 +242,10 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	r.prepareUpdateDatabaseEdition(ctx, diags, &state, &plan, diff.clusterPatchOnlyReq)
-	if diags.HasError() {
-		return
+	// Omit the empty auto-scaling children that INFINITE rejects. effective_database_edition is always
+	// populated by Read, so no extra GET is needed even after an import that leaves database_edition unset.
+	if diff.clusterPatchOnlyReq != nil && state.EffectiveDatabaseEdition.ValueString() == "INFINITE" && hasEmptyAutoScalingDiskGB(diff.clusterPatchOnlyReq.GetReplicationSpecs()) {
+		omitEmptyAutoScalingChildren(diff.clusterPatchOnlyReq.GetReplicationSpecs())
 	}
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing

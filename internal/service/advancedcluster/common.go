@@ -72,17 +72,6 @@ func shardSizeLimitRemoved(stateReplicationSpecs, planReplicationSpecs *[]admin.
 	return false
 }
 
-func hasShardSizeLimit(replicationSpecs []admin.ReplicationSpec20240805) bool {
-	for _, replicationSpec := range replicationSpecs {
-		for _, regionConfig := range replicationSpec.GetRegionConfigs() {
-			if regionHasShardSizeLimit(&regionConfig) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
 func regionHasShardSizeLimit(regionConfig *admin.CloudRegionConfig20240805) bool {
 	return regionConfig.AutoScaling != nil && regionConfig.AutoScaling.StorageConfig != nil && regionConfig.AutoScaling.StorageConfig.HasShardSizeLimitGB()
 }
@@ -110,6 +99,20 @@ func omitEmptyComputeAndDiskGB(autoScaling *admin.AdvancedAutoScalingSettings) {
 	if diskGB := autoScaling.DiskGB; diskGB != nil && !diskGB.HasEnabled() && len(diskGB.NullFields) == 0 {
 		autoScaling.DiskGB = nil
 	}
+}
+
+// hasEmptyAutoScalingDiskGB reports whether the converter produced an empty diskGB that INFINITE rejects.
+func hasEmptyAutoScalingDiskGB(replicationSpecs []admin.ReplicationSpec20240805) bool {
+	for _, spec := range replicationSpecs {
+		for _, region := range spec.GetRegionConfigs() {
+			for _, autoScaling := range []*admin.AdvancedAutoScalingSettings{region.AutoScaling, region.AnalyticsAutoScaling} {
+				if autoScaling != nil && autoScaling.DiskGB != nil && !autoScaling.DiskGB.HasEnabled() && len(autoScaling.DiskGB.NullFields) == 0 {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
 
 func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
