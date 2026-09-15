@@ -167,7 +167,6 @@ func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) 
 	if err != nil {
 		return nil, err
 	}
-
 	clients := &MongoDBClient{
 		Atlas:            atlasClient,
 		AtlasV2:          sdkV2Client,

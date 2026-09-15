@@ -329,6 +329,7 @@ jobs:
             - 'internal/serviceapi/databaseuserapi/*.go'
             - 'internal/serviceapi/maintenancewindowapi/*.go'
             - 'internal/serviceapi/orgdelegationsettings/*.go'
+            - 'internal/serviceapi/orgmaintenancesettings/*.go'
             - 'internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive/*.go'
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/projectsettingsapi/*.go'
@@ -730,6 +731,7 @@ jobs:
             ./internal/serviceapi/projectmcpconfigsecret
             ./internal/serviceapi/maintenancewindowapi
             ./internal/serviceapi/orgdelegationsettings
+            ./internal/serviceapi/orgmaintenancesettings
             ./internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/projectsettingsapi
