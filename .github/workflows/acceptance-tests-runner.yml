@@ -312,17 +312,14 @@ jobs:
             - 'internal/service/advancedcluster/*.go'
           assume_role:
             - 'internal/config/*.go'
-            # TODO CLOUDP-397756: restore this path filter, disabled to avoid triggering unrelated test groups from shared-file changes.
-            # - 'internal/provider/*.go'
+            - 'internal/provider/*.go'
           authentication:
             - 'internal/config/*.go'
-            # TODO CLOUDP-397756: restore this path filter, disabled to avoid triggering unrelated test groups from shared-file changes.
-            # - 'internal/provider/*.go'
+            - 'internal/provider/*.go'
           service_account_jwt:
             - 'internal/service/serviceaccountjwt/*.go'
           autogen_fast:
-            # TODO CLOUDP-397756: restore this path filter, disabled to avoid triggering unrelated test groups from shared-file changes.
-            # - 'internal/common/autogen/*.go'
+            - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/aimodelapikey/*.go'
             - 'internal/serviceapi/aimodelorgapikey/*.go'
             - 'internal/serviceapi/aimodelorgratelimit/*.go'
@@ -346,8 +343,7 @@ jobs:
             - 'internal/serviceapi/projectmcpconfig/*.go'
             - 'internal/serviceapi/projectmcpconfigsecret/*.go'
           autogen_slow:
-            # TODO CLOUDP-397756: restore this path filter, disabled to avoid triggering unrelated test groups from shared-file changes.
-            # - 'internal/common/autogen/*.go'
+            - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/clusterapi/*.go'
             - 'internal/serviceapi/clusteroldapi/*.go'
             - 'internal/serviceapi/pushbasedlogexportapi/*.go'
@@ -430,8 +426,7 @@ jobs:
             - 'internal/service/privatelinkendpoint/*.go'
             - 'internal/service/privatelinkendpointservice/*.go'
           project:
-            # TODO CLOUDP-397756: restore this path filter, disabled to avoid triggering unrelated test groups from shared-file changes.
-            # - 'internal/common/autogen/*.go'
+            - 'internal/common/autogen/*.go'
             - 'internal/service/accesslistapikey/*.go'
             - 'internal/service/project/*.go'
             - 'internal/service/projectinvitation/*.go'  
@@ -447,8 +442,7 @@ jobs:
           search_index:
             - 'internal/service/searchindex/*.go'
           service_account:
-            # TODO CLOUDP-397756: restore this path filter, disabled to avoid triggering unrelated test groups from shared-file changes.
-            # - 'internal/common/autogen/*.go'
+            - 'internal/common/autogen/*.go'
             - 'internal/service/projectserviceaccountaccesslistentry/*.go'
             - 'internal/service/serviceaccountaccesslistentry/*.go'
             - 'internal/serviceapi/projectserviceaccount/*.go'
