@@ -1662,6 +1662,13 @@ resources:
           description: *project_id_description
         headers.value:
           sensitive: true
+        oauth:
+          description: "OAuth 2.0 client credentials configuration. Required when auth_type is `OAUTH2`. Secrets are never returned."
+        oauth.client_secret:
+          sensitive: true
+          description: "Shared client secret. Required when client_auth_method is `CLIENT_SECRET`, and rejected for `PRIVATE_KEY_JWT`. Encrypted at rest and never returned."
+        oauth.signing_key_info:
+          description: "Read-only metadata for the Atlas-managed signing key used by `PRIVATE_KEY_JWT`. Present only for that method. Register the jwks_uri with your identity provider. Atlas rotates the underlying key without changing this URL."
         headers:
           description: "Required for auth_type: HEADER. HTTP headers for authentication and configuration. Total size limit 2KB."
     datasources:
