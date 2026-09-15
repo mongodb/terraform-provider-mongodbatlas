@@ -13,7 +13,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Authentication method the integration uses when exporting metrics to the endpoint. `HEADER` authenticates with the static HTTP headers provided in the `headers` field, which must be set when this value is used.
+          description: Authentication method the integration uses when exporting metrics to the endpoint. `HEADER` authenticates with the static HTTP headers provided in the `headers` field, which must be set when this value is used. `OAUTH2` acquires a bearer token from an OAuth 2.0 token endpoint using the `oauth` field.
           computed_optional_required: required
           tf_schema_name: auth_type
           tf_model_name: AuthType
@@ -167,6 +167,166 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: How the client authenticates to the token endpoint. `CLIENT_SECRET` sends a shared secret. `PRIVATE_KEY_JWT` signs a client assertion with an Atlas-generated, Atlas-managed key. Register the returned JWKS URL with your identity provider.
+                      computed_optional_required: required
+                      tf_schema_name: client_auth_method
+                      tf_model_name: ClientAuthMethod
+                      api_name: clientAuthMethod
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: OAuth 2.0 client identifier registered with the token endpoint.
+                      computed_optional_required: required
+                      tf_schema_name: client_id
+                      tf_model_name: ClientId
+                      api_name: clientId
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Shared client secret. Required when client_auth_method is `CLIENT_SECRET`, and rejected for `PRIVATE_KEY_JWT`. Encrypted at rest and never returned.
+                      computed_optional_required: optional
+                      tf_schema_name: client_secret
+                      tf_model_name: ClientSecret
+                      api_name: clientSecret
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: false
+                      request_only_required_on_create: false
+                    - set:
+                        element_type: 4
+                      description: Optional OAuth 2.0 scopes requested on the token, sent as a space delimited `scope` parameter. Applies to both client authentication methods.
+                      custom_type:
+                        model: customtypes.SetValue[types.String]
+                        schema: customtypes.NewSetType[types.String](ctx)
+                        packages:
+                            - customtypes
+                      computed_optional_required: optional
+                      tf_schema_name: scopes
+                      tf_model_name: Scopes
+                      api_name: scopes
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Signing algorithm of the Atlas-managed key.
+                                  computed_optional_required: computed
+                                  tf_schema_name: algorithm
+                                  tf_model_name: Algorithm
+                                  api_name: algorithm
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: When the currently active signing key was created. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                                  computed_optional_required: computed
+                                  tf_schema_name: created_at
+                                  tf_model_name: CreatedAt
+                                  api_name: createdAt
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Public JWKS URL serving this integration's signing keys. Fixed for the lifetime of the integration.
+                                  computed_optional_required: computed
+                                  tf_schema_name: jwks_uri
+                                  tf_model_name: JwksUri
+                                  api_name: jwksUri
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Key ID stamped on client assertions, the `SHA-1` thumbprint of the key certificate in uppercase hexadecimal. Changes when Atlas rotates the key.
+                                  computed_optional_required: computed
+                                  tf_schema_name: kid
+                                  tf_model_name: Kid
+                                  api_name: kid
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: Read-only metadata for the Atlas-managed signing key used by `PRIVATE_KEY_JWT`. Present only for that method. Register the jwks_uri with your identity provider. Atlas rotates the underlying key without changing this URL.
+                      custom_type:
+                        name: OauthSigningKeyInfo
+                        model: customtypes.ObjectValue[TFOauthSigningKeyInfoModel]
+                        schema: customtypes.NewObjectType[TFOauthSigningKeyInfoModel](ctx)
+                        packages:
+                            - customtypes
+                      computed_optional_required: computed
+                      tf_schema_name: signing_key_info
+                      tf_model_name: SigningKeyInfo
+                      api_name: signingKeyInfo
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: OAuth 2.0 token endpoint URL. Must use HTTPS.
+                      computed_optional_required: required
+                      tf_schema_name: token_endpoint
+                      tf_model_name: TokenEndpoint
+                      api_name: tokenEndpoint
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - map:
+                        element_type: 4
+                      description: Optional provider-specific parameters added to the token request, for example a resource indicator. Applies to both client authentication methods.
+                      custom_type:
+                        model: customtypes.MapValue[types.String]
+                        schema: customtypes.NewMapType[types.String](ctx)
+                        packages:
+                            - customtypes
+                      computed_optional_required: optional
+                      tf_schema_name: token_request_params
+                      tf_model_name: TokenRequestParams
+                      api_name: tokenRequestParams
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: OAuth 2.0 client credentials configuration. Required when auth_type is `OAUTH2`. Secrets are never returned.
+          custom_type:
+            name: Oauth
+            model: customtypes.ObjectValue[TFOauthModel]
+            schema: customtypes.NewObjectType[TFOauthModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: optional
+          tf_schema_name: oauth
+          tf_model_name: Oauth
+          api_name: oauth
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: The provider type for the metric integration. Identifies the third-party service provider.
           computed_optional_required: required
@@ -304,6 +464,155 @@ data_sources:
               tf_schema_name: metric_selection
               tf_model_name: MetricSelection
               api_name: metricSelection
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - single_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: How the client authenticates to the token endpoint.
+                          computed_optional_required: computed
+                          tf_schema_name: client_auth_method
+                          tf_model_name: ClientAuthMethod
+                          api_name: clientAuthMethod
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: OAuth 2.0 client identifier registered with the token endpoint.
+                          computed_optional_required: computed
+                          tf_schema_name: client_id
+                          tf_model_name: ClientId
+                          api_name: clientId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - set:
+                            element_type: 4
+                          description: OAuth 2.0 scopes requested on the token.
+                          custom_type:
+                            model: customtypes.SetValue[types.String]
+                            schema: customtypes.NewSetType[types.String](ctx)
+                            packages:
+                                - customtypes
+                          computed_optional_required: computed
+                          tf_schema_name: scopes
+                          tf_model_name: Scopes
+                          api_name: scopes
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - single_nested:
+                            nested_object:
+                                attributes:
+                                    - string: {}
+                                      description: Signing algorithm of the Atlas-managed key.
+                                      computed_optional_required: computed
+                                      tf_schema_name: algorithm
+                                      tf_model_name: Algorithm
+                                      api_name: algorithm
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: When the currently active signing key was created. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                                      computed_optional_required: computed
+                                      tf_schema_name: created_at
+                                      tf_model_name: CreatedAt
+                                      api_name: createdAt
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Public JWKS URL serving this integration's signing keys. Fixed for the lifetime of the integration.
+                                      computed_optional_required: computed
+                                      tf_schema_name: jwks_uri
+                                      tf_model_name: JwksUri
+                                      api_name: jwksUri
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Key ID stamped on client assertions, the `SHA-1` thumbprint of the key certificate in uppercase hexadecimal. Changes when Atlas rotates the key.
+                                      computed_optional_required: computed
+                                      tf_schema_name: kid
+                                      tf_model_name: Kid
+                                      api_name: kid
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: Read-only metadata for the Atlas-managed signing key used by `PRIVATE_KEY_JWT`. Present only for that method. Register the `jwksUri` with your identity provider. Atlas rotates the underlying key without changing this URL.
+                          custom_type:
+                            name: OauthSigningKeyInfo
+                            model: customtypes.ObjectValue[TFOauthSigningKeyInfoModel]
+                            schema: customtypes.NewObjectType[TFOauthSigningKeyInfoModel](ctx)
+                            packages:
+                                - customtypes
+                          computed_optional_required: computed
+                          tf_schema_name: signing_key_info
+                          tf_model_name: SigningKeyInfo
+                          api_name: signingKeyInfo
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: OAuth 2.0 token endpoint URL.
+                          computed_optional_required: computed
+                          tf_schema_name: token_endpoint
+                          tf_model_name: TokenEndpoint
+                          api_name: tokenEndpoint
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - map:
+                            element_type: 4
+                          description: Provider-specific parameters added to the token request.
+                          custom_type:
+                            model: customtypes.MapValue[types.String]
+                            schema: customtypes.NewMapType[types.String](ctx)
+                            packages:
+                                - customtypes
+                          computed_optional_required: computed
+                          tf_schema_name: token_request_params
+                          tf_model_name: TokenRequestParams
+                          api_name: tokenRequestParams
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: OAuth 2.0 configuration returned for a metric integration. Secrets are never returned.
+              custom_type:
+                name: Oauth
+                model: customtypes.ObjectValue[TFOauthModel]
+                schema: customtypes.NewObjectType[TFOauthModel](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: oauth
+              tf_model_name: Oauth
+              api_name: oauth
               req_body_usage: omit_always
               sensitive: false
               create_only: false
@@ -478,6 +787,155 @@ data_sources:
                           tf_schema_name: metric_selection
                           tf_model_name: MetricSelection
                           api_name: metricSelection
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - single_nested:
+                            nested_object:
+                                attributes:
+                                    - string: {}
+                                      description: How the client authenticates to the token endpoint.
+                                      computed_optional_required: computed
+                                      tf_schema_name: client_auth_method
+                                      tf_model_name: ClientAuthMethod
+                                      api_name: clientAuthMethod
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: OAuth 2.0 client identifier registered with the token endpoint.
+                                      computed_optional_required: computed
+                                      tf_schema_name: client_id
+                                      tf_model_name: ClientId
+                                      api_name: clientId
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - set:
+                                        element_type: 4
+                                      description: OAuth 2.0 scopes requested on the token.
+                                      custom_type:
+                                        model: customtypes.SetValue[types.String]
+                                        schema: customtypes.NewSetType[types.String](ctx)
+                                        packages:
+                                            - customtypes
+                                      computed_optional_required: computed
+                                      tf_schema_name: scopes
+                                      tf_model_name: Scopes
+                                      api_name: scopes
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - single_nested:
+                                        nested_object:
+                                            attributes:
+                                                - string: {}
+                                                  description: Signing algorithm of the Atlas-managed key.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: algorithm
+                                                  tf_model_name: Algorithm
+                                                  api_name: algorithm
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: When the currently active signing key was created. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: created_at
+                                                  tf_model_name: CreatedAt
+                                                  api_name: createdAt
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: Public JWKS URL serving this integration's signing keys. Fixed for the lifetime of the integration.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: jwks_uri
+                                                  tf_model_name: JwksUri
+                                                  api_name: jwksUri
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: Key ID stamped on client assertions, the `SHA-1` thumbprint of the key certificate in uppercase hexadecimal. Changes when Atlas rotates the key.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: kid
+                                                  tf_model_name: Kid
+                                                  api_name: kid
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                      description: Read-only metadata for the Atlas-managed signing key used by `PRIVATE_KEY_JWT`. Present only for that method. Register the `jwksUri` with your identity provider. Atlas rotates the underlying key without changing this URL.
+                                      custom_type:
+                                        name: ResultsOauthSigningKeyInfo
+                                        model: customtypes.ObjectValue[TFResultsOauthSigningKeyInfoModel]
+                                        schema: customtypes.NewObjectType[TFResultsOauthSigningKeyInfoModel](ctx)
+                                        packages:
+                                            - customtypes
+                                      computed_optional_required: computed
+                                      tf_schema_name: signing_key_info
+                                      tf_model_name: SigningKeyInfo
+                                      api_name: signingKeyInfo
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: OAuth 2.0 token endpoint URL.
+                                      computed_optional_required: computed
+                                      tf_schema_name: token_endpoint
+                                      tf_model_name: TokenEndpoint
+                                      api_name: tokenEndpoint
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - map:
+                                        element_type: 4
+                                      description: Provider-specific parameters added to the token request.
+                                      custom_type:
+                                        model: customtypes.MapValue[types.String]
+                                        schema: customtypes.NewMapType[types.String](ctx)
+                                        packages:
+                                            - customtypes
+                                      computed_optional_required: computed
+                                      tf_schema_name: token_request_params
+                                      tf_model_name: TokenRequestParams
+                                      api_name: tokenRequestParams
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: OAuth 2.0 configuration returned for a metric integration. Secrets are never returned.
+                          custom_type:
+                            name: ResultsOauth
+                            model: customtypes.ObjectValue[TFResultsOauthModel]
+                            schema: customtypes.NewObjectType[TFResultsOauthModel](ctx)
+                            packages:
+                                - customtypes
+                          computed_optional_required: computed
+                          tf_schema_name: oauth
+                          tf_model_name: Oauth
+                          api_name: oauth
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false

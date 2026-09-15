@@ -22,7 +22,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"auth_type": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Authentication method the integration uses when exporting metrics to the endpoint. `HEADER` authenticates with the static HTTP headers provided in the `headers` field, which must be set when this value is used.",
+				MarkdownDescription: "Authentication method the integration uses when exporting metrics to the endpoint. `HEADER` authenticates with the static HTTP headers provided in the `headers` field, which must be set when this value is used. `OAUTH2` acquires a bearer token from an OAuth 2.0 token endpoint using the `oauth` field.",
 			},
 			"endpoint": schema.StringAttribute{
 				Required:            true,
@@ -83,6 +83,65 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
+			"oauth": schema.SingleNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "OAuth 2.0 client credentials configuration. Required when auth_type is `OAUTH2`. Secrets are never returned.",
+				CustomType:          customtypes.NewObjectType[TFOauthModel](ctx),
+				Attributes: map[string]schema.Attribute{
+					"client_auth_method": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "How the client authenticates to the token endpoint. `CLIENT_SECRET` sends a shared secret. `PRIVATE_KEY_JWT` signs a client assertion with an Atlas-generated, Atlas-managed key. Register the returned JWKS URL with your identity provider.",
+					},
+					"client_id": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "OAuth 2.0 client identifier registered with the token endpoint.",
+					},
+					"client_secret": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "Shared client secret. Required when client_auth_method is `CLIENT_SECRET`, and rejected for `PRIVATE_KEY_JWT`. Encrypted at rest and never returned.",
+						Sensitive:           true,
+					},
+					"scopes": schema.SetAttribute{
+						Optional:            true,
+						MarkdownDescription: "Optional OAuth 2.0 scopes requested on the token, sent as a space delimited `scope` parameter. Applies to both client authentication methods.",
+						CustomType:          customtypes.NewSetType[types.String](ctx),
+						ElementType:         types.StringType,
+					},
+					"signing_key_info": schema.SingleNestedAttribute{
+						Computed:            true,
+						MarkdownDescription: "Read-only metadata for the Atlas-managed signing key used by `PRIVATE_KEY_JWT`. Present only for that method. Register the jwks_uri with your identity provider. Atlas rotates the underlying key without changing this URL.",
+						CustomType:          customtypes.NewObjectType[TFOauthSigningKeyInfoModel](ctx),
+						Attributes: map[string]schema.Attribute{
+							"algorithm": schema.StringAttribute{
+								Computed:            true,
+								MarkdownDescription: "Signing algorithm of the Atlas-managed key.",
+							},
+							"created_at": schema.StringAttribute{
+								Computed:            true,
+								MarkdownDescription: "When the currently active signing key was created. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
+							},
+							"jwks_uri": schema.StringAttribute{
+								Computed:            true,
+								MarkdownDescription: "Public JWKS URL serving this integration's signing keys. Fixed for the lifetime of the integration.",
+							},
+							"kid": schema.StringAttribute{
+								Computed:            true,
+								MarkdownDescription: "Key ID stamped on client assertions, the `SHA-1` thumbprint of the key certificate in uppercase hexadecimal. Changes when Atlas rotates the key.",
+							},
+						},
+					},
+					"token_endpoint": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "OAuth 2.0 token endpoint URL. Must use HTTPS.",
+					},
+					"token_request_params": schema.MapAttribute{
+						Optional:            true,
+						MarkdownDescription: "Optional provider-specific parameters added to the token request, for example a resource indicator. Applies to both client authentication methods.",
+						CustomType:          customtypes.NewMapType[types.String](ctx),
+						ElementType:         types.StringType,
+					},
+				},
+			},
 			"provider_type": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The provider type for the metric integration. Identifies the third-party service provider.",
@@ -101,6 +160,7 @@ type TFModel struct {
 	IntegrationType        types.String                                        `tfsdk:"integration_type"`
 	MetricIntegrationId    types.String                                        `tfsdk:"metric_integration_id" autogen:"omitjson"`
 	MetricSelection        customtypes.SetValue[types.String]                  `tfsdk:"metric_selection"`
+	Oauth                  customtypes.ObjectValue[TFOauthModel]               `tfsdk:"oauth"`
 	ProviderType           types.String                                        `tfsdk:"provider_type"`
 }
 type TFHeadersModel struct {
@@ -110,4 +170,19 @@ type TFHeadersModel struct {
 type TFHeadersRedactedModel struct {
 	Name  types.String `tfsdk:"name" autogen:"omitjson"`
 	Value types.String `tfsdk:"value" autogen:"omitjson"`
+}
+type TFOauthModel struct {
+	ClientAuthMethod   types.String                                        `tfsdk:"client_auth_method"`
+	ClientId           types.String                                        `tfsdk:"client_id"`
+	ClientSecret       types.String                                        `tfsdk:"client_secret" autogen:"sensitive"`
+	Scopes             customtypes.SetValue[types.String]                  `tfsdk:"scopes"`
+	SigningKeyInfo     customtypes.ObjectValue[TFOauthSigningKeyInfoModel] `tfsdk:"signing_key_info" autogen:"omitjson"`
+	TokenEndpoint      types.String                                        `tfsdk:"token_endpoint"`
+	TokenRequestParams customtypes.MapValue[types.String]                  `tfsdk:"token_request_params"`
+}
+type TFOauthSigningKeyInfoModel struct {
+	Algorithm types.String `tfsdk:"algorithm" autogen:"omitjson"`
+	CreatedAt types.String `tfsdk:"created_at" autogen:"omitjson"`
+	JwksUri   types.String `tfsdk:"jwks_uri" autogen:"omitjson"`
+	Kid       types.String `tfsdk:"kid" autogen:"omitjson"`
 }
