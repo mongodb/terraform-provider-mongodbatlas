@@ -255,14 +255,14 @@ func TestAccClusterAdvancedCluster_infiniteEmptyAutoScaling(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				// Explicit null children exercise the same Terraform object as auto_scaling = {}.
-				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "compute_enabled = null\ndisk_gb_enabled = null", false),
+				// INFINITE requires an explicit compute choice on create; false exercises an inert auto_scaling block.
+				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "compute_enabled = false", false),
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, nil),
 			},
 			{
-				Config: configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "compute_enabled = false", false),
+				Config: configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "compute_enabled = true", false),
 				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
-					"compute_enabled": knownvalue.Bool(false),
+					"compute_enabled": knownvalue.Bool(true),
 				})...),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -284,9 +284,13 @@ func TestAccClusterAdvancedCluster_infiniteAnalyticsAutoScaling(t *testing.T) {
 					compute_max_instance_size = %q
 					%s
 				}`, maxInstanceSize, diskConfig)
-		}
-		if limit != nil {
-			regionConfig += "\nauto_scaling = {" + databaseEditionStorageConfig(limit) + "\n}"
+			// INFINITE requires an explicit auto_scaling.compute choice on create; keep it on updates so
+			// the block stays configured, but omit it when the test exercises omitted computed blocks.
+			autoScaling := "compute_enabled = false"
+			if limit != nil {
+				autoScaling += "\n" + databaseEditionStorageConfig(limit)
+			}
+			regionConfig += "\nauto_scaling = {" + autoScaling + "\n}"
 		}
 		return fmt.Sprintf(`
 			resource "mongodbatlas_advanced_cluster" "test" {
@@ -455,7 +459,11 @@ func TestAccClusterAdvancedCluster_core(t *testing.T) {
 }
 
 func configDatabaseEdition(projectID, clusterName string, databaseEdition *string, nodeCount int, shardSizeLimitGB *int) string {
-	return configDatabaseEditionWithAutoScaling(projectID, clusterName, databaseEdition, nodeCount, databaseEditionStorageConfig(shardSizeLimitGB), false)
+	autoScaling := "compute_enabled = false"
+	if shardSizeLimitGB != nil {
+		autoScaling += "\n" + databaseEditionStorageConfig(shardSizeLimitGB)
+	}
+	return configDatabaseEditionWithAutoScaling(projectID, clusterName, databaseEdition, nodeCount, autoScaling, false)
 }
 
 func configDatabaseEditionWithComputeAutoScaling(projectID, clusterName string, databaseEdition *string, nodeCount int, shardSizeLimitGB *int, withTags bool) string {
