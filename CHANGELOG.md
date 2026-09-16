@@ -1,5 +1,12 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_cluster_adaptive_settings` ([#4620](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4620))
+* **New Data Source:** `data-source/mongodbatlas_cluster_overload_simulation` ([#4618](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4618))
+* **New Resource:** `resource/mongodbatlas_cluster_adaptive_settings` ([#4620](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4620))
+* **New Resource:** `resource/mongodbatlas_cluster_overload_simulation` ([#4618](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4618))
+
 BUG FIXES:
 
 * resource/mongodbatlas_alert_configuration: Fixes `DUPLICATE_THRESHOLD_FIELD` errors when updating an `OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD` alert configuration ([#4730](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4730))
