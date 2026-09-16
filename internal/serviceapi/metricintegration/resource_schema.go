@@ -175,10 +175,10 @@ type TFOauthModel struct {
 	ClientAuthMethod   types.String                                        `tfsdk:"client_auth_method"`
 	ClientId           types.String                                        `tfsdk:"client_id"`
 	ClientSecret       types.String                                        `tfsdk:"client_secret" autogen:"sensitive"`
-	Scopes             customtypes.SetValue[types.String]                  `tfsdk:"scopes"`
+	Scopes             customtypes.SetValue[types.String]                  `tfsdk:"scopes" autogen:"sendnullasemptyonupdate"`
 	SigningKeyInfo     customtypes.ObjectValue[TFOauthSigningKeyInfoModel] `tfsdk:"signing_key_info" autogen:"omitjson"`
 	TokenEndpoint      types.String                                        `tfsdk:"token_endpoint"`
-	TokenRequestParams customtypes.MapValue[types.String]                  `tfsdk:"token_request_params"`
+	TokenRequestParams customtypes.MapValue[types.String]                  `tfsdk:"token_request_params" autogen:"sendnullasemptyonupdate"`
 }
 type TFOauthSigningKeyInfoModel struct {
 	Algorithm types.String `tfsdk:"algorithm" autogen:"omitjson"`

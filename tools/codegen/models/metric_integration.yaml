@@ -215,7 +215,7 @@ schema:
                       tf_schema_name: scopes
                       tf_model_name: Scopes
                       api_name: scopes
-                      req_body_usage: all_request_bodies
+                      req_body_usage: send_null_as_empty_on_update
                       sensitive: false
                       create_only: false
                       present_in_any_response: true
@@ -306,7 +306,7 @@ schema:
                       tf_schema_name: token_request_params
                       tf_model_name: TokenRequestParams
                       api_name: tokenRequestParams
-                      req_body_usage: all_request_bodies
+                      req_body_usage: send_null_as_empty_on_update
                       sensitive: false
                       create_only: false
                       present_in_any_response: true

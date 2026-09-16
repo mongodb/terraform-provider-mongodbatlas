@@ -1669,6 +1669,10 @@ resources:
           description: "Shared client secret. Required when client_auth_method is `CLIENT_SECRET`, and rejected for `PRIVATE_KEY_JWT`. Encrypted at rest and never returned."
         oauth.signing_key_info:
           description: "Read-only metadata for the Atlas-managed signing key used by `PRIVATE_KEY_JWT`. Present only for that method. Register the jwks_uri with your identity provider. Atlas rotates the underlying key without changing this URL."
+        oauth.scopes:
+          request_body_usage: send_null_as_empty_on_update
+        oauth.token_request_params:
+          request_body_usage: send_null_as_empty_on_update
         headers:
           description: "Required for auth_type: HEADER. HTTP headers for authentication and configuration. Total size limit 2KB."
     datasources:

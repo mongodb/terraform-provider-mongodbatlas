@@ -258,10 +258,14 @@ func configOauth(projectID, endpoint, tokenEndpoint, clientID, clientAuthMethod 
 }
 
 func configOauthClientSecret(projectID, endpoint, tokenEndpoint, clientID, clientSecret string, scopes []string, tokenRequestParams string, withDS bool) string {
+	scopesAttr := ""
+	if scopes != nil {
+		scopesAttr = "scopes = " + hcl.StringSliceToHCL(scopes)
+	}
 	return configOauth(projectID, endpoint, tokenEndpoint, clientID, "CLIENT_SECRET", withDS,
 		oauthExtrasHCL(
 			fmt.Sprintf("client_secret = %q", clientSecret),
-			"scopes = "+hcl.StringSliceToHCL(scopes),
+			scopesAttr,
 			tokenRequestParams,
 		),
 	)
@@ -317,7 +321,11 @@ func TestAccMetricIntegration_oauthClientSecret(t *testing.T) {
 				Check:  checkOauthClientSecret(secret2, scopes2, 1, nil),
 			},
 			{
-				Config:                               configOauthClientSecret(projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID, secret2, scopes2, trParamsClientSecret, false),
+				Config: configOauthClientSecret(projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID, secret2, nil, "", false),
+				Check:  checkOauthClientSecret(secret2, nil, 0, nil),
+			},
+			{
+				Config:                               configOauthClientSecret(projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID, secret2, nil, "", false),
 				ResourceName:                         resourceName,
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportState:                          true,
