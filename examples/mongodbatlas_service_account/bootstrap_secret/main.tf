@@ -1,0 +1,36 @@
+# Creates a Service Account and captures the bootstrap secret Atlas generates on create.
+# The secret value is returned once, at creation time. For rotation, see the Service Account Secret Rotation guide.
+resource "mongodbatlas_service_account" "this" {
+  org_id                     = var.org_id
+  name                       = "example-service-account"
+  description                = "Example Service Account with a bootstrap secret"
+  roles                      = ["ORG_READ_ONLY"]
+  secret_expires_after_hours = 2160 # 90 days
+}
+
+data "mongodbatlas_service_account" "this" {
+  org_id    = var.org_id
+  client_id = mongodbatlas_service_account.this.client_id
+}
+
+data "mongodbatlas_service_accounts" "this" {
+  org_id = var.org_id
+}
+
+output "service_account_client_id" {
+  value = mongodbatlas_service_account.this.client_id
+}
+
+output "service_account_name" {
+  value = data.mongodbatlas_service_account.this.name
+}
+
+output "service_account_first_secret" {
+  description = "The secret value of the first secret created with the Service Account. Available only immediately after initial creation."
+  value       = try(mongodbatlas_service_account.this.secrets[0].secret, null)
+  sensitive   = true
+}
+
+output "service_accounts_results" {
+  value = data.mongodbatlas_service_accounts.this.results
+}
