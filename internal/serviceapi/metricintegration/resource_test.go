@@ -11,6 +11,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -295,7 +297,20 @@ func TestAccMetricIntegration_oauthClientSecret(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configOauthClientSecret(projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID, secret1, scopes1, "", true),
-				Check:  checkOauthClientSecret(secret1, scopes1, 0, dsName),
+				ConfigStateChecks: []statecheck.StateCheck{
+					acc.PluralResultCheck(
+						pluralDataSourceName,
+						"endpoint",
+						knownvalue.StringExact(oauthEndpoint),
+						map[string]knownvalue.Check{
+							"oauth.client_auth_method": knownvalue.StringExact("CLIENT_SECRET"),
+							"oauth.client_id":          knownvalue.StringExact(oauthClientID),
+							"oauth.token_endpoint":     knownvalue.StringExact(oauthTokenEndpoint),
+							"oauth.scopes":             knownvalue.SetExact([]knownvalue.Check{knownvalue.StringExact("metrics.write")}),
+						},
+					),
+				},
+				Check: checkOauthClientSecret(secret1, scopes1, 0, dsName),
 			},
 			{
 				Config: configOauthClientSecret(projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID, secret2, scopes2, trParamsClientSecret, false),
@@ -333,7 +348,21 @@ func TestAccMetricIntegration_oauthPrivateKeyJWT(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configOauthPrivateKeyJWT(projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID, scopes1, trParamsPrivateKeyJWT, true),
-				Check:  checkOauthPrivateKeyJWT(scopes1, 1, dsName),
+				ConfigStateChecks: []statecheck.StateCheck{
+					acc.PluralResultCheck(
+						pluralDataSourceName,
+						"endpoint",
+						knownvalue.StringExact(oauthEndpoint),
+						map[string]knownvalue.Check{
+							"oauth.client_auth_method":         knownvalue.StringExact("PRIVATE_KEY_JWT"),
+							"oauth.client_id":                  knownvalue.StringExact(oauthClientID),
+							"oauth.token_endpoint":             knownvalue.StringExact(oauthTokenEndpoint),
+							"oauth.token_request_params":       knownvalue.MapExact(map[string]knownvalue.Check{"resource": knownvalue.StringExact("JPMC:URI:OTel")}),
+							"oauth.signing_key_info.algorithm": knownvalue.StringExact("RS256"),
+						},
+					),
+				},
+				Check: checkOauthPrivateKeyJWT(scopes1, 1, dsName),
 			},
 			{
 				Config: configOauthPrivateKeyJWT(projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID, scopes2, trParamsPrivateKeyJWT, false),
