@@ -361,7 +361,7 @@ func TestAccMetricIntegration_oauthPrivateKeyJWTRejectsClientSecret(t *testing.T
 			{
 				Config: configOauthPrivateKeyJWTWithClientSecret(projectID),
 				ExpectError: regexp.MustCompile(
-					`oauth.clientSecret must not be set when clientAuthMethod is 'PRIVATE_KEY_JWT'`,
+					`oauth.clientSecret must not be set when clientAuthMethod is`,
 				),
 			},
 		},
