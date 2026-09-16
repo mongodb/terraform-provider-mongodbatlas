@@ -215,14 +215,6 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func preCheckMetricIntegrationOAuth(tb testing.TB) {
-	tb.Helper()
-	acc.PreCheckBasic(tb)
-	// TODO: remove this skip once the OAuth fields are available in prod and the feature flags
-	// are enabled on the CI test project. These tests are not run in CI yet.
-	tb.Skip("OAuth metric integration acceptance tests are not run in CI until the feature is available in prod")
-}
-
 // configOauth renders an OAUTH2 metric integration resource. The optional oauth block
 // attributes are appended after client_id, each on its own line at the block indentation.
 func configOauth(projectID, endpoint, tokenEndpoint, clientID, clientAuthMethod string, withDS bool, oauthAttrs ...string) string {
@@ -274,10 +266,10 @@ func configOauthPrivateKeyJWT(projectID, endpoint, tokenEndpoint, clientID strin
 	return configOauth(projectID, endpoint, tokenEndpoint, clientID, "PRIVATE_KEY_JWT", withDS, oauthAttrs...)
 }
 
-// TestAccMetricIntegration_oauthClientSecret covers the CLIENT_SECRET OAuth path: create,
-// update (rotate the write-only secret and change scopes/tokenRequestParams), and import.
-// Serial because the project allows at most 2 metric integrations and tests share it.
+// TestAccMetricIntegration_oauthClientSecret covers the CLIENT_SECRET OAuth path
 func TestAccMetricIntegration_oauthClientSecret(t *testing.T) {
+	// TODO: remove once the OAuth metric integration fields are available in prod and before merging to master
+	acc.SkipTestForCI(t)
 	projectID := acc.ProjectIDExecution(t)
 	var (
 		secret1 = "client-secret-initial"
@@ -287,8 +279,9 @@ func TestAccMetricIntegration_oauthClientSecret(t *testing.T) {
 		dsName  = new(dataSourceName)
 	)
 
+	// Test is serial because the project allows at most 2 metric integrations and tests share it.
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { preCheckMetricIntegrationOAuth(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -316,6 +309,8 @@ func TestAccMetricIntegration_oauthClientSecret(t *testing.T) {
 
 // TestAccMetricIntegration_oauthPrivateKeyJWT covers the PRIVATE_KEY_JWT OAuth path
 func TestAccMetricIntegration_oauthPrivateKeyJWT(t *testing.T) {
+	// TODO: remove once the OAuth metric integration fields are available in prod and before merging to master
+	acc.SkipTestForCI(t)
 	projectID := acc.ProjectIDExecution(t)
 	var (
 		scopes1 = []string{}
@@ -323,8 +318,9 @@ func TestAccMetricIntegration_oauthPrivateKeyJWT(t *testing.T) {
 		dsName  = new(dataSourceName)
 	)
 
+	// Test is serial because the project allows at most 2 metric integrations and tests share it.
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { preCheckMetricIntegrationOAuth(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -352,10 +348,13 @@ func TestAccMetricIntegration_oauthPrivateKeyJWT(t *testing.T) {
 // client_secret set on a PRIVATE_KEY_JWT integration. The validation is server-side, so this
 // step performs a real apply that is expected to fail with the API's 400.
 func TestAccMetricIntegration_oauthPrivateKeyJWTRejectsClientSecret(t *testing.T) {
+	// TODO: remove once the OAuth metric integration fields are available in prod and before merging to master
+	acc.SkipTestForCI(t)
 	projectID := acc.ProjectIDExecution(t)
 
+	// Test is serial because the project allows at most 2 metric integrations and tests share it.
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { preCheckMetricIntegrationOAuth(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
