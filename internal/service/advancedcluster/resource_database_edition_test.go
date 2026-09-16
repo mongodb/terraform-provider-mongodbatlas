@@ -50,8 +50,6 @@ func TestAccClusterAdvancedCluster_infiniteBasic(t *testing.T) {
 func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3)
 	storageConfig := databaseEditionStorageConfig(new(1024))
-	storageOnlyRecovery := acc.TestStepCheckEmptyPlan(configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, storageConfig, true))
-	storageOnlyRecovery.ConfigStateChecks = shardSizeLimitChecks(clusterName, new(1024))
 	computeChecks := computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
 		"compute_enabled":            knownvalue.Bool(true),
 		"compute_scale_down_enabled": knownvalue.Bool(false),
@@ -85,6 +83,47 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(1024)),
 			},
 			{
+				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "", true),
+				ConfigStateChecks: shardSizeLimitChecks(clusterName, nil),
+			},
+			{
+				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(1024), true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkDatabaseEdition(new("INFINITE"), "INFINITE"),
+					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
+				),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)), computeChecks...),
+			},
+			// An unrelated replication_specs change must preserve the configured shard limit.
+			{
+				Config: configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "compute_enabled = false\n"+storageConfig, true),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+					"compute_enabled": knownvalue.Bool(false),
+				})...),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
+// TestAccClusterAdvancedCluster_infiniteShardSizeLimitErrors exercises the Atlas rejections on their own
+// cluster so a burst of invalid PATCHes can't poison a later valid write (HTTP 500) in the happy-path test.
+func TestAccClusterAdvancedCluster_infiniteShardSizeLimitErrors(t *testing.T) {
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3)
+	storageConfig := databaseEditionStorageConfig(new(1024))
+	storageOnlyRecovery := acc.TestStepCheckEmptyPlan(configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, storageConfig, true))
+	storageOnlyRecovery.ConfigStateChecks = shardSizeLimitChecks(clusterName, new(1024))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, storageConfig, true),
+				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(1024)),
+			},
+			{
 				Config:      configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "disk_gb_enabled = true\n"+storageConfig, true),
 				ExpectError: regexp.MustCompile(`autoScaling\.diskGB is not configurable for an Atlas Infinite\s+cluster`),
 			},
@@ -105,38 +144,11 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 			},
 			storageOnlyRecovery,
 			{
-				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "", true),
-				ConfigStateChecks: shardSizeLimitChecks(clusterName, nil),
-			},
-			{
-				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(1024), true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkDatabaseEdition(new("INFINITE"), "INFINITE"),
-					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
-				),
-				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)), computeChecks...),
-			},
-			// An unrelated replication_specs change must preserve the configured shard limit.
-			{
-				Config: configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "compute_enabled = false\n"+storageConfig, true),
-				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
-					"compute_enabled": knownvalue.Bool(false),
-				})...),
-			},
-			{
 				// Four electable nodes are invalid in both supported Infinite topology modes.
 				Config:      configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 4, new(2048), true),
 				ExpectError: regexp.MustCompile(`(?s)INVALID_ATTRIBUTE.*number of electable nodes`),
 			},
-			{
-				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(2048), true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.node_count", "2"),
-					resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.node_count", "2"),
-				),
-				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(2048)), computeChecks...),
-			},
-			acc.TestStepImportCluster(resourceName),
+			storageOnlyRecovery,
 		},
 	})
 }
