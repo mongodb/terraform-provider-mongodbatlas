@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.18.0 (September 16, 2026)
+
 NOTES:
 
 * resource/mongodbatlas_cloud_backup_schedule: Deprecates `copy_settings.frequencies` in favor of `copy_settings.copy_policy_items` and `copy_settings.last_number_of_snapshots` ([#4693](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4693))
