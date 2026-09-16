@@ -1,0 +1,3 @@
+```release-note:bug
+Skips connection API updates when migrating between equivalent instance_name and workspace_name values
+```
