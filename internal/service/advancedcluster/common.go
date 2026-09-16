@@ -101,20 +101,6 @@ func omitEmptyComputeAndDiskGB(autoScaling *admin.AdvancedAutoScalingSettings) {
 	}
 }
 
-// hasEmptyAutoScalingDiskGB reports whether the converter produced an empty diskGB that INFINITE rejects.
-func hasEmptyAutoScalingDiskGB(replicationSpecs []admin.ReplicationSpec20240805) bool {
-	for _, spec := range replicationSpecs {
-		for _, region := range spec.GetRegionConfigs() {
-			for _, autoScaling := range []*admin.AdvancedAutoScalingSettings{region.AutoScaling, region.AnalyticsAutoScaling} {
-				if autoScaling != nil && autoScaling.DiskGB != nil && !autoScaling.DiskGB.HasEnabled() && len(autoScaling.DiskGB.NullFields) == 0 {
-					return true
-				}
-			}
-		}
-	}
-	return false
-}
-
 func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
 	for i, container := range containers {
 		gpc := cluster.GetProviderName() == constant.GCP
