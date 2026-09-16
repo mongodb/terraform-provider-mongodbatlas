@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -30,8 +32,17 @@ const (
 			depends_on = [mongodbatlas_metric_integration.test]
 		}
 	`
+	// Dummy endpoints for OAuth integrations.
+	oauthTokenEndpoint = "https://192.0.2.2/oauth2/token" //nolint:gosec // Test data
+	oauthClientID      = "atlas-otel-test"                //nolint:gosec // Test data
+	oauthEndpoint      = "https://192.0.2.1/v1/metrics"
+	// Pre-rendered token_request_params HCL fragments, passed to the config builders.
+	trParamsClientSecret  = `token_request_params = { resource = "atlas:otel:test" }`
+	trParamsPrivateKeyJWT = `token_request_params = { resource = "JPMC:URI:OTel" }`
 )
 
+// TestAccMetricIntegration_basic covers the base HEADER auth path. Serial because the project
+// allows at most 2 metric integrations, and the OAuth tests share the same project.
 func TestAccMetricIntegration_basic(t *testing.T) {
 	var (
 		projectID       = acc.ProjectIDExecution(t)
@@ -44,8 +55,7 @@ func TestAccMetricIntegration_basic(t *testing.T) {
 		extraHeader     = true
 		withDS          = true
 	)
-
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); preCheckMetricIntegration(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -203,4 +213,230 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		}
 		return fmt.Sprintf("%s/%s", projectID, integrationID), nil
 	}
+}
+
+func preCheckMetricIntegrationOAuth(tb testing.TB) {
+	tb.Helper()
+	acc.PreCheckBasic(tb)
+	// TODO: remove this skip once the OAuth fields are available in prod and the feature flags
+	// are enabled on the CI test project. These tests are not run in CI yet.
+	tb.Skip("OAuth metric integration acceptance tests are not run in CI until the feature is available in prod")
+}
+
+// configOauth renders an OAUTH2 metric integration resource. The optional oauth block
+// attributes are appended after client_id, each on its own line at the block indentation.
+func configOauth(projectID, endpoint, tokenEndpoint, clientID, clientAuthMethod string, withDS bool, oauthAttrs ...string) string {
+	dsConfig := ""
+	if withDS {
+		dsConfig = datasourcesConfig
+	}
+	var attrsBlock strings.Builder
+	for _, a := range oauthAttrs {
+		if a != "" {
+			attrsBlock.WriteString("\n\t\t\t\t" + a)
+		}
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_metric_integration" "test" {
+			project_id              = %[1]q
+			integration_type        = "OTEL"
+			provider_type           = "CUSTOM"
+			auth_type               = "OAUTH2"
+			aggregation_temporality = "DELTA"
+			endpoint                = %[2]q
+			metric_selection        = ["ATLAS_STREAM_PROCESSING"]
+
+			oauth = {
+				client_auth_method = %[3]q
+				token_endpoint     = %[4]q
+				client_id          = %[5]q%[6]s
+			}
+		}
+
+		%[7]s
+	`, projectID, endpoint, clientAuthMethod, tokenEndpoint, clientID, attrsBlock.String(), dsConfig)
+}
+
+func configOauthClientSecret(projectID, endpoint, tokenEndpoint, clientID, clientSecret string, scopes []string, tokenRequestParams string, withDS bool) string {
+	return configOauth(projectID, endpoint, tokenEndpoint, clientID, "CLIENT_SECRET", withDS,
+		fmt.Sprintf("client_secret = %q", clientSecret),
+		"scopes = "+hcl.StringSliceToHCL(scopes),
+		tokenRequestParams,
+	)
+}
+
+func configOauthPrivateKeyJWT(projectID, endpoint, tokenEndpoint, clientID string, scopes []string, tokenRequestParams string, withDS bool) string {
+	oauthAttrs := []string{}
+	if len(scopes) > 0 {
+		oauthAttrs = append(oauthAttrs, "scopes = "+hcl.StringSliceToHCL(scopes))
+	}
+	oauthAttrs = append(oauthAttrs, tokenRequestParams)
+	return configOauth(projectID, endpoint, tokenEndpoint, clientID, "PRIVATE_KEY_JWT", withDS, oauthAttrs...)
+}
+
+// TestAccMetricIntegration_oauthClientSecret covers the CLIENT_SECRET OAuth path: create,
+// update (rotate the write-only secret and change scopes/tokenRequestParams), and import.
+// Serial because the project allows at most 2 metric integrations and tests share it.
+func TestAccMetricIntegration_oauthClientSecret(t *testing.T) {
+	projectID := acc.ProjectIDExecution(t)
+	var (
+		secret1 = "client-secret-initial"
+		secret2 = "client-secret-rotated"
+		scopes1 = []string{"metrics.write"}
+		scopes2 = []string{"metrics.write", "monitoring.read"}
+		dsName  = new(dataSourceName)
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { preCheckMetricIntegrationOAuth(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configOauthClientSecret(projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID, secret1, scopes1, "", true),
+				Check:  checkOauthClientSecret(secret1, scopes1, 0, dsName),
+			},
+			{
+				Config: configOauthClientSecret(projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID, secret2, scopes2, trParamsClientSecret, false),
+				Check:  checkOauthClientSecret(secret2, scopes2, 1, nil),
+			},
+			{
+				Config:                               configOauthClientSecret(projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID, secret2, scopes2, trParamsClientSecret, false),
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "metric_integration_id",
+				// client_secret is write-only and not returned on GET, so it cannot match on import.
+				ImportStateVerifyIgnore: []string{"oauth.client_secret"},
+			},
+		},
+	})
+}
+
+// TestAccMetricIntegration_oauthPrivateKeyJWT covers the PRIVATE_KEY_JWT OAuth path
+func TestAccMetricIntegration_oauthPrivateKeyJWT(t *testing.T) {
+	projectID := acc.ProjectIDExecution(t)
+	var (
+		scopes1 = []string{}
+		scopes2 = []string{"metrics.write"}
+		dsName  = new(dataSourceName)
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { preCheckMetricIntegrationOAuth(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configOauthPrivateKeyJWT(projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID, scopes1, trParamsPrivateKeyJWT, true),
+				Check:  checkOauthPrivateKeyJWT(scopes1, 1, dsName),
+			},
+			{
+				Config: configOauthPrivateKeyJWT(projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID, scopes2, trParamsPrivateKeyJWT, false),
+				Check:  checkOauthPrivateKeyJWT(scopes2, 1, nil),
+			},
+			{
+				Config:                               configOauthPrivateKeyJWT(projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID, scopes2, trParamsPrivateKeyJWT, false),
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "metric_integration_id",
+			},
+		},
+	})
+}
+
+// TestAccMetricIntegration_oauthPrivateKeyJWTRejectsClientSecret verifies the API rejects a
+// client_secret set on a PRIVATE_KEY_JWT integration. The validation is server-side, so this
+// step performs a real apply that is expected to fail with the API's 400.
+func TestAccMetricIntegration_oauthPrivateKeyJWTRejectsClientSecret(t *testing.T) {
+	projectID := acc.ProjectIDExecution(t)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { preCheckMetricIntegrationOAuth(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configOauthPrivateKeyJWTWithClientSecret(projectID),
+				ExpectError: regexp.MustCompile(
+					`oauth.clientSecret must not be set when clientAuthMethod is 'PRIVATE_KEY_JWT'`,
+				),
+			},
+		},
+	})
+}
+
+func configOauthPrivateKeyJWTWithClientSecret(projectID string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_metric_integration" "test" {
+			project_id              = %[1]q
+			integration_type        = "OTEL"
+			provider_type           = "CUSTOM"
+			auth_type               = "OAUTH2"
+			aggregation_temporality = "DELTA"
+			endpoint                = %[2]q
+			metric_selection        = ["ATLAS_STREAM_PROCESSING"]
+
+			oauth = {
+				client_auth_method = "PRIVATE_KEY_JWT"
+				token_endpoint     = %[3]q
+				client_id          = %[4]q
+				client_secret      = "should-be-rejected"
+			}
+		}
+	`, projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID)
+}
+
+func checkOauthClientSecret(clientSecret string, scopes []string, tokenRequestParamsCount int, dsName *string) resource.TestCheckFunc {
+	mapChecks := map[string]string{
+		"auth_type":                    "OAUTH2",
+		"oauth.client_auth_method":     "CLIENT_SECRET",
+		"oauth.client_id":              oauthClientID,
+		"oauth.token_endpoint":         oauthTokenEndpoint,
+		"oauth.scopes.#":               strconv.Itoa(len(scopes)),
+		"oauth.token_request_params.%": strconv.Itoa(tokenRequestParamsCount),
+		"headers_redacted.#":           "0",
+	}
+	setChecks := []string{"project_id", "metric_integration_id"}
+	// client_secret is write-only and only present on the resource (never on data sources).
+	checks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(resourceName, "oauth.client_secret", clientSecret),
+	}
+	if dsName != nil {
+		checks = append(checks, resource.TestCheckResourceAttrWith(pluralDataSourceName, "results.#", acc.IntGreatThan(0)))
+	}
+	checks = append(checks, acc.CheckRSAndDS(resourceName, dsName, nil, setChecks, mapChecks, checkExists(resourceName)))
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func checkOauthPrivateKeyJWT(scopes []string, tokenRequestParamsCount int, dsName *string) resource.TestCheckFunc {
+	mapChecks := map[string]string{
+		"auth_type":                        "OAUTH2",
+		"oauth.client_auth_method":         "PRIVATE_KEY_JWT",
+		"oauth.client_id":                  oauthClientID,
+		"oauth.token_endpoint":             oauthTokenEndpoint,
+		"oauth.scopes.#":                   strconv.Itoa(len(scopes)),
+		"oauth.token_request_params.%":     strconv.Itoa(tokenRequestParamsCount),
+		"oauth.signing_key_info.algorithm": "RS256",
+		"headers_redacted.#":               "0",
+	}
+	// signing_key_info is read-only and present on both resource and data sources for PRIVATE_KEY_JWT.
+	setChecks := []string{
+		"project_id", "metric_integration_id",
+		"oauth.signing_key_info.kid",
+		"oauth.signing_key_info.jwks_uri",
+		"oauth.signing_key_info.created_at",
+	}
+	checks := []resource.TestCheckFunc{
+		// No client_secret is sent for PRIVATE_KEY_JWT, so it must not appear in state.
+		resource.TestCheckNoResourceAttr(resourceName, "oauth.client_secret"),
+	}
+	if dsName != nil {
+		checks = append(checks, resource.TestCheckResourceAttrWith(pluralDataSourceName, "results.#", acc.IntGreatThan(0)))
+	}
+	checks = append(checks, acc.CheckRSAndDS(resourceName, dsName, nil, setChecks, mapChecks, checkExists(resourceName)))
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
