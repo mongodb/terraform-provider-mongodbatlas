@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_metric_integration: Adds OAuth 2.0 support
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_metric_integration: Adds OAuth 2.0 support
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_metric_integrations: Adds OAuth 2.0 support
+```
