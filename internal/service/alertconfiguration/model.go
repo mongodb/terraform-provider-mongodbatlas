@@ -338,14 +338,8 @@ func newTFThresholdModels(
 	return []TfMetricThresholdConfigModel{}, []TfThresholdConfigModel{}
 }
 
-// PopulateThresholdFromPlan sets at most one of apiReq.MetricThreshold or apiReq.Threshold from the plan,
-// mirroring the read-path precedence of newTFThresholdModels (metric first).
-// Update rebuilds its request from GetAlertConfig, which returns both fields for the
-// OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD event type (see newTFThresholdModels and HELP-91242), so echoing the
-// response back fails with HTTP 400 DUPLICATE_THRESHOLD_FIELD.
-// When the plan removes a threshold block that prior state still has, both API fields are cleared so the removal
-// reaches the API. When neither the plan nor prior state declares a threshold block, apiReq is left untouched so the
-// configuration read back is re-sent as is.
+// PopulateThresholdFromPlan sets the API threshold fields from the plan with metric precedence.
+// It clears both fields when the plan removes a threshold block that is in state.
 func PopulateThresholdFromPlan(
 	apiReq *admin.GroupAlertsConfig,
 	planMetricThreshold []TfMetricThresholdConfigModel,
