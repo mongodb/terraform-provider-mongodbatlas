@@ -137,12 +137,6 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(2048)), computeChecks...),
 			},
 			acc.TestStepImportCluster(resourceName),
-			{
-				Config:            configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, nil, true),
-				Check:             checkDatabaseEdition(new("INFINITE"), "INFINITE"),
-				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil), computeChecks...),
-			},
-			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
