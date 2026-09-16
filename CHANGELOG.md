@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* resource/mongodbatlas_alert_configuration: Fixes `DUPLICATE_THRESHOLD_FIELD` errors when updating an `OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD` alert configuration ([#4730](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4730))
+
 ## 2.18.0 (September 16, 2026)
 
 NOTES:
