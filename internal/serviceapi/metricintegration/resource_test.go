@@ -215,18 +215,24 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-// configOauth renders an OAUTH2 metric integration resource. The optional oauth block
-// attributes are appended after client_id, each on its own line at the block indentation.
-func configOauth(projectID, endpoint, tokenEndpoint, clientID, clientAuthMethod string, withDS bool, oauthAttrs ...string) string {
+// oauthExtrasHCL indents each optional oauth attribute to the block indentation and joins
+// them on newlines. Empty attributes are skipped, so omitted fields are not rendered.
+func oauthExtrasHCL(attrs ...string) string {
+	var b strings.Builder
+	for _, a := range attrs {
+		if a != "" {
+			b.WriteString("\n\t\t\t\t" + a)
+		}
+	}
+	return b.String()
+}
+
+// configOauth renders an OAUTH2 metric integration resource. oauthExtras is a pre-rendered
+// fragment of optional oauth block attributes, appended after client_id.
+func configOauth(projectID, endpoint, tokenEndpoint, clientID, clientAuthMethod string, withDS bool, oauthExtras string) string {
 	dsConfig := ""
 	if withDS {
 		dsConfig = datasourcesConfig
-	}
-	var attrsBlock strings.Builder
-	for _, a := range oauthAttrs {
-		if a != "" {
-			attrsBlock.WriteString("\n\t\t\t\t" + a)
-		}
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_metric_integration" "test" {
@@ -246,24 +252,26 @@ func configOauth(projectID, endpoint, tokenEndpoint, clientID, clientAuthMethod 
 		}
 
 		%[7]s
-	`, projectID, endpoint, clientAuthMethod, tokenEndpoint, clientID, attrsBlock.String(), dsConfig)
+	`, projectID, endpoint, clientAuthMethod, tokenEndpoint, clientID, oauthExtras, dsConfig)
 }
 
 func configOauthClientSecret(projectID, endpoint, tokenEndpoint, clientID, clientSecret string, scopes []string, tokenRequestParams string, withDS bool) string {
 	return configOauth(projectID, endpoint, tokenEndpoint, clientID, "CLIENT_SECRET", withDS,
-		fmt.Sprintf("client_secret = %q", clientSecret),
-		"scopes = "+hcl.StringSliceToHCL(scopes),
-		tokenRequestParams,
+		oauthExtrasHCL(
+			fmt.Sprintf("client_secret = %q", clientSecret),
+			"scopes = "+hcl.StringSliceToHCL(scopes),
+			tokenRequestParams,
+		),
 	)
 }
 
 func configOauthPrivateKeyJWT(projectID, endpoint, tokenEndpoint, clientID string, scopes []string, tokenRequestParams string, withDS bool) string {
-	oauthAttrs := []string{}
+	extraAttrs := []string{}
 	if len(scopes) > 0 {
-		oauthAttrs = append(oauthAttrs, "scopes = "+hcl.StringSliceToHCL(scopes))
+		extraAttrs = append(extraAttrs, "scopes = "+hcl.StringSliceToHCL(scopes))
 	}
-	oauthAttrs = append(oauthAttrs, tokenRequestParams)
-	return configOauth(projectID, endpoint, tokenEndpoint, clientID, "PRIVATE_KEY_JWT", withDS, oauthAttrs...)
+	extraAttrs = append(extraAttrs, tokenRequestParams)
+	return configOauth(projectID, endpoint, tokenEndpoint, clientID, "PRIVATE_KEY_JWT", withDS, oauthExtrasHCL(extraAttrs...))
 }
 
 // TestAccMetricIntegration_oauthClientSecret covers the CLIENT_SECRET OAuth path
@@ -300,8 +308,7 @@ func TestAccMetricIntegration_oauthClientSecret(t *testing.T) {
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "metric_integration_id",
-				// client_secret is write-only and not returned on GET, so it cannot match on import.
-				ImportStateVerifyIgnore: []string{"oauth.client_secret"},
+				ImportStateVerifyIgnore:              []string{"oauth.client_secret"},
 			},
 		},
 	})
@@ -345,8 +352,7 @@ func TestAccMetricIntegration_oauthPrivateKeyJWT(t *testing.T) {
 }
 
 // TestAccMetricIntegration_oauthPrivateKeyJWTRejectsClientSecret verifies the API rejects a
-// client_secret set on a PRIVATE_KEY_JWT integration. The validation is server-side, so this
-// step performs a real apply that is expected to fail with the API's 400.
+// client_secret set on a PRIVATE_KEY_JWT integration.
 func TestAccMetricIntegration_oauthPrivateKeyJWTRejectsClientSecret(t *testing.T) {
 	// TODO: remove once the OAuth metric integration fields are available in prod and before merging to master
 	acc.SkipTestForCI(t)
@@ -422,7 +428,6 @@ func checkOauthPrivateKeyJWT(scopes []string, tokenRequestParamsCount int, dsNam
 		"oauth.signing_key_info.algorithm": "RS256",
 		"headers_redacted.#":               "0",
 	}
-	// signing_key_info is read-only and present on both resource and data sources for PRIVATE_KEY_JWT.
 	setChecks := []string{
 		"project_id", "metric_integration_id",
 		"oauth.signing_key_info.kid",
@@ -430,7 +435,6 @@ func checkOauthPrivateKeyJWT(scopes []string, tokenRequestParamsCount int, dsNam
 		"oauth.signing_key_info.created_at",
 	}
 	checks := []resource.TestCheckFunc{
-		// No client_secret is sent for PRIVATE_KEY_JWT, so it must not appear in state.
 		resource.TestCheckNoResourceAttr(resourceName, "oauth.client_secret"),
 	}
 	if dsName != nil {
