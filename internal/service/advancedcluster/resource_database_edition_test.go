@@ -106,8 +106,6 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 	})
 }
 
-// TestAccClusterAdvancedCluster_infiniteShardSizeLimitErrors exercises the Atlas rejections on their own
-// cluster so a burst of invalid PATCHes can't poison a later valid write (HTTP 500) in the happy-path test.
 func TestAccClusterAdvancedCluster_infiniteShardSizeLimitErrors(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3)
 	storageConfig := databaseEditionStorageConfig(new(1024))
