@@ -86,7 +86,7 @@ resource "mongodbatlas_stream_connection" "example" {
 }
 ```
 
-Use the same `instance_name` to `workspace_name` change for stream processors. When both attributes resolve to the same workspace, updating a stream connection is an in-place state migration and does not replace the connection. An alias-only stream processor update also does not stop or restart the processor.
+Use the same `instance_name` to `workspace_name` change for stream processors. When both attributes resolve to the same workspace, the provider updates a stream connection in Terraform state only: it does not replace the connection or send an Atlas API update. An alias-only stream processor update also does not stop or restart the processor.
 
 Run `terraform plan` before applying the configuration. Expect the workspace resource to be moved and dependent resources to be updated in place; do not apply a plan that destroys and recreates an unchanged stream connection.
 
