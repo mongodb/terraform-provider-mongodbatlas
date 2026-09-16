@@ -108,7 +108,7 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_infiniteShardSizeLimitErrors(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3)
-	storageConfig := databaseEditionStorageConfig(new(1024))
+	storageConfig := "compute_enabled = false\n" + databaseEditionStorageConfig(new(1024))
 	storageOnlyRecovery := acc.TestStepCheckEmptyPlan(configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, storageConfig, true))
 	storageOnlyRecovery.ConfigStateChecks = shardSizeLimitChecks(clusterName, new(1024))
 
