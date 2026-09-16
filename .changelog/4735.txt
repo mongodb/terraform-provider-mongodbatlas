@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_service_account: Creates the Service Account without an initial secret when `secret_expires_after_hours` is omitted, instead of failing the plan
+```
