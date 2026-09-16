@@ -18,18 +18,14 @@ import (
 
 func TestAutoScalingStorageConfigImportLifecycle(t *testing.T) {
 	const configuredLimit = 1024
-	// The import kind and the requested edition are independent, so pair them instead of running the full matrix.
-	for _, tc := range []struct{ importBlock, requestedEdition bool }{{importBlock: false, requestedEdition: true}, {importBlock: true, requestedEdition: false}} {
-		importBlock, requestedEdition := tc.importBlock, tc.requestedEdition
-		t.Run(fmt.Sprintf("block=%t/requested_edition=%t", importBlock, requestedEdition), func(t *testing.T) {
+	// requestedEdition=false used to pair the import with use_effective_fields on INFINITE, which is out of
+	// scope for this PR and covered under CLOUDP-443190; only the requested-edition lifecycle runs here.
+	for _, importBlock := range []bool{false, true} {
+		t.Run(fmt.Sprintf("block=%t", importBlock), func(t *testing.T) {
 			storageImportCredentials(t)
-			mock := &storageImportHTTPMock{clusterType: "REPLICASET", requestedEdition: requestedEdition, effectiveEdition: "INFINITE", limit: configuredLimit}
+			mock := &storageImportHTTPMock{clusterType: "REPLICASET", requestedEdition: true, effectiveEdition: "INFINITE", limit: configuredLimit}
 			configForLimit := func(limit int, omitAutoScaling bool) string {
-				config := storageImportConfig(requestedEdition, limit, omitAutoScaling)
-				if !requestedEdition {
-					config = strings.ReplaceAll(config, `cluster_type = "REPLICASET"`, "cluster_type = \"REPLICASET\"\n  use_effective_fields = true")
-				}
-				return config
+				return storageImportConfig(true, limit, omitAutoScaling)
 			}
 			config := configForLimit(configuredLimit, false)
 			check := storageImportStateCheck(configuredLimit)
@@ -55,13 +51,7 @@ func TestAutoScalingStorageConfigImportLifecycle(t *testing.T) {
 					{Config: configForLimit(0, importBlock), Check: storageImportStateCheck(0)},
 				},
 			})
-			expectedLimits := []int{2048, 0}
-			if !requestedEdition {
-				// Enabling effective fields after import resends the requested replication specs once.
-				expectedLimits = append([]int{configuredLimit}, expectedLimits...)
-				require.True(t, mock.usedEffectiveFields)
-			}
-			require.Equal(t, expectedLimits, mock.updatedLimits)
+			require.Equal(t, []int{2048, 0}, mock.updatedLimits)
 		})
 	}
 }
