@@ -1067,7 +1067,7 @@ func configWithFailoverEnabled(t *testing.T, projectID, workspaceName, clusterNa
 			username  = "user"
 			password  = "rawpassword"
 		}
-		bootstrap_servers = "localhost:9092,localhost:9092"
+		bootstrap_servers = "example.com:9092,example.com:9092"
 		security = {
 			protocol = "SASL_PLAINTEXT"
 		}
@@ -1321,7 +1321,7 @@ func configConnection(t *testing.T, projectID, workspaceName string, config conn
                     username  = "user"
                     password  = "rawpassword"
                 }
-                bootstrap_servers = "localhost:9092,localhost:9092"
+                bootstrap_servers = "example.com:9092,example.com:9092"
                 config = {
                     "auto.offset.reset" : "earliest"
                 }
@@ -1423,7 +1423,7 @@ func configConnectionMigration(t *testing.T, projectID, instanceName string, con
                     username  = "user"
                     password  = "rawpassword"
                 }
-                bootstrap_servers = "localhost:9092,localhost:9092"
+                bootstrap_servers = "example.com:9092,example.com:9092"
                 config = {
                     "auto.offset.reset" : "earliest"
                 }

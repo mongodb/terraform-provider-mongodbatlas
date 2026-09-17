@@ -44,20 +44,20 @@ func TestAccStreamConnectionFailover(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configFailover(projectID, workspaceName, connectionName, "DUBLIN_IRL", "failover1:9092", true) + datasourcesConfig,
+				Config: configFailover(projectID, workspaceName, connectionName, "DUBLIN_IRL", "example.com:9092", true) + datasourcesConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(),
 					resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 					resource.TestCheckResourceAttr(resourceName, "region", "DUBLIN_IRL"),
 					resource.TestCheckResourceAttr(resourceName, "type", "Kafka"),
-					resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", "failover1:9092"),
+					resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", "example.com:9092"),
 					resource.TestCheckResourceAttr(resourceName, "config.auto.offset.reset", "earliest"),
 					resource.TestCheckResourceAttrSet(resourceName, "failover_connection_id"),
 					// Singular data source mirrors the resource.
 					resource.TestCheckResourceAttr(dataSourceName, "connection_name", connectionName),
 					resource.TestCheckResourceAttr(dataSourceName, "region", "DUBLIN_IRL"),
 					resource.TestCheckResourceAttr(dataSourceName, "type", "Kafka"),
-					resource.TestCheckResourceAttr(dataSourceName, "bootstrap_servers", "failover1:9092"),
+					resource.TestCheckResourceAttr(dataSourceName, "bootstrap_servers", "example.com:9092"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "failover_connection_id"),
 					// Plural data source (scoped to this connection) returns exactly the failover we created.
 					resource.TestCheckResourceAttr(pluralDataSourceName, "results.#", "1"),
@@ -69,17 +69,17 @@ func TestAccStreamConnectionFailover(t *testing.T) {
 				// Remove the `config` block (same bootstrap) to exercise unsetting an optional field on
 				// update. If the PATCH omits it and Atlas keeps the old value, this step fails with
 				// "Provider produced inconsistent result after apply".
-				Config: configFailover(projectID, workspaceName, connectionName, "DUBLIN_IRL", "failover1:9092", false),
+				Config: configFailover(projectID, workspaceName, connectionName, "DUBLIN_IRL", "example.com:9092", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(),
 					resource.TestCheckNoResourceAttr(resourceName, "config.%"),
 				),
 			},
 			{
-				Config: configFailover(projectID, workspaceName, connectionName, "DUBLIN_IRL", "failover1-updated:9093", false),
+				Config: configFailover(projectID, workspaceName, connectionName, "DUBLIN_IRL", "www.example.com:9093", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(),
-					resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", "failover1-updated:9093"),
+					resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", "www.example.com:9093"),
 				),
 			},
 			{
@@ -124,7 +124,7 @@ func configFailover(projectID, workspaceName, connectionName, region, bootstrap 
 			workspace_name    = mongodbatlas_stream_workspace.test.workspace_name
 			connection_name   = %[3]q
 			type              = "Kafka"
-			bootstrap_servers = "localhost:9092"
+			bootstrap_servers = "example.com:9092"
 			authentication = {
 				mechanism = "PLAIN"
 				username  = "user"
