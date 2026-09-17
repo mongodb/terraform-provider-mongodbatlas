@@ -36,7 +36,7 @@ const (
 	errorResolveContainerIDs             = "error resolving container IDs"
 	errorRegionPriorities                = "priority values in region_configs must be in descending order"
 	errorInvalidAttributeConfiguration   = "Invalid Attribute Configuration"
-	errorInfiniteShardedEdition          = "Atlas does not support the INFINITE database edition for SHARDED or GEOSHARDED cluster types. Use a REPLICASET cluster type or a different database_edition."
+	errorInfiniteShardedEdition          = "Atlas does not support the INFINITE database edition for SHARDED or GEOSHARDED cluster types yet. Use a REPLICASET cluster type or a different database_edition."
 	ErrorCodeClusterNotFound             = "CLUSTER_NOT_FOUND"
 	operationUpdate                      = "update"
 	operationCreate                      = "create"
@@ -118,7 +118,8 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	// Same gate as Update, for values that only resolve at apply time, e.g. database_edition from another resource.
+	// Gate values the plan validator cannot see because they only resolve at apply time, e.g. database_edition
+	// computed from another resource.
 	if isDatabaseEditionInfiniteSharded(plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), "") {
 		diags.AddError(errorInvalidAttributeConfiguration, errorInfiniteShardedEdition)
 		return
@@ -240,8 +241,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	// Temporary gate: Atlas does not support INFINITE sharded clusters yet. The plan's database_edition is
-	// checked first; state.EffectiveDatabaseEdition covers updates that omit database_edition from config.
+	// Gate the case the plan validator cannot see: database_edition omitted from config on an existing
+	// INFINITE cluster, e.g. switching an INFINITE replica set to sharded after dropping the attribute.
 	if isDatabaseEditionInfiniteSharded(plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), state.EffectiveDatabaseEdition.ValueString()) {
 		diags.AddError(errorInvalidAttributeConfiguration, errorInfiniteShardedEdition)
 		return

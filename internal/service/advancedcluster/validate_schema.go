@@ -144,7 +144,8 @@ func (v UseEffectiveFieldsValidator) ValidateBool(ctx context.Context, req valid
 }
 
 // InfiniteDatabaseEditionValidator rejects the INFINITE database edition for SHARDED and GEOSHARDED
-// clusters, which Atlas does not support yet. This gate can be removed once Atlas adds support.
+// clusters at plan time. It only sees config, so it cannot cover values that resolve at apply time or
+// updates that omit database_edition; Create and Update gate those paths separately.
 type InfiniteDatabaseEditionValidator struct{}
 
 func (v InfiniteDatabaseEditionValidator) Description(ctx context.Context) string {
@@ -170,8 +171,10 @@ func (v InfiniteDatabaseEditionValidator) ValidateString(ctx context.Context, re
 }
 
 // isDatabaseEditionInfiniteSharded reports whether the cluster combines a sharded cluster type with the
-// INFINITE database edition. The configured database_edition takes precedence; effective_database_edition
-// from state covers updates that omit database_edition from config.
+// INFINITE database edition, which Atlas does not support yet. The configured database_edition takes
+// precedence; effective_database_edition from state covers updates that omit database_edition from config.
+// Callers pass "" for a value they don't have; "" never matches INFINITE, so those cases are not gated.
+// Remove this gate (and the call sites in Create and Update) once Atlas supports these topologies.
 func isDatabaseEditionInfiniteSharded(clusterType, databaseEdition, effectiveDatabaseEdition string) bool {
 	if clusterType != clusterTypeSharded && clusterType != clusterTypeGeosharded {
 		return false

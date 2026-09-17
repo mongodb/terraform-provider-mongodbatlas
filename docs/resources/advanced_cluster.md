@@ -6,7 +6,7 @@ subcategory: "Clusters"
 
 `mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters, including clusters that use the Atlas Infinite Database.
 
-To create an Atlas Infinite Database cluster, set the `database_edition` attribute to `INFINITE`. For more information, including supported features and limitations, see the [Atlas Infinite Database documentation](https://www.mongodb.com/docs/atlas/infinite/atlas-infinite-landing/). The `INFINITE` edition is only supported for `REPLICASET` clusters: if you set `database_edition` to `INFINITE` with the `SHARDED` or `GEOSHARDED` cluster type, the provider returns an error.
+To create an Atlas Infinite Database cluster, set the `database_edition` attribute to `INFINITE`. For more information, including supported features and limitations, see the [Atlas Infinite Database documentation](https://www.mongodb.com/docs/atlas/infinite/atlas-infinite-landing/). The `INFINITE` edition is currently only supported for `REPLICASET` clusters: the provider rejects the configuration if you combine `INFINITE` with the `SHARDED` or `GEOSHARDED` cluster type.
 
 We recommend all MongoDB Atlas Terraform users start with the [`Official MongoDB Atlas Cluster Module`](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/cluster/mongodbatlas/latest). This module simplifies cluster deployment and implements MongoDB Atlas best practices by default.
 
@@ -588,7 +588,7 @@ Refer to the following for full privatelink endpoint connection string examples:
       - `SHARDED`	Sharded cluster
       - `GEOSHARDED` Global Cluster
 
-* `database_edition` - (Optional) Database edition for the cluster. Valid values are `CORE` and `INFINITE`. If you omit this attribute, MongoDB Cloud selects the default database edition. Only `REPLICASET` clusters support the `INFINITE` edition: the provider returns an error if you combine `INFINITE` with the `SHARDED` or `GEOSHARDED` cluster type.
+* `database_edition` - (Optional) Database edition for the cluster. Valid values are `CORE` and `INFINITE`. If you omit this attribute, MongoDB Cloud selects the default database edition. Only `REPLICASET` clusters currently support the `INFINITE` edition: the provider rejects the configuration if you combine `INFINITE` with the `SHARDED` or `GEOSHARDED` cluster type.
 * `encryption_at_rest_provider` - (Optional) Possible values are AWS, GCP, AZURE or NONE.  Only needed if you desire to manage the keys, see [Encryption at Rest using Customer Key Management](https://www.mongodb.com/docs/atlas/security-kms-encryption/) for complete documentation.  You must configure encryption at rest for the Atlas project before enabling it on any cluster in the project. For Documentation, see [AWS](https://www.mongodb.com/docs/atlas/security-aws-kms/), [GCP](https://www.mongodb.com/docs/atlas/security-kms-encryption/) and [Azure](https://www.mongodb.com/docs/atlas/security-azure-kms/#std-label-security-azure-kms). Requirements are if `replication_specs[#].region_configs[#].<type>Specs.instance_size` is M10 or greater and `backup_enabled` is false or omitted.   
 * `tags` - (Optional) Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
 * `labels` - (Optional) Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
