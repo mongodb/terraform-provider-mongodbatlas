@@ -62,17 +62,18 @@ Use `defer` to defer the next scheduled maintenance event by one week. This only
 ```
 
 ### Further Examples
-- [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_maintenance_window)
+- [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_maintenance_window)
 
 ## Argument Reference
 
 * `project_id` - The unique identifier of the project for the Maintenance Window, also known as `groupId` in the official documentation.
-* `day_of_week` - (Required) Day of the week when you would like the maintenance window to start as a 1-based integer: Su=1, M=2, T=3, W=4, T=5, F=6, Sa=7.
-* `hour_of_day` - (Required) Hour of the day when you would like the maintenance window to start. This parameter uses the 24-hour clock, where midnight is 0, noon is 12. Uses the project's configured timezone.
+* `day_of_week` - (Optional) Day of the week when you would like the maintenance window to start as a 1-based integer: Su=1, M=2, T=3, W=4, T=5, F=6, Sa=7. Must be set together with `hour_of_day`. Omit both to set a `wave_assignment` without a maintenance window.
+* `hour_of_day` - (Optional) Hour of the day when you would like the maintenance window to start. This parameter uses the 24-hour clock, where midnight is 0, noon is 12. Uses the project's configured timezone. Must be set together with `day_of_week`. Omit both to set a `wave_assignment` without a maintenance window.
 * `defer` - (Optional) Defer the next scheduled maintenance event for the given project by one week. Only works when maintenance is already scheduled.
 * `auto_defer_once_enabled` - (Optional) **Recommended** field to enable or disable automatic deferral of all scheduled maintenance for the given project by one week. Achieves the same outcome as `auto_defer`, but by directly setting the value to `true` or `false`, which is idempotent and keeps Terraform state aligned with Atlas. If `auto_defer` is used to toggle the underlying flag, it will also affect the value of this attribute.
 * `auto_defer` - (Optional) Boolean flag to **toggle** automatic deferral on/off. Each change flips the current state (ON → OFF or OFF → ON). Achieves the same outcome as `auto_defer_once_enabled` but through a toggle operation, which can make the current state opaque to Terraform and introduce state drift. **For most use cases, prefer `auto_defer_once_enabled` instead.** <!-- see CLOUDP-375465 for details -->
 * `protected_hours` - (Optional) Defines the time period during which there will be no standard updates to the clusters. See [Protected Hours](#protected-hours).
+* `wave_assignment` - (Optional) Integer that identifies the maintenance wave explicitly assigned to this project. Not editable when the organization's wave assignment mode is `ENV_TAG_MAPPING`. In this case, the system preserves the stored value but does not use it for scheduling; environment tags determine the effective wave instead. Switching back to `MANUAL` restores the `wave_assignment` value as the effective wave. Remove this attribute from your configuration and run `terraform apply` to clear the explicit assignment. See [`mongodbatlas_org_maintenance_settings`](org_maintenance_settings.md#argument-reference) to configure the organization-level wave assignment mode.
 
 ### Protected Hours
 * `start_hour_of_day` - Zero-based integer that represents the beginning hour of the day for the protected hours window.
@@ -92,8 +93,8 @@ In addition to all arguments above, the following attributes are exported:
 
 Maintenance Window entries can be imported using project project_id, in the format `PROJECTID`, e.g.
 
-```
-$ terraform import mongodbatlas_maintenance_window.test 5d0f1f73cf09a29120e173cf
+```shell
+terraform import mongodbatlas_maintenance_window.test 5d0f1f73cf09a29120e173cf
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/maintenance-windows/)
+For more information on Maintenance Windows, see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-maintenance-windows)
