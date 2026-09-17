@@ -257,7 +257,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	// Omit the empty auto-scaling children that INFINITE rejects. effective_database_edition is always
 	// populated by Read, so no extra GET is needed even after an import that leaves database_edition unset.
-	if diff.clusterPatchOnlyReq != nil && state.EffectiveDatabaseEdition.ValueString() == "INFINITE" {
+	if diff.clusterPatchOnlyReq != nil && state.EffectiveDatabaseEdition.ValueString() == databaseEditionInfinite {
 		omitEmptyAutoScalingChildren(diff.clusterPatchOnlyReq.GetReplicationSpecs())
 	}
 

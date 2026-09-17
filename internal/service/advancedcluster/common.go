@@ -18,7 +18,10 @@ import (
 )
 
 const (
-	LegacyIgnoredLabelKey = "Infrastructure Tool"
+	LegacyIgnoredLabelKey   = "Infrastructure Tool"
+	clusterTypeSharded      = "SHARDED"
+	clusterTypeGeosharded   = "GEOSHARDED"
+	databaseEditionInfinite = "INFINITE"
 )
 
 var (

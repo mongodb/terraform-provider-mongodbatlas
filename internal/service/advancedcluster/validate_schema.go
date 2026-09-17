@@ -14,12 +14,6 @@ import (
 
 var defaultMongoDBMajorVersion = "8.0"
 
-const (
-	clusterTypeSharded      = "SHARDED"
-	clusterTypeGeosharded   = "GEOSHARDED"
-	databaseEditionInfinite = "INFINITE"
-)
-
 func PlanMustUseMongoDBVersion(version float64, operator MajorVersionOperator) FailOnIncompatibleMongoDBVersion {
 	return FailOnIncompatibleMongoDBVersion{
 		Version:  version,
