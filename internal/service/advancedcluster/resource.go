@@ -118,6 +118,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
+	// Same gate as Update, for values that only resolve at apply time, e.g. database_edition from another resource.
+	if isDatabaseEditionInfiniteSharded(plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), "") {
+		diags.AddError(errorInvalidAttributeConfiguration, errorInfiniteShardedEdition)
+		return
+	}
 	latestReq := newAtlasReq(ctx, &plan, diags)
 	if diags.HasError() {
 		return
