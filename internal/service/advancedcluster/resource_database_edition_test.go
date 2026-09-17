@@ -69,6 +69,28 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 					shardSizeLimitChecks(clusterName, new(1024))...,
 				),
 			},
+			// Clear storage while compute stays configured, on a freshly created cluster, to verify Atlas
+			// accepts the forced-removal PATCH (the earlier 500s were a settle race after rejected PATCHes).
+			{
+				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(1024), false),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+					"compute_enabled":            knownvalue.Bool(true),
+					"compute_scale_down_enabled": knownvalue.Bool(false),
+					"compute_max_instance_size":  knownvalue.StringExact("M20"),
+				})...),
+			},
+			{
+				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, nil, false),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+					"compute_enabled":            knownvalue.Bool(true),
+					"compute_scale_down_enabled": knownvalue.Bool(false),
+					"compute_max_instance_size":  knownvalue.StringExact("M20"),
+				})...),
+			},
+			{
+				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2, new(1024)),
+				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(1024)),
+			},
 			{
 				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2, new(2048)),
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(2048)),
