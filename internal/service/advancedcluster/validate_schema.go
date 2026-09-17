@@ -14,6 +14,12 @@ import (
 
 var defaultMongoDBMajorVersion = "8.0"
 
+const (
+	clusterTypeSharded      = "SHARDED"
+	clusterTypeGeosharded   = "GEOSHARDED"
+	databaseEditionInfinite = "INFINITE"
+)
+
 func PlanMustUseMongoDBVersion(version float64, operator MajorVersionOperator) FailOnIncompatibleMongoDBVersion {
 	return FailOnIncompatibleMongoDBVersion{
 		Version:  version,
@@ -135,4 +141,43 @@ func (v UseEffectiveFieldsValidator) ValidateBool(ctx context.Context, req valid
 		diags.AddAttributeError(req.Path, "Invalid Attribute Configuration",
 			"use_effective_fields cannot be set for Flex or Tenant clusters, it is only supported for dedicated clusters.")
 	}
+}
+
+// InfiniteDatabaseEditionValidator rejects the INFINITE database edition for SHARDED and GEOSHARDED
+// clusters, which Atlas does not support yet. This gate can be removed once Atlas adds support.
+type InfiniteDatabaseEditionValidator struct{}
+
+func (v InfiniteDatabaseEditionValidator) Description(ctx context.Context) string {
+	return v.MarkdownDescription(ctx)
+}
+
+func (v InfiniteDatabaseEditionValidator) MarkdownDescription(_ context.Context) string {
+	return errorInfiniteShardedEdition
+}
+
+func (v InfiniteDatabaseEditionValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	var databaseEdition types.String
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("database_edition"), &databaseEdition)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if isDatabaseEditionInfiniteSharded(req.ConfigValue.ValueString(), databaseEdition.ValueString(), "") {
+		resp.Diagnostics.AddAttributeError(req.Path, errorInvalidAttributeConfiguration, errorInfiniteShardedEdition)
+	}
+}
+
+// isDatabaseEditionInfiniteSharded reports whether the cluster combines a sharded cluster type with the
+// INFINITE database edition. The configured database_edition takes precedence; effective_database_edition
+// from state covers updates that omit database_edition from config.
+func isDatabaseEditionInfiniteSharded(clusterType, databaseEdition, effectiveDatabaseEdition string) bool {
+	if clusterType != clusterTypeSharded && clusterType != clusterTypeGeosharded {
+		return false
+	}
+	if databaseEdition != "" {
+		return databaseEdition == databaseEditionInfinite
+	}
+	return effectiveDatabaseEdition == databaseEditionInfinite
 }

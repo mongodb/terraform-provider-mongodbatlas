@@ -26,16 +26,17 @@ var _ resource.ResourceWithUpgradeState = &rs{}
 var _ resource.ResourceWithModifyPlan = &rs{}
 
 const (
-	resourceName             = "advanced_cluster"
-	errorPatchPayload        = "error creating patch payload"
-	errorDetailDefault       = "cluster name: %s, API error details: %s"
-	errorReadResource        = "error reading advanced cluster"
-	errorAdvancedConfRead    = "error reading Advanced Configuration"
-	errorList                = "error reading advanced cluster list"
-	errorListDetail          = "project ID %s. Error %s"
-	errorResolveContainerIDs = "error resolving container IDs"
-	errorRegionPriorities    = "priority values in region_configs must be in descending order"
-
+	resourceName                         = "advanced_cluster"
+	errorPatchPayload                    = "error creating patch payload"
+	errorDetailDefault                   = "cluster name: %s, API error details: %s"
+	errorReadResource                    = "error reading advanced cluster"
+	errorAdvancedConfRead                = "error reading Advanced Configuration"
+	errorList                            = "error reading advanced cluster list"
+	errorListDetail                      = "project ID %s. Error %s"
+	errorResolveContainerIDs             = "error resolving container IDs"
+	errorRegionPriorities                = "priority values in region_configs must be in descending order"
+	errorInvalidAttributeConfiguration   = "Invalid Attribute Configuration"
+	errorInfiniteShardedEdition          = "Atlas does not support the INFINITE database edition for SHARDED or GEOSHARDED cluster types. Use a REPLICASET cluster type or a different database_edition."
 	ErrorCodeClusterNotFound             = "CLUSTER_NOT_FOUND"
 	operationUpdate                      = "update"
 	operationCreate                      = "create"
@@ -232,6 +233,12 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
 	if diags.HasError() {
+		return
+	}
+	// Temporary gate: Atlas does not support INFINITE sharded clusters yet. The plan's database_edition is
+	// checked first; state.EffectiveDatabaseEdition covers updates that omit database_edition from config.
+	if isDatabaseEditionInfiniteSharded(plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), state.EffectiveDatabaseEdition.ValueString()) {
+		diags.AddError(errorInvalidAttributeConfiguration, errorInfiniteShardedEdition)
 		return
 	}
 	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
