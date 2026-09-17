@@ -92,7 +92,7 @@ func TestAccConfigRSAlertConfiguration_outsideStreamProcessorMetricThreshold(t *
 		CheckDestroy:             checkDestroy(),
 		Steps: []resource.TestStep{
 			{
-				Config: configOutsideStreamProcessorMetricThresholdAlert(projectID),
+				Config: configOutsideStreamProcessorMetricThresholdAlert(projectID, 5),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "event_type", "OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD"),
@@ -101,6 +101,32 @@ func TestAccConfigRSAlertConfiguration_outsideStreamProcessorMetricThreshold(t *
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "0"),
+				),
+			},
+			{
+				// Regression test for https://github.com/mongodb/terraform-provider-mongodbatlas/issues/4729.
+				// Notification-only update on the event type for which the read returns both metricThreshold and threshold.
+				// Before the fix the PUT payload carried both fields and the API rejected it with DUPLICATE_THRESHOLD_FIELD.
+				Config: configOutsideStreamProcessorMetricThresholdAlert(projectID, 10),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "event_type", "OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD"),
+					resource.TestCheckResourceAttr(resourceName, "notification.0.interval_min", "10"),
+					resource.TestCheckResourceAttr(resourceName, "metric_threshold_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "threshold_config.#", "0"),
+				),
+			},
+			{
+				// Regression test for the block-removal update path: the event type changes to one without a
+				// threshold block and metric_threshold_config is removed. For OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD
+				// the read returns both metricThreshold and threshold, so before the fix the PUT echoed both fields
+				// back and the API rejected it with DUPLICATE_THRESHOLD_FIELD.
+				Config: configWithoutThresholdAlert(projectID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "event_type", "CLUSTER_MONGOS_IS_MISSING"),
+					resource.TestCheckResourceAttr(resourceName, "metric_threshold_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "threshold_config.#", "0"),
 				),
 			},
 			{
@@ -290,6 +316,17 @@ func TestAccConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "matcher.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "0"),
+				),
+			},
+			{
+				// threshold_config is removed together with the event type change; before the fix the PUT
+				// re-sent the threshold returned by the read instead of clearing it.
+				Config: configWithoutThresholdAlert(projectID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "event_type", "CLUSTER_MONGOS_IS_MISSING"),
+					resource.TestCheckResourceAttr(resourceName, "threshold_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "metric_threshold_config.#", "0"),
 				),
 			},
 			{
@@ -821,7 +858,7 @@ func configBasic(projectID string, enabled bool) string {
 	`, projectID, enabled)
 }
 
-func configOutsideStreamProcessorMetricThresholdAlert(projectID string) string {
+func configOutsideStreamProcessorMetricThresholdAlert(projectID string, intervalMin int) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_alert_configuration" "test" {
 		project_id = %[1]q
@@ -830,7 +867,7 @@ func configOutsideStreamProcessorMetricThresholdAlert(projectID string) string {
 
 		notification {
 			type_name     = "GROUP"
-			interval_min  = 5
+			interval_min  = %[2]d
 			delay_min     = 0
 			sms_enabled   = false
 			email_enabled = true
@@ -848,6 +885,26 @@ func configOutsideStreamProcessorMetricThresholdAlert(projectID string) string {
 	data "mongodbatlas_alert_configuration" "test" {
 		project_id             = mongodbatlas_alert_configuration.test.project_id
 		alert_configuration_id = mongodbatlas_alert_configuration.test.id
+	}
+	`, projectID, intervalMin)
+}
+
+// configWithoutThresholdAlert switches the alert configuration to an event type that takes no threshold block,
+// removing metric_threshold_config or threshold_config from the configuration in the same update.
+func configWithoutThresholdAlert(projectID string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_alert_configuration" "test" {
+		project_id = %[1]q
+		enabled    = true
+		event_type = "CLUSTER_MONGOS_IS_MISSING"
+
+		notification {
+			type_name     = "GROUP"
+			interval_min  = 5
+			delay_min     = 0
+			sms_enabled   = false
+			email_enabled = true
+		}
 	}
 	`, projectID)
 }

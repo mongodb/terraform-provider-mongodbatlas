@@ -365,7 +365,7 @@ func TestAccMetricIntegration_oauthPrivateKeyJWT(t *testing.T) {
 							"oauth.client_auth_method":         knownvalue.StringExact("PRIVATE_KEY_JWT"),
 							"oauth.client_id":                  knownvalue.StringExact(oauthClientID),
 							"oauth.token_endpoint":             knownvalue.StringExact(oauthTokenEndpoint),
-							"oauth.token_request_params":       knownvalue.MapExact(map[string]knownvalue.Check{"resource": knownvalue.StringExact("JPMC:URI:OTel")}),
+							"oauth.token_request_params":       knownvalue.MapExact(map[string]knownvalue.Check{"resource": knownvalue.StringExact("TEST:URI:OTel")}),
 							"oauth.signing_key_info.algorithm": knownvalue.StringExact("RS256"),
 						},
 					),
