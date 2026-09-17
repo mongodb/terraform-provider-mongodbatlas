@@ -150,7 +150,7 @@ func clusterReq(name, projectID, region string, backupEnabled, pitEnabled bool) 
 						RegionName:   new(region),
 						Priority:     new(7),
 						ElectableSpecs: &admin.HardwareSpec20240805{
-							InstanceSize: admin.PtrString(constant.M10),
+							InstanceSize: new(TestClusterTier()),
 							NodeCount:    new(3),
 						},
 					},
