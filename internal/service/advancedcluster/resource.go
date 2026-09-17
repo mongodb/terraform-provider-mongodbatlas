@@ -118,8 +118,8 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	// Gate values the plan validator cannot see because they only resolve at apply time, e.g. database_edition
-	// computed from another resource.
+	// Gate one case the plan validator cannot see: values that only resolve at apply time, e.g.
+	// database_edition computed from another resource. Update gates the other case.
 	if isDatabaseEditionInfiniteSharded(plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), "") {
 		diags.AddError(errorInvalidAttributeConfiguration, errorInfiniteShardedEdition)
 		return
@@ -241,7 +241,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	// Gate the case the plan validator cannot see: database_edition omitted from config on an existing
+	// Gate the other case the plan validator cannot see: database_edition omitted from config on an existing
 	// INFINITE cluster, e.g. switching an INFINITE replica set to sharded after dropping the attribute.
 	if isDatabaseEditionInfiniteSharded(plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), state.EffectiveDatabaseEdition.ValueString()) {
 		diags.AddError(errorInvalidAttributeConfiguration, errorInfiniteShardedEdition)
