@@ -282,7 +282,7 @@ func configOauthPrivateKeyJWT(projectID, endpoint, tokenEndpoint, clientID strin
 
 // TestAccMetricIntegration_oauthClientSecret covers the CLIENT_SECRET OAuth path
 func TestAccMetricIntegration_oauthClientSecret(t *testing.T) {
-	// TODO: remove once the OAuth metric integration fields are available in prod and before merging to master
+	// TODO(CLOUDP-447244): remove this gate before merging to master.
 	acc.SkipTestForCI(t)
 	projectID := acc.ProjectIDExecution(t)
 	var (
@@ -339,7 +339,7 @@ func TestAccMetricIntegration_oauthClientSecret(t *testing.T) {
 
 // TestAccMetricIntegration_oauthPrivateKeyJWT covers the PRIVATE_KEY_JWT OAuth path
 func TestAccMetricIntegration_oauthPrivateKeyJWT(t *testing.T) {
-	// TODO: remove once the OAuth metric integration fields are available in prod and before merging to master
+	// TODO(CLOUDP-447244): remove this gate before merging to master.
 	acc.SkipTestForCI(t)
 	projectID := acc.ProjectIDExecution(t)
 	var (
@@ -391,7 +391,7 @@ func TestAccMetricIntegration_oauthPrivateKeyJWT(t *testing.T) {
 // TestAccMetricIntegration_oauthPrivateKeyJWTRejectsClientSecret verifies the API rejects a
 // client_secret set on a PRIVATE_KEY_JWT integration.
 func TestAccMetricIntegration_oauthPrivateKeyJWTRejectsClientSecret(t *testing.T) {
-	// TODO: remove once the OAuth metric integration fields are available in prod and before merging to master
+	// TODO(CLOUDP-447244): remove this gate before merging to master.
 	acc.SkipTestForCI(t)
 	projectID := acc.ProjectIDExecution(t)
 
