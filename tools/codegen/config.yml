@@ -145,6 +145,51 @@ resources:
       resets_to_defaults: true
     version_header: application/vnd.atlas.2023-01-01+json
 
+  # Singleton resource per cluster.
+  # Create, update, and delete use PATCH.
+  cluster_adaptive_settings:
+    read: &cluster-adaptive-settings-read
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/adaptiveSettings
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/adaptiveSettings
+      method: PATCH
+    update:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/adaptiveSettings
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/adaptiveSettings
+      method: PATCH
+      # Adaptive Settings belong to the cluster, so destroy clears overrides instead of deleting the API object.
+      static_request_body: '{"adaptiveSettingsOverrides": null}'
+      resets_to_defaults: true
+    schema:
+      aliases:
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+        adaptive_settings_overrides:
+          # OpenAPI models this field as an object, but Terraform exposes it as a normalized JSON string.
+          description: &adaptive_settings_overrides_description "JSON-encoded map of customer-specified Adaptive Settings overrides, applied on a best-effort basis. Use `jsonencode` to configure this attribute. Each supported entry that you specify takes precedence over the corresponding Atlas-managed default."
+          # Preserve explicit null during update so removing the attribute clears all overrides through replacement PATCH semantics.
+          request_body_usage: "send_null_as_null_on_update"
+        effective_adaptive_settings:
+          # OpenAPI models this field as an object, but Terraform exposes it as a normalized JSON string.
+          description: &effective_adaptive_settings_description "JSON-encoded map of the effective Adaptive Settings currently applied to your cluster, based on your overrides and Atlas-managed defaults. Atlas-managed defaults can vary by MongoDB version. An override for a setting unsupported by the cluster's MongoDB version doesn't take effect, and the effective value reflects the Atlas-managed default."
+    datasources:
+      read: *cluster-adaptive-settings-read
+      schema:
+        aliases:
+          groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description
+          adaptive_settings_overrides:
+            description: *adaptive_settings_overrides_description
+          effective_adaptive_settings:
+            description: *effective_adaptive_settings_description
+
   cluster_old_api:
     deprecation_message: "This resource is deprecated. Please use the mongodbatlas_cluster_api resource instead."
     read:
@@ -558,6 +603,43 @@ resources:
             optional: true
             computed: true
 
+  cluster_overload_simulation:
+    read: &cluster-overload-simulation-read
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/overloadSimulations/{simulationId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/overloadSimulations
+      method: POST
+      wait: &cluster-overload-simulation-wait
+        state_property: "state"
+        pending_states: ["PENDING"]
+        target_states: ["ACTIVE"]
+        timeout_seconds: 300
+        min_timeout_seconds: 10
+        delay_seconds: 10
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/overloadSimulations/{simulationId}
+      method: DELETE
+      wait:
+        <<: *cluster-overload-simulation-wait
+        pending_states: ["PENDING", "ACTIVE", "FAILED", "ENDING", "COMPLETED"]
+        target_states: ["DELETED"] # DELETED is a special state value when the API returns 404 or an empty object.
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+    datasources:
+      read: *cluster-overload-simulation-read
+      schema:
+        aliases:
+          groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description
+
   custom_db_role_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
@@ -626,6 +708,40 @@ resources:
         start_asap: # "This flag resets to false after MongoDB Cloud completes maintenance."
           computability:
             computed: true
+
+  # Singleton resource in org.
+  # Create uses PATCH.
+  org_maintenance_settings:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
+      method: PATCH
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings:reset
+      method: POST
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      ignores: ["effective_wave_assignment_mode"]
+      overrides:
+        org_id:
+          description: *org_id_description
+        wave_assignment_mode:
+          request_body_usage: "send_null_as_null_on_update"
+          computability:
+            optional: true
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
+        method: GET
+        schema:
+        overrides:
+          org_id:
+            description: *org_id_description
 
   # Singleton resource in project.
   # Create uses PATCH.

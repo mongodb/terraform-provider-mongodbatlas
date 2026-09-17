@@ -51,38 +51,28 @@ func TestAccMcpConfigSecret_rotate(t *testing.T) {
 		firstSecretID string
 	)
 
+	// Note that we rotate single secret and not 2 since deleting 2 secrets in parallel is flaky.
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				// create the original secret.
-				Config: configSecrets(orgID, configName, 720, "test"),
+				Config: configBasic(orgID, configName, 720),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
+					checkBasic(true),
 					func(s *terraform.State) error {
 						return getSecretID(s, resourceName, &firstSecretID)
 					},
 				),
 			},
 			{
-				// add a second secret.
-				Config: configSecrets(orgID, configName, 720, "test", "test_2"),
-				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					checkExists(resourceName+"_2"),
-				),
-			},
-			{
-				// rotate the first secret.
-				// `taint` is deprecated in favor of -replace (https://developer.hashicorp.com/terraform/cli/commands/taint)
-				// but testing plugin doesn't support -replace so using taint instead.
+				// The `taint` command is deprecated in favor of the `-replace` flag: https://developer.hashicorp.com/terraform/cli/commands/taint.
+				// The testing plugin does not facilitate testing with replace, but it does enable tainting so using taint here.
 				Taint:  []string{resourceName},
-				Config: configSecrets(orgID, configName, 720, "test", "test_2"),
+				Config: configBasic(orgID, configName, 720),
 				Check: resource.ComposeTestCheckFunc(
-					checkExists(resourceName),
-					checkExists(resourceName+"_2"),
+					checkBasic(true),
 					func(s *terraform.State) error {
 						var secondSecretID string
 						if err := getSecretID(s, resourceName, &secondSecretID); err != nil {
@@ -99,31 +89,6 @@ func TestAccMcpConfigSecret_rotate(t *testing.T) {
 	})
 }
 
-// builds a mongodbatlas_mcp_config_secret resource for each given address
-// without data sources.
-func configSecrets(orgID, configName string, secretExpiresAfterHours int, addrs ...string) string {
-	var secretsHCL strings.Builder
-	for _, addr := range addrs {
-		fmt.Fprintf(&secretsHCL, `
-			resource "mongodbatlas_mcp_config_secret" "%[1]s" {
-				org_id                     = %[2]q
-				mcp_config_id              = mongodbatlas_mcp_config.test.mcp_config_id
-				secret_expires_after_hours = %[3]d
-			}
-		`, addr, orgID, secretExpiresAfterHours)
-	}
-	return fmt.Sprintf(`
-		resource "mongodbatlas_mcp_config" "test" {
-			org_id          = %[1]q
-			mcp_config_name = %[2]q
-			roles           = ["ORG_READ_ONLY"]
-		}
-
-		%[3]s
-	`, orgID, configName, secretsHCL.String())
-}
-
-// builds a single mongodbatlas_mcp_config_secret resource + its singular/plural data sources.
 func configBasic(orgID, configName string, secretExpiresAfterHours int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_mcp_config" "test" {
