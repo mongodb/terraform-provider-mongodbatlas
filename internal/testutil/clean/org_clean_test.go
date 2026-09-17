@@ -173,6 +173,9 @@ func TestCleanOrgUsers(t *testing.T) {
 	prefixes := userEmailPrefixes()
 	t.Logf("cleaning users with email prefixes %v (DRY_RUN=%t)", prefixes, dryRun)
 	removedUsers, err := removeTestUsers(t.Context(), t, dryRun, acc.ConnV2(), orgID, prefixes)
+	if errors.Is(err, clean.ErrUnauthorized) {
+		t.Skipf("skipping test; unauthorized accessing org users (transient, will retry next run): %s", err)
+	}
 	require.NoError(t, err)
 	t.Logf("SUMMARY\nremoved_users=%d\nDRY_RUN=%t", removedUsers, dryRun)
 }
@@ -185,7 +188,11 @@ var defaultUserEmailPrefixes = []string{"test-acc-tf-"}
 func removeTestUsers(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, orgID string, prefixes []string) (int, error) {
 	t.Helper()
 	users, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.OrgUserResponse], *http.Response, error) {
-		return client.MongoDBCloudUsersAPI.ListOrgUsers(ctx, orgID).PageNum(pageNum).Execute()
+		orgUsers, resp, err := client.MongoDBCloudUsersAPI.ListOrgUsers(ctx, orgID).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
+		if err != nil {
+			return nil, resp, clean.SkipUnauthorizedErr(resp, err)
+		}
+		return orgUsers, resp, nil
 	})
 	if err != nil {
 		return 0, err
@@ -196,13 +203,17 @@ func removeTestUsers(ctx context.Context, t *testing.T, dryRun bool, client *adm
 		if email := user.GetUsername(); !hasAnyPrefix(email, prefixes) {
 			continue
 		}
-		if !dryRun {
-			if _, err = client.MongoDBCloudUsersAPI.RemoveOrgUser(ctx, orgID, user.GetId()).Execute(); err != nil {
-				if admin.IsErrorCode(err, "RESOURCE_NOT_FOUND") {
-					continue // already removed by a concurrent run
-				}
-				return removed, err
+		if dryRun {
+			t.Logf("would remove test user %s", user.GetUsername())
+			removed++
+			continue
+		}
+		resp, err := client.MongoDBCloudUsersAPI.RemoveOrgUser(ctx, orgID, user.GetId()).Execute()
+		if err != nil {
+			if admin.IsErrorCode(err, "RESOURCE_NOT_FOUND") {
+				continue // already removed by a concurrent run
 			}
+			return removed, clean.SkipUnauthorizedErr(resp, err)
 		}
 		t.Logf("removed test user %s", user.GetUsername())
 		removed++
