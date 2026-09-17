@@ -3,11 +3,12 @@ package schemafunc_test
 import (
 	"context"
 	"fmt"
-	"slices"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/stretchr/testify/assert"
 )
@@ -178,63 +179,142 @@ var (
 		RegionName:   types.StringValue("US_EAST_1"),
 		Spec:         asObjectValue(ctx, TFSpec{InstanceSize: types.StringValue("M10"), NodeCount: types.Int64Unknown()}, SpecObjType.AttrTypes),
 	}
+	regionConfigProviderNameUnknown = TFRegionConfig{
+		AutoScaling:  autoScalingFalseAndNull,
+		ProviderName: types.StringUnknown(),
+		RegionName:   types.StringValue("US_EAST_1"),
+		Spec:         asObjectValue(ctx, TFSpec{InstanceSize: types.StringValue("M10"), NodeCount: types.Int64Value(3)}, SpecObjType.AttrTypes),
+	}
 	regionConfigSpecUnknown = TFRegionConfig{
 		AutoScaling:  autoScalingFalseAndNull,
 		ProviderName: types.StringValue("aws"),
 		RegionName:   types.StringValue("US_EAST_1"),
 		Spec:         types.ObjectUnknown(SpecObjType.AttrTypes),
 	}
-	advancedConfigTrue       = asObjectValue(ctx, TFAdvancedConfig{JavascriptEnabled: types.BoolValue(true)}, AdvancedConfigObjType.AttrTypes)
-	autoScalingFalseAndEmpty = asObjectValue(ctx, TFAutoScalingModel{
-		ComputeEnabled:         types.BoolValue(false),
-		DiskGBEnabled:          types.BoolValue(false),
-		ComputeMinInstanceSize: types.StringValue(""),
-		ComputeMaxInstanceSize: types.StringValue(""),
-	}, AutoScalingObjType.AttrTypes)
-
+	advancedConfigTrue      = asObjectValue(ctx, TFAdvancedConfig{JavascriptEnabled: types.BoolValue(true)}, AdvancedConfigObjType.AttrTypes)
 	autoScalingFalseAndNull = asObjectValue(ctx, TFAutoScalingModel{
 		ComputeEnabled:         types.BoolValue(false),
 		DiskGBEnabled:          types.BoolValue(false),
 		ComputeMinInstanceSize: types.StringNull(),
 		ComputeMaxInstanceSize: types.StringNull(),
 	}, AutoScalingObjType.AttrTypes)
-	autoScalingTrueAndNonEmpty = asObjectValue(ctx, TFAutoScalingModel{
-		ComputeEnabled:         types.BoolValue(true),
-		DiskGBEnabled:          types.BoolValue(true),
-		ComputeMinInstanceSize: types.StringValue("M10"),
-		ComputeMaxInstanceSize: types.StringValue("M20"),
-	}, AutoScalingObjType.AttrTypes)
-	autoScalingUnknown      = types.ObjectUnknown(AutoScalingObjType.AttrTypes)
-	autoScalingLeafsUnknown = asObjectValue(ctx, TFAutoScalingModel{
-		ComputeEnabled:         types.BoolUnknown(),
-		DiskGBEnabled:          types.BoolUnknown(),
-		ComputeMinInstanceSize: types.StringUnknown(),
-		ComputeMaxInstanceSize: types.StringUnknown(),
-	}, AutoScalingObjType.AttrTypes)
-	keepProjectIDUnknown = func(name string, value attr.Value) bool {
-		return name == "project_id"
-	}
-	useStateOnlyWhenNodeCount0 = func(name string, value attr.Value) bool {
-		return name == "node_count" && !value.Equal(types.Int64Value(0))
-	}
 
-	autoScalingBoolsKeepUnknown = func(name string, value attr.Value) bool {
-		return slices.Contains([]string{"compute_enabled", "disk_gb_enabled"}, name) && value.Equal(types.BoolValue(true))
-	}
-	autoScalingStringsKeepUnknown = func(name string, value attr.Value) bool {
-		return slices.Contains([]string{"compute_min_instance_size", "compute_max_instance_size"}, name) && value.(types.String).ValueString() != ""
+	// project_id and provider_name are Optional without Computed at their level, the rest can be copied.
+	simpleModelAttributes = map[string]schema.Attribute{
+		"project_id":      schema.StringAttribute{Optional: true},
+		"name":            schema.StringAttribute{Optional: true, Computed: true},
+		"backup_enabled":  schema.BoolAttribute{Computed: true},
+		"advanced_config": schema.SingleNestedAttribute{Computed: true, Attributes: map[string]schema.Attribute{"javascript_enabled": schema.BoolAttribute{Optional: true, Computed: true}}},
+		"replication_specs": schema.ListNestedAttribute{Optional: true, Computed: true, NestedObject: schema.NestedAttributeObject{Attributes: map[string]schema.Attribute{
+			"zone_name": schema.StringAttribute{Optional: true, Computed: true},
+			"region_configs": schema.ListNestedAttribute{Optional: true, Computed: true, NestedObject: schema.NestedAttributeObject{Attributes: map[string]schema.Attribute{
+				"provider_name": schema.StringAttribute{Optional: true},
+				"region_name":   schema.StringAttribute{Optional: true, Computed: true},
+				"auto_scaling":  schema.SingleNestedAttribute{Optional: true, Computed: true, Attributes: map[string]schema.Attribute{}},
+				"spec": schema.SingleNestedAttribute{Optional: true, Computed: true, Attributes: map[string]schema.Attribute{
+					"instance_size": schema.StringAttribute{Optional: true, Computed: true},
+					"node_count":    schema.Int64Attribute{Optional: true, Computed: true},
+				}},
+			}}},
+		}}},
 	}
 )
 
+// configOnlyObjectAttributes makes advanced_config Optional without Computed, with a Computed child.
+var configOnlyObjectAttributes = map[string]schema.Attribute{
+	"project_id":     schema.StringAttribute{Optional: true},
+	"name":           schema.StringAttribute{Optional: true, Computed: true},
+	"backup_enabled": schema.BoolAttribute{Computed: true},
+	"advanced_config": schema.SingleNestedAttribute{Optional: true, Attributes: map[string]schema.Attribute{
+		"javascript_enabled": schema.BoolAttribute{Computed: true},
+	}},
+}
+
 func TestCopyUnknowns(t *testing.T) {
 	tests := map[string]struct {
-		src              *TFSimpleModel
-		dest             *TFSimpleModel
-		expectedDest     *TFSimpleModel
-		keepUnknownCalls schemafunc.KeepUnknownFunc
-		panicMessage     string
-		keepUnknown      []string
+		src          *TFSimpleModel
+		dest         *TFSimpleModel
+		expectedDest *TFSimpleModel
+		attributes   map[string]schema.Attribute
+		panicMessage string
+		keepUnknown  []string
 	}{
+		"schema keeps Optional-only attributes unknown": {
+			src: &TFSimpleModel{
+				ProjectID:        types.StringValue("src-project"),
+				Name:             types.StringValue("src-name"),
+				BackupEnabled:    types.BoolValue(true),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSrc}),
+			},
+			dest: &TFSimpleModel{
+				ProjectID:        types.StringUnknown(),
+				Name:             types.StringUnknown(),
+				BackupEnabled:    types.BoolUnknown(),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigDest}),
+			},
+			expectedDest: &TFSimpleModel{
+				// project_id and the nested provider_name are Optional-only, the others are copied from src.
+				ProjectID:        types.StringUnknown(),
+				Name:             types.StringValue("src-name"),
+				BackupEnabled:    types.BoolValue(true),
+				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigProviderNameUnknown}),
+			},
+			attributes: simpleModelAttributes,
+		},
+		"config-only object is traversed for its Computed children": {
+			src: &TFSimpleModel{
+				AdvancedConfig: advancedConfigTrue,
+				Name:           types.StringValue("src-name"),
+			},
+			dest: &TFSimpleModel{
+				// the object is known, only its Computed child is unknown, as Terraform proposes it
+				AdvancedConfig: types.ObjectValueMust(AdvancedConfigObjType.AttrTypes,
+					map[string]attr.Value{"javascript_enabled": types.BoolUnknown()}),
+				Name: types.StringUnknown(),
+			},
+			expectedDest: &TFSimpleModel{
+				AdvancedConfig: advancedConfigTrue,
+				Name:           types.StringValue("src-name"),
+			},
+			attributes: configOnlyObjectAttributes,
+		},
+		"config-only object left unknown when the configuration does not resolve it": {
+			src: &TFSimpleModel{
+				AdvancedConfig: advancedConfigTrue,
+				Name:           types.StringValue("src-name"),
+			},
+			dest: &TFSimpleModel{
+				AdvancedConfig: types.ObjectUnknown(AdvancedConfigObjType.AttrTypes),
+				Name:           types.StringUnknown(),
+			},
+			expectedDest: &TFSimpleModel{
+				AdvancedConfig: types.ObjectUnknown(AdvancedConfigObjType.AttrTypes),
+				Name:           types.StringValue("src-name"),
+			},
+			attributes: configOnlyObjectAttributes,
+		},
+		"schema and keepUnknown are combined": {
+			src: &TFSimpleModel{
+				ProjectID:      types.StringValue("src-project"),
+				Name:           types.StringValue("src-name"),
+				BackupEnabled:  types.BoolValue(true),
+				AdvancedConfig: advancedConfigTrue,
+			},
+			dest: &TFSimpleModel{
+				ProjectID:      types.StringUnknown(),
+				Name:           types.StringUnknown(),
+				BackupEnabled:  types.BoolUnknown(),
+				AdvancedConfig: types.ObjectUnknown(AdvancedConfigObjType.AttrTypes),
+			},
+			expectedDest: &TFSimpleModel{
+				ProjectID:      types.StringUnknown(),
+				Name:           types.StringUnknown(),
+				BackupEnabled:  types.BoolValue(true),
+				AdvancedConfig: advancedConfigTrue,
+			},
+			attributes:  simpleModelAttributes,
+			keepUnknown: []string{"name"},
+		},
 		"copy unknown basic fields": {
 			src: &TFSimpleModel{
 				ProjectID:     types.StringValue("src-project"),
@@ -294,57 +374,6 @@ func TestCopyUnknowns(t *testing.T) {
 			},
 			keepUnknown: []string{"spec"},
 		},
-		"respect keepUnknownCall root": {
-			src: &TFSimpleModel{
-				ProjectID: types.StringValue("src-project"),
-				Name:      types.StringValue("src-name"),
-			},
-			dest: &TFSimpleModel{
-				ProjectID: types.StringUnknown(),
-				Name:      types.StringUnknown(),
-			},
-			expectedDest: &TFSimpleModel{
-				ProjectID: types.StringUnknown(),
-				Name:      types.StringValue("src-name"),
-			},
-			keepUnknownCalls: keepProjectIDUnknown,
-		},
-		"respect keepUnknownCall nested": {
-			src: &TFSimpleModel{
-				ProjectID:        types.StringValue("src-project"),
-				Name:             types.StringValue("src-name"),
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSrc}),
-			},
-			dest: &TFSimpleModel{
-				ProjectID:        types.StringUnknown(),
-				Name:             types.StringUnknown(),
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown}),
-			},
-			expectedDest: &TFSimpleModel{
-				ProjectID:        types.StringValue("src-project"),
-				Name:             types.StringValue("src-name"),
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigNodeCountUnknown}),
-			},
-			keepUnknownCalls: useStateOnlyWhenNodeCount0,
-		},
-		"respect multiple keepUnknownCall": {
-			src: &TFSimpleModel{
-				ProjectID:        types.StringValue("src-project"),
-				Name:             types.StringValue("src-name"),
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigSrc}),
-			},
-			dest: &TFSimpleModel{
-				ProjectID:        types.StringUnknown(),
-				Name:             types.StringUnknown(),
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{regionConfigNodeCountUnknown}),
-			},
-			expectedDest: &TFSimpleModel{
-				ProjectID:        types.StringUnknown(),
-				Name:             types.StringValue("src-name"),
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigNodeCountUnknown}),
-			},
-			keepUnknownCalls: schemafunc.KeepUnknownFuncOr(keepProjectIDUnknown, useStateOnlyWhenNodeCount0),
-		},
 		"copy node_count 0": {
 			src: &TFSimpleModel{
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigNodeCount0}),
@@ -355,31 +384,6 @@ func TestCopyUnknowns(t *testing.T) {
 			expectedDest: &TFSimpleModel{
 				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{regionConfigNodeCount0}),
 			},
-			keepUnknownCalls: useStateOnlyWhenNodeCount0,
-		},
-		"keepUnknownCall on string": {
-			src: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{
-					regionConfigWithAutoScaling(autoScalingFalseAndEmpty),
-					regionConfigWithAutoScaling(autoScalingFalseAndNull),
-					regionConfigWithAutoScaling(autoScalingTrueAndNonEmpty),
-				}),
-			},
-			dest: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringUnknown(), []TFRegionConfig{
-					regionConfigWithAutoScaling(autoScalingUnknown),
-					regionConfigWithAutoScaling(autoScalingUnknown),
-					regionConfigWithAutoScaling(autoScalingUnknown),
-				}),
-			},
-			expectedDest: &TFSimpleModel{
-				ReplicationSpecs: newReplicationSpecs(ctx, types.StringValue("Zone 1"), []TFRegionConfig{
-					regionConfigWithAutoScaling(autoScalingFalseAndEmpty),
-					regionConfigWithAutoScaling(autoScalingFalseAndNull),
-					regionConfigWithAutoScaling(autoScalingLeafsUnknown),
-				}),
-			},
-			keepUnknownCalls: schemafunc.KeepUnknownFuncOr(autoScalingStringsKeepUnknown, autoScalingBoolsKeepUnknown),
 		},
 		"non-pointer input": {
 			src:          &TFSimpleModel{},
@@ -457,11 +461,11 @@ func TestCopyUnknowns(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			if tc.panicMessage != "" {
 				assert.PanicsWithValue(t, tc.panicMessage, func() {
-					schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown, nil)
+					schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.attributes, tc.keepUnknown)
 				})
 				return
 			}
-			schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.keepUnknown, tc.keepUnknownCalls)
+			schemafunc.CopyUnknowns(ctx, tc.src, tc.dest, tc.attributes, tc.keepUnknown)
 			assert.Equal(t, *tc.expectedDest, *tc.dest)
 		})
 	}
@@ -503,11 +507,40 @@ func combineReplicationSpecs(specs ...types.List) types.List {
 	return types.ListValueMust(ReplicationSpecsObjType, combined)
 }
 
-func regionConfigWithAutoScaling(autoScaling types.Object) TFRegionConfig {
-	return TFRegionConfig{
-		AutoScaling:  autoScaling,
-		ProviderName: types.StringValue("aws"),
-		RegionName:   types.StringValue("US_EAST_1"),
-		Spec:         asObjectValue(ctx, TFSpec{InstanceSize: types.StringValue("M10"), NodeCount: types.Int64Value(3)}, SpecObjType.AttrTypes),
+func TestUnknownInConfig(t *testing.T) {
+	objType := tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+		"name": tftypes.String, "tags": tftypes.Map{ElementType: tftypes.String},
+		"specs": tftypes.List{ElementType: tftypes.Object{AttributeTypes: map[string]tftypes.Type{"size": tftypes.String}}},
+	}}
+	specs := func(size tftypes.Value) tftypes.Value {
+		element := tftypes.Object{AttributeTypes: map[string]tftypes.Type{"size": tftypes.String}}
+		return tftypes.NewValue(tftypes.List{ElementType: element},
+			[]tftypes.Value{tftypes.NewValue(element, map[string]tftypes.Value{"size": size})})
+	}
+	object := func(name, tags, specs tftypes.Value) tftypes.Value {
+		return tftypes.NewValue(objType, map[string]tftypes.Value{"name": name, "tags": tags, "specs": specs})
+	}
+	knownName := tftypes.NewValue(tftypes.String, "example")
+	nullTags := tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil)
+	knownSize := tftypes.NewValue(tftypes.String, "M10")
+	unknownSize := tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
+	testCases := map[string]struct {
+		config   tftypes.Value
+		expected []string
+	}{
+		"all known":                {object(knownName, nullTags, specs(knownSize)), nil},
+		"unknown attribute":        {object(knownName, tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tftypes.UnknownValue), specs(knownSize)), []string{"tags"}},
+		"unknown nested in a list": {object(knownName, nullTags, specs(unknownSize)), []string{"specs"}},
+		"sorted names":             {object(tftypes.NewValue(tftypes.String, tftypes.UnknownValue), nullTags, specs(unknownSize)), []string{"name", "specs"}},
+		// Degenerate values must not panic, ModifyPlan is called for destroy plans too.
+		"zero value":     {tftypes.Value{}, nil},
+		"null object":    {tftypes.NewValue(objType, nil), nil},
+		"unknown object": {tftypes.NewValue(objType, tftypes.UnknownValue), nil},
+		"not an object":  {tftypes.NewValue(tftypes.String, "example"), nil},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, schemafunc.UnknownInConfig(tc.config))
+		})
 	}
 }

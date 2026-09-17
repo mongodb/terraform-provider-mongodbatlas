@@ -1,0 +1,14 @@
+---
+subcategory: "Remote MCP"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` returns all Remote MCP Configurations for the specified Project.
+
+## Example Usages
+{{ tffile "examples/mongodbatlas_project_mcp_config/plural-data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information, see [Return All MCP Configurations for One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listgroupmcpconfigs) in the MongoDB Atlas API documentation.

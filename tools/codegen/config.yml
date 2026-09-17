@@ -145,6 +145,51 @@ resources:
       resets_to_defaults: true
     version_header: application/vnd.atlas.2023-01-01+json
 
+  # Singleton resource per cluster.
+  # Create, update, and delete use PATCH.
+  cluster_adaptive_settings:
+    read: &cluster-adaptive-settings-read
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/adaptiveSettings
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/adaptiveSettings
+      method: PATCH
+    update:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/adaptiveSettings
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/adaptiveSettings
+      method: PATCH
+      # Adaptive Settings belong to the cluster, so destroy clears overrides instead of deleting the API object.
+      static_request_body: '{"adaptiveSettingsOverrides": null}'
+      resets_to_defaults: true
+    schema:
+      aliases:
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+        adaptive_settings_overrides:
+          # OpenAPI models this field as an object, but Terraform exposes it as a normalized JSON string.
+          description: &adaptive_settings_overrides_description "JSON-encoded map of customer-specified Adaptive Settings overrides, applied on a best-effort basis. Use `jsonencode` to configure this attribute. Each supported entry that you specify takes precedence over the corresponding Atlas-managed default."
+          # Preserve explicit null during update so removing the attribute clears all overrides through replacement PATCH semantics.
+          request_body_usage: "send_null_as_null_on_update"
+        effective_adaptive_settings:
+          # OpenAPI models this field as an object, but Terraform exposes it as a normalized JSON string.
+          description: &effective_adaptive_settings_description "JSON-encoded map of the effective Adaptive Settings currently applied to your cluster, based on your overrides and Atlas-managed defaults. Atlas-managed defaults can vary by MongoDB version. An override for a setting unsupported by the cluster's MongoDB version doesn't take effect, and the effective value reflects the Atlas-managed default."
+    datasources:
+      read: *cluster-adaptive-settings-read
+      schema:
+        aliases:
+          groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description
+          adaptive_settings_overrides:
+            description: *adaptive_settings_overrides_description
+          effective_adaptive_settings:
+            description: *effective_adaptive_settings_description
+
   cluster_old_api:
     deprecation_message: "This resource is deprecated. Please use the mongodbatlas_cluster_api resource instead."
     read:
@@ -558,6 +603,43 @@ resources:
             optional: true
             computed: true
 
+  cluster_overload_simulation:
+    read: &cluster-overload-simulation-read
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/overloadSimulations/{simulationId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/overloadSimulations
+      method: POST
+      wait: &cluster-overload-simulation-wait
+        state_property: "state"
+        pending_states: ["PENDING"]
+        target_states: ["ACTIVE"]
+        timeout_seconds: 300
+        min_timeout_seconds: 10
+        delay_seconds: 10
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/overloadSimulations/{simulationId}
+      method: DELETE
+      wait:
+        <<: *cluster-overload-simulation-wait
+        pending_states: ["PENDING", "ACTIVE", "FAILED", "ENDING", "COMPLETED"]
+        target_states: ["DELETED"] # DELETED is a special state value when the API returns 404 or an empty object.
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+    datasources:
+      read: *cluster-overload-simulation-read
+      schema:
+        aliases:
+          groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description
+
   custom_db_role_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
@@ -626,6 +708,40 @@ resources:
         start_asap: # "This flag resets to false after MongoDB Cloud completes maintenance."
           computability:
             computed: true
+
+  # Singleton resource in org.
+  # Create uses PATCH.
+  org_maintenance_settings:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
+      method: PATCH
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings:reset
+      method: POST
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      ignores: ["effective_wave_assignment_mode"]
+      overrides:
+        org_id:
+          description: *org_id_description
+        wave_assignment_mode:
+          request_body_usage: "send_null_as_null_on_update"
+          computability:
+            optional: true
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
+        method: GET
+        schema:
+        overrides:
+          org_id:
+            description: *org_id_description
 
   # Singleton resource in project.
   # Create uses PATCH.
@@ -1918,3 +2034,186 @@ resources:
         overrides:
           org_id:
             description: *org_id_description
+
+  mcp_config:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      # These fields are computed within the ip_access_list set.
+      # Exposing them would require a plan modifier to mark them as unknown before every update.
+      # This works fine but comes at the cost of extremely verbose and potentially confusing plans.
+      # Customers can access these attributes through data sources.
+      # Any new computed attribute under ip_access_list should also be ignored.
+      ignores: ["ip_access_list.created_at", "ip_access_list.last_used_address", "ip_access_list.last_used_at", "ip_access_list.request_count"]
+      overrides:
+        org_id:
+          description: *org_id_description
+        mcp_config_id:
+          immutable_computed: true
+        client_id:
+          immutable_computed: true
+        egress_client_id:
+          immutable_computed: true
+        # The API returns both cidr_block and ip_address when they are equivalent, regardless of which one was sent. Setting both to optional+computed.
+        ip_access_list:
+          computability:
+            optional: true
+            computed: true
+        ip_access_list.cidr_block:
+          computability:
+            optional: true
+            computed: true
+        ip_access_list.ip_address:
+          computability:
+            optional: true
+            computed: true
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}
+        method: GET
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs
+        method: GET
+      schema:
+        overrides:
+          org_id:
+            description: *org_id_description
+
+  mcp_config_secret:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets
+      method: POST
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        id: secretId
+      overrides:
+        org_id:
+          description: *org_id_description
+        secret:
+          sensitive: true
+        secret_expires_after_hours:
+          description: "The expiration time of the new ingress Service Account secret, provided in hours. This attribute is required when creating the secret and cannot be updated later."
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+        method: GET
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets
+        method: GET
+      schema:
+        ignores: ["secret", "results.secret"] # `secret` is only ever populated in the create response
+        aliases:
+          id: secretId
+        overrides:
+          org_id:
+            description: *org_id_description
+
+  project_mcp_config:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        groupId: projectId
+      # See mcp_config comments.
+      ignores: ["ip_access_list.created_at", "ip_access_list.last_used_address", "ip_access_list.last_used_at", "ip_access_list.request_count"]
+      overrides:
+        project_id:
+          description: *project_id_description
+        mcp_config_id:
+          immutable_computed: true
+        client_id:
+          immutable_computed: true
+        egress_client_id:
+          immutable_computed: true
+        ip_access_list:
+          computability:
+            optional: true
+            computed: true
+        ip_access_list.cidr_block:
+          computability:
+            optional: true
+            computed: true
+        ip_access_list.ip_address:
+          computability:
+            optional: true
+            computed: true
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/mcpConfigs
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description
+
+  project_mcp_config_secret:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets
+      method: POST
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        id: secretId
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+        secret:
+          sensitive: true
+        secret_expires_after_hours:
+          description: "The expiration time of the new ingress Service Account secret, provided in hours. This attribute is required when creating the secret and cannot be updated later."
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets
+        method: GET
+      schema:
+        ignores: ["secret", "results.secret"] # `secret` is only ever populated in the create response
+        aliases:
+          id: secretId
+          groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description

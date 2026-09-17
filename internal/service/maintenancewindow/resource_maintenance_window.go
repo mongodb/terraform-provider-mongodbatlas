@@ -6,12 +6,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
+	admin "go.mongodb.org/atlas-sdk/v20250312025/admin"
 )
 
 const (
@@ -38,26 +37,14 @@ func Resource() *schema.Resource {
 				Required: true,
 			},
 			"day_of_week": {
-				Type:     schema.TypeInt,
-				Required: true,
-				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
-					v := val.(int)
-					if v < 1 || v > 7 {
-						errs = append(errs, fmt.Errorf("%q value should be between 1 and 7, got: %d", key, v))
-					}
-					return
-				},
+				Type:         schema.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"hour_of_day"},
 			},
 			"hour_of_day": {
-				Type:     schema.TypeInt,
-				Required: true,
-				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
-					v := val.(int)
-					if v < 0 || v > 23 {
-						errs = append(errs, fmt.Errorf("%q value should be between 0 and 23, got: %d", key, v))
-					}
-					return
-				},
+				Type:         schema.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"day_of_week"},
 			},
 			"start_asap": {
 				Type:     schema.TypeBool,
@@ -103,6 +90,10 @@ func Resource() *schema.Resource {
 					},
 				},
 			},
+			"wave_assignment": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -120,11 +111,22 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	params := new(admin.GroupMaintenanceWindow)
 
-	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
-	params.HourOfDay = new(cast.ToInt(d.Get("hour_of_day")))
+	if !d.GetRawConfig().GetAttr("day_of_week").IsNull() {
+		day := d.Get("day_of_week").(int)
+		params.DayOfWeek = &day
+	}
+	if !d.GetRawConfig().GetAttr("hour_of_day").IsNull() {
+		hour := d.Get("hour_of_day").(int)
+		params.HourOfDay = &hour
+	}
 
 	if autoDeferOnceEnabled, ok := d.GetOk("auto_defer_once_enabled"); ok {
 		params.AutoDeferOnceEnabled = new(autoDeferOnceEnabled.(bool))
+	}
+
+	if !d.GetRawConfig().GetAttr("wave_assignment").IsNull() {
+		wave := d.Get("wave_assignment").(int)
+		params.WaveAssignment = &wave
 	}
 
 	params.ProtectedHours = newProtectedHours(d)
@@ -205,6 +207,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 		}
 	}
+
+	if err := d.Set("wave_assignment", maintenanceWindow.GetWaveAssignment()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+	}
 	return nil
 }
 
@@ -229,10 +235,17 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	params := new(admin.GroupMaintenanceWindow)
-	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
 
-	if d.HasChange("hour_of_day") {
-		params.HourOfDay = new(cast.ToInt(d.Get("hour_of_day")))
+	// Both fields are RequiredWith, gate on either since hour_of_day=0 (midnight) has no diff on its own.
+	if !d.GetRawConfig().GetAttr("day_of_week").IsNull() {
+		params.SetDayOfWeek(d.Get("day_of_week").(int))
+	} else if d.HasChange("day_of_week") || d.HasChange("hour_of_day") {
+		params.SetDayOfWeekNil()
+	}
+	if !d.GetRawConfig().GetAttr("hour_of_day").IsNull() {
+		params.SetHourOfDay(d.Get("hour_of_day").(int))
+	} else if d.HasChange("day_of_week") || d.HasChange("hour_of_day") {
+		params.SetHourOfDayNil()
 	}
 
 	if d.HasChange("auto_defer_once_enabled") {
@@ -253,6 +266,16 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
+	if d.HasChange("wave_assignment") {
+		// SDKv2 GetOk() cannot distinguish an explicit value (including 0) from an unset field,
+		// since TypeInt treats 0 and absent identically. GetRawConfig() allows to distinguish between the two.
+		if d.GetRawConfig().GetAttr("wave_assignment").IsNull() {
+			params.SetWaveAssignmentNil()
+		} else {
+			params.SetWaveAssignment(d.Get("wave_assignment").(int))
+		}
+	}
+
 	_, err := connV2.MaintenanceWindowsAPI.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceUpdate, projectID, err))
@@ -265,7 +288,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	return nil
+	return resourceRead(ctx, d, meta)
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {

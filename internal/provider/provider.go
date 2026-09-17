@@ -4,8 +4,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/metricintegration"
-
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -61,11 +59,19 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejobcollection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabasecollection"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusteradaptivesettings"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusteroverloadsimulation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/mcpconfig"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/mcpconfigsecret"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/metricintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orgdelegationsettings"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orglogintegration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orgmaintenancesettings"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive"
 	autogenprojectipaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectipaccesslist"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectmcpconfig"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectmcpconfigsecret"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccount"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccountsecret"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccount"
@@ -322,6 +328,8 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		flexsnapshot.PluralDataSource,
 		flexrestorejob.DataSource,
 		flexrestorejob.PluralDataSource,
+		clusteradaptivesettings.DataSource,
+		clusteroverloadsimulation.DataSource,
 		resourcepolicy.DataSource,
 		resourcepolicy.PluralDataSource,
 		clouduserorgassignment.DataSource,
@@ -348,6 +356,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		logintegration.PluralDataSource,
 		orglogintegration.DataSource,
 		orglogintegration.PluralDataSource,
+		orgmaintenancesettings.DataSource,
 		metricintegration.DataSource,
 		metricintegration.PluralDataSource,
 		cloudbackupcollectionrestorejob.DataSource,
@@ -367,6 +376,14 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		aimodelratelimit.DataSource,
 		aimodelratelimit.PluralDataSource,
 		orgdelegationsettings.DataSource,
+		mcpconfig.DataSource,
+		mcpconfig.PluralDataSource,
+		mcpconfigsecret.DataSource,
+		mcpconfigsecret.PluralDataSource,
+		projectmcpconfig.DataSource,
+		projectmcpconfig.PluralDataSource,
+		projectmcpconfigsecret.DataSource,
+		projectmcpconfigsecret.PluralDataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
@@ -382,6 +399,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		project.Resource,
 		logintegration.Resource,
 		orglogintegration.Resource,
+		orgmaintenancesettings.Resource,
 		encryptionatrest.Resource,
 		databaseuser.Resource,
 		alertconfiguration.Resource,
@@ -397,6 +415,8 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		mongodbemployeeaccessgrant.Resource,
 		streamprivatelinkendpoint.Resource,
 		flexcluster.Resource,
+		clusteradaptivesettings.Resource,
+		clusteroverloadsimulation.Resource,
 		resourcepolicy.Resource,
 		clouduserorgassignment.Resource,
 		apikeyprojectassignment.Resource,
@@ -415,6 +435,10 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		aimodelapikey.Resource,
 		aimodelratelimit.Resource,
 		orgdelegationsettings.Resource,
+		mcpconfig.Resource,
+		mcpconfigsecret.Resource,
+		projectmcpconfig.Resource,
+		projectmcpconfigsecret.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {
