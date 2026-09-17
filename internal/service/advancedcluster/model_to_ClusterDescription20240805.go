@@ -187,7 +187,7 @@ func newRegionConfig(ctx context.Context, input types.List, diags *diag.Diagnost
 		resp[i] = admin.CloudRegionConfig20240805{
 			AnalyticsAutoScaling: newAdvancedAutoScalingSettings(ctx, item.AnalyticsAutoScaling, diags),
 			AnalyticsSpecs:       newDedicatedHardwareSpec(ctx, item.AnalyticsSpecs, diags),
-			AutoScaling:          newAdvancedAutoScalingSettings(ctx, item.AutoScaling, diags),
+			AutoScaling:          newAutoScalingWithStorageConfig(ctx, item.AutoScaling, diags),
 			BackingProviderName:  conversion.NilForUnknown(item.BackingProviderName, item.BackingProviderName.ValueStringPointer()),
 			ElectableSpecs:       newHardwareSpec(ctx, item.ElectableSpecs, diags),
 			Priority:             conversion.Int64PtrToIntPtr(item.Priority.ValueInt64Pointer()),
@@ -199,26 +199,46 @@ func newRegionConfig(ctx context.Context, input types.List, diags *diag.Diagnost
 	return &resp
 }
 
+// newAdvancedAutoScalingSettings converts the shared compute/diskGB auto-scaling shape. It is used for both
+// auto_scaling and analytics_auto_scaling, so it only reads the fields present in autoScalingObjType.
 func newAdvancedAutoScalingSettings(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.AdvancedAutoScalingSettings {
 	if input.IsUnknown() || input.IsNull() {
 		return nil
-	}
-	result := new(admin.AdvancedAutoScalingSettings)
-	attributes := input.Attributes()
-	if storageConfig, ok := attributes["storage_config"]; ok {
-		result.StorageConfig = newStorageConfig(ctx, storageConfig.(types.Object), diags)
-		delete(attributes, "storage_config")
-		var localDiags diag.Diagnostics
-		input, localDiags = types.ObjectValue(autoScalingObjType.AttrTypes, attributes)
-		diags.Append(localDiags...)
 	}
 	item := &TFAutoScalingModel{}
 	diags.Append(input.As(ctx, item, basetypes.ObjectAsOptions{})...)
 	if diags.HasError() {
 		return nil
 	}
-	result.Compute = newAdvancedComputeAutoScaling(item)
-	result.DiskGB = newDiskGBAutoScaling(item)
+	return &admin.AdvancedAutoScalingSettings{
+		Compute: newAdvancedComputeAutoScaling(item),
+		DiskGB:  newDiskGBAutoScaling(item),
+	}
+}
+
+// newAutoScalingWithStorageConfig converts auto_scaling, which additionally carries storage_config. It extracts
+// storage_config first, then narrows the object to the base autoScalingObjType so the shared decode into
+// TFAutoScalingModel (which has no storage field) succeeds.
+func newAutoScalingWithStorageConfig(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.AdvancedAutoScalingSettings {
+	if input.IsUnknown() || input.IsNull() {
+		return nil
+	}
+	attributes := input.Attributes()
+	storageConfig, ok := attributes["storage_config"]
+	if !ok {
+		return newAdvancedAutoScalingSettings(ctx, input, diags)
+	}
+	delete(attributes, "storage_config")
+	base, localDiags := types.ObjectValue(autoScalingObjType.AttrTypes, attributes)
+	diags.Append(localDiags...)
+	if diags.HasError() {
+		return nil
+	}
+	result := newAdvancedAutoScalingSettings(ctx, base, diags)
+	if result == nil {
+		return nil
+	}
+	result.StorageConfig = newStorageConfig(ctx, storageConfig.(types.Object), diags)
 	return result
 }
 
