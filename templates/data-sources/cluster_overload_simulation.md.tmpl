@@ -1,0 +1,13 @@
+---
+subcategory: "Clusters"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes one overload protection simulation for a MongoDB Atlas cluster.
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}

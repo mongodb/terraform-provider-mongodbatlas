@@ -445,6 +445,91 @@ func TestMetricThresholdTFModelToSDK(t *testing.T) {
 	}
 }
 
+func TestPopulateThresholdFromPlan(t *testing.T) {
+	apiReqWithBoth := func() *admin.GroupAlertsConfig {
+		return &admin.GroupAlertsConfig{
+			MetricThreshold: &admin.StreamProcessorMetricThreshold{MetricName: new("STREAM_PROCESSOR_CHANGE_STREAM_LAG")},
+			Threshold:       &admin.StreamProcessorMetricThreshold{Threshold: new(1.0)},
+		}
+	}
+
+	testCases := map[string]struct {
+		apiReq                  *admin.GroupAlertsConfig
+		expectedMetricThreshold *admin.StreamProcessorMetricThreshold
+		expectedThreshold       *admin.StreamProcessorMetricThreshold
+		metricThreshold         []alertconfiguration.TfMetricThresholdConfigModel
+		threshold               []alertconfiguration.TfThresholdConfigModel
+		stateMetricThreshold    []alertconfiguration.TfMetricThresholdConfigModel
+		stateThreshold          []alertconfiguration.TfThresholdConfigModel
+	}{
+		"Both fields set by the read, only metric in plan": {
+			apiReq: apiReqWithBoth(),
+			metricThreshold: []alertconfiguration.TfMetricThresholdConfigModel{
+				{MetricName: types.StringValue("STREAM_PROCESSOR_CHANGE_STREAM_LAG"), Threshold: types.Float64Value(0.0)},
+			},
+			stateMetricThreshold: []alertconfiguration.TfMetricThresholdConfigModel{
+				{MetricName: types.StringValue("STREAM_PROCESSOR_CHANGE_STREAM_LAG"), Threshold: types.Float64Value(0.0)},
+			},
+			expectedMetricThreshold: &admin.StreamProcessorMetricThreshold{MetricName: new("STREAM_PROCESSOR_CHANGE_STREAM_LAG"), Threshold: new(0.0)},
+			expectedThreshold:       nil,
+		},
+		"Only threshold in plan": {
+			apiReq: apiReqWithBoth(),
+			threshold: []alertconfiguration.TfThresholdConfigModel{
+				{Threshold: types.Float64Value(1.0), Operator: types.StringValue("LESS_THAN")},
+			},
+			stateThreshold: []alertconfiguration.TfThresholdConfigModel{
+				{Threshold: types.Float64Value(1.0), Operator: types.StringValue("LESS_THAN")},
+			},
+			expectedMetricThreshold: nil,
+			expectedThreshold:       &admin.StreamProcessorMetricThreshold{Threshold: new(1.0), Operator: new("LESS_THAN")},
+		},
+		"Both in plan, metric wins": {
+			apiReq: apiReqWithBoth(),
+			metricThreshold: []alertconfiguration.TfMetricThresholdConfigModel{
+				{MetricName: types.StringValue("STREAM_PROCESSOR_CHANGE_STREAM_LAG")},
+			},
+			threshold: []alertconfiguration.TfThresholdConfigModel{
+				{Threshold: types.Float64Value(1.0)},
+			},
+			stateMetricThreshold: []alertconfiguration.TfMetricThresholdConfigModel{
+				{MetricName: types.StringValue("STREAM_PROCESSOR_CHANGE_STREAM_LAG")},
+			},
+			expectedMetricThreshold: &admin.StreamProcessorMetricThreshold{MetricName: new("STREAM_PROCESSOR_CHANGE_STREAM_LAG")},
+			expectedThreshold:       nil,
+		},
+		"Metric block removed from plan clears both fields": {
+			apiReq: apiReqWithBoth(),
+			stateMetricThreshold: []alertconfiguration.TfMetricThresholdConfigModel{
+				{MetricName: types.StringValue("STREAM_PROCESSOR_CHANGE_STREAM_LAG"), Threshold: types.Float64Value(0.0)},
+			},
+			expectedMetricThreshold: nil,
+			expectedThreshold:       nil,
+		},
+		"Threshold block removed from plan clears both fields": {
+			apiReq: apiReqWithBoth(),
+			stateThreshold: []alertconfiguration.TfThresholdConfigModel{
+				{Threshold: types.Float64Value(1.0), Operator: types.StringValue("LESS_THAN")},
+			},
+			expectedMetricThreshold: nil,
+			expectedThreshold:       nil,
+		},
+		"Neither in plan nor state leaves the request unchanged": {
+			apiReq:                  apiReqWithBoth(),
+			expectedMetricThreshold: apiReqWithBoth().MetricThreshold,
+			expectedThreshold:       apiReqWithBoth().Threshold,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			alertconfiguration.PopulateThresholdFromPlan(tc.apiReq, tc.metricThreshold, tc.threshold, tc.stateMetricThreshold, tc.stateThreshold)
+			assert.Equal(t, tc.expectedMetricThreshold, tc.apiReq.MetricThreshold)
+			assert.Equal(t, tc.expectedThreshold, tc.apiReq.Threshold)
+		})
+	}
+}
+
 func TestMatcherTFModelToSDK(t *testing.T) {
 	testCases := map[string]struct {
 		expectedSDKReq []admin.StreamsMatcher
