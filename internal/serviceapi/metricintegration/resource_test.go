@@ -40,7 +40,7 @@ const (
 	oauthEndpoint      = "https://192.0.2.1/v1/metrics"
 	// Pre-rendered token_request_params HCL fragments, passed to the config builders.
 	trParamsClientSecret  = `token_request_params = { resource = "atlas:otel:test" }`
-	trParamsPrivateKeyJWT = `token_request_params = { resource = "JPMC:URI:OTel" }`
+	trParamsPrivateKeyJWT = `token_request_params = { resource = "TEST:URI:OTel" }`
 )
 
 // TestAccMetricIntegration_basic covers the base HEADER auth path. Serial because the project
