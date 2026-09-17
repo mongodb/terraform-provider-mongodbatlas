@@ -1,11 +1,11 @@
 ```release-note:enhancement
-resource/mongodbatlas_metric_integration: Adds OAuth 2.0 support
+resource/mongodbatlas_metric_integration: Adds OAuth 2.0 support via a new `oauth` block (client-secret or private-key JWT authentication)
 ```
 
 ```release-note:enhancement
-data-source/mongodbatlas_metric_integration: Adds OAuth 2.0 support
+data-source/mongodbatlas_metric_integration: Adds OAuth 2.0 support via a new `oauth` block (client-secret or private-key JWT authentication)
 ```
 
 ```release-note:enhancement
-data-source/mongodbatlas_metric_integrations: Adds OAuth 2.0 support
+data-source/mongodbatlas_metric_integrations: Adds OAuth 2.0 support via a new `oauth` block (client-secret or private-key JWT authentication)
 ```
