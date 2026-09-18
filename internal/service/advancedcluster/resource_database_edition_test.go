@@ -406,7 +406,6 @@ func configDatabaseEditionWithDiskGBEnabled(projectID, clusterName string, datab
 }
 
 // configDatabaseEditionWithZeroNodeAnalytics creates a config with analytics_specs explicitly set to node_count = 0.
-// This tests the edge case where analyticsSpecs would be included in the PATCH without instanceSize.
 func configDatabaseEditionWithZeroNodeAnalytics(projectID, clusterName string, shardSizeLimitGB *int) string {
 	storage := ""
 	if shardSizeLimitGB != nil {
