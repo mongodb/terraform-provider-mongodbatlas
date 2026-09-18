@@ -1,13 +1,45 @@
-# MongoDB Atlas Service Account Examples
+# MongoDB Atlas Provider -- Service Account
 
-Create a Service Account for an organization and decide how its first secret is created.
+This example shows how to create a Service Account without an Atlas-generated secret by setting `without_initial_secret = true`.
 
-The recommended flow creates the Service Account without a secret and creates secrets explicitly with `mongodbatlas_service_account_secret`:
+Create the secrets for the Service Account separately with the [`mongodbatlas_service_account_secret`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/service_account_secret) resource, so this configuration owns their lifecycle. See [`mongodbatlas_service_account_secret`](../mongodbatlas_service_account_secret/README.md) for a complete example.
 
-- [`without_initial_secret/`](without_initial_secret/README.md): create the Service Account with `without_initial_secret = true`, then create the first secret with `mongodbatlas_service_account_secret`.
+Setting `without_initial_secret = true` means Atlas returns no secret from the create request. Every secret is created and rotated through `mongodbatlas_service_account_secret`, which is what a rotation submodule expects.
 
-Alternatively, omit `without_initial_secret` and set `secret_expires_after_hours` to let Atlas generate a bootstrap secret from the create request. The secret value is returned only once, in the create response, so the configuration cannot manage it afterwards. Use this only when you do not need to own the first secret.
+For managing and rotating secrets, see [Guide: Service Account Secret Rotation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/service-account-secret-rotation).
 
-`without_initial_secret` and `secret_expires_after_hours` are mutually exclusive: set one and omit the other.
+## Prerequisites
 
-For product details, see the [resource documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/service_account). For managing and rotating secrets, see [Guide: Service Account Secret Rotation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/service-account-secret-rotation).
+- Service Account with Organization Owner permissions used for provider authentication.
+- Credentials come from the environment (`MONGODB_ATLAS_CLIENT_ID` and `MONGODB_ATLAS_CLIENT_SECRET`).
+
+## Variables Required to be set
+
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
+- `org_id`: Atlas Organization ID where the Service Account is created
+
+## Outputs
+
+- `service_account_client_id`: The Client ID of the Service Account
+
+## Usage
+
+**1. Create `terraform.tfvars`.**
+
+```hcl
+org_id = "your-org-id"
+```
+
+**2. Plan and apply.**
+
+```bash
+terraform plan
+terraform apply
+```
+
+**3. Destroy.**
+
+```bash
+terraform destroy
+```
