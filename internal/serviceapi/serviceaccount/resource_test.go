@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -33,12 +34,12 @@ func TestAccServiceAccount_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name1, description1, []string{"ORG_OWNER"}, new(24)),
-				Check:  checkBasic(true),
+				Config: configBasic(orgID, name1, description1, []string{"ORG_OWNER"}, new(24), false),
+				Check:  checkBasic(true, false),
 			},
 			{
-				Config: configBasic(orgID, name2, description2, []string{"ORG_READ_ONLY"}, new(24)),
-				Check:  checkBasic(false),
+				Config: configBasic(orgID, name2, description2, []string{"ORG_READ_ONLY"}, new(24), false),
+				Check:  checkBasic(false, false),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -65,11 +66,11 @@ func TestAccServiceAccount_rolesOrdering(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name, "Roles Update", []string{"ORG_BILLING_ADMIN", "ORG_READ_ONLY"}, new(24)),
+				Config: configBasic(orgID, name, "Roles Update", []string{"ORG_BILLING_ADMIN", "ORG_READ_ONLY"}, new(24), false),
 			},
 			{
 				// change order
-				Config: configBasic(orgID, name, "Roles Update", []string{"ORG_READ_ONLY", "ORG_BILLING_ADMIN"}, new(24)),
+				Config: configBasic(orgID, name, "Roles Update", []string{"ORG_READ_ONLY", "ORG_BILLING_ADMIN"}, new(24), false),
 			},
 		},
 	})
@@ -85,17 +86,17 @@ func TestAccServiceAccount_createOnlyAttributes(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, new(24)),
+				Config: configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, new(24), false),
 				Check:  checkExists(resourceName),
 			},
 			{
 				// secret_expires_after_hours is create-only and stored from config, so a change is rejected.
-				Config:      configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, new(48)),
+				Config:      configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, new(48), false),
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile("secret_expires_after_hours cannot be updated"),
 			},
 			{
-				Config:      configBasic("updated-org-id", name, "description", []string{"ORG_READ_ONLY"}, new(24)),
+				Config:      configBasic("updated-org-id", name, "description", []string{"ORG_READ_ONLY"}, new(24), false),
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile("org_id cannot be updated"),
 			},
@@ -104,7 +105,7 @@ func TestAccServiceAccount_createOnlyAttributes(t *testing.T) {
 				// update is not rejected (validateCreateOnly skips the check when the state value is null). The
 				// resulting plan is non-empty: the attribute changes from null to true and the API ignores the
 				// PATCH field, so no server-side change happens.
-				Config:             configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, new(24), "without_initial_secret = true"),
+				Config:             configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, new(24), true),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
@@ -123,7 +124,7 @@ func TestAccServiceAccount_withoutInitialSecret(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name, "Without initial secret", []string{"ORG_READ_ONLY"}, nil, "without_initial_secret = true"),
+				Config: configBasic(orgID, name, "Without initial secret", []string{"ORG_READ_ONLY"}, nil, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "secrets.#", "0"),
@@ -138,25 +139,6 @@ func TestAccServiceAccount_withoutInitialSecret(t *testing.T) {
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIgnore:              []string{"without_initial_secret"},
-			},
-		},
-	})
-}
-
-// TestAccServiceAccount_withoutInitialSecretWithExpiration verifies the API mutual exclusion contract:
-// sending withoutInitialSecret together with secretExpiresAfterHours fails the apply with the API error.
-func TestAccServiceAccount_withoutInitialSecretWithExpiration(t *testing.T) {
-	var (
-		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		name  = acc.RandomName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config:      configBasic(orgID, name, "Without initial secret", []string{"ORG_READ_ONLY"}, new(24), "without_initial_secret = true"),
-				ExpectError: regexp.MustCompile("(?i)mutually|withoutInitialSecret|exclusive"),
 			},
 		},
 	})
@@ -197,16 +179,16 @@ func TestAccServiceAccount_pluralDSIncludeSystemManaged(t *testing.T) {
 	})
 }
 
-func configBasic(orgID, name, description string, roles []string, secretExpiresAfterHours *int, extraArgs ...string) string {
+func configBasic(orgID, name, description string, roles []string, secretExpiresAfterHours *int, withoutInitialSecret bool) string {
 	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	rolesHCL := fmt.Sprintf("[%s]", rolesStr)
 	secretExpiresLine := ""
 	if secretExpiresAfterHours != nil {
 		secretExpiresLine = fmt.Sprintf("\n\t\t\tsecret_expires_after_hours = %d", *secretExpiresAfterHours)
 	}
-	extra := ""
-	if len(extraArgs) > 0 {
-		extra = "\n\t\t\t" + strings.Join(extraArgs, "\n\t\t\t")
+	withoutInitialSecretLine := ""
+	if withoutInitialSecret {
+		withoutInitialSecretLine = "\n\t\t\twithout_initial_secret = true"
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_service_account" "test" {
@@ -224,10 +206,10 @@ func configBasic(orgID, name, description string, roles []string, secretExpiresA
 			org_id = %[1]q
 			depends_on = [mongodbatlas_service_account.test]
 		}
-	`, orgID, name, description, rolesHCL, secretExpiresLine, extra)
+	`, orgID, name, description, rolesHCL, secretExpiresLine, withoutInitialSecretLine)
 }
 
-func checkBasic(isCreate bool) resource.TestCheckFunc {
+func checkBasic(isCreate, withoutInitialSecret bool) resource.TestCheckFunc {
 	commonAttrsSet := []string{"client_id", "created_at", "secrets.0.secret_id", "secrets.0.created_at", "secrets.0.expires_at"}
 	commonAttrsMap := map[string]string{"secrets.#": "1"}
 
@@ -242,6 +224,11 @@ func checkBasic(isCreate bool) resource.TestCheckFunc {
 
 	additionalChecks = acc.AddAttrSetChecks(dataSourceName, additionalChecks, "secrets.0.masked_secret_value")
 	additionalChecks = acc.AddAttrSetChecksPrefix(dataSourcePluralName, additionalChecks, []string{"secrets.0.masked_secret_value"}, "results.0")
+	if withoutInitialSecret {
+		additionalChecks = append(additionalChecks, resource.TestCheckResourceAttr(resourceName, "without_initial_secret", strconv.FormatBool(withoutInitialSecret)))
+	} else {
+		additionalChecks = append(additionalChecks, resource.TestCheckNoResourceAttr(resourceName, "without_initial_secret"))
+	}
 
 	return resource.ComposeAggregateTestCheckFunc(checks, resource.ComposeAggregateTestCheckFunc(additionalChecks...))
 }

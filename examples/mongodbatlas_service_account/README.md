@@ -19,13 +19,12 @@ For managing and rotating secrets, see [Guide: Service Account Secret Rotation](
 ## Prerequisites
 
 - Service Account with Organization Owner permissions used for provider authentication.
-- Credentials come from the environment (`MONGODB_ATLAS_CLIENT_ID` and `MONGODB_ATLAS_CLIENT_SECRET`).
 
 ## Variables Required to be set
 
-- `atlas_client_id`: MongoDB Atlas Service Account Client ID
-- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
-- `org_id`: Atlas Organization ID where the Service Account is created
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID.
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret.
+- `org_id`: Atlas Organization ID where this configuration creates the Service Account.
 
 ## Outputs
 
@@ -38,7 +37,9 @@ For managing and rotating secrets, see [Guide: Service Account Secret Rotation](
 **1. Create `terraform.tfvars`.**
 
 ```hcl
-org_id = "your-org-id"
+atlas_client_id     = "<ATLAS_CLIENT_ID>"
+atlas_client_secret = "<ATLAS_CLIENT_SECRET>"
+org_id              = "your-org-id"
 ```
 
 **2. Plan and apply.**

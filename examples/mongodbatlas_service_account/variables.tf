@@ -12,6 +12,6 @@ variable "atlas_client_secret" {
 }
 
 variable "org_id" {
-  description = "Atlas Organization ID where the Service Account is created."
+  description = "Atlas Organization ID where this configuration creates the Service Account."
   type        = string
 }

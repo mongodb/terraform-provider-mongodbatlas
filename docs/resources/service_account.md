@@ -87,6 +87,6 @@ Import the Service Account resource by using the Organization ID and Client ID i
 $ terraform import mongodbatlas_service_account.test 6117ac2fe2a3d04ed27a987v/mdb_sa_id_1234567890abcdef12345678
 ```
 
--> **NOTE:** `secret_expires_after_hours` and `without_initial_secret` are not populated during import and should be omitted in the resource definition when importing the resource.
+-> **NOTE:** Atlas does not populate `secret_expires_after_hours` or `without_initial_secret` during import. Omit both attributes from the resource definition when you import a Service Account.
 
 For more information, see [Create One Organization Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createorgserviceaccount) in the MongoDB Atlas API documentation.
