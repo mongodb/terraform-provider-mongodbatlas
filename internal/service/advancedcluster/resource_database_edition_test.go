@@ -128,6 +128,36 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 	})
 }
 
+// TestAccClusterAdvancedCluster_infiniteShardSizeLimitWithZeroNodeAnalytics verifies that clearing
+// storage_config works when analytics_specs is explicitly configured with node_count = 0.
+// This tests the edge case where analyticsSpecs would be included in the PATCH without instanceSize.
+func TestAccClusterAdvancedCluster_infiniteShardSizeLimitWithZeroNodeAnalytics(t *testing.T) {
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 2)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configDatabaseEditionWithZeroNodeAnalytics(projectID, clusterName, new(1024)),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)),
+					computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+						"compute_enabled": knownvalue.Bool(false),
+					})...),
+			},
+			{
+				Config: configDatabaseEditionWithZeroNodeAnalytics(projectID, clusterName, nil),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil),
+					computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+						"compute_enabled": knownvalue.Bool(false),
+					})...),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
 func TestAccClusterAdvancedCluster_infiniteShardSizeLimitErrors(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3)
 	storageConfig := "compute_enabled = false\n" + databaseEditionStorageConfig(new(1024))
@@ -373,6 +403,48 @@ func databaseEditionStorageConfig(shardSizeLimitGB *int) string {
 
 func configDatabaseEditionWithDiskGBEnabled(projectID, clusterName string, databaseEdition *string, nodeCount int) string {
 	return configDatabaseEditionWithAutoScaling(projectID, clusterName, databaseEdition, nodeCount, "disk_gb_enabled = true", false)
+}
+
+// configDatabaseEditionWithZeroNodeAnalytics creates a config with analytics_specs explicitly set to node_count = 0.
+// This tests the edge case where analyticsSpecs would be included in the PATCH without instanceSize.
+func configDatabaseEditionWithZeroNodeAnalytics(projectID, clusterName string, shardSizeLimitGB *int) string {
+	storage := ""
+	if shardSizeLimitGB != nil {
+		storage = fmt.Sprintf(`
+			storage_config = {
+				shard_size_limit_gb = %d
+			}`, *shardSizeLimitGB)
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id     = %[1]q
+			name           = %[2]q
+			cluster_type   = "REPLICASET"
+			database_edition = "INFINITE"
+			backup_enabled = true
+			pit_enabled    = true
+
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 2
+					}
+					analytics_specs = {
+						instance_size = "M10"
+						node_count    = 0
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+					auto_scaling = {
+						compute_enabled = false
+						%[3]s
+					}
+				}]
+			}]
+		}
+	`, projectID, clusterName, storage) + dataSourcesConfig
 }
 
 func configDatabaseEditionWithAutoScaling(projectID, clusterName string, databaseEdition *string, nodeCount int, autoScalingAttributes string, withTags bool) string {
