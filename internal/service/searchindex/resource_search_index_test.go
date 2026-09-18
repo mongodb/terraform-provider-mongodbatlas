@@ -178,11 +178,13 @@ func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroySearchIndex,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdditional(projectID, indexName, clusterName, mappingsFieldsTF),
+				// This is the test that sets wait_for_index_build_completion, so it covers the
+				// create and update READY, STEADY waits in resource_search_index.go.
+				Config: configAdditional(projectID, indexName, clusterName, waitForCompletionTF+mappingsFieldsTF),
 				Check:  checkAdditionalMappingsFields(projectID, indexName, clusterName, true),
 			},
 			{
-				Config: configAdditional(projectID, indexName, clusterName, ""),
+				Config: configAdditional(projectID, indexName, clusterName, waitForCompletionTF),
 				Check:  checkAdditionalMappingsFields(projectID, indexName, clusterName, false),
 			},
 		},
@@ -811,6 +813,7 @@ const (
 	analyzersTF                = "\nanalyzers = <<-EOF\n" + analyzersJSON + "\nEOF\n"
 	incorrectFormatAnalyzersTF = "\nanalyzers = <<-EOF\n" + incorrectFormatAnalyzersJSON + "\nEOF\n"
 	mappingsFieldsTF           = "\nmappings_fields = <<-EOF\n" + mappingsFieldsJSON + "\nEOF\n"
+	waitForCompletionTF        = "\nwait_for_index_build_completion = true\n"
 
 	analyzersJSON = `
 		[
