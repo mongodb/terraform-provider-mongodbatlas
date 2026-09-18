@@ -167,30 +167,6 @@ func TestAccSearchIndex_updatedToEmptyAnalyzers(t *testing.T) {
 	})
 }
 
-func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ClusterNameExecution(t, true)
-		indexName              = acc.RandomName()
-	)
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroySearchIndex,
-		Steps: []resource.TestStep{
-			{
-				// This is the test that sets wait_for_index_build_completion, so it covers the
-				// create and update READY, STEADY waits in resource_search_index.go.
-				Config: configAdditional(projectID, indexName, clusterName, waitForCompletionTF+mappingsFieldsTF),
-				Check:  checkAdditionalMappingsFields(projectID, indexName, clusterName, true),
-			},
-			{
-				Config: configAdditional(projectID, indexName, clusterName, waitForCompletionTF),
-				Check:  checkAdditionalMappingsFields(projectID, indexName, clusterName, false),
-			},
-		},
-	})
-}
-
 func TestAccSearchIndex_withVector(t *testing.T) {
 	resource.Test(t, *basicVectorTestCase(t))
 }
@@ -215,6 +191,29 @@ func TestAccSearchIndex_withVectorAutoEmbed(t *testing.T) {
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t, true)
+		indexName              = acc.RandomName()
+	)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				// This is the test that sets wait_for_index_build_completion, so it covers the
+				// create and update READY, STEADY waits in resource_search_index.go.
+				Config: configAdditional(projectID, indexName, clusterName, waitForCompletionTF+mappingsFieldsTF),
+				Check:  checkAdditionalMappingsFields(projectID, indexName, clusterName, true),
+			},
+			{
+				Config: configAdditional(projectID, indexName, clusterName, waitForCompletionTF),
+				Check:  checkAdditionalMappingsFields(projectID, indexName, clusterName, false),
 			},
 		},
 	})
