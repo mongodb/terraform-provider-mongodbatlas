@@ -53,8 +53,9 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		AdaptiveCapacity:                              conversion.NilForUnknown(input.AdaptiveCapacity, input.AdaptiveCapacity.ValueStringPointer()),
 		AdvancedConfiguration:                         newClusterAdvancedConfiguration(ctx, &input.AdvancedConfiguration, diags),
 	}
-	// INFINITE rejects the empty auto-scaling children the converter emits. In Create only database_edition is
-	// available yet; Update reads the authoritative effective_database_edition in resource.go instead.
+	// INFINITE rejects invalid fields that the converter emits (e.g., empty auto-scaling children,
+	// analyticsSpecs without instanceSize). In Create only database_edition is available yet;
+	// Update reads the authoritative effective_database_edition in resource.go instead.
 	if result.GetDatabaseEdition() == databaseEditionInfinite {
 		omitInvalidInfiniteConfig(result.GetReplicationSpecs())
 	}
