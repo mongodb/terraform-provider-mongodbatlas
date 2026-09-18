@@ -59,8 +59,8 @@ output "secret" {
 
 ### Optional
 
-- `secret_expires_after_hours` (Number) The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. Required when `without_initial_secret` is false or omitted. Must not be set when `without_initial_secret` is true. Cannot be updated after creation.
-- `without_initial_secret` (Boolean) When true, creates the Service Account without generating an initial secret. `secret_expires_after_hours` must not be set when this is true.
+- `secret_expires_after_hours` (Number) The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. Set this field when you set `without_initial_secret` to false or omit `without_initial_secret`. Do not set this field when you set `without_initial_secret` to true. You cannot update this field after you create the Service Account.
+- `without_initial_secret` (Boolean) When true, creates the Service Account without generating an initial secret. If you set this field to true, do not set `secret_expires_after_hours`.
 
 ### Read-Only
 

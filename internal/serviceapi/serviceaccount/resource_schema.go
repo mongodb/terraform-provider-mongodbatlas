@@ -47,7 +47,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"secret_expires_after_hours": schema.Int64Attribute{
 				Optional:            true,
-				MarkdownDescription: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. Required when `without_initial_secret` is false or omitted. Must not be set when `without_initial_secret` is true. Cannot be updated after creation.",
+				MarkdownDescription: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. Set this field when you set `without_initial_secret` to false or omit `without_initial_secret`. Do not set this field when you set `without_initial_secret` to true. You cannot update this field after you create the Service Account.",
 				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
 			},
 			"secrets": schema.ListNestedAttribute{
@@ -90,7 +90,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"without_initial_secret": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "When true, creates the Service Account without generating an initial secret. `secret_expires_after_hours` must not be set when this is true.",
+				MarkdownDescription: "When true, creates the Service Account without generating an initial secret. If you set this field to true, do not set `secret_expires_after_hours`.",
 				PlanModifiers:       []planmodifier.Bool{customplanmodifier.CreateOnly()},
 			},
 		},

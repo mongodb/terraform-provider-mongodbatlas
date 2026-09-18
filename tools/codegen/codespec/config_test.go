@@ -219,7 +219,7 @@ func TestApplyTransformationsToResource_CreateOnlyTransformation(t *testing.T) {
 			},
 			expectedCreate: false,
 		},
-		"Computed optional bool with default not in response is create only": {
+		"Computed optional bool with default stays without create only": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "bool_with_default",
 				TFModelName:              "BoolWithDefault",
@@ -228,7 +228,7 @@ func TestApplyTransformationsToResource_CreateOnlyTransformation(t *testing.T) {
 				ReqBodyUsage:             codespec.OmitInUpdateBody,
 				PresentInAnyResponse:     false,
 			},
-			expectedCreate: true,
+			expectedCreate: false,
 		},
 		"Computed optional bool with default present in response stays without create only": {
 			attribute: codespec.Attribute{
@@ -275,12 +275,12 @@ func TestApplyTransformationsToResource_ClearDefaultTransformation(t *testing.T)
 			expectedDefaultSet: false,
 			expectedCreateOnly: true,
 		},
-		"Without the override the spec default is kept and forces computed optional": {
+		"Without the override the spec default keeps computed optional without create only": {
 			clearDefault:       false,
 			expectOptional:     false,
 			expectedDefault:    false,
 			expectedDefaultSet: true,
-			expectedCreateOnly: true,
+			expectedCreateOnly: false,
 		},
 	}
 
