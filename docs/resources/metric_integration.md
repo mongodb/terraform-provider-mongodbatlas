@@ -64,12 +64,16 @@ output "metric_integration_ids" {
 ### Required
 
 - `aggregation_temporality` (String) The temporality to send to the metric integration.
-- `auth_type` (String) Authentication method the integration uses when exporting metrics to the endpoint. `HEADER` authenticates with the static HTTP headers provided in the `headers` field, which must be set when this value is used.
+- `auth_type` (String) Authentication method the integration uses when exporting metrics to the endpoint. `HEADER` authenticates with the static HTTP headers provided in the `headers` field, which must be set when this value is used. `OAUTH2` acquires a bearer token from an OAuth 2.0 token endpoint using the `oauth` field.
 - `endpoint` (String) OpenTelemetry collector endpoint URL. Must use HTTPS.
 - `integration_type` (String) Type of metric integration. Identifies which protocol will be used for the integration. This value cannot be modified after the integration is created.
 - `metric_selection` (Set of String) Array of metric categories to export. Determines which types of metrics are sent to the integration.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `provider_type` (String) The provider type for the metric integration. Identifies the third-party service provider.
+
+### Optional
+
+- `oauth` (Attributes) OAuth 2.0 client credentials configuration. Required when auth_type is `OAUTH2`. Secrets are never returned. (see [below for nested schema](#nestedatt--oauth))
 
 <!-- polymorphic attributes restructured by docpostprocess -->
 The following attributes depend on the value of `auth_type`:
@@ -91,6 +95,37 @@ Required:
 
 - `name` (String) Header name.
 - `value` (String, Sensitive) Header value.
+
+
+<a id="nestedatt--oauth"></a>
+### Nested Schema for `oauth`
+
+Required:
+
+- `client_auth_method` (String) How the client authenticates to the token endpoint. `CLIENT_SECRET` sends a shared secret. `PRIVATE_KEY_JWT` signs a client assertion with an Atlas-generated, Atlas-managed key. Register the returned JWKS URL with your identity provider.
+- `client_id` (String) OAuth 2.0 client identifier registered with the token endpoint.
+- `token_endpoint` (String) OAuth 2.0 token endpoint URL. Must use HTTPS.
+
+Optional:
+
+- `client_secret` (String, Sensitive) Shared client secret. Required when client_auth_method is `CLIENT_SECRET`, and rejected for `PRIVATE_KEY_JWT`. Encrypted at rest and never returned.
+- `scopes` (Set of String) Optional OAuth 2.0 scopes requested on the token, sent as a space delimited `scope` parameter. Applies to both client authentication methods.
+- `token_request_params` (Map of String) Optional provider-specific parameters added to the token request, for example a resource indicator. Applies to both client authentication methods.
+
+Read-Only:
+
+- `signing_key_info` (Attributes) Read-only metadata for the Atlas-managed signing key used by `PRIVATE_KEY_JWT`. Present only for that method. Register the jwks_uri with your identity provider. Atlas rotates the underlying key without changing this URL. (see [below for nested schema](#nestedatt--oauth--signing_key_info))
+
+<a id="nestedatt--oauth--signing_key_info"></a>
+### Nested Schema for `oauth.signing_key_info`
+
+Read-Only:
+
+- `algorithm` (String) Signing algorithm of the Atlas-managed key.
+- `created_at` (String) When the currently active signing key was created. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+- `jwks_uri` (String) Public JWKS URL serving this integration's signing keys. Fixed for the lifetime of the integration.
+- `kid` (String) Key ID stamped on client assertions, the `SHA-1` thumbprint of the key certificate in uppercase hexadecimal. Changes when Atlas rotates the key.
+
 
 
 <a id="nestedatt--headers_redacted"></a>

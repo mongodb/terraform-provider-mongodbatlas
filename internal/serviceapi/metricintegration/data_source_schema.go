@@ -57,6 +57,60 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
+			"oauth": dsschema.SingleNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "OAuth 2.0 configuration returned for a metric integration. Secrets are never returned.",
+				CustomType:          customtypes.NewObjectType[TFDSOauthModel](ctx),
+				Attributes: map[string]dsschema.Attribute{
+					"client_auth_method": dsschema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "How the client authenticates to the token endpoint.",
+					},
+					"client_id": dsschema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "OAuth 2.0 client identifier registered with the token endpoint.",
+					},
+					"scopes": dsschema.SetAttribute{
+						Computed:            true,
+						MarkdownDescription: "OAuth 2.0 scopes requested on the token.",
+						CustomType:          customtypes.NewSetType[types.String](ctx),
+						ElementType:         types.StringType,
+					},
+					"signing_key_info": dsschema.SingleNestedAttribute{
+						Computed:            true,
+						MarkdownDescription: "Read-only metadata for the Atlas-managed signing key used by `PRIVATE_KEY_JWT`. Present only for that method. Register the jwks_uri with your identity provider. Atlas rotates the underlying key without changing this URL.",
+						CustomType:          customtypes.NewObjectType[TFDSOauthSigningKeyInfoModel](ctx),
+						Attributes: map[string]dsschema.Attribute{
+							"algorithm": dsschema.StringAttribute{
+								Computed:            true,
+								MarkdownDescription: "Signing algorithm of the Atlas-managed key.",
+							},
+							"created_at": dsschema.StringAttribute{
+								Computed:            true,
+								MarkdownDescription: "When the currently active signing key was created. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
+							},
+							"jwks_uri": dsschema.StringAttribute{
+								Computed:            true,
+								MarkdownDescription: "Public JWKS URL serving this integration's signing keys. Fixed for the lifetime of the integration.",
+							},
+							"kid": dsschema.StringAttribute{
+								Computed:            true,
+								MarkdownDescription: "Key ID stamped on client assertions, the `SHA-1` thumbprint of the key certificate in uppercase hexadecimal. Changes when Atlas rotates the key.",
+							},
+						},
+					},
+					"token_endpoint": dsschema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "OAuth 2.0 token endpoint URL.",
+					},
+					"token_request_params": dsschema.MapAttribute{
+						Computed:            true,
+						MarkdownDescription: "Provider-specific parameters added to the token request.",
+						CustomType:          customtypes.NewMapType[types.String](ctx),
+						ElementType:         types.StringType,
+					},
+				},
+			},
 			"project_id": dsschema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
@@ -77,10 +131,25 @@ type TFDSModel struct {
 	IntegrationType        types.String                                          `tfsdk:"integration_type" autogen:"omitjson"`
 	MetricIntegrationId    types.String                                          `tfsdk:"metric_integration_id" autogen:"omitjson"`
 	MetricSelection        customtypes.SetValue[types.String]                    `tfsdk:"metric_selection" autogen:"omitjson"`
+	Oauth                  customtypes.ObjectValue[TFDSOauthModel]               `tfsdk:"oauth" autogen:"omitjson"`
 	ProjectId              types.String                                          `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	ProviderType           types.String                                          `tfsdk:"provider_type" autogen:"omitjson"`
 }
 type TFDSHeadersRedactedModel struct {
 	Name  types.String `tfsdk:"name" autogen:"omitjson"`
 	Value types.String `tfsdk:"value" autogen:"omitjson"`
+}
+type TFDSOauthModel struct {
+	ClientAuthMethod   types.String                                          `tfsdk:"client_auth_method" autogen:"omitjson"`
+	ClientId           types.String                                          `tfsdk:"client_id" autogen:"omitjson"`
+	Scopes             customtypes.SetValue[types.String]                    `tfsdk:"scopes" autogen:"omitjson"`
+	SigningKeyInfo     customtypes.ObjectValue[TFDSOauthSigningKeyInfoModel] `tfsdk:"signing_key_info" autogen:"omitjson"`
+	TokenEndpoint      types.String                                          `tfsdk:"token_endpoint" autogen:"omitjson"`
+	TokenRequestParams customtypes.MapValue[types.String]                    `tfsdk:"token_request_params" autogen:"omitjson"`
+}
+type TFDSOauthSigningKeyInfoModel struct {
+	Algorithm types.String `tfsdk:"algorithm" autogen:"omitjson"`
+	CreatedAt types.String `tfsdk:"created_at" autogen:"omitjson"`
+	JwksUri   types.String `tfsdk:"jwks_uri" autogen:"omitjson"`
+	Kid       types.String `tfsdk:"kid" autogen:"omitjson"`
 }

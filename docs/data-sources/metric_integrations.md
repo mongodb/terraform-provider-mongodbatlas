@@ -86,6 +86,7 @@ Read-Only:
 - `integration_type` (String) Type of metric integration. Identifies which protocol will be used for the integration.
 - `metric_integration_id` (String) Unique identifier of the metric integration configuration.
 - `metric_selection` (Set of String) Array of metric categories to export. Determines which types of metrics are sent to the integration.
+- `oauth` (Attributes) OAuth 2.0 configuration returned for a metric integration. Secrets are never returned. (see [below for nested schema](#nestedatt--results--oauth))
 - `provider_type` (String) The provider type for the metric integration. Identifies the third-party service provider.
 
 <a id="nestedatt--results--headers_redacted"></a>
@@ -95,5 +96,28 @@ Read-Only:
 
 - `name` (String) Header name.
 - `value` (String) Redacted header value.
+
+
+<a id="nestedatt--results--oauth"></a>
+### Nested Schema for `results.oauth`
+
+Read-Only:
+
+- `client_auth_method` (String) How the client authenticates to the token endpoint.
+- `client_id` (String) OAuth 2.0 client identifier registered with the token endpoint.
+- `scopes` (Set of String) OAuth 2.0 scopes requested on the token.
+- `signing_key_info` (Attributes) Read-only metadata for the Atlas-managed signing key used by `PRIVATE_KEY_JWT`. Present only for that method. Register the jwks_uri with your identity provider. Atlas rotates the underlying key without changing this URL. (see [below for nested schema](#nestedatt--results--oauth--signing_key_info))
+- `token_endpoint` (String) OAuth 2.0 token endpoint URL.
+- `token_request_params` (Map of String) Provider-specific parameters added to the token request.
+
+<a id="nestedatt--results--oauth--signing_key_info"></a>
+### Nested Schema for `results.oauth.signing_key_info`
+
+Read-Only:
+
+- `algorithm` (String) Signing algorithm of the Atlas-managed key.
+- `created_at` (String) When the currently active signing key was created. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+- `jwks_uri` (String) Public JWKS URL serving this integration's signing keys. Fixed for the lifetime of the integration.
+- `kid` (String) Key ID stamped on client assertions, the `SHA-1` thumbprint of the key certificate in uppercase hexadecimal. Changes when Atlas rotates the key.
 
 For more information see: [MongoDB Atlas - OTel Integration](https://www.mongodb.com/docs/atlas/tutorial/otel-integration/) Documentation.
