@@ -80,14 +80,16 @@ func regionHasShardSizeLimit(regionConfig *admin.CloudRegionConfig20240805) bool
 }
 
 // omitInvalidInfiniteConfig removes empty auto-scaling children and analyticsSpecs without
-// instanceSize that INFINITE rejects.
+// instanceSize that Atlas rejects. This is only needed for INFINITE because ForceUpdateAttr
+// forces the entire replicationSpecs into the PATCH, including invalid fields.
 func omitInvalidInfiniteConfig(replicationSpecs []admin.ReplicationSpec20240805) {
 	for _, spec := range replicationSpecs {
 		for i := range spec.GetRegionConfigs() {
 			region := &spec.GetRegionConfigs()[i]
 			omitEmptyComputeAndDiskGB(region.AutoScaling)
 			omitEmptyComputeAndDiskGB(region.AnalyticsAutoScaling)
-			// INFINITE rejects analyticsSpecs without instanceSize, e.g. {"nodeCount": 0}.
+			// Atlas rejects analyticsSpecs without instanceSize, e.g. {"nodeCount": 0}.
+			// This only occurs for INFINITE when ForceUpdateAttr forces the entire replicationSpecs into the PATCH.
 			if specs := region.AnalyticsSpecs; specs != nil && specs.GetNodeCount() == 0 && !specs.HasInstanceSize() {
 				region.AnalyticsSpecs = nil
 			}
