@@ -411,6 +411,52 @@ func TestAccMetricIntegration_oauthPrivateKeyJWTRejectsClientSecret(t *testing.T
 	})
 }
 
+// TestAccMetricIntegration_oauthToHeader verifies switching an OAUTH2 integration to HEADER clears
+// the stored oauth configuration.
+func TestAccMetricIntegration_oauthToHeader(t *testing.T) {
+	// TODO(CLOUDP-447244): remove this gate before merging to master.
+	acc.SkipTestForCI(t)
+	projectID := acc.ProjectIDExecution(t)
+	var (
+		endpoint        = os.Getenv("MONGODB_ATLAS_METRIC_INTEGRATION_ENDPOINT")
+		apiKey          = os.Getenv("MONGODB_ATLAS_METRIC_INTEGRATION_API_KEY")
+		integrationType = "OTEL"
+		providerType    = "CUSTOM"
+		aggregation     = "DELTA"
+		metricSelection = []string{"ATLAS_STREAM_PROCESSING"}
+		clientSecret    = "client-secret-initial"
+		scopes          = []string{"metrics.write"}
+	)
+
+	headerConfig := configBasic(projectID, integrationType, providerType, aggregation, endpoint, apiKey, metricSelection, false, false)
+	headerCheck := resource.ComposeTestCheckFunc(
+		checkBasic(integrationType, providerType, aggregation, endpoint, metricSelection, false, false),
+		resource.TestCheckNoResourceAttr(resourceName, "oauth.client_auth_method"),
+		resource.TestCheckNoResourceAttr(resourceName, "oauth.client_secret"),
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t); preCheckMetricIntegration(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configOauthClientSecret(projectID, endpoint, oauthTokenEndpoint, oauthClientID, clientSecret, scopes, "", false),
+				Check:  checkOauthClientSecret(clientSecret, scopes, 0, nil),
+			},
+			{
+				Config: headerConfig,
+				Check:  headerCheck,
+			},
+			{
+				Config:             headerConfig,
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
 func configOauthPrivateKeyJWTWithClientSecret(projectID string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_metric_integration" "test" {
