@@ -296,9 +296,17 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 }
 
 func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var streamConnectionPlan TFStreamConnectionModel
+	var streamConnectionPlan, streamConnectionState TFStreamConnectionModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamConnectionPlan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &streamConnectionState)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if IsAliasOnlyTransition(ctx, &streamConnectionPlan, &streamConnectionState) {
+		streamConnectionState.InstanceName = streamConnectionPlan.InstanceName
+		streamConnectionState.WorkspaceName = streamConnectionPlan.WorkspaceName
+		resp.Diagnostics.Append(resp.State.Set(ctx, streamConnectionState)...)
 		return
 	}
 

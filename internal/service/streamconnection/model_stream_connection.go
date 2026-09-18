@@ -3,6 +3,7 @@ package streamconnection
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -12,6 +13,51 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20250312025/admin"
 )
+
+// IsAliasOnlyTransition reports whether a plan preserves the effective workspace
+// and changes no connection configuration other than its alias representation.
+func IsAliasOnlyTransition(ctx context.Context, plan, state *TFStreamConnectionModel) bool {
+	if plan.WorkspaceName.IsUnknown() || plan.InstanceName.IsUnknown() || state.WorkspaceName.IsUnknown() || state.InstanceName.IsUnknown() {
+		return false
+	}
+	if plan.WorkspaceName.Equal(state.WorkspaceName) && plan.InstanceName.Equal(state.InstanceName) {
+		return false
+	}
+	if getWorkspaceOrInstanceName(plan) != getWorkspaceOrInstanceName(state) {
+		return false
+	}
+
+	planWithoutAliases := *plan
+	planWithoutAliases.WorkspaceName = state.WorkspaceName
+	planWithoutAliases.InstanceName = state.InstanceName
+	// ID is computed and may be unknown in an update plan even though no
+	// connection setting changed.
+	planWithoutAliases.ID = state.ID
+	planWithoutAliases.Azure = withStateForUnknownAzureRegion(ctx, plan.Azure, state.Azure)
+	return reflect.DeepEqual(planWithoutAliases, *state)
+}
+
+func withStateForUnknownAzureRegion(ctx context.Context, plan, state types.Object) types.Object {
+	if plan.IsNull() || plan.IsUnknown() || state.IsNull() || state.IsUnknown() {
+		return plan
+	}
+
+	planAzure := &TFAzureModel{}
+	stateAzure := &TFAzureModel{}
+	if plan.As(ctx, planAzure, basetypes.ObjectAsOptions{}).HasError() || state.As(ctx, stateAzure, basetypes.ObjectAsOptions{}).HasError() || !planAzure.Region.IsUnknown() {
+		return plan
+	}
+
+	azure, diags := types.ObjectValueFrom(ctx, AzureObjectType.AttrTypes, TFAzureModel{
+		ServicePrincipalID: planAzure.ServicePrincipalID,
+		StorageAccountName: planAzure.StorageAccountName,
+		Region:             stateAzure.Region,
+	})
+	if diags.HasError() {
+		return plan
+	}
+	return azure
+}
 
 func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
 	streamConnection := admin.StreamsConnection{
