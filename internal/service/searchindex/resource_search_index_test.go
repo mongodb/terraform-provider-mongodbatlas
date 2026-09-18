@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccSearchIndex_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+	resource.Test(t, *basicTestCase(t))
 }
 
 func TestAccSearchIndex_withSearchType(t *testing.T) {
@@ -22,7 +22,7 @@ func TestAccSearchIndex_withSearchType(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
@@ -40,7 +40,7 @@ func TestAccSearchIndex_withMapping(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
@@ -58,7 +58,7 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
@@ -76,7 +76,7 @@ func TestAccSearchIndex_withTypeSets_ConfigurableDynamic(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
@@ -124,7 +124,7 @@ func TestAccSearchIndex_updatedToEmptySynonyms(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
@@ -146,7 +146,7 @@ func TestAccSearchIndex_updatedToEmptyAnalyzers(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
@@ -172,7 +172,7 @@ func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
@@ -190,7 +190,7 @@ func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
 }
 
 func TestAccSearchIndex_withVector(t *testing.T) {
-	resource.ParallelTest(t, *basicVectorTestCase(t))
+	resource.Test(t, *basicVectorTestCase(t))
 }
 
 func TestAccSearchIndex_withVectorAutoEmbed(t *testing.T) {
@@ -198,7 +198,7 @@ func TestAccSearchIndex_withVectorAutoEmbed(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
@@ -296,27 +296,27 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 }
 
 func TestAccSearchIndex_withStoredSourceFalse(t *testing.T) {
-	resource.ParallelTest(t, *storedSourceTestCase(t, "false"))
+	resource.Test(t, *storedSourceTestCase(t, "false"))
 }
 
 func TestAccSearchIndex_withStoredSourceTrue(t *testing.T) {
-	resource.ParallelTest(t, *storedSourceTestCase(t, "true"))
+	resource.Test(t, *storedSourceTestCase(t, "true"))
 }
 
 func TestAccSearchIndex_withStoredSourceInclude(t *testing.T) {
-	resource.ParallelTest(t, *storedSourceTestCase(t, storedSourceIncludeJSON))
+	resource.Test(t, *storedSourceTestCase(t, storedSourceIncludeJSON))
 }
 
 func TestAccSearchIndex_withStoredSourceExclude(t *testing.T) {
-	resource.ParallelTest(t, *storedSourceTestCase(t, storedSourceExcludeJSON))
+	resource.Test(t, *storedSourceTestCase(t, storedSourceExcludeJSON))
 }
 
 func TestAccSearchIndex_withStoredSourceUpdateEmptyType(t *testing.T) {
-	resource.ParallelTest(t, *storedSourceTestCaseUpdate(t, ""))
+	resource.Test(t, *storedSourceTestCaseUpdate(t, ""))
 }
 
 func TestAccSearchIndex_withStoredSourceUpdateSearchType(t *testing.T) {
-	resource.ParallelTest(t, *storedSourceTestCaseUpdate(t, "search"))
+	resource.Test(t, *storedSourceTestCaseUpdate(t, "search"))
 }
 
 func storedSourceTestCase(tb testing.TB, storedSource string) *resource.TestCase {
@@ -436,6 +436,11 @@ func configBasic(projectID, clusterName, indexName, indexType, storedSource stri
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
+			timeouts {
+				create = "60m"
+				update = "60m"
+				delete = "60m"
+			}
 			cluster_name     = %[1]q
 			project_id       = %[2]q
 			name             = %[3]q
@@ -472,6 +477,11 @@ func checkBasic(projectID, clusterName, indexName, indexType, storedSource strin
 func configWithMapping(projectID, indexName, clusterName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
+			timeouts {
+				create = "60m"
+				update = "60m"
+				delete = "60m"
+			}
 			cluster_name     = %[1]q
 			project_id       = %[2]q
 			name             = %[3]q
@@ -515,6 +525,11 @@ func configWithSynonyms(projectID, indexName, clusterName string, has bool) stri
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
+			timeouts {
+				create = "60m"
+				update = "60m"
+				delete = "60m"
+			}
 			cluster_name     = %[1]q
 			project_id       = %[2]q
 			name             = %[3]q
@@ -553,6 +568,11 @@ func checkWithSynonyms(projectID, indexName, clusterName string, has bool) resou
 func configAdditional(projectID, indexName, clusterName, additional string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
+			timeouts {
+				create = "60m"
+				update = "60m"
+				delete = "60m"
+			}
 			cluster_name     = %[1]q
 			project_id       = %[2]q
 			name             = %[3]q
@@ -594,6 +614,11 @@ func checkAdditionalMappingsFields(projectID, indexName, clusterName string, has
 func configVector(projectID, indexName, clusterName, fields string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
+			timeouts {
+				create = "60m"
+				update = "60m"
+				delete = "60m"
+			}
 			cluster_name     = %[1]q
 			project_id       = %[2]q
 			name             = %[3]q
@@ -635,6 +660,11 @@ func configVectorSearchWithNumPartitions(projectID, indexName, clusterName strin
 		}
 
 		resource "mongodbatlas_search_index" "test" {
+			timeouts {
+				create = "60m"
+				update = "60m"
+				delete = "60m"
+			}
 			cluster_name     = %[1]q
 			project_id       = %[2]q
 			name             = %[3]q
@@ -677,6 +707,11 @@ func configSearchWithNumPartitions(projectID, indexName, clusterName string, num
 		}
 
 		resource "mongodbatlas_search_index" "test" {
+			timeouts {
+				create = "60m"
+				update = "60m"
+				delete = "60m"
+			}
 			cluster_name     = %[1]q
 			project_id       = %[2]q
 			name             = %[3]q
@@ -894,6 +929,11 @@ const (
 func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON, typeSetsJSON string) string {
 	return fmt.Sprintf(`
         resource "mongodbatlas_search_index" "test" {
+            timeouts {
+                create = "60m"
+                update = "60m"
+                delete = "60m"
+            }
             cluster_name     = %[1]q
             project_id       = %[2]q
             name             = %[3]q
@@ -925,6 +965,11 @@ func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON, typeSets
 func configWithTypeSetsOmitted(projectID, clusterName, indexName, dynamicJSON string) string {
 	return fmt.Sprintf(`
         resource "mongodbatlas_search_index" "test" {
+            timeouts {
+                create = "60m"
+                update = "60m"
+                delete = "60m"
+            }
             cluster_name     = %[1]q
             project_id       = %[2]q
             name             = %[3]q
