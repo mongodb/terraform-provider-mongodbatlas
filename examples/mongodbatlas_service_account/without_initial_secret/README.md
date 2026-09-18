@@ -4,7 +4,7 @@ Create a Service Account with `without_initial_secret = true`, then create its f
 
 Use this flow when you want to manage the secrets for a Service Account yourself, for example when a rotation submodule owns the secret lifecycle. Atlas does not generate a bootstrap secret, so nothing is returned that the configuration cannot manage.
 
-The alternative is to let the create request generate a bootstrap secret with `secret_expires_after_hours` and rotate it later.
+This is the recommended create flow. The alternative is to set `secret_expires_after_hours` and let the create request generate a bootstrap secret, which you can only read from the create response and rotate later.
 
 ## Prerequisites
 

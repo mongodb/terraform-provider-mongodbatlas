@@ -89,10 +89,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Indicates whether the Service Account is system managed.",
 			},
 			"without_initial_secret": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "When true, creates the Service Account without generating an initial secret. `secret_expires_after_hours` must not be set when this is true. Defaults to false.",
-				PlanModifiers:       []planmodifier.Bool{customplanmodifier.CreateOnlyBoolWithDefault(false)},
+				MarkdownDescription: "When true, creates the Service Account without generating an initial secret. `secret_expires_after_hours` must not be set when this is true.",
+				PlanModifiers:       []planmodifier.Bool{customplanmodifier.CreateOnly()},
 			},
 		},
 	}

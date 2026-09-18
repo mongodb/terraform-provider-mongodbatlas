@@ -46,7 +46,8 @@ func TestAccServiceAccount_basic(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "client_id",
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				// without_initial_secret is not populated during import (not in the API response) while the create path stores the default false.
+				// Neither attribute is populated by the API on read: secret_expires_after_hours is create-only and
+				// without_initial_secret is request-only. Import state cannot reproduce them from config.
 				ImportStateVerifyIgnore: []string{"secret_expires_after_hours", "without_initial_secret"},
 			},
 		},
@@ -88,6 +89,7 @@ func TestAccServiceAccount_createOnlyAttributes(t *testing.T) {
 				Check:  checkExists(resourceName),
 			},
 			{
+				// secret_expires_after_hours is create-only and stored from config, so a change is rejected.
 				Config:      configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, new(48)),
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile("secret_expires_after_hours cannot be updated"),
@@ -98,10 +100,13 @@ func TestAccServiceAccount_createOnlyAttributes(t *testing.T) {
 				ExpectError: regexp.MustCompile("org_id cannot be updated"),
 			},
 			{
-				// without_initial_secret defaults to false on create, so setting it to true on update must be rejected.
-				Config:      configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, new(24), "without_initial_secret = true"),
-				PlanOnly:    true,
-				ExpectError: regexp.MustCompile("without_initial_secret cannot be updated"),
+				// without_initial_secret is optional-only, so a config that omits it stores null. Setting it on
+				// update is not rejected (validateCreateOnly skips the check when the state value is null). The
+				// resulting plan is non-empty: the attribute changes from null to true and the API ignores the
+				// PATCH field, so no server-side change happens.
+				Config:             configBasic(orgID, name, "description", []string{"ORG_READ_ONLY"}, new(24), "without_initial_secret = true"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
