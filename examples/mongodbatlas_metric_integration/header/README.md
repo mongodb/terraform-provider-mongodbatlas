@@ -26,8 +26,8 @@ Set the following environment variables:
 ```bash
 export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
 export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
-export DD_API_KEY="<DATADOG_API_KEY>"
-export DD_APP_KEY="<DATADOG_APP_KEY>"
+export TF_VAR_datadog_api_key="<DATADOG_API_KEY>"
+export TF_VAR_datadog_app_key="<DATADOG_APP_KEY>"
 ```
 
 Alternatively, follow as in the `variables.tf` file and create a **terraform.tfvars** file with all the variable values:
