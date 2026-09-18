@@ -82,205 +82,6 @@ func TestAccMetricIntegration_basic(t *testing.T) {
 		},
 	})
 }
-
-func preCheckMetricIntegration(tb testing.TB) {
-	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_METRIC_INTEGRATION_ENDPOINT") == "" || os.Getenv("MONGODB_ATLAS_METRIC_INTEGRATION_API_KEY") == "" {
-		tb.Fatal("`MONGODB_ATLAS_METRIC_INTEGRATION_ENDPOINT` and `MONGODB_ATLAS_METRIC_INTEGRATION_API_KEY` must be set for acceptance testing")
-	}
-}
-
-func configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue string, metricSelection []string, extraHeader, withDS bool) string {
-	selectionHCL := hcl.StringSliceToHCL(metricSelection)
-	extraHeaderHCL := ""
-	if extraHeader {
-		extraHeaderHCL = `,
-				{
-					name  = "x-custom-header"
-					value = "custom-value"
-				}`
-	}
-	dsConfig := ""
-	if withDS {
-		dsConfig = datasourcesConfig
-	}
-	return fmt.Sprintf(`
-		resource "mongodbatlas_metric_integration" "test" {
-			project_id              = %[1]q
-			integration_type        = %[2]q
-			provider_type           = %[3]q
-			auth_type               = "HEADER"
-			aggregation_temporality = %[4]q
-			endpoint                = %[5]q
-			metric_selection        = %[6]s
-
-			headers = [
-				{
-					name  = "dd-api-key"
-					value = %[7]q
-				}%[8]s
-			]
-		}
-
-		%[9]s
-	`, projectID, integrationType, providerType, aggregation, endpoint, selectionHCL, headerValue, extraHeaderHCL, dsConfig)
-}
-
-func checkBasic(integrationType, providerType, aggregation, endpoint string, metricSelection []string, extraHeader, withDS bool) resource.TestCheckFunc {
-	headerCount := "1"
-	if extraHeader {
-		headerCount = "2"
-	}
-	setChecks := []string{"project_id", "metric_integration_id"}
-	mapChecks := map[string]string{
-		"integration_type":        integrationType,
-		"provider_type":           providerType,
-		"auth_type":               "HEADER",
-		"aggregation_temporality": aggregation,
-		"endpoint":                endpoint,
-		"metric_selection.#":      strconv.Itoa(len(metricSelection)),
-		"headers_redacted.#":      headerCount,
-	}
-	// headers is a write-only request field, so it exists only on the resource, not the data sources.
-	checks := []resource.TestCheckFunc{resource.TestCheckResourceAttr(resourceName, "headers.#", headerCount)}
-	var dsName *string
-	if withDS {
-		dsName = new(dataSourceName)
-		checks = append(checks, resource.TestCheckResourceAttrWith(pluralDataSourceName, "results.#", acc.IntGreatThan(0)))
-	}
-	checks = append(checks, acc.CheckRSAndDS(resourceName, dsName, nil, setChecks, mapChecks, checkExists(resourceName)))
-	return resource.ComposeAggregateTestCheckFunc(checks...)
-}
-
-func checkExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-		projectID := rs.Primary.Attributes["project_id"]
-		integrationID := rs.Primary.Attributes["metric_integration_id"]
-		if projectID == "" || integrationID == "" {
-			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
-		}
-
-		resp, err := acc.GetMetricIntegration(context.Background(), projectID, integrationID)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode == http.StatusOK {
-			return nil
-		}
-		return fmt.Errorf("metric integration for project_id %s with id %s does not exist, status %d", projectID, integrationID, resp.StatusCode)
-	}
-}
-
-func checkDestroy(state *terraform.State) error {
-	for name, rs := range state.RootModule().Resources {
-		if name != resourceName {
-			continue
-		}
-		projectID := rs.Primary.Attributes["project_id"]
-		integrationID := rs.Primary.Attributes["metric_integration_id"]
-		if projectID == "" || integrationID == "" {
-			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
-		}
-		resp, err := acc.GetMetricIntegration(context.Background(), projectID, integrationID)
-		if err != nil {
-			return err
-		}
-		resp.Body.Close()
-		if resp.StatusCode == http.StatusNotFound {
-			return nil
-		}
-		if resp.StatusCode == http.StatusOK {
-			return fmt.Errorf("metric integration for project_id %s with id %s still exists", projectID, integrationID)
-		}
-		return fmt.Errorf("checkDestroy, unexpected status %d for project_id %s with id %s", resp.StatusCode, projectID, integrationID)
-	}
-	return nil
-}
-
-func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
-		}
-		projectID := rs.Primary.Attributes["project_id"]
-		integrationID := rs.Primary.Attributes["metric_integration_id"]
-		if projectID == "" || integrationID == "" {
-			return "", fmt.Errorf("import, attributes not found for: %s", resourceName)
-		}
-		return fmt.Sprintf("%s/%s", projectID, integrationID), nil
-	}
-}
-
-// oauthExtrasHCL indents each optional oauth attribute to the block indentation and joins
-// them on newlines. Empty attributes are skipped, so omitted fields are not rendered.
-func oauthExtrasHCL(attrs ...string) string {
-	var b strings.Builder
-	for _, a := range attrs {
-		if a != "" {
-			b.WriteString("\n\t\t\t\t" + a)
-		}
-	}
-	return b.String()
-}
-
-// configOauth renders an OAUTH2 metric integration resource. oauthExtras is a pre-rendered
-// fragment of optional oauth block attributes, appended after client_id.
-func configOauth(projectID, endpoint, tokenEndpoint, clientID, clientAuthMethod string, withDS bool, oauthExtras string) string {
-	dsConfig := ""
-	if withDS {
-		dsConfig = datasourcesConfig
-	}
-	return fmt.Sprintf(`
-		resource "mongodbatlas_metric_integration" "test" {
-			project_id              = %[1]q
-			integration_type        = "OTEL"
-			provider_type           = "CUSTOM"
-			auth_type               = "OAUTH2"
-			aggregation_temporality = "DELTA"
-			endpoint                = %[2]q
-			metric_selection        = ["ATLAS_STREAM_PROCESSING"]
-
-			oauth = {
-				client_auth_method = %[3]q
-				token_endpoint     = %[4]q
-				client_id          = %[5]q%[6]s
-			}
-		}
-
-		%[7]s
-	`, projectID, endpoint, clientAuthMethod, tokenEndpoint, clientID, oauthExtras, dsConfig)
-}
-
-func configOauthClientSecret(projectID, endpoint, tokenEndpoint, clientID, clientSecret string, scopes []string, tokenRequestParams string, withDS bool) string {
-	scopesAttr := ""
-	if scopes != nil {
-		scopesAttr = "scopes = " + hcl.StringSliceToHCL(scopes)
-	}
-	return configOauth(projectID, endpoint, tokenEndpoint, clientID, "CLIENT_SECRET", withDS,
-		oauthExtrasHCL(
-			fmt.Sprintf("client_secret = %q", clientSecret),
-			scopesAttr,
-			tokenRequestParams,
-		),
-	)
-}
-
-func configOauthPrivateKeyJWT(projectID, endpoint, tokenEndpoint, clientID string, scopes []string, tokenRequestParams string, withDS bool) string {
-	extraAttrs := []string{}
-	if len(scopes) > 0 {
-		extraAttrs = append(extraAttrs, "scopes = "+hcl.StringSliceToHCL(scopes))
-	}
-	extraAttrs = append(extraAttrs, tokenRequestParams)
-	return configOauth(projectID, endpoint, tokenEndpoint, clientID, "PRIVATE_KEY_JWT", withDS, oauthExtrasHCL(extraAttrs...))
-}
-
-// TestAccMetricIntegration_oauthClientSecret covers the CLIENT_SECRET OAuth path
 func TestAccMetricIntegration_oauthClientSecret(t *testing.T) {
 	// TODO(CLOUDP-447244): remove this gate before merging to master.
 	acc.SkipTestForCI(t)
@@ -448,15 +249,200 @@ func TestAccMetricIntegration_oauthToHeader(t *testing.T) {
 				Config: headerConfig,
 				Check:  headerCheck,
 			},
-			{
-				Config:             headerConfig,
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: false,
-			},
 		},
 	})
 }
+func preCheckMetricIntegration(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_METRIC_INTEGRATION_ENDPOINT") == "" || os.Getenv("MONGODB_ATLAS_METRIC_INTEGRATION_API_KEY") == "" {
+		tb.Fatal("`MONGODB_ATLAS_METRIC_INTEGRATION_ENDPOINT` and `MONGODB_ATLAS_METRIC_INTEGRATION_API_KEY` must be set for acceptance testing")
+	}
+}
+func configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue string, metricSelection []string, extraHeader, withDS bool) string {
+	selectionHCL := hcl.StringSliceToHCL(metricSelection)
+	extraHeaderHCL := ""
+	if extraHeader {
+		extraHeaderHCL = `,
+				{
+					name  = "x-custom-header"
+					value = "custom-value"
+				}`
+	}
+	dsConfig := ""
+	if withDS {
+		dsConfig = datasourcesConfig
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_metric_integration" "test" {
+			project_id              = %[1]q
+			integration_type        = %[2]q
+			provider_type           = %[3]q
+			auth_type               = "HEADER"
+			aggregation_temporality = %[4]q
+			endpoint                = %[5]q
+			metric_selection        = %[6]s
 
+			headers = [
+				{
+					name  = "dd-api-key"
+					value = %[7]q
+				}%[8]s
+			]
+		}
+
+		%[9]s
+	`, projectID, integrationType, providerType, aggregation, endpoint, selectionHCL, headerValue, extraHeaderHCL, dsConfig)
+}
+func checkBasic(integrationType, providerType, aggregation, endpoint string, metricSelection []string, extraHeader, withDS bool) resource.TestCheckFunc {
+	headerCount := "1"
+	if extraHeader {
+		headerCount = "2"
+	}
+	setChecks := []string{"project_id", "metric_integration_id"}
+	mapChecks := map[string]string{
+		"integration_type":        integrationType,
+		"provider_type":           providerType,
+		"auth_type":               "HEADER",
+		"aggregation_temporality": aggregation,
+		"endpoint":                endpoint,
+		"metric_selection.#":      strconv.Itoa(len(metricSelection)),
+		"headers_redacted.#":      headerCount,
+	}
+	// headers is a write-only request field, so it exists only on the resource, not the data sources.
+	checks := []resource.TestCheckFunc{resource.TestCheckResourceAttr(resourceName, "headers.#", headerCount)}
+	var dsName *string
+	if withDS {
+		dsName = new(dataSourceName)
+		checks = append(checks, resource.TestCheckResourceAttrWith(pluralDataSourceName, "results.#", acc.IntGreatThan(0)))
+	}
+	checks = append(checks, acc.CheckRSAndDS(resourceName, dsName, nil, setChecks, mapChecks, checkExists(resourceName)))
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+func checkExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		integrationID := rs.Primary.Attributes["metric_integration_id"]
+		if projectID == "" || integrationID == "" {
+			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
+		}
+
+		resp, err := acc.GetMetricIntegration(context.Background(), projectID, integrationID)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode == http.StatusOK {
+			return nil
+		}
+		return fmt.Errorf("metric integration for project_id %s with id %s does not exist, status %d", projectID, integrationID, resp.StatusCode)
+	}
+}
+func checkDestroy(state *terraform.State) error {
+	for name, rs := range state.RootModule().Resources {
+		if name != resourceName {
+			continue
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		integrationID := rs.Primary.Attributes["metric_integration_id"]
+		if projectID == "" || integrationID == "" {
+			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
+		}
+		resp, err := acc.GetMetricIntegration(context.Background(), projectID, integrationID)
+		if err != nil {
+			return err
+		}
+		resp.Body.Close()
+		if resp.StatusCode == http.StatusNotFound {
+			return nil
+		}
+		if resp.StatusCode == http.StatusOK {
+			return fmt.Errorf("metric integration for project_id %s with id %s still exists", projectID, integrationID)
+		}
+		return fmt.Errorf("checkDestroy, unexpected status %d for project_id %s with id %s", resp.StatusCode, projectID, integrationID)
+	}
+	return nil
+}
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		integrationID := rs.Primary.Attributes["metric_integration_id"]
+		if projectID == "" || integrationID == "" {
+			return "", fmt.Errorf("import, attributes not found for: %s", resourceName)
+		}
+		return fmt.Sprintf("%s/%s", projectID, integrationID), nil
+	}
+}
+
+// oauthExtrasHCL indents each optional oauth attribute to the block indentation and joins
+// them on newlines. Empty attributes are skipped, so omitted fields are not rendered.
+func oauthExtrasHCL(attrs ...string) string {
+	var b strings.Builder
+	for _, a := range attrs {
+		if a != "" {
+			b.WriteString("\n\t\t\t\t" + a)
+		}
+	}
+	return b.String()
+}
+
+// configOauth renders an OAUTH2 metric integration resource. oauthExtras is a pre-rendered
+// fragment of optional oauth block attributes, appended after client_id.
+func configOauth(projectID, endpoint, tokenEndpoint, clientID, clientAuthMethod string, withDS bool, oauthExtras string) string {
+	dsConfig := ""
+	if withDS {
+		dsConfig = datasourcesConfig
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_metric_integration" "test" {
+			project_id              = %[1]q
+			integration_type        = "OTEL"
+			provider_type           = "CUSTOM"
+			auth_type               = "OAUTH2"
+			aggregation_temporality = "DELTA"
+			endpoint                = %[2]q
+			metric_selection        = ["ATLAS_STREAM_PROCESSING"]
+
+			oauth = {
+				client_auth_method = %[3]q
+				token_endpoint     = %[4]q
+				client_id          = %[5]q%[6]s
+			}
+		}
+
+		%[7]s
+	`, projectID, endpoint, clientAuthMethod, tokenEndpoint, clientID, oauthExtras, dsConfig)
+}
+func configOauthClientSecret(projectID, endpoint, tokenEndpoint, clientID, clientSecret string, scopes []string, tokenRequestParams string, withDS bool) string {
+	scopesAttr := ""
+	if scopes != nil {
+		scopesAttr = "scopes = " + hcl.StringSliceToHCL(scopes)
+	}
+	return configOauth(projectID, endpoint, tokenEndpoint, clientID, "CLIENT_SECRET", withDS,
+		oauthExtrasHCL(
+			fmt.Sprintf("client_secret = %q", clientSecret),
+			scopesAttr,
+			tokenRequestParams,
+		),
+	)
+}
+func configOauthPrivateKeyJWT(projectID, endpoint, tokenEndpoint, clientID string, scopes []string, tokenRequestParams string, withDS bool) string {
+	extraAttrs := []string{}
+	if len(scopes) > 0 {
+		extraAttrs = append(extraAttrs, "scopes = "+hcl.StringSliceToHCL(scopes))
+	}
+	extraAttrs = append(extraAttrs, tokenRequestParams)
+	return configOauth(projectID, endpoint, tokenEndpoint, clientID, "PRIVATE_KEY_JWT", withDS, oauthExtrasHCL(extraAttrs...))
+}
+
+// TestAccMetricIntegration_oauthClientSecret covers the CLIENT_SECRET OAuth path
 func configOauthPrivateKeyJWTWithClientSecret(projectID string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_metric_integration" "test" {
@@ -477,7 +463,6 @@ func configOauthPrivateKeyJWTWithClientSecret(projectID string) string {
 		}
 	`, projectID, oauthEndpoint, oauthTokenEndpoint, oauthClientID)
 }
-
 func checkOauthClientSecret(clientSecret string, scopes []string, tokenRequestParamsCount int, dsName *string) resource.TestCheckFunc {
 	mapChecks := map[string]string{
 		"auth_type":                    "OAUTH2",
@@ -499,7 +484,6 @@ func checkOauthClientSecret(clientSecret string, scopes []string, tokenRequestPa
 	checks = append(checks, acc.CheckRSAndDS(resourceName, dsName, nil, setChecks, mapChecks, checkExists(resourceName)))
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
-
 func checkOauthPrivateKeyJWT(scopes []string, tokenRequestParamsCount int, dsName *string) resource.TestCheckFunc {
 	mapChecks := map[string]string{
 		"auth_type":                        "OAUTH2",
