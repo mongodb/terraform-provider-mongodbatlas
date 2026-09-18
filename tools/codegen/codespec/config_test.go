@@ -184,6 +184,154 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 	}
 }
 
+func TestApplyTransformationsToResource_CreateOnlyTransformation(t *testing.T) {
+	tests := map[string]struct {
+		attribute      codespec.Attribute
+		expectedCreate bool
+	}{
+		"Required attribute omitted in update body is create only": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "required_attr",
+				TFModelName:              "RequiredAttr",
+				String:                   &codespec.StringAttribute{},
+				ComputedOptionalRequired: codespec.Required,
+				ReqBodyUsage:             codespec.OmitInUpdateBody,
+			},
+			expectedCreate: true,
+		},
+		"Computed attribute stays without create only": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "computed_attr",
+				TFModelName:              "ComputedAttr",
+				String:                   &codespec.StringAttribute{},
+				ComputedOptionalRequired: codespec.Computed,
+				ReqBodyUsage:             codespec.OmitInUpdateBody,
+			},
+			expectedCreate: false,
+		},
+		"Computed optional attribute without default stays without create only": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "computed_optional_attr",
+				TFModelName:              "ComputedOptionalAttr",
+				String:                   &codespec.StringAttribute{},
+				ComputedOptionalRequired: codespec.ComputedOptional,
+				ReqBodyUsage:             codespec.OmitInUpdateBody,
+			},
+			expectedCreate: false,
+		},
+		"Computed optional bool with default stays without create only": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "bool_with_default",
+				TFModelName:              "BoolWithDefault",
+				Bool:                     &codespec.BoolAttribute{Default: new(false)},
+				ComputedOptionalRequired: codespec.ComputedOptional,
+				ReqBodyUsage:             codespec.OmitInUpdateBody,
+				PresentInAnyResponse:     false,
+			},
+			expectedCreate: false,
+		},
+		"Computed optional bool with default present in response stays without create only": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "bool_with_default_in_response",
+				TFModelName:              "BoolWithDefaultInResponse",
+				Bool:                     &codespec.BoolAttribute{Default: new(false)},
+				ComputedOptionalRequired: codespec.ComputedOptional,
+				ReqBodyUsage:             codespec.OmitInUpdateBody,
+				PresentInAnyResponse:     true,
+			},
+			expectedCreate: false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			resource := &codespec.Resource{
+				Name: "test_resource",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{tc.attribute},
+				},
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{},
+					Read:   &codespec.APIOperation{},
+				},
+			}
+			require.NoError(t, codespec.ApplyTransformationsToResource(&config.Resource{}, resource))
+			assert.Equal(t, tc.expectedCreate, resource.Schema.Attributes[0].CreateOnly)
+		})
+	}
+}
+
+func TestApplyTransformationsToResource_ClearDefaultTransformation(t *testing.T) {
+	tests := map[string]struct {
+		expectedDefault    bool
+		expectedDefaultSet bool
+		expectOptional     bool
+		clearDefault       bool
+		expectedCreateOnly bool
+	}{
+		"Clearing the default keeps the optional override and the create only modifier": {
+			clearDefault:       true,
+			expectOptional:     true,
+			expectedDefaultSet: false,
+			expectedCreateOnly: true,
+		},
+		"Without the override the spec default keeps computed optional without create only": {
+			clearDefault:       false,
+			expectOptional:     false,
+			expectedDefault:    false,
+			expectedDefaultSet: true,
+			expectedCreateOnly: false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			attribute := codespec.Attribute{
+				TFSchemaName:             "bool_with_default",
+				TFModelName:              "BoolWithDefault",
+				Bool:                     &codespec.BoolAttribute{Default: new(false)},
+				ComputedOptionalRequired: codespec.ComputedOptional,
+				ReqBodyUsage:             codespec.OmitInUpdateBody,
+				PresentInAnyResponse:     false,
+			}
+			override := config.Override{}
+			if tc.clearDefault {
+				override.Computability = &config.Computability{Optional: true}
+				override.ClearDefault = new(true)
+			}
+			resource := &codespec.Resource{
+				Name: "test_resource",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{attribute},
+				},
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{},
+					Read:   &codespec.APIOperation{},
+				},
+			}
+			resourceConfig := &config.Resource{
+				SchemaOptions: config.SchemaOptions{
+					Overrides: map[string]config.Override{"bool_with_default": override},
+				},
+			}
+			require.NoError(t, codespec.ApplyTransformationsToResource(resourceConfig, resource))
+			attr := resource.Schema.Attributes[0]
+			expectedComputability := codespec.ComputedOptional
+			if tc.expectOptional {
+				expectedComputability = codespec.Optional
+			}
+			assert.Equal(t, expectedComputability, attr.ComputedOptionalRequired)
+			if tc.expectedDefaultSet {
+				require.NotNil(t, attr.Bool.Default)
+				assert.Equal(t, tc.expectedDefault, *attr.Bool.Default)
+			} else {
+				assert.Nil(t, attr.Bool.Default)
+			}
+			assert.Equal(t, tc.expectedCreateOnly, attr.CreateOnly)
+		})
+	}
+}
+
 func TestApplyTransformationsToResource_AliasAttributeTransformation(t *testing.T) {
 	tests := map[string]struct {
 		inputResource      *codespec.Resource

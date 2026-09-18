@@ -1373,8 +1373,15 @@ resources:
         created_at:
           immutable_computed: true
         secret_expires_after_hours:
-          # Adding clarification that the attribute is required for creation and can't be updated later.
-          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later."
+          # Clarifying the mutually exclusive create inputs and create-only behavior.
+          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. Set this field when you set `without_initial_secret` to false or omit `without_initial_secret`. Do not set this field when you set `without_initial_secret` to true. You cannot update this field after you create the Service Account."
+        without_initial_secret:
+          # Optional only, and the API spec default is cleared: the provider must not write a value the
+          # user did not configure, so a create-only change is not rejected after import.
+          computability:
+            optional: true
+          clear_default: true
+          description: "When true, creates the Service Account without generating an initial secret. If you set this field to true, do not set `secret_expires_after_hours`."
         secrets:
           type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
           skip_state_list_merge: true # Prevent keeping old secret values in the state.

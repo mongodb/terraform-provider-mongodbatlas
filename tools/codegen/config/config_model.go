@@ -78,9 +78,13 @@ type Override struct {
 	ImmutableComputed  *bool          `yaml:"immutable_computed"` // Generates UseStateForUnknown() plan modifier; only meaningful for computed/computed_optional attributes on resource schemas (not data sources).
 	Type               *Type          `yaml:"type"`
 	Description        string         `yaml:"description"`
-	PlanModifiers      []PlanModifier `yaml:"plan_modifiers"`
-	Validators         []Validator    `yaml:"validators"`
-	IgnoreValidators   []string       `yaml:"ignore_validators"`
+	// ClearDefault drops a static default declared in the API spec. Required when the default should
+	// not be exposed in the schema: a spec default forces computed_optional, and terraform-plugin-framework
+	// rejects a schema Default on a non-computed attribute.
+	ClearDefault     *bool          `yaml:"clear_default"`
+	PlanModifiers    []PlanModifier `yaml:"plan_modifiers"`
+	Validators       []Validator    `yaml:"validators"`
+	IgnoreValidators []string       `yaml:"ignore_validators"`
 }
 
 type PlanModifier struct {
