@@ -81,9 +81,14 @@ func regionHasShardSizeLimit(regionConfig *admin.CloudRegionConfig20240805) bool
 
 func omitEmptyAutoScalingChildren(replicationSpecs []admin.ReplicationSpec20240805) {
 	for _, spec := range replicationSpecs {
-		for _, region := range spec.GetRegionConfigs() {
+		for i := range spec.GetRegionConfigs() {
+			region := &spec.GetRegionConfigs()[i]
 			omitEmptyComputeAndDiskGB(region.AutoScaling)
 			omitEmptyComputeAndDiskGB(region.AnalyticsAutoScaling)
+			// INFINITE rejects analyticsSpecs without instanceSize, e.g. {"nodeCount": 0}.
+			if specs := region.AnalyticsSpecs; specs != nil && specs.GetNodeCount() == 0 && !specs.HasInstanceSize() {
+				region.AnalyticsSpecs = nil
+			}
 		}
 	}
 }
