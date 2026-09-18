@@ -2,8 +2,6 @@
 
 Export Atlas metrics to an OTLP-compatible endpoint using OAuth 2.0 client-secret authentication.
 
-For a real integration, point `token_endpoint` at your identity provider's token endpoint and use the `client_id` and `client_secret` registered there. The `client_secret` is write-only and never returned by the API.
-
 For product limits, see the [resource documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/metric_integration#limitations).
 
 ## Prerequisites
@@ -11,8 +9,6 @@ For product limits, see the [resource documentation](https://registry.terraform.
 - MongoDB Atlas Service Account with Organization Owner or Project Owner role.
 - An OTLP-compatible endpoint URL.
 - OAuth 2.0 client credentials (`client_id` and `client_secret`) registered with your identity provider's token endpoint.
-
-Credentials come from the environment (`MONGODB_ATLAS_CLIENT_ID` and `MONGODB_ATLAS_CLIENT_SECRET`).
 
 ## Defaults
 
@@ -36,11 +32,13 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 Required inputs:
 
 ```hcl
-atlas_org_id     = "your-org-id"
-otel_endpoint    = "https://otel-collector.example.com:4318/v1/metrics"
-token_endpoint   = "https://idp.example.com/oauth2/token"
-client_id        = "your-oauth-client-id"
-client_secret    = "your-oauth-client-secret"
+atlas_org_id        = "your-org-id"
+atlas_client_id     = "your-service-account-client-id"
+atlas_client_secret = "your-service-account-client-secret"
+otel_endpoint       = "https://otel-collector.example.com:4318/v1/metrics"
+token_endpoint      = "https://idp.example.com/oauth2/token"
+client_id           = "your-oauth-client-id"
+client_secret       = "your-oauth-client-secret"
 
 # metric_selection = ["ATLAS_STREAM_PROCESSING"]   # default
 # oauth_scopes     = ["metrics.write"]              # optional

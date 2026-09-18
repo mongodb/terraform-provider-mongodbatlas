@@ -4,7 +4,7 @@ resource "mongodbatlas_project" "this" {
   org_id = var.atlas_org_id
 }
 
-resource "mongodbatlas_metric_integration" "example" {
+resource "mongodbatlas_metric_integration" "this" {
   project_id              = mongodbatlas_project.this.id
   integration_type        = "OTEL"
   provider_type           = "CUSTOM"
@@ -22,22 +22,22 @@ resource "mongodbatlas_metric_integration" "example" {
   }
 }
 
-data "mongodbatlas_metric_integration" "example" {
-  project_id            = mongodbatlas_metric_integration.example.project_id
-  metric_integration_id = mongodbatlas_metric_integration.example.metric_integration_id
+data "mongodbatlas_metric_integration" "this" {
+  project_id            = mongodbatlas_metric_integration.this.project_id
+  metric_integration_id = mongodbatlas_metric_integration.this.metric_integration_id
 }
 
-data "mongodbatlas_metric_integrations" "example" {
-  project_id = mongodbatlas_metric_integration.example.project_id
-  depends_on = [mongodbatlas_metric_integration.example]
+data "mongodbatlas_metric_integrations" "this" {
+  project_id = mongodbatlas_metric_integration.this.project_id
+  depends_on = [mongodbatlas_metric_integration.this]
 }
 
 output "metric_integration_type" {
   description = "Type of the metric integration."
-  value       = data.mongodbatlas_metric_integration.example.integration_type
+  value       = data.mongodbatlas_metric_integration.this.integration_type
 }
 
 output "metric_integration_ids" {
   description = "IDs of the metric integrations in the project."
-  value       = [for r in data.mongodbatlas_metric_integrations.example.results : r.metric_integration_id]
+  value       = [for r in data.mongodbatlas_metric_integrations.this.results : r.metric_integration_id]
 }

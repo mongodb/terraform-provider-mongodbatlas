@@ -1,3 +1,16 @@
+variable "atlas_client_id" {
+  description = "Atlas Service Account Client ID"
+  type        = string
+  default     = ""
+}
+
+variable "atlas_client_secret" {
+  description = "Atlas Service Account Client Secret"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "atlas_org_id" {
   description = "Atlas Organization ID"
   type        = string
