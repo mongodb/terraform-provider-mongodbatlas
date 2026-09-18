@@ -51,7 +51,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							},
 							"test_bucket": schema.StringAttribute{
 								Optional:            true,
-								MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.",
+								MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.",
 							},
 						},
 					},
@@ -120,7 +120,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"test_bucket": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.",
+						MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.",
 					},
 				},
 			},
