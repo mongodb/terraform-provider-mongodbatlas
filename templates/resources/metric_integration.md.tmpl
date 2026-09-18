@@ -14,10 +14,11 @@ To use this resource, the requesting Service Account or API Key must have the Or
 
 The following example uses Datadog. To export to another provider, update `provider_type` (`CUSTOM`, `NEW_RELIC`, or `DYNATRACE`), the `endpoint`, and the authentication `headers` to match that provider.
 
-{{ tffile "examples/mongodbatlas_metric_integration/main.tf" }}
+{{ tffile "examples/mongodbatlas_metric_integration/header/main.tf" }}
 
 ### Further Examples
-- [Metric Integration Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_metric_integration)
+- [Header-based](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_metric_integration/header) — export using header-based authentication.
+- [OAuth 2.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_metric_integration/oauth) — export using OAuth 2.0 authentication.
 
 {{ .SchemaMarkdown | trimspace }}
 
