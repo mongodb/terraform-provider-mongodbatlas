@@ -79,7 +79,9 @@ func regionHasShardSizeLimit(regionConfig *admin.CloudRegionConfig20240805) bool
 	return regionConfig.AutoScaling != nil && regionConfig.AutoScaling.StorageConfig != nil && regionConfig.AutoScaling.StorageConfig.HasShardSizeLimitGB()
 }
 
-func omitEmptyAutoScalingChildren(replicationSpecs []admin.ReplicationSpec20240805) {
+// omitInvalidInfiniteConfig removes empty auto-scaling children and analyticsSpecs without
+// instanceSize that INFINITE rejects.
+func omitInvalidInfiniteConfig(replicationSpecs []admin.ReplicationSpec20240805) {
 	for _, spec := range replicationSpecs {
 		for i := range spec.GetRegionConfigs() {
 			region := &spec.GetRegionConfigs()[i]
