@@ -26,16 +26,17 @@ var _ resource.ResourceWithUpgradeState = &rs{}
 var _ resource.ResourceWithModifyPlan = &rs{}
 
 const (
-	resourceName             = "advanced_cluster"
-	errorPatchPayload        = "error creating patch payload"
-	errorDetailDefault       = "cluster name: %s, API error details: %s"
-	errorReadResource        = "error reading advanced cluster"
-	errorAdvancedConfRead    = "error reading Advanced Configuration"
-	errorList                = "error reading advanced cluster list"
-	errorListDetail          = "project ID %s. Error %s"
-	errorResolveContainerIDs = "error resolving container IDs"
-	errorRegionPriorities    = "priority values in region_configs must be in descending order"
-
+	resourceName                         = "advanced_cluster"
+	errorPatchPayload                    = "error creating patch payload"
+	errorDetailDefault                   = "cluster name: %s, API error details: %s"
+	errorReadResource                    = "error reading advanced cluster"
+	errorAdvancedConfRead                = "error reading Advanced Configuration"
+	errorList                            = "error reading advanced cluster list"
+	errorListDetail                      = "project ID %s. Error %s"
+	errorResolveContainerIDs             = "error resolving container IDs"
+	errorRegionPriorities                = "priority values in region_configs must be in descending order"
+	errorInvalidAttributeConfiguration   = "Invalid Attribute Configuration"
+	errorInfiniteShardedEdition          = "Atlas does not support the INFINITE database edition for SHARDED or GEOSHARDED cluster types yet. Use a REPLICASET cluster type or a different database_edition."
 	ErrorCodeClusterNotFound             = "CLUSTER_NOT_FOUND"
 	operationUpdate                      = "update"
 	operationCreate                      = "create"
@@ -115,6 +116,12 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	if diags.HasError() {
+		return
+	}
+	// Gate one case the plan validator cannot see: values that only resolve at apply time, e.g.
+	// database_edition computed from another resource. Update gates the other case.
+	if isDatabaseEditionInfiniteSharded(plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), "") {
+		diags.AddError(errorInvalidAttributeConfiguration, errorInfiniteShardedEdition)
 		return
 	}
 	latestReq := newAtlasReq(ctx, &plan, diags)
@@ -234,6 +241,12 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
+	// Gate the other case the plan validator cannot see: database_edition omitted from config on an existing
+	// INFINITE cluster, e.g. switching an INFINITE replica set to sharded after dropping the attribute.
+	if isDatabaseEditionInfiniteSharded(plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), state.EffectiveDatabaseEdition.ValueString()) {
+		diags.AddError(errorInvalidAttributeConfiguration, errorInfiniteShardedEdition)
+		return
+	}
 	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
 	if diags.HasError() {
 		return
@@ -244,7 +257,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	// Omit the empty auto-scaling children that INFINITE rejects. effective_database_edition is always
 	// populated by Read, so no extra GET is needed even after an import that leaves database_edition unset.
-	if diff.clusterPatchOnlyReq != nil && state.EffectiveDatabaseEdition.ValueString() == "INFINITE" {
+	if diff.clusterPatchOnlyReq != nil && state.EffectiveDatabaseEdition.ValueString() == databaseEditionInfinite {
 		omitEmptyAutoScalingChildren(diff.clusterPatchOnlyReq.GetReplicationSpecs())
 	}
 

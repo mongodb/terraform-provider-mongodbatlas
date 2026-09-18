@@ -34,6 +34,14 @@ func TestAccAdvancedCluster_ValidationErrors(t *testing.T) {
 				Config:      configBasic(projectID, clusterName, "advanced_configuration = {oplog_size_mb = -1}"),
 				ExpectError: regexp.MustCompile("Invalid Attribute Value"),
 			},
+			{
+				Config:      configShardedDatabaseEdition(projectID, clusterName, "SHARDED", "INFINITE"),
+				ExpectError: regexp.MustCompile("Atlas does not support the INFINITE database edition"),
+			},
+			{
+				Config:      configShardedDatabaseEdition(projectID, clusterName, "GEOSHARDED", "INFINITE"),
+				ExpectError: regexp.MustCompile("Atlas does not support the INFINITE database edition"),
+			},
 		},
 	})
 }
@@ -85,8 +93,40 @@ func TestAdvancedCluster_PlanModifierValid(t *testing.T) {
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
+			{
+				Config:             configBasic(projectID, clusterName, `database_edition = "INFINITE"`), // REPLICASET supports the INFINITE edition
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				Config:             configShardedDatabaseEdition(projectID, clusterName, "SHARDED", "CORE"), // sharded clusters only reject the INFINITE edition
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
 		},
 	})
+}
+
+func configShardedDatabaseEdition(projectID, clusterName, clusterType, databaseEdition string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id       = %[1]q
+			name             = %[2]q
+			cluster_type     = %[3]q
+			database_edition = %[4]q
+			replication_specs = [{
+				region_configs = [{
+					priority      = 7
+					provider_name = "AWS"
+					region_name   = "US_EAST_1"
+					electable_specs = {
+						node_count    = 2
+						instance_size = "M10"
+					}
+				}]
+			}]
+		}
+	`, projectID, clusterName, clusterType, databaseEdition)
 }
 
 func configBasic(projectID, clusterName, extra string) string {

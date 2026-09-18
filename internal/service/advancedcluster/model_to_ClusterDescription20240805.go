@@ -55,7 +55,7 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 	}
 	// INFINITE rejects the empty auto-scaling children the converter emits. In Create only database_edition is
 	// available yet; Update reads the authoritative effective_database_edition in resource.go instead.
-	if result.GetDatabaseEdition() == "INFINITE" {
+	if result.GetDatabaseEdition() == databaseEditionInfinite {
 		omitEmptyAutoScalingChildren(result.GetReplicationSpecs())
 	}
 	return result
