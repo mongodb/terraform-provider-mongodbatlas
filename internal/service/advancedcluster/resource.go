@@ -258,7 +258,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	// Omit the empty auto-scaling children that INFINITE rejects. effective_database_edition is always
 	// populated by Read, so no extra GET is needed even after an import that leaves database_edition unset.
 	if diff.clusterPatchOnlyReq != nil && state.EffectiveDatabaseEdition.ValueString() == databaseEditionInfinite {
-		omitEmptyAutoScalingChildren(diff.clusterPatchOnlyReq.GetReplicationSpecs())
+		omitInvalidInfiniteConfig(diff.clusterPatchOnlyReq.GetReplicationSpecs())
 	}
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
@@ -550,7 +550,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	if shardSizeLimitRemoved(stateReq.ReplicationSpecs, planReq.ReplicationSpecs) {
 		// Atlas clears an omitted shardSizeLimitGB only when replicationSpecs is included in the PATCH.
 		patchOptions.ForceUpdateAttr = []string{"replicationSpecs"}
-		omitEmptyAutoScalingChildren(planReq.GetReplicationSpecs())
+		omitInvalidInfiniteConfig(planReq.GetReplicationSpecs())
 	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
