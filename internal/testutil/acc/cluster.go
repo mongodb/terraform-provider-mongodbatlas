@@ -3,7 +3,6 @@ package acc
 import (
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20250312025/admin"
@@ -95,19 +94,6 @@ func GetClusterInfo(tb testing.TB, req *ClusterRequest) ClusterInfo {
 func ExistingClusterUsed() bool {
 	projectID, clusterName := existingProjectIDClusterName()
 	return clusterName != "" && projectID != ""
-}
-
-// TestClusterTierEnvName allows overriding the instance size of the shared execution cluster
-// created by the acceptance test helpers, e.g. to run the search index tests on a larger tier.
-const TestClusterTierEnvName = "MONGODB_ATLAS_TEST_CLUSTER_TIER"
-
-// TestClusterTier returns the instance size used by the shared execution cluster.
-// Defaults to M10 and can be overridden with MONGODB_ATLAS_TEST_CLUSTER_TIER.
-func TestClusterTier() string {
-	if tier := strings.TrimSpace(os.Getenv(TestClusterTierEnvName)); tier != "" {
-		return tier
-	}
-	return constant.M10
 }
 
 func existingProjectIDClusterName() (projectID, clusterName string) {
