@@ -79,6 +79,31 @@ func regionHasShardSizeLimit(regionConfig *admin.CloudRegionConfig20240805) bool
 	return regionConfig.AutoScaling != nil && regionConfig.AutoScaling.StorageConfig != nil && regionConfig.AutoScaling.StorageConfig.HasShardSizeLimitGB()
 }
 
+// setStorageConfigNil explicitly sets storageConfig to null in regions where it should be cleared.
+// This creates a detectable change in the PATCH payload, allowing Atlas to clear the field.
+// Atlas uses replacement semantics for replicationSpecs: when present in a PATCH, omitted fields are cleared.
+func setStorageConfigNil(stateReplicationSpecs, planReplicationSpecs *[]admin.ReplicationSpec20240805) {
+	if stateReplicationSpecs == nil || planReplicationSpecs == nil {
+		return
+	}
+	stateSpecs, planSpecs := *stateReplicationSpecs, *planReplicationSpecs
+	for i := range minLen(stateSpecs, planSpecs) {
+		stateRegions, planRegions := stateSpecs[i].GetRegionConfigs(), planSpecs[i].GetRegionConfigs()
+		for j := range minLen(stateRegions, planRegions) {
+			stateRegion := &stateRegions[j]
+			planRegion := &planSpecs[i].GetRegionConfigs()[j]
+			// Only set storageConfig to null if state has it but plan doesn't (removal detected)
+			if regionHasShardSizeLimit(stateRegion) && !regionHasShardSizeLimit(planRegion) {
+				// Allocate AutoScaling if it doesn't exist in the plan
+				if planRegion.AutoScaling == nil {
+					planRegion.AutoScaling = &admin.AdvancedAutoScalingSettings{}
+				}
+				planRegion.AutoScaling.SetStorageConfigNil()
+			}
+		}
+	}
+}
+
 // omitInvalidInfiniteConfig removes empty auto-scaling children and analyticsSpecs without
 // instanceSize that Atlas rejects. This is only needed for INFINITE because ForceUpdateAttr
 // forces the entire replicationSpecs into the PATCH, including invalid fields.
