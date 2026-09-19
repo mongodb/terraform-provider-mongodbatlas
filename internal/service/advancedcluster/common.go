@@ -61,10 +61,10 @@ func regionHasShardSizeLimit(regionConfig *admin.CloudRegionConfig20240805) bool
 	return regionConfig.AutoScaling != nil && regionConfig.AutoScaling.StorageConfig != nil && regionConfig.AutoScaling.StorageConfig.HasShardSizeLimitGB()
 }
 
-// setStorageConfigNil explicitly sets storageConfig to null in regions where it should be cleared.
+// setStorageConfigNil marks storageConfig for removal by setting it to explicit null in the plan request.
+// This creates a detectable change (replacement, not removal) that PatchPayload recognizes and includes
+// in the PATCH. Atlas clears the limit because storageConfig is absent within replicationSpecs.
 // Returns true if any removals were marked.
-// This creates a detectable change in the PATCH payload, allowing Atlas to clear the field.
-// Atlas uses replacement semantics for replicationSpecs: when present in a PATCH, omitted fields are cleared.
 func setStorageConfigNil(stateReplicationSpecs, planReplicationSpecs *[]admin.ReplicationSpec20240805) bool {
 	if stateReplicationSpecs == nil || planReplicationSpecs == nil {
 		return false
@@ -76,9 +76,7 @@ func setStorageConfigNil(stateReplicationSpecs, planReplicationSpecs *[]admin.Re
 		for j := range minLen(stateRegions, planRegions) {
 			stateRegion := &stateRegions[j]
 			planRegion := &planSpecs[i].GetRegionConfigs()[j]
-			// Only set storageConfig to null if state has it but plan doesn't (removal detected)
 			if regionHasShardSizeLimit(stateRegion) && !regionHasShardSizeLimit(planRegion) {
-				// Allocate AutoScaling if it doesn't exist in the plan
 				if planRegion.AutoScaling == nil {
 					planRegion.AutoScaling = &admin.AdvancedAutoScalingSettings{}
 				}
