@@ -255,10 +255,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	// Omit the empty auto-scaling children that INFINITE rejects. effective_database_edition is always
-	// populated by Read, so no extra GET is needed even after an import that leaves database_edition unset.
+	// Omit invalid fields that INFINITE rejects (e.g., empty auto-scaling children, analyticsSpecs
+	// without instanceSize). effective_database_edition is always populated by Read, so no extra GET
+	// is needed even after an import that leaves database_edition unset.
 	if diff.clusterPatchOnlyReq != nil && state.EffectiveDatabaseEdition.ValueString() == databaseEditionInfinite {
-		omitEmptyAutoScalingChildren(diff.clusterPatchOnlyReq.GetReplicationSpecs())
+		omitInvalidInfiniteConfig(diff.clusterPatchOnlyReq.GetReplicationSpecs())
 	}
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
@@ -548,9 +549,10 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknown and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
 	if shardSizeLimitRemoved(stateReq.ReplicationSpecs, planReq.ReplicationSpecs) {
-		// Atlas clears an omitted shardSizeLimitGB only when replicationSpecs is included in the PATCH.
-		patchOptions.ForceUpdateAttr = []string{"replicationSpecs"}
-		omitEmptyAutoScalingChildren(planReq.GetReplicationSpecs())
+		// Set storageConfig to explicit null in the plan to create a detectable change.
+		// Atlas clears shardSizeLimitGB when replicationSpecs is present but storageConfig is absent/null.
+		setStorageConfigNil(stateReq.ReplicationSpecs, planReq.ReplicationSpecs)
+		omitInvalidInfiniteConfig(planReq.GetReplicationSpecs())
 	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {

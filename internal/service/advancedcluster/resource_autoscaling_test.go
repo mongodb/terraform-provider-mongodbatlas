@@ -42,7 +42,7 @@ func TestUpdateRemovesShardSizeLimit(t *testing.T) {
 				"electable_specs": hardware, "read_only_specs": hardware, "analytics_specs": hardware,
 				"analytics_auto_scaling": compute,
 			}},
-			expectedRegions: `[{"analyticsAutoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true}},"electableSpecs":{"instanceSize":"M10","nodeCount":2},"readOnlySpecs":{"instanceSize":"M10","nodeCount":2},"analyticsSpecs":{"instanceSize":"M10","nodeCount":2}}]`,
+			expectedRegions: `[{"analyticsAutoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true}},"autoScaling":{},"electableSpecs":{"instanceSize":"M10","nodeCount":2},"readOnlySpecs":{"instanceSize":"M10","nodeCount":2},"analyticsSpecs":{"instanceSize":"M10","nodeCount":2}}]`,
 		},
 		"preserves compute and zero-node hardware with an unrelated change": {
 			planRegions:     []any{withZeroNodes(compute)},
@@ -68,6 +68,16 @@ func TestUpdateRemovesShardSizeLimit(t *testing.T) {
 				}},
 			},
 			expectedRegions: `[{"autoScaling":{},"electableSpecs":{"instanceSize":"M10","nodeCount":2}},{"autoScaling":{"storageConfig":{"shardSizeLimitGB":1024}},"electableSpecs":{"instanceSize":"M10","nodeCount":2}}]`,
+		},
+		"omits analyticsSpecs without instanceSize for INFINITE": {
+			planRegions: []any{
+				map[string]any{
+					"electable_specs": hardware,
+					"analytics_specs": map[string]any{"node_count": int64(0)}, // no instance_size
+					"auto_scaling":    map[string]any{"compute_enabled": false},
+				},
+			},
+			expectedRegions: `[{"autoScaling":{"compute":{"enabled":false}},"electableSpecs":{"instanceSize":"M10","nodeCount":2}}]`,
 		},
 	}
 	for name, tc := range testCases {
