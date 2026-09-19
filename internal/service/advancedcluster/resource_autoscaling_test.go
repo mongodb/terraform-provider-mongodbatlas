@@ -42,7 +42,7 @@ func TestUpdateRemovesShardSizeLimit(t *testing.T) {
 				"electable_specs": hardware, "read_only_specs": hardware, "analytics_specs": hardware,
 				"analytics_auto_scaling": compute,
 			}},
-			expectedRegions: `[{"analyticsAutoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true}},"electableSpecs":{"instanceSize":"M10","nodeCount":2},"readOnlySpecs":{"instanceSize":"M10","nodeCount":2},"analyticsSpecs":{"instanceSize":"M10","nodeCount":2}}]`,
+			expectedRegions: `[{"analyticsAutoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M30","minInstanceSize":"M10","scaleDownEnabled":true}},"autoScaling":{},"electableSpecs":{"instanceSize":"M10","nodeCount":2},"readOnlySpecs":{"instanceSize":"M10","nodeCount":2},"analyticsSpecs":{"instanceSize":"M10","nodeCount":2}}]`,
 		},
 		"preserves compute and zero-node hardware with an unrelated change": {
 			planRegions:     []any{withZeroNodes(compute)},

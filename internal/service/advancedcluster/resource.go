@@ -549,8 +549,9 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknown and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
 	if shardSizeLimitRemoved(stateReq.ReplicationSpecs, planReq.ReplicationSpecs) {
-		// Atlas clears an omitted shardSizeLimitGB only when replicationSpecs is included in the PATCH.
-		patchOptions.ForceUpdateAttr = []string{"replicationSpecs"}
+		// Set storageConfig to explicit null in the plan to create a detectable change.
+		// Atlas clears shardSizeLimitGB when replicationSpecs is present but storageConfig is absent/null.
+		setStorageConfigNil(stateReq.ReplicationSpecs, planReq.ReplicationSpecs)
 		omitInvalidInfiniteConfig(planReq.GetReplicationSpecs())
 	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
