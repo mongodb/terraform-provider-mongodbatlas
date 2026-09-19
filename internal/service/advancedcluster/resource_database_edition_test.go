@@ -70,7 +70,7 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 				),
 			},
 			// Clear storage while compute stays configured, on a freshly created cluster, to verify
-			// the provider no longer sends the invalid analyticsSpecs that Atlas rejects with 400.
+			// the provider correctly handles storage removal with the explicit-null approach.
 			{
 				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(1024), false),
 				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{

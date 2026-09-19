@@ -126,7 +126,9 @@ func adjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 
 			stateAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
 			planAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].AnalyticsSpecs)
-			// don't get analytics_specs from state if node_count is 0 to avoid possible ANALYTICS_INSTANCE_SIZE_MUST_MATCH errors
+			// Preserve analytics_specs from state when:
+			// 1. Plan doesn't have analytics_specs but state has it with node_count > 0 (existing behavior)
+			// 2. Plan has analytics_specs with node_count = 0 but no instance_size (explicit removal)
 			if planAnalyticsSpecs == nil && stateAnalyticsSpecs != nil && stateAnalyticsSpecs.NodeCount.ValueInt64() > 0 {
 				newPlanAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
 				objType, diagsLocal := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, newPlanAnalyticsSpecs)
@@ -135,6 +137,18 @@ func adjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 					return
 				}
 				planRegionConfigsTF[j].AnalyticsSpecs = objType
+			} else if planAnalyticsSpecs != nil && planAnalyticsSpecs.NodeCount.ValueInt64() == 0 && (planAnalyticsSpecs.InstanceSize.IsNull() || planAnalyticsSpecs.InstanceSize.IsUnknown()) {
+				// Plan has analytics_specs with node_count = 0 but no instance_size (explicit removal)
+				// Copy instance_size from state to create a valid removal request
+				if stateAnalyticsSpecs != nil && !stateAnalyticsSpecs.InstanceSize.IsNull() && !stateAnalyticsSpecs.InstanceSize.IsUnknown() {
+					planAnalyticsSpecs.InstanceSize = stateAnalyticsSpecs.InstanceSize
+					objType, diagsLocal := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, planAnalyticsSpecs)
+					diags.Append(diagsLocal...)
+					if diags.HasError() {
+						return
+					}
+					planRegionConfigsTF[j].AnalyticsSpecs = objType
+				}
 			}
 
 			// Preserve state auto-scaling only when compute or disk auto-scaling is enabled.

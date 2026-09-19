@@ -57,35 +57,19 @@ func AddIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20240805, 
 	return replicationSpecs
 }
 
-// Detect the removal per region so a removal from only some regions still forces the PATCH.
-// Topology changes need no alignment handling here because they already put replicationSpecs in the PATCH.
-func shardSizeLimitRemoved(stateReplicationSpecs, planReplicationSpecs *[]admin.ReplicationSpec20240805) bool {
-	if stateReplicationSpecs == nil || planReplicationSpecs == nil {
-		return false
-	}
-	stateSpecs, planSpecs := *stateReplicationSpecs, *planReplicationSpecs
-	for i := range minLen(stateSpecs, planSpecs) {
-		stateRegions, planRegions := stateSpecs[i].GetRegionConfigs(), planSpecs[i].GetRegionConfigs()
-		for j := range minLen(stateRegions, planRegions) {
-			if regionHasShardSizeLimit(&stateRegions[j]) && !regionHasShardSizeLimit(&planRegions[j]) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
 func regionHasShardSizeLimit(regionConfig *admin.CloudRegionConfig20240805) bool {
 	return regionConfig.AutoScaling != nil && regionConfig.AutoScaling.StorageConfig != nil && regionConfig.AutoScaling.StorageConfig.HasShardSizeLimitGB()
 }
 
 // setStorageConfigNil explicitly sets storageConfig to null in regions where it should be cleared.
+// Returns true if any removals were marked.
 // This creates a detectable change in the PATCH payload, allowing Atlas to clear the field.
 // Atlas uses replacement semantics for replicationSpecs: when present in a PATCH, omitted fields are cleared.
-func setStorageConfigNil(stateReplicationSpecs, planReplicationSpecs *[]admin.ReplicationSpec20240805) {
+func setStorageConfigNil(stateReplicationSpecs, planReplicationSpecs *[]admin.ReplicationSpec20240805) bool {
 	if stateReplicationSpecs == nil || planReplicationSpecs == nil {
-		return
+		return false
 	}
+	marked := false
 	stateSpecs, planSpecs := *stateReplicationSpecs, *planReplicationSpecs
 	for i := range minLen(stateSpecs, planSpecs) {
 		stateRegions, planRegions := stateSpecs[i].GetRegionConfigs(), planSpecs[i].GetRegionConfigs()
@@ -99,14 +83,16 @@ func setStorageConfigNil(stateReplicationSpecs, planReplicationSpecs *[]admin.Re
 					planRegion.AutoScaling = &admin.AdvancedAutoScalingSettings{}
 				}
 				planRegion.AutoScaling.SetStorageConfigNil()
+				marked = true
 			}
 		}
 	}
+	return marked
 }
 
 // omitInvalidInfiniteConfig removes empty auto-scaling children and analyticsSpecs without
-// instanceSize that Atlas rejects. This is only needed for INFINITE because ForceUpdateAttr
-// forces the entire replicationSpecs into the PATCH, including invalid fields.
+// instanceSize that Atlas rejects. This is needed because conversion can produce invalid request objects
+// when the entire replicationSpecs is included in the PATCH.
 func omitInvalidInfiniteConfig(replicationSpecs []admin.ReplicationSpec20240805) {
 	for _, spec := range replicationSpecs {
 		for i := range spec.GetRegionConfigs() {
@@ -114,7 +100,7 @@ func omitInvalidInfiniteConfig(replicationSpecs []admin.ReplicationSpec20240805)
 			omitEmptyComputeAndDiskGB(region.AutoScaling)
 			omitEmptyComputeAndDiskGB(region.AnalyticsAutoScaling)
 			// Atlas rejects analyticsSpecs without instanceSize, e.g. {"nodeCount": 0}.
-			// This only occurs for INFINITE when ForceUpdateAttr forces the entire replicationSpecs into the PATCH.
+			// This occurs when the entire replicationSpecs is included in the PATCH.
 			if specs := region.AnalyticsSpecs; specs != nil && specs.GetNodeCount() == 0 && !specs.HasInstanceSize() {
 				region.AnalyticsSpecs = nil
 			}

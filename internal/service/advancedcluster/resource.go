@@ -548,10 +548,12 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknown and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
-	if shardSizeLimitRemoved(stateReq.ReplicationSpecs, planReq.ReplicationSpecs) {
-		// Set storageConfig to explicit null in the plan to create a detectable change.
-		// Atlas clears shardSizeLimitGB when replicationSpecs is present but storageConfig is absent/null.
-		setStorageConfigNil(stateReq.ReplicationSpecs, planReq.ReplicationSpecs)
+	// SetStorageConfigNil marks the temporary SDK request before diffing; it does not change the Terraform plan.
+	// Explicit null makes storage removal detectable by PatchPayload.
+	// Selecting replicationSpecs still includes its complete planned value in the PATCH.
+	// The documented omission-clears behavior applies specifically to storageConfig.
+	if setStorageConfigNil(stateReq.ReplicationSpecs, planReq.ReplicationSpecs) {
+		// Cleanup remains necessary because conversion can produce invalid request objects.
 		omitInvalidInfiniteConfig(planReq.GetReplicationSpecs())
 	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)

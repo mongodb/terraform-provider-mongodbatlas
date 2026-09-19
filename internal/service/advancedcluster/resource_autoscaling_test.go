@@ -222,6 +222,74 @@ func TestUpdateRemovesShardSizeLimitPreservesPlannedValues(t *testing.T) {
 	}
 }
 
+// TestUpdateAnalyticsNodeRemoval verifies that removing analytics nodes (node_count = 0)
+// produces a valid PATCH request with the required instance_size.
+func TestUpdateAnalyticsNodeRemoval(t *testing.T) {
+	ctx := t.Context()
+	r := advancedcluster.Resource()
+	schemaResp, typ := clusterSchema(ctx, t)
+
+	model := func(regions []any) tfsdk.Plan {
+		return tfsdk.Plan{Schema: schemaResp, Raw: planTestValue(typ, map[string]any{
+			"name": "example", "project_id": dummyProjectID, "cluster_type": "REPLICASET", "database_edition": "INFINITE",
+			"replication_specs": []any{map[string]any{"region_configs": regions}},
+		})}
+	}
+
+	// Prior state: has analytics nodes with node_count = 2 and instance_size = "M10"
+	priorRegions := []any{map[string]any{
+		"provider_name": "AWS", "region_name": "US_EAST_1", "priority": int64(7),
+		"electable_specs": map[string]any{"instance_size": "M10", "node_count": int64(2)},
+		"analytics_specs": map[string]any{"instance_size": "M10", "node_count": int64(2)},
+		"auto_scaling":    map[string]any{"compute_enabled": false},
+	}}
+	prior := model(priorRegions)
+
+	// Plan: analytics node_count changed to 0, instance_size from state (after plan modifier)
+	planRegions := []any{map[string]any{
+		"provider_name": "AWS", "region_name": "US_EAST_1", "priority": int64(7),
+		"electable_specs": map[string]any{"instance_size": "M10", "node_count": int64(2)},
+		"analytics_specs": map[string]any{"instance_size": "M10", "node_count": int64(0)},
+		"auto_scaling":    map[string]any{"compute_enabled": false},
+	}}
+	plan := model(planRegions)
+
+	// Configuration: analytics node_count changed to 0, instance_size not configured (computed)
+	configRegions := []any{map[string]any{
+		"provider_name": "AWS", "region_name": "US_EAST_1", "priority": int64(7),
+		"electable_specs": map[string]any{"instance_size": "M10", "node_count": int64(2)},
+		"analytics_specs": map[string]any{"node_count": int64(0)},
+		"auto_scaling":    map[string]any{"compute_enabled": false},
+	}}
+	configuration := model(configRegions)
+
+	api := mockadmin.NewClustersAPI(t)
+	r.(config.ImplementedResource).SetClient(&config.MongoDBClient{AtlasV2: &admin.APIClient{ClustersAPI: api}})
+	api.On("UpdateCluster", mock.Anything, dummyProjectID, "example", mock.Anything).Run(func(args mock.Arguments) {
+		payload := args[3].(*admin.ClusterDescription20240805)
+		require.Len(t, payload.GetReplicationSpecs(), 1)
+		encoded, err := json.Marshal(payload.GetReplicationSpecs()[0].GetRegionConfigs())
+		require.NoError(t, err)
+		t.Logf("PATCH request: %s", string(encoded))
+
+		// The request should include analyticsSpecs with nodeCount=0 and instanceSize
+		// to properly remove the analytics nodes
+		require.Contains(t, string(encoded), `"analyticsSpecs"`, "PATCH should include analyticsSpecs for removal")
+		require.Contains(t, string(encoded), `"nodeCount":0`, "analyticsSpecs should have nodeCount=0")
+		require.Contains(t, string(encoded), `"instanceSize"`, "analyticsSpecs should have instanceSize")
+	}).Return(admin.UpdateClusterApiRequest{ApiService: api}).Once()
+	apiError := errors.New("request inspected")
+	api.EXPECT().UpdateClusterExecute(mock.Anything).Return(nil, nil, apiError).Once()
+
+	var resp resource.UpdateResponse
+	r.Update(ctx, resource.UpdateRequest{
+		Plan: plan, State: tfsdk.State{Schema: schemaResp, Raw: prior.Raw},
+		Config: tfsdk.Config{Schema: schemaResp, Raw: configuration.Raw},
+	}, &resp)
+	require.Len(t, resp.Diagnostics.Errors(), 1)
+	require.Contains(t, resp.Diagnostics.Errors()[0].Detail(), apiError.Error())
+}
+
 func TestAutoScalingRequest(t *testing.T) {
 	testCases := map[string]struct {
 		edition           string

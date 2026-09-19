@@ -526,7 +526,10 @@ func TestExplicitNullStorageConfig(t *testing.T) {
 						Priority:     new(7),
 						AutoScaling: &admin.AdvancedAutoScalingSettings{
 							Compute: &admin.AdvancedComputeAutoScaling{
-								Enabled: new(false),
+								Enabled:          new(true),
+								MaxInstanceSize:  new("M20"),
+								MinInstanceSize:  new("M10"),
+								ScaleDownEnabled: new(false),
 							},
 							StorageConfig: &admin.StorageConfig{
 								ShardSizeLimitGB: new(1024),
@@ -549,7 +552,10 @@ func TestExplicitNullStorageConfig(t *testing.T) {
 						Priority:     new(7),
 						AutoScaling: &admin.AdvancedAutoScalingSettings{
 							Compute: &admin.AdvancedComputeAutoScaling{
-								Enabled: new(false),
+								Enabled:          new(true),
+								MaxInstanceSize:  new("M20"),
+								MinInstanceSize:  new("M10"),
+								ScaleDownEnabled: new(false),
 							},
 						},
 					},
@@ -573,18 +579,11 @@ func TestExplicitNullStorageConfig(t *testing.T) {
 	require.NotNil(t, patchReq, "patch should not be nil when storageConfig is explicitly set to null")
 	require.NotNil(t, patchReq.ReplicationSpecs, "patch should include replicationSpecs")
 
-	// Verify the PATCH request has the correct structure
+	// Verify the final serialized request
 	patchJSON, err := json.Marshal(patchReq)
 	require.NoError(t, err)
-	t.Logf("PATCH request: %s", string(patchJSON))
 
-	// The PATCH should include replicationSpecs with autoScaling
-	require.Len(t, patchReq.GetReplicationSpecs(), 1)
-	require.Len(t, patchReq.GetReplicationSpecs()[0].GetRegionConfigs(), 1)
-	patchRegion := patchReq.GetReplicationSpecs()[0].GetRegionConfigs()[0]
-	require.NotNil(t, patchRegion.AutoScaling, "PATCH should include autoScaling")
-
-	// Note: The unmarshaling may lose the explicit null marker, but that's OK because
-	// Atlas treats omitted storageConfig the same as null when replicationSpecs is present.
-	// The important thing is that replicationSpecs is included in the PATCH.
+	// The PATCH should include replicationSpecs with autoScaling and compute settings preserved
+	expected := `{"replicationSpecs":[{"regionConfigs":[{"priority":7,"providerName":"AWS","regionName":"US_EAST_1","autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M20","minInstanceSize":"M10","scaleDownEnabled":false}}}]}]}`
+	require.JSONEq(t, expected, string(patchJSON), "PATCH should include replicationSpecs with compute settings preserved and storageConfig removed")
 }
