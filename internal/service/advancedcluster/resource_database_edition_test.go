@@ -315,10 +315,11 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 		compute_scale_down_enabled = true
 		compute_min_instance_size  = "M10"
 	`
-	computeOnlyConfig := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, computeConfig, false)
+	// Create with storage from the start so Atlas has time to populate the current data size before updates.
 	configWithStorage := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, scaleDownConfig+databaseEditionStorageConfig(new(1024)), false)
+	configWithStorageUpdated := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, scaleDownConfig+databaseEditionStorageConfig(new(2048)), false)
 	computeOnlyChecks := func(maxInstanceSize string) []statecheck.StateCheck {
-		return append(shardSizeLimitChecks(clusterName, nil), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+		return append(shardSizeLimitChecks(clusterName, new(1024)), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
 			"compute_enabled":           knownvalue.Bool(true),
 			"compute_max_instance_size": knownvalue.StringExact(maxInstanceSize),
 		})...)
@@ -335,27 +336,24 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
-			// Create without storage so the request cannot rely on storage-triggered cleanup.
 			{
-				Config:            computeOnlyConfig,
+				Config:            configWithStorage,
 				Check:             checkDatabaseEdition(new("INFINITE"), "INFINITE"),
 				ConfigStateChecks: computeOnlyChecks("M20"),
 			},
 			acc.TestStepImportCluster(resourceName),
 			{
-				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, strings.ReplaceAll(computeConfig, "M20", "M30_GEN_2"), false),
+				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, strings.ReplaceAll(scaleDownConfig+databaseEditionStorageConfig(new(1024)), "M20", "M30_GEN_2"), false),
 				ConfigStateChecks: computeOnlyChecks("M30_GEN_2"),
 			},
 			{
-				Config:            computeOnlyConfig,
+				Config:            configWithStorage,
 				ConfigStateChecks: computeOnlyChecks("M20"),
 			},
 			acc.TestStepImportCluster(resourceName),
-			// Update into storage config; the removal path is covered by infiniteShardSizeLimit, and a clear
-			// right after a chain of updates hits an Atlas settle window (HTTP 500), not a provider behavior.
 			{
-				Config:            configWithStorage,
-				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)), computeChecks...),
+				Config:            configWithStorageUpdated,
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(2048)), computeChecks...),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
