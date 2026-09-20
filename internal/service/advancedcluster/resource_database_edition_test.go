@@ -317,7 +317,8 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 	`
 	// Create with storage from the start so Atlas has time to populate the current data size before updates.
 	configWithStorage := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, scaleDownConfig+databaseEditionStorageConfig(new(1024)), false)
-	configWithStorageUpdated := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, scaleDownConfig+databaseEditionStorageConfig(new(2048)), false)
+	configWithStorageEffective := configDatabaseEditionEffective(projectID, clusterName, "M10", scaleDownConfig+databaseEditionStorageConfig(new(1024)))
+	configWithStorageEffectiveUpdated := configDatabaseEditionEffective(projectID, clusterName, "M10", scaleDownConfig+databaseEditionStorageConfig(new(2048)))
 	computeOnlyChecks := func(maxInstanceSize string) []statecheck.StateCheck {
 		return append(shardSizeLimitChecks(clusterName, new(1024)), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
 			"compute_enabled":           knownvalue.Bool(true),
@@ -351,9 +352,85 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 				ConfigStateChecks: computeOnlyChecks("M20"),
 			},
 			acc.TestStepImportCluster(resourceName),
+			// Enabling use_effective_fields on an existing cluster must preserve the configured hardware in state.
 			{
-				Config:            configWithStorageUpdated,
-				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(2048)), computeChecks...),
+				Config: configWithStorageEffective,
+				ConfigStateChecks: append(computeOnlyChecks("M20"),
+					infiniteEffectiveSpecsChecks(clusterName, "M10", "M10", true)...),
+			},
+			// A compute-only PATCH with the flag on must keep returning hardware specs; Atlas used to drop
+			// them and the apply failed with an inconsistent result (CLOUDP-443190).
+			{
+				Config: configDatabaseEditionEffective(projectID, clusterName, "M10", strings.ReplaceAll(scaleDownConfig+databaseEditionStorageConfig(new(1024)), "M20", "M30_GEN_2")),
+				ConfigStateChecks: append(computeOnlyChecks("M30_GEN_2"),
+					infiniteEffectiveSpecsChecks(clusterName, "M10", "M10", true)...),
+			},
+			{
+				Config: configWithStorageEffectiveUpdated,
+				ConfigStateChecks: append(append(shardSizeLimitChecks(clusterName, new(2048)), computeChecks...),
+					infiniteEffectiveSpecsChecks(clusterName, "M10", "M10", true)...),
+			},
+			// Import doesn't send the flag so non-effective specs not in the config are set in the imported state.
+			acc.TestStepImportCluster(resourceName, "use_effective_fields", "replication_specs"),
+		},
+	})
+}
+
+// TestAccClusterAdvancedCluster_infiniteEffectiveFields exercises use_effective_fields on an INFINITE cluster
+// with the flag set at creation (CLOUDP-443190): configured hardware must be echoed in state while effective
+// specs report the actual running values, and updates with the flag on must keep returning hardware specs.
+func TestAccClusterAdvancedCluster_infiniteEffectiveFields(t *testing.T) {
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 2)
+	const computeAutoScaling = `
+		compute_enabled            = true
+		compute_scale_down_enabled = false
+		compute_max_instance_size  = "M20"
+	`
+	var (
+		initial         = configDatabaseEditionEffective(projectID, clusterName, "M10", computeAutoScaling)
+		instanceUpdated = configDatabaseEditionEffective(projectID, clusterName, "M20", computeAutoScaling)
+		computeUpdated  = configDatabaseEditionEffective(projectID, clusterName, "M20", strings.ReplaceAll(computeAutoScaling, "M20", "M30_GEN_2"))
+	)
+	computeChecks := func(maxInstanceSize string) []statecheck.StateCheck {
+		return computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+			"compute_enabled":            knownvalue.Bool(true),
+			"compute_scale_down_enabled": knownvalue.Bool(false),
+			"compute_max_instance_size":  knownvalue.StringExact(maxInstanceSize),
+		})
+	}
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				// Create with the flag on: unsent read_only_specs/analytics_specs must not be echoed into state.
+				Config: initial,
+				Check:  checkDatabaseEdition(new("INFINITE"), "INFINITE"),
+				ConfigStateChecks: append(append(infiniteEffectiveSpecsChecks(clusterName, "M10", "M10", true), computeChecks("M20")...),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("replication_specs").AtSliceIndex(0).AtMapKey("region_configs").AtSliceIndex(0).AtMapKey("read_only_specs"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("replication_specs").AtSliceIndex(0).AtMapKey("region_configs").AtSliceIndex(0).AtMapKey("analytics_specs"), knownvalue.Null())),
+			},
+			{
+				// With compute auto-scaling enabled the instance size update is echoed in state but not
+				// applied, so configured (M20) and effective (M10) values deliberately differ.
+				Config:            instanceUpdated,
+				ConfigStateChecks: append(infiniteEffectiveSpecsChecks(clusterName, "M20", "M10", true), computeChecks("M20")...),
+			},
+			{
+				// Compute-only PATCH with the flag on must preserve hardware specs in the response.
+				Config:            computeUpdated,
+				ConfigStateChecks: append(infiniteEffectiveSpecsChecks(clusterName, "M20", "M10", true), computeChecks("M30_GEN_2")...),
+			},
+			{
+				// Back to the running instance size so turning the flag off converges on current values.
+				Config:            initial,
+				ConfigStateChecks: append(infiniteEffectiveSpecsChecks(clusterName, "M10", "M10", true), computeChecks("M20")...),
+			},
+			{
+				// Toggle the flag off: state now shows the current hardware values.
+				Config:            configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, nil, false),
+				ConfigStateChecks: append(infiniteEffectiveSpecsChecks(clusterName, "M10", "M10", false), computeChecks("M20")...),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -547,7 +624,18 @@ func configDatabaseEditionWithZeroNodeAnalytics(projectID, clusterName string, s
 }
 
 func configDatabaseEditionWithAutoScaling(projectID, clusterName string, databaseEdition *string, nodeCount int, autoScalingAttributes string, withTags bool) string {
-	var databaseEditionConfig, autoScalingConfig, tagsConfig string
+	return configDatabaseEditionFull(projectID, clusterName, databaseEdition, nodeCount, "M10", autoScalingAttributes, withTags, false)
+}
+
+// configDatabaseEditionEffective builds an INFINITE config with use_effective_fields set on the resource and
+// both data sources. The configured instance size can differ from the running one while compute auto-scaling
+// is enabled, letting checks use deliberately different configured and effective values.
+func configDatabaseEditionEffective(projectID, clusterName, instanceSize, autoScalingAttributes string) string {
+	return configDatabaseEditionFull(projectID, clusterName, new("INFINITE"), 2, instanceSize, autoScalingAttributes, false, true)
+}
+
+func configDatabaseEditionFull(projectID, clusterName string, databaseEdition *string, nodeCount int, instanceSize, autoScalingAttributes string, withTags, useEffectiveFields bool) string {
+	var databaseEditionConfig, autoScalingConfig, tagsConfig, effectiveFieldsConfig string
 	if databaseEdition != nil {
 		databaseEditionConfig = fmt.Sprintf("database_edition = %q", *databaseEdition)
 	}
@@ -560,6 +648,11 @@ func configDatabaseEditionWithAutoScaling(projectID, clusterName string, databas
 	if withTags {
 		tagsConfig = `tags = { "env" = "test" }`
 	}
+	dataSources := dataSourcesConfig
+	if useEffectiveFields {
+		effectiveFieldsConfig = "use_effective_fields = true"
+		dataSources = dataSourcesConfigEffective
+	}
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
@@ -570,11 +663,12 @@ func configDatabaseEditionWithAutoScaling(projectID, clusterName string, databas
 			pit_enabled    = true
 			%[3]s
 			%[6]s
+			%[7]s
 
 			replication_specs = [{
 				region_configs = [{
 					electable_specs = {
-						instance_size = "M10"
+						instance_size = %[8]q
 						node_count    = %[4]d
 					}
 					provider_name = "AWS"
@@ -584,8 +678,23 @@ func configDatabaseEditionWithAutoScaling(projectID, clusterName string, databas
 				}]
 			}]
 		}
-	`, projectID, clusterName, databaseEditionConfig, nodeCount, autoScalingConfig, tagsConfig) + dataSourcesConfig
+	`, projectID, clusterName, databaseEditionConfig, nodeCount, autoScalingConfig, tagsConfig, effectiveFieldsConfig, instanceSize) + dataSources
 }
+
+// dataSourcesConfigEffective mirrors dataSourcesConfig with use_effective_fields set on both data sources.
+const dataSourcesConfigEffective = `
+data "mongodbatlas_advanced_cluster" "test" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+	name 	     = mongodbatlas_advanced_cluster.test.name
+	use_effective_fields = true
+	depends_on = [mongodbatlas_advanced_cluster.test]
+}
+
+data "mongodbatlas_advanced_clusters" "test" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+	use_effective_fields = true
+	depends_on = [mongodbatlas_advanced_cluster.test]
+}`
 
 func checkDatabaseEdition(databaseEdition *string, effectiveDatabaseEdition string) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{
@@ -636,6 +745,37 @@ func infiniteAutoScalingChecks(clusterName, attribute string, attributes map[str
 		statecheck.ExpectKnownValue(resourceName, path.AtMapKey("disk_gb_enabled"), knownvalue.Null()),
 		statecheck.ExpectKnownValue(dataSourceName, path.AtMapKey("disk_gb_enabled"), knownvalue.Null()),
 	}
+}
+
+// infiniteEffectiveSpecsChecks asserts the use_effective_fields contract on an INFINITE cluster: configured
+// hardware is echoed in state while effective specs report the actual running values. Configured and effective
+// instance sizes deliberately differ when an update is echoed but not applied, so the checks cannot pass
+// because both happen to match. Effective spec attributes exist only in the data sources. Disk fields are not
+// asserted: Atlas omits them from INFINITE effective specs (CLOUDP-443190).
+func infiniteEffectiveSpecsChecks(clusterName, configuredInstanceSize, effectiveInstanceSize string, flagEnabled bool) []statecheck.StateCheck {
+	regionPath := tfjsonpath.New("replication_specs").AtSliceIndex(0).AtMapKey("region_configs").AtSliceIndex(0)
+	electable := knownvalue.ObjectPartial(map[string]knownvalue.Check{
+		"instance_size": knownvalue.StringExact(configuredInstanceSize),
+		"node_count":    knownvalue.Int64Exact(2),
+	})
+	effective := knownvalue.ObjectPartial(map[string]knownvalue.Check{
+		"instance_size": knownvalue.StringExact(effectiveInstanceSize),
+		"node_count":    knownvalue.Int64Exact(2),
+	})
+	pluralChecks := map[string]knownvalue.Check{
+		"replication_specs.0.region_configs.0.electable_specs":           electable,
+		"replication_specs.0.region_configs.0.effective_electable_specs": effective,
+	}
+	checks := []statecheck.StateCheck{
+		statecheck.ExpectKnownValue(resourceName, regionPath.AtMapKey("electable_specs"), electable),
+		statecheck.ExpectKnownValue(dataSourceName, regionPath.AtMapKey("electable_specs"), electable),
+		statecheck.ExpectKnownValue(dataSourceName, regionPath.AtMapKey("effective_electable_specs"), effective),
+	}
+	if flagEnabled {
+		checks = append(checks, statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("use_effective_fields"), knownvalue.Bool(true)))
+		pluralChecks["use_effective_fields"] = knownvalue.Bool(true)
+	}
+	return append(checks, acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(clusterName), pluralChecks))
 }
 
 func shardSizeLimitChecks(clusterName string, shardSizeLimitGB *int) []statecheck.StateCheck {
