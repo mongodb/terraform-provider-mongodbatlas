@@ -268,15 +268,13 @@ func TestUpdateAnalyticsNodeRemoval(t *testing.T) {
 	api.On("UpdateCluster", mock.Anything, dummyProjectID, "example", mock.Anything).Run(func(args mock.Arguments) {
 		payload := args[3].(*admin.ClusterDescription20240805)
 		require.Len(t, payload.GetReplicationSpecs(), 1)
-		encoded, err := json.Marshal(payload.GetReplicationSpecs()[0].GetRegionConfigs())
-		require.NoError(t, err)
-		t.Logf("PATCH request: %s", string(encoded))
+		region := payload.GetReplicationSpecs()[0].GetRegionConfigs()[0]
 
 		// The request should include analyticsSpecs with nodeCount=0 and instanceSize
 		// to properly remove the analytics nodes
-		require.Contains(t, string(encoded), `"analyticsSpecs"`, "PATCH should include analyticsSpecs for removal")
-		require.Contains(t, string(encoded), `"nodeCount":0`, "analyticsSpecs should have nodeCount=0")
-		require.Contains(t, string(encoded), `"instanceSize"`, "analyticsSpecs should have instanceSize")
+		require.NotNil(t, region.AnalyticsSpecs, "PATCH should include analyticsSpecs for removal")
+		require.Equal(t, 0, region.AnalyticsSpecs.GetNodeCount(), "analyticsSpecs should have nodeCount=0")
+		require.Equal(t, "M10", region.AnalyticsSpecs.GetInstanceSize(), "analyticsSpecs should have instanceSize=M10")
 	}).Return(admin.UpdateClusterApiRequest{ApiService: api}).Once()
 	apiError := errors.New("request inspected")
 	api.EXPECT().UpdateClusterExecute(mock.Anything).Return(nil, nil, apiError).Once()

@@ -21,8 +21,9 @@ func TestAccAdvancedCluster_effectiveBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: set.config(),
-				Check:  set.check(),
+				Config:            set.config(),
+				Check:             set.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(set.clusterName),
 			},
 			// Ignore replication_specs differences as import doesn't use flag so non-effective specs not in the config are set in the state.
 			acc.TestStepImportCluster(resourceName, "use_effective_fields", "replication_specs"),
@@ -41,12 +42,14 @@ func TestAccAdvancedCluster_effectiveUnsetToSet(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: unset.config(),
-				Check:  unset.check(),
+				Config:            unset.config(),
+				Check:             unset.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(unset.clusterName),
 			},
 			{
-				Config: set.config(),
-				Check:  set.check(),
+				Config:            set.config(),
+				Check:             set.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(set.clusterName),
 			},
 		},
 	})
@@ -63,12 +66,14 @@ func TestAccAdvancedCluster_effectiveSetToUnset(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: set.config(),
-				Check:  set.check(),
+				Config:            set.config(),
+				Check:             set.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(set.clusterName),
 			},
 			{
-				Config: unset.config(),
-				Check:  unset.check(),
+				Config:            unset.config(),
+				Check:             unset.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(unset.clusterName),
 			},
 		},
 	})
@@ -700,10 +705,6 @@ func configEffectiveTenantFlex(projectID, clusterName, providerName string, useE
 					provider_name = %[3]q
 					region_name   = "US_EAST_1"
 					priority      = 7
-					electable_specs = {
-						instance_size = "M10"
-						node_count    = 3
-					}
 				}]
 			}]
 			%[4]s

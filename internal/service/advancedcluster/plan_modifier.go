@@ -137,9 +137,10 @@ func adjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 					return
 				}
 				planRegionConfigsTF[j].AnalyticsSpecs = objType
-			} else if planAnalyticsSpecs != nil && planAnalyticsSpecs.NodeCount.ValueInt64() == 0 && (planAnalyticsSpecs.InstanceSize.IsNull() || planAnalyticsSpecs.InstanceSize.IsUnknown()) {
-				// Plan has analytics_specs with node_count = 0 but no instance_size (explicit removal)
+			} else if planAnalyticsSpecs != nil && !planAnalyticsSpecs.NodeCount.IsNull() && !planAnalyticsSpecs.NodeCount.IsUnknown() && planAnalyticsSpecs.NodeCount.ValueInt64() == 0 && (planAnalyticsSpecs.InstanceSize.IsNull() || planAnalyticsSpecs.InstanceSize.IsUnknown()) {
+				// Plan has analytics_specs with explicit node_count = 0 but no instance_size (explicit removal)
 				// Copy instance_size from state to create a valid removal request
+				// We check !IsNull() && !IsUnknown() to distinguish explicit 0 from unresolved/omitted values
 				if stateAnalyticsSpecs != nil && !stateAnalyticsSpecs.InstanceSize.IsNull() && !stateAnalyticsSpecs.InstanceSize.IsUnknown() {
 					planAnalyticsSpecs.InstanceSize = stateAnalyticsSpecs.InstanceSize
 					objType, diagsLocal := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, planAnalyticsSpecs)
