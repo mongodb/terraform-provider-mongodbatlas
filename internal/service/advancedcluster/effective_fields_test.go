@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -19,8 +21,9 @@ func TestAccAdvancedCluster_effectiveBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: set.config(),
-				Check:  set.check(),
+				Config:            set.config(),
+				Check:             set.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(set.clusterName),
 			},
 			// Ignore replication_specs differences as import doesn't use flag so non-effective specs not in the config are set in the state.
 			acc.TestStepImportCluster(resourceName, "use_effective_fields", "replication_specs"),
@@ -39,12 +42,14 @@ func TestAccAdvancedCluster_effectiveUnsetToSet(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: unset.config(),
-				Check:  unset.check(),
+				Config:            unset.config(),
+				Check:             unset.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(unset.clusterName),
 			},
 			{
-				Config: set.config(),
-				Check:  set.check(),
+				Config:            set.config(),
+				Check:             set.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(set.clusterName),
 			},
 		},
 	})
@@ -61,12 +66,14 @@ func TestAccAdvancedCluster_effectiveSetToUnset(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: set.config(),
-				Check:  set.check(),
+				Config:            set.config(),
+				Check:             set.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(set.clusterName),
 			},
 			{
-				Config: unset.config(),
-				Check:  unset.check(),
+				Config:            unset.config(),
+				Check:             unset.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(unset.clusterName),
 			},
 		},
 	})
@@ -108,12 +115,14 @@ func TestAccAdvancedCluster_effectiveComputeAutoScalingInstanceSize(t *testing.T
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: initial.config(),
-				Check:  initial.check(),
+				Config:            initial.config(),
+				Check:             initial.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(initial.clusterName),
 			},
 			{
-				Config: updated.config(),
-				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
+				Config:            updated.config(),
+				Check:             updated.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(updated.clusterName), // Config values echoed in state, but effective specs show actual running values.
 			},
 		},
 	})
@@ -130,12 +139,14 @@ func TestAccAdvancedCluster_effectiveComputeAutoScalingAll(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: initial.config(),
-				Check:  initial.check(),
+				Config:            initial.config(),
+				Check:             initial.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(initial.clusterName),
 			},
 			{
-				Config: updated.config(),
-				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
+				Config:            updated.config(),
+				Check:             updated.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(updated.clusterName), // Config values echoed in state, but effective specs show actual running values.
 			},
 		},
 	})
@@ -152,12 +163,14 @@ func TestAccAdvancedCluster_effectiveDiskAutoScalingAll(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: initial.config(),
-				Check:  initial.check(),
+				Config:            initial.config(),
+				Check:             initial.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(initial.clusterName),
 			},
 			{
-				Config: updated.config(),
-				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
+				Config:            updated.config(),
+				Check:             updated.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(updated.clusterName), // Config values echoed in state, but effective specs show actual running values.
 			},
 		},
 	})
@@ -174,12 +187,14 @@ func TestAccAdvancedCluster_effectiveDiskFieldsWithoutAutoScaling(t *testing.T) 
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: initial.config(),
-				Check:  initial.check(),
+				Config:            initial.config(),
+				Check:             initial.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(initial.clusterName),
 			},
 			{
-				Config: updated.config(),
-				Check:  updated.check(), // Without auto-scaling, disk fields should update normally.
+				Config:            updated.config(),
+				Check:             updated.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(updated.clusterName), // Without auto-scaling, disk fields should update normally.
 			},
 		},
 	})
@@ -196,12 +211,14 @@ func TestAccAdvancedCluster_effectiveBothAutoScalingEnabled(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: initial.config(),
-				Check:  initial.check(),
+				Config:            initial.config(),
+				Check:             initial.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(initial.clusterName),
 			},
 			{
-				Config: updated.config(),
-				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
+				Config:            updated.config(),
+				Check:             updated.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(updated.clusterName), // Config values echoed in state, but effective specs show actual running values.
 			},
 		},
 	})
@@ -219,16 +236,19 @@ func TestAccAdvancedCluster_effectiveToggleAutoScaling(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: withoutAutoScaling.config(),
-				Check:  withoutAutoScaling.check(),
+				Config:            withoutAutoScaling.config(),
+				Check:             withoutAutoScaling.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(withoutAutoScaling.clusterName),
 			},
 			{
-				Config: withAutoScaling.config(),
-				Check:  withAutoScaling.check(),
+				Config:            withAutoScaling.config(),
+				Check:             withAutoScaling.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(withAutoScaling.clusterName),
 			},
 			{
-				Config: backWithoutAutoScaling.config(),
-				Check:  backWithoutAutoScaling.check(),
+				Config:            backWithoutAutoScaling.config(),
+				Check:             backWithoutAutoScaling.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(backWithoutAutoScaling.clusterName),
 			},
 		},
 	})
@@ -245,12 +265,14 @@ func TestAccAdvancedCluster_effectiveReadOnlyAutoScaling(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: initial.config(),
-				Check:  initial.check(),
+				Config:            initial.config(),
+				Check:             initial.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(initial.clusterName),
 			},
 			{
-				Config: updated.config(),
-				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
+				Config:            updated.config(),
+				Check:             updated.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(updated.clusterName), // Config values echoed in state, but effective specs show actual running values.
 			},
 		},
 	})
@@ -267,12 +289,14 @@ func TestAccAdvancedCluster_effectiveAnalyticsAutoScaling(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: initial.config(),
-				Check:  initial.check(),
+				Config:            initial.config(),
+				Check:             initial.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(initial.clusterName),
 			},
 			{
-				Config: updated.config(),
-				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
+				Config:            updated.config(),
+				Check:             updated.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(updated.clusterName), // Config values echoed in state, but effective specs show actual running values.
 			},
 		},
 	})
@@ -292,24 +316,28 @@ func TestAccAdvancedCluster_effectiveToggleFlagWithRemovedSpecs(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: initial.config(),
-				Check:  initial.check(),
+				Config:            initial.config(),
+				Check:             initial.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(initial.clusterName),
 			},
 			{
-				Config: readOnlyRemoved.config(),
-				Check:  readOnlyRemoved.check(),
+				Config:            readOnlyRemoved.config(),
+				Check:             readOnlyRemoved.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(readOnlyRemoved.clusterName),
 			},
 			{
 				Config:      readOnlyRemoved.withFlag().config(),
 				ExpectError: regexp.MustCompile("Cannot remove read_only_specs attributes while toggling use_effective_fields"),
 			},
 			{
-				Config: initial.config(),
-				Check:  initial.check(),
+				Config:            initial.config(),
+				Check:             initial.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(initial.clusterName),
 			},
 			{
-				Config: analyticsRemoved.config(),
-				Check:  analyticsRemoved.check(),
+				Config:            analyticsRemoved.config(),
+				Check:             analyticsRemoved.check(),
+				ConfigStateChecks: pluralEffectiveSpecsCheck(analyticsRemoved.clusterName),
 			},
 			{
 				Config:      analyticsRemoved.withFlag().config(),
@@ -544,10 +572,9 @@ func (req effectiveReq) config() string {
 
 func (req effectiveReq) check() resource.TestCheckFunc {
 	const (
-		specsPath           = "replication_specs.0.region_configs.0.electable_specs."
-		effectivePath       = "replication_specs.0.region_configs.0.effective_electable_specs."
-		effectivePathPlural = "results.0.replication_specs.0.region_configs.0.effective_electable_specs."
-		autoScalingPath     = "replication_specs.0.region_configs.0.auto_scaling."
+		specsPath       = "replication_specs.0.region_configs.0.electable_specs."
+		effectivePath   = "replication_specs.0.region_configs.0.effective_electable_specs."
+		autoScalingPath = "replication_specs.0.region_configs.0.auto_scaling."
 	)
 	attrsMap := map[string]string{
 		specsPath + "instance_size": req.instanceSize,
@@ -557,14 +584,6 @@ func (req effectiveReq) check() resource.TestCheckFunc {
 		// Effective fields in singular data source.
 		resource.TestCheckResourceAttrSet(dataSourceName, effectivePath+"node_count"),
 		resource.TestCheckResourceAttrSet(dataSourceName, effectivePath+"ebs_volume_type"),
-
-		// Effective fields in plural data source - verify they are populated.
-		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"instance_size"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"node_count"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"disk_size_gb"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"disk_iops"),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"ebs_volume_type"),
 	}
 	// Check effective values if specified, otherwise just verify they're set
 	if req.effectiveInstanceSize != "" {
@@ -671,28 +690,39 @@ func (req effectiveReq) check() resource.TestCheckFunc {
 // configEffectiveTenantFlex creates a recognizable but incomplete tenant or flex cluster config
 // as we're only checking use_effective_fields and the cluster is not actually created.
 func configEffectiveTenantFlex(projectID, clusterName, providerName string, useEffectiveFields bool) string {
-	var extraConfig string
+	extraConfig := ""
 	if useEffectiveFields {
 		extraConfig = "use_effective_fields = true"
 	}
 	return fmt.Sprintf(`
-	resource "mongodbatlas_advanced_cluster" "test" {
-		project_id   = %[1]q
-		name         = %[2]q
-		cluster_type = "REPLICASET"
-		replication_specs = [
-			{
-				region_configs = [
-					{
-						provider_name = %[3]q
-						region_name   = "US_EAST_1"
-						priority      = 7
-						backing_provider_name = "AWS"
-					}
-				]
-			}
-		]
-		%[4]s
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = "REPLICASET"
+
+			replication_specs = [{
+				region_configs = [{
+					provider_name = %[3]q
+					region_name   = "US_EAST_1"
+					priority      = 7
+				}]
+			}]
+			%[4]s
+		}
+	`, projectID, clusterName, providerName, extraConfig)
+}
+
+// pluralEffectiveSpecsCheck returns a check that finds the test resource by name in the plural data source
+// and verifies that effective_electable_specs fields are populated. This avoids hardcoded indices that may
+// find other clusters (e.g., INFINITE clusters without disk_size_gb).
+func pluralEffectiveSpecsCheck(clusterName string) []statecheck.StateCheck {
+	return []statecheck.StateCheck{
+		acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(clusterName), map[string]knownvalue.Check{
+			"replication_specs.0.region_configs.0.effective_electable_specs.instance_size":   knownvalue.NotNull(),
+			"replication_specs.0.region_configs.0.effective_electable_specs.node_count":      knownvalue.NotNull(),
+			"replication_specs.0.region_configs.0.effective_electable_specs.disk_size_gb":    knownvalue.NotNull(),
+			"replication_specs.0.region_configs.0.effective_electable_specs.disk_iops":       knownvalue.NotNull(),
+			"replication_specs.0.region_configs.0.effective_electable_specs.ebs_volume_type": knownvalue.NotNull(),
+		}),
 	}
-`, projectID, clusterName, providerName, extraConfig)
 }

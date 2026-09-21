@@ -69,6 +69,28 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 					shardSizeLimitChecks(clusterName, new(1024))...,
 				),
 			},
+			// Clear storage while compute stays configured, on a freshly created cluster, to verify
+			// the provider correctly handles storage removal with the explicit-null approach.
+			{
+				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(1024), false),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+					"compute_enabled":            knownvalue.Bool(true),
+					"compute_scale_down_enabled": knownvalue.Bool(false),
+					"compute_max_instance_size":  knownvalue.StringExact("M20"),
+				})...),
+			},
+			{
+				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, nil, false),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+					"compute_enabled":            knownvalue.Bool(true),
+					"compute_scale_down_enabled": knownvalue.Bool(false),
+					"compute_max_instance_size":  knownvalue.StringExact("M20"),
+				})...),
+			},
+			{
+				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2, new(1024)),
+				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(1024)),
+			},
 			{
 				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2, new(2048)),
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(2048)),
@@ -100,6 +122,138 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
 					"compute_enabled": knownvalue.Bool(false),
 				})...),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
+// TestAccClusterAdvancedCluster_infiniteShardSizeLimitWithZeroNodeAnalytics verifies that clearing
+// storage_config works when analytics_specs is explicitly configured with node_count = 0.
+// This tests the edge case where analyticsSpecs would be included in the PATCH without instanceSize.
+func TestAccClusterAdvancedCluster_infiniteShardSizeLimitWithZeroNodeAnalytics(t *testing.T) {
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 2)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configDatabaseEditionWithZeroNodeAnalytics(projectID, clusterName, new(1024)),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)),
+					computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+						"compute_enabled": knownvalue.Bool(false),
+					})...),
+			},
+			{
+				Config: configDatabaseEditionWithZeroNodeAnalytics(projectID, clusterName, nil),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil),
+					computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+						"compute_enabled": knownvalue.Bool(false),
+					})...),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
+// TestAccClusterAdvancedCluster_infiniteAnalyticsNodeRemoval verifies that removing analytics nodes
+// (node_count = 0) produces a valid PATCH request with the required instance_size.
+func TestAccClusterAdvancedCluster_infiniteAnalyticsNodeRemoval(t *testing.T) {
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 2)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configDatabaseEditionWithAnalyticsNodes(projectID, clusterName, 2),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil),
+					analyticsNodeCountChecks(clusterName, 2)...),
+			},
+			{
+				Config: configDatabaseEditionWithAnalyticsNodes(projectID, clusterName, 0),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil),
+					analyticsNodeCountChecks(clusterName, 0)...),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
+// TestAccClusterAdvancedCluster_infiniteReadOnlyNodeRemoval verifies that removing read-only nodes
+// (node_count = 0) produces a valid PATCH request.
+func TestAccClusterAdvancedCluster_infiniteReadOnlyNodeRemoval(t *testing.T) {
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 2)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configDatabaseEditionWithReadOnlyNodes(projectID, clusterName, 2),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil),
+					readOnlyNodeCountChecks(clusterName, 2)...),
+			},
+			{
+				Config: configDatabaseEditionWithReadOnlyNodes(projectID, clusterName, 0),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil),
+					readOnlyNodeCountChecks(clusterName, 0)...),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
+// TestAccClusterAdvancedCluster_infiniteCombinedRemoval verifies that removing analytics nodes,
+// read-only nodes, and storage_config in the same apply produces a valid PATCH request.
+func TestAccClusterAdvancedCluster_infiniteCombinedRemoval(t *testing.T) {
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 2)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configDatabaseEditionWithAllNodeTypes(projectID, clusterName, 2, 2, new(1024)),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)),
+					append(analyticsNodeCountChecks(clusterName, 2),
+						readOnlyNodeCountChecks(clusterName, 2)...)...),
+			},
+			{
+				Config: configDatabaseEditionWithAllNodeTypes(projectID, clusterName, 0, 0, nil),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil),
+					append(analyticsNodeCountChecks(clusterName, 0),
+						readOnlyNodeCountChecks(clusterName, 0)...)...),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
+// TestAccClusterAdvancedCluster_infiniteRemovalWithAutoScaling verifies that removing analytics nodes
+// works when compute auto-scaling is enabled.
+func TestAccClusterAdvancedCluster_infiniteRemovalWithAutoScaling(t *testing.T) {
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 2)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configDatabaseEditionWithAnalyticsAndAutoScaling(projectID, clusterName, 2, true),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil),
+					analyticsNodeCountChecks(clusterName, 2)...),
+			},
+			{
+				Config: configDatabaseEditionWithAnalyticsAndAutoScaling(projectID, clusterName, 0, true),
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, nil),
+					analyticsNodeCountChecks(clusterName, 0)...),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -161,10 +315,11 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 		compute_scale_down_enabled = true
 		compute_min_instance_size  = "M10"
 	`
-	computeOnlyConfig := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, computeConfig, false)
+	// Create with storage from the start so Atlas has time to populate the current data size before updates.
 	configWithStorage := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, scaleDownConfig+databaseEditionStorageConfig(new(1024)), false)
+	configWithStorageUpdated := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, scaleDownConfig+databaseEditionStorageConfig(new(2048)), false)
 	computeOnlyChecks := func(maxInstanceSize string) []statecheck.StateCheck {
-		return append(shardSizeLimitChecks(clusterName, nil), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+		return append(shardSizeLimitChecks(clusterName, new(1024)), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
 			"compute_enabled":           knownvalue.Bool(true),
 			"compute_max_instance_size": knownvalue.StringExact(maxInstanceSize),
 		})...)
@@ -181,27 +336,24 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
-			// Create without storage so the request cannot rely on storage-triggered cleanup.
 			{
-				Config:            computeOnlyConfig,
+				Config:            configWithStorage,
 				Check:             checkDatabaseEdition(new("INFINITE"), "INFINITE"),
 				ConfigStateChecks: computeOnlyChecks("M20"),
 			},
 			acc.TestStepImportCluster(resourceName),
 			{
-				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, strings.ReplaceAll(computeConfig, "M20", "M30_GEN_2"), false),
+				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, strings.ReplaceAll(scaleDownConfig+databaseEditionStorageConfig(new(1024)), "M20", "M30_GEN_2"), false),
 				ConfigStateChecks: computeOnlyChecks("M30_GEN_2"),
 			},
 			{
-				Config:            computeOnlyConfig,
+				Config:            configWithStorage,
 				ConfigStateChecks: computeOnlyChecks("M20"),
 			},
 			acc.TestStepImportCluster(resourceName),
-			// Update into storage config; the removal path is covered by infiniteShardSizeLimit, and a clear
-			// right after a chain of updates hits an Atlas settle window (HTTP 500), not a provider behavior.
 			{
-				Config:            configWithStorage,
-				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)), computeChecks...),
+				Config:            configWithStorageUpdated,
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(2048)), computeChecks...),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -353,6 +505,47 @@ func configDatabaseEditionWithDiskGBEnabled(projectID, clusterName string, datab
 	return configDatabaseEditionWithAutoScaling(projectID, clusterName, databaseEdition, nodeCount, "disk_gb_enabled = true", false)
 }
 
+// configDatabaseEditionWithZeroNodeAnalytics creates a config with analytics_specs explicitly set to node_count = 0.
+// This tests the edge case where analyticsSpecs would be included in the PATCH without instanceSize.
+func configDatabaseEditionWithZeroNodeAnalytics(projectID, clusterName string, shardSizeLimitGB *int) string {
+	storage := ""
+	if shardSizeLimitGB != nil {
+		storage = fmt.Sprintf(`
+			storage_config = {
+				shard_size_limit_gb = %d
+			}`, *shardSizeLimitGB)
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id     = %[1]q
+			name           = %[2]q
+			cluster_type   = "REPLICASET"
+			database_edition = "INFINITE"
+			backup_enabled = true
+			pit_enabled    = true
+
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 2
+					}
+					analytics_specs = {
+						node_count    = 0
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+					auto_scaling = {
+						compute_enabled = false
+						%[3]s
+					}
+				}]
+			}]
+		}
+	`, projectID, clusterName, storage) + dataSourcesConfig
+}
+
 func configDatabaseEditionWithAutoScaling(projectID, clusterName string, databaseEdition *string, nodeCount int, autoScalingAttributes string, withTags bool) string {
 	var databaseEditionConfig, autoScalingConfig, tagsConfig string
 	if databaseEdition != nil {
@@ -481,4 +674,179 @@ func (storageConfigAbsentCheck) CheckValue(value any) error {
 
 func (storageConfigAbsentCheck) String() string {
 	return "storage_config absent"
+}
+
+// configDatabaseEditionWithAnalyticsNodes creates a config with analytics_specs set to the specified node_count.
+func configDatabaseEditionWithAnalyticsNodes(projectID, clusterName string, analyticsNodeCount int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id     = %[1]q
+			name           = %[2]q
+			cluster_type   = "REPLICASET"
+			database_edition = "INFINITE"
+			backup_enabled = true
+			pit_enabled    = true
+
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 2
+					}
+					analytics_specs = {
+						instance_size = "M10"
+						node_count    = %[3]d
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+					auto_scaling = {
+						compute_enabled = false
+					}
+				}]
+			}]
+		}
+	`, projectID, clusterName, analyticsNodeCount) + dataSourcesConfig
+}
+
+// configDatabaseEditionWithReadOnlyNodes creates a config with read_only_specs set to the specified node_count.
+func configDatabaseEditionWithReadOnlyNodes(projectID, clusterName string, readOnlyNodeCount int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id     = %[1]q
+			name           = %[2]q
+			cluster_type   = "REPLICASET"
+			database_edition = "INFINITE"
+			backup_enabled = true
+			pit_enabled    = true
+
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 2
+					}
+					read_only_specs = {
+						instance_size = "M10"
+						node_count    = %[3]d
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+					auto_scaling = {
+						compute_enabled = false
+					}
+				}]
+			}]
+		}
+	`, projectID, clusterName, readOnlyNodeCount) + dataSourcesConfig
+}
+
+// configDatabaseEditionWithAllNodeTypes creates a config with analytics_specs, read_only_specs, and storage_config.
+func configDatabaseEditionWithAllNodeTypes(projectID, clusterName string, analyticsNodeCount, readOnlyNodeCount int, shardSizeLimitGB *int) string {
+	storage := ""
+	if shardSizeLimitGB != nil {
+		storage = fmt.Sprintf(`
+			storage_config = {
+				shard_size_limit_gb = %d
+			}`, *shardSizeLimitGB)
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id     = %[1]q
+			name           = %[2]q
+			cluster_type   = "REPLICASET"
+			database_edition = "INFINITE"
+			backup_enabled = true
+			pit_enabled    = true
+
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 2
+					}
+					analytics_specs = {
+						instance_size = "M10"
+						node_count    = %[3]d
+					}
+					read_only_specs = {
+						instance_size = "M10"
+						node_count    = %[4]d
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+					auto_scaling = {
+						compute_enabled = false
+						%[5]s
+					}
+				}]
+			}]
+		}
+	`, projectID, clusterName, analyticsNodeCount, readOnlyNodeCount, storage) + dataSourcesConfig
+}
+
+// configDatabaseEditionWithAnalyticsAndAutoScaling creates a config with analytics_specs and compute auto-scaling.
+func configDatabaseEditionWithAnalyticsAndAutoScaling(projectID, clusterName string, analyticsNodeCount int, withAutoScaling bool) string {
+	autoScaling := "compute_enabled = false"
+	if withAutoScaling {
+		autoScaling = `
+			compute_enabled            = true
+			compute_scale_down_enabled = false
+			compute_max_instance_size  = "M20"`
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id     = %[1]q
+			name           = %[2]q
+			cluster_type   = "REPLICASET"
+			database_edition = "INFINITE"
+			backup_enabled = true
+			pit_enabled    = true
+
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 2
+					}
+					analytics_specs = {
+						instance_size = "M10"
+						node_count    = %[3]d
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+					auto_scaling = {
+						%[4]s
+					}
+				}]
+			}]
+		}
+	`, projectID, clusterName, analyticsNodeCount, autoScaling) + dataSourcesConfig
+}
+
+// analyticsNodeCountChecks returns checks for the analytics_specs node_count.
+func analyticsNodeCountChecks(clusterName string, nodeCount int) []statecheck.StateCheck {
+	path := tfjsonpath.New("replication_specs").AtSliceIndex(0).AtMapKey("region_configs").AtSliceIndex(0).AtMapKey("analytics_specs")
+	return []statecheck.StateCheck{
+		statecheck.ExpectKnownValue(resourceName, path.AtMapKey("node_count"), knownvalue.Int64Exact(int64(nodeCount))),
+		statecheck.ExpectKnownValue(dataSourceName, path.AtMapKey("node_count"), knownvalue.Int64Exact(int64(nodeCount))),
+		acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(clusterName), map[string]knownvalue.Check{
+			"replication_specs.0.region_configs.0.analytics_specs.node_count": knownvalue.Int64Exact(int64(nodeCount)),
+		}),
+	}
+}
+
+// readOnlyNodeCountChecks returns checks for the read_only_specs node_count.
+func readOnlyNodeCountChecks(clusterName string, nodeCount int) []statecheck.StateCheck {
+	path := tfjsonpath.New("replication_specs").AtSliceIndex(0).AtMapKey("region_configs").AtSliceIndex(0).AtMapKey("read_only_specs")
+	return []statecheck.StateCheck{
+		statecheck.ExpectKnownValue(resourceName, path.AtMapKey("node_count"), knownvalue.Int64Exact(int64(nodeCount))),
+		statecheck.ExpectKnownValue(dataSourceName, path.AtMapKey("node_count"), knownvalue.Int64Exact(int64(nodeCount))),
+		acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(clusterName), map[string]knownvalue.Check{
+			"replication_specs.0.region_configs.0.read_only_specs.node_count": knownvalue.Int64Exact(int64(nodeCount)),
+		}),
+	}
 }

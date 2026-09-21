@@ -255,10 +255,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	// Omit the empty auto-scaling children that INFINITE rejects. effective_database_edition is always
-	// populated by Read, so no extra GET is needed even after an import that leaves database_edition unset.
+	// Omit invalid fields that INFINITE rejects (e.g., empty auto-scaling children, analyticsSpecs
+	// without instanceSize). effective_database_edition is always populated by Read, so no extra GET
+	// is needed even after an import that leaves database_edition unset.
 	if diff.clusterPatchOnlyReq != nil && state.EffectiveDatabaseEdition.ValueString() == databaseEditionInfinite {
-		omitEmptyAutoScalingChildren(diff.clusterPatchOnlyReq.GetReplicationSpecs())
+		omitInvalidInfiniteConfig(diff.clusterPatchOnlyReq.GetReplicationSpecs())
 	}
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
@@ -547,10 +548,13 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknown and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
-	if shardSizeLimitRemoved(stateReq.ReplicationSpecs, planReq.ReplicationSpecs) {
-		// Atlas clears an omitted shardSizeLimitGB only when replicationSpecs is included in the PATCH.
-		patchOptions.ForceUpdateAttr = []string{"replicationSpecs"}
-		omitEmptyAutoScalingChildren(planReq.GetReplicationSpecs())
+	// SetStorageConfigNil marks the temporary SDK request before diffing; it does not change the Terraform plan.
+	// Explicit null makes storage removal detectable by PatchPayload.
+	// Selecting replicationSpecs still includes its complete planned value in the PATCH.
+	// The documented omission-clears behavior applies specifically to storageConfig.
+	if setStorageConfigNil(stateReq.ReplicationSpecs, planReq.ReplicationSpecs) {
+		// Cleanup remains necessary because conversion can produce invalid request objects.
+		omitInvalidInfiniteConfig(planReq.GetReplicationSpecs())
 	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {

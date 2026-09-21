@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 	"github.com/stretchr/testify/require"
@@ -510,3 +511,79 @@ import {
   id = "111111111111111111111111-example-with-hyphens"
 }
 `
+
+// TestExplicitNullStorageConfig verifies that setting storageConfig to explicit null
+// creates a detectable change in the PATCH payload without needing ForceUpdateAttr.
+func TestExplicitNullStorageConfig(t *testing.T) {
+	// State: has storageConfig with shardSizeLimitGB
+	stateReq := &admin.ClusterDescription20240805{
+		ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+			{
+				RegionConfigs: &[]admin.CloudRegionConfig20240805{
+					{
+						ProviderName: new("AWS"),
+						RegionName:   new("US_EAST_1"),
+						Priority:     new(7),
+						AutoScaling: &admin.AdvancedAutoScalingSettings{
+							Compute: &admin.AdvancedComputeAutoScaling{
+								Enabled:          new(true),
+								MaxInstanceSize:  new("M20"),
+								MinInstanceSize:  new("M10"),
+								ScaleDownEnabled: new(false),
+							},
+							StorageConfig: &admin.StorageConfig{
+								ShardSizeLimitGB: new(1024),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Plan: has storageConfig explicitly set to null
+	planReq := &admin.ClusterDescription20240805{
+		ReplicationSpecs: &[]admin.ReplicationSpec20240805{
+			{
+				RegionConfigs: &[]admin.CloudRegionConfig20240805{
+					{
+						ProviderName: new("AWS"),
+						RegionName:   new("US_EAST_1"),
+						Priority:     new(7),
+						AutoScaling: &admin.AdvancedAutoScalingSettings{
+							Compute: &admin.AdvancedComputeAutoScaling{
+								Enabled:          new(true),
+								MaxInstanceSize:  new("M20"),
+								MinInstanceSize:  new("M10"),
+								ScaleDownEnabled: new(false),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Set storageConfig to explicit null in the plan
+	planRegion := &(*planReq.ReplicationSpecs)[0].GetRegionConfigs()[0]
+	planRegion.AutoScaling.SetStorageConfigNil()
+
+	// Verify the plan serializes with explicit null
+	planJSON, err := json.Marshal(planReq)
+	require.NoError(t, err)
+	require.Contains(t, string(planJSON), `"storageConfig":null`, "plan should serialize with explicit null")
+
+	// Verify the diff detects a change (replacement, not removal)
+	patchReq, err := update.PatchPayload(stateReq, planReq)
+	require.NoError(t, err)
+	require.NotNil(t, patchReq, "patch should not be nil when storageConfig is explicitly set to null")
+	require.NotNil(t, patchReq.ReplicationSpecs, "patch should include replicationSpecs")
+
+	// Verify the final serialized request
+	patchJSON, err := json.Marshal(patchReq)
+	require.NoError(t, err)
+
+	// The PATCH should include replicationSpecs with autoScaling and compute settings preserved
+	expected := `{"replicationSpecs":[{"regionConfigs":[{"priority":7,"providerName":"AWS","regionName":"US_EAST_1","autoScaling":{"compute":{"enabled":true,"maxInstanceSize":"M20","minInstanceSize":"M10","scaleDownEnabled":false}}}]}]}`
+	require.JSONEq(t, expected, string(patchJSON), "PATCH should include replicationSpecs with compute settings preserved and storageConfig removed")
+}
