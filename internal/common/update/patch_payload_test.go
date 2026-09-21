@@ -184,24 +184,13 @@ func TestPatchReplicationSpecs(t *testing.T) {
 				},
 				patchExpected: nil,
 			},
-			"diskSizeGb ignored in state": {
+			"regionConfigs ignored in state": {
 				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, new(50.0), 0, new(3500)),
 				plan:          clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, nil),
-				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, new(3500)),
+				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, nil),
 				options: []update.PatchOptions{
 					{
-						IgnoreInStateSuffix: []string{"diskSizeGB"},
-					},
-				},
-			},
-			"regionConfigs ignored in state but diskIOPS included": {
-				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, new(50.0), 0, new(3500)),
-				plan:          clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, nil),
-				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, new(3500)),
-				options: []update.PatchOptions{
-					{
-						IgnoreInStatePrefix:  []string{"regionConfigs"},
-						IncludeInStateSuffix: []string{"diskIOPS"},
+						IgnoreInStatePrefix: []string{"regionConfigs"},
 					},
 				},
 			},
