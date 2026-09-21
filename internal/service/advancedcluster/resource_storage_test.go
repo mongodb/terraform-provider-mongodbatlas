@@ -219,41 +219,49 @@ func (m *storageConfigHTTPMock) RoundTrip(req *http.Request) (*http.Response, er
 
 func TestAutoScalingStorageConfigImportLifecycle(t *testing.T) {
 	const configuredLimit = 1024
-	// requestedEdition=false used to pair the import with use_effective_fields on INFINITE, which is out of
-	// scope for this PR and covered under CLOUDP-443190; only the requested-edition lifecycle runs here.
-	for _, importBlock := range []bool{false, true} {
-		t.Run(fmt.Sprintf("block=%t", importBlock), func(t *testing.T) {
-			storageConfigCredentials(t)
-			mock := &storageImportHTTPMock{clusterType: "REPLICASET", requestedEdition: true, effectiveEdition: "INFINITE", limit: configuredLimit}
-			configForLimit := func(limit int, omitAutoScaling bool) string {
-				return storageImportConfig(true, limit, omitAutoScaling)
-			}
-			config := configForLimit(configuredLimit, false)
-			check := storageImportStateCheck(configuredLimit)
-			first := resource.TestStep{
-				Config: config, ResourceName: "mongodbatlas_advanced_cluster.test", ImportState: true,
-				ImportStateId: storageImportID, ImportStatePersist: true,
-				ImportStateCheck: func(states []*terraform.InstanceState) error {
-					require.Len(t, states, 1)
-					require.Equal(t, "1024", states[0].Attributes[storageConfigLimitAttribute])
-					return nil
-				},
-			}
-			if importBlock {
-				first = resource.TestStep{Config: config + storageImportBlock, Check: check}
-			}
-			resource.UnitTest(t, resource.TestCase{
-				PreCheck:                 func() { require.NoError(t, unit.MockConfigAdvancedCluster.RunBeforeEach()) },
-				ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, mock),
-				Steps: []resource.TestStep{
-					first,
-					{Config: config, Check: check},
-					{Config: configForLimit(2048, false), Check: storageImportStateCheck(2048)},
-					{Config: configForLimit(0, importBlock), Check: storageImportStateCheck(0)},
-				},
+	// The effective variant runs the import lifecycle with use_effective_fields on an INFINITE cluster
+	// without the requested edition, expecting the Use-Effective-Instance-Fields header on updates.
+	for _, effective := range []bool{false, true} {
+		for _, importBlock := range []bool{false, true} {
+			t.Run(fmt.Sprintf("effective=%t/block=%t", effective, importBlock), func(t *testing.T) {
+				storageConfigCredentials(t)
+				mock := &storageImportHTTPMock{clusterType: "REPLICASET", requestedEdition: !effective, effectiveEdition: "INFINITE", limit: configuredLimit, expectEffectiveFields: effective}
+				configForLimit := func(limit int, omitAutoScaling bool) string {
+					return storageImportConfig(!effective, limit, omitAutoScaling, effective)
+				}
+				config := configForLimit(configuredLimit, false)
+				check := storageImportStateCheck(configuredLimit)
+				first := resource.TestStep{
+					Config: config, ResourceName: "mongodbatlas_advanced_cluster.test", ImportState: true,
+					ImportStateId: storageImportID, ImportStatePersist: true,
+					ImportStateCheck: func(states []*terraform.InstanceState) error {
+						require.Len(t, states, 1)
+						require.Equal(t, "1024", states[0].Attributes[storageConfigLimitAttribute])
+						return nil
+					},
+				}
+				if importBlock {
+					first = resource.TestStep{Config: config + storageImportBlock, Check: check}
+				}
+				resource.UnitTest(t, resource.TestCase{
+					PreCheck:                 func() { require.NoError(t, unit.MockConfigAdvancedCluster.RunBeforeEach()) },
+					ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, mock),
+					Steps: []resource.TestStep{
+						first,
+						{Config: config, Check: check},
+						{Config: configForLimit(2048, false), Check: storageImportStateCheck(2048)},
+						{Config: configForLimit(0, importBlock), Check: storageImportStateCheck(0)},
+					},
+				})
+				// The flag-toggle apply skips the copy-from-state optimization, re-sending the configured
+				// replication specs (with the current limit) once before the actual updates.
+				expectedLimits := []int{2048, 0}
+				if effective {
+					expectedLimits = []int{1024, 2048, 0}
+				}
+				require.Equal(t, expectedLimits, mock.updatedLimits)
 			})
-			require.Equal(t, []int{2048, 0}, mock.updatedLimits)
-		})
+		}
 	}
 }
 
@@ -262,7 +270,7 @@ func TestAutoScalingStorageConfigImportLifecycle(t *testing.T) {
 func TestAutoScalingStorageConfigImportReadsMissingLimit(t *testing.T) {
 	storageConfigCredentials(t)
 	mock := &storageImportHTTPMock{clusterType: "REPLICASET", requestedEdition: true, effectiveEdition: "INFINITE"}
-	config := storageImportConfig(true, 0, false)
+	config := storageImportConfig(true, 0, false, false)
 	resource.UnitTest(t, resource.TestCase{
 		PreCheck:                 func() { require.NoError(t, unit.MockConfigAdvancedCluster.RunBeforeEach()) },
 		ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, mock),
@@ -283,7 +291,7 @@ func TestInfiniteClusterImportWithoutRequestedEditionOrShardLimit(t *testing.T) 
 		t.Run(fmt.Sprintf("explicit_false=%t", explicitFalse), func(t *testing.T) {
 			storageConfigCredentials(t)
 			mock := &storageImportHTTPMock{clusterType: "REPLICASET", effectiveEdition: "INFINITE", omitDisk: !explicitFalse, explicitFalse: explicitFalse}
-			config := storageImportConfig(false, 0, false)
+			config := storageImportConfig(false, 0, false, false)
 			if explicitFalse {
 				config = strings.ReplaceAll(config, "compute_enabled = true", "disk_gb_enabled = false\n        compute_enabled = true")
 			}
@@ -310,7 +318,7 @@ func TestAutoScalingStorageConfigImportClearsUnconfiguredLimit(t *testing.T) {
 	// test above; clearing an unconfigured limit is orthogonal to that choice.
 	storageConfigCredentials(t)
 	mock := &storageImportHTTPMock{clusterType: "REPLICASET", effectiveEdition: "INFINITE", limit: 1024}
-	config := storageImportConfig(false, 0, true)
+	config := storageImportConfig(false, 0, true, false)
 	resource.UnitTest(t, resource.TestCase{
 		PreCheck:                 func() { require.NoError(t, unit.MockConfigAdvancedCluster.RunBeforeEach()) },
 		ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, mock),
@@ -331,7 +339,7 @@ func TestCoreClusterImportSupportsAllTopologies(t *testing.T) {
 		t.Run(clusterType, func(t *testing.T) {
 			storageConfigCredentials(t)
 			mock := &storageImportHTTPMock{clusterType: clusterType, effectiveEdition: "CORE"}
-			config := strings.ReplaceAll(storageImportConfig(false, 0, false), `"REPLICASET"`, fmt.Sprintf("%q", clusterType))
+			config := strings.ReplaceAll(storageImportConfig(false, 0, false, false), `"REPLICASET"`, fmt.Sprintf("%q", clusterType))
 			resource.UnitTest(t, resource.TestCase{
 				PreCheck:                 func() { require.NoError(t, unit.MockConfigAdvancedCluster.RunBeforeEach()) },
 				ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, mock),
@@ -358,10 +366,14 @@ func storageImportStateCheck(limit int) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttr("mongodbatlas_advanced_cluster.test", storageConfigLimitAttribute, fmt.Sprint(limit))
 }
 
-func storageImportConfig(requestedEdition bool, limit int, omitAutoScaling bool) string {
+func storageImportConfig(requestedEdition bool, limit int, omitAutoScaling, useEffectiveFields bool) string {
 	edition := ""
 	if requestedEdition {
 		edition = `database_edition = "INFINITE"`
+	}
+	effectiveFields := ""
+	if useEffectiveFields {
+		effectiveFields = "use_effective_fields = true"
 	}
 	storage := ""
 	if limit != 0 {
@@ -387,6 +399,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
   project_id = "111111111111111111111111"
   cluster_type = "REPLICASET"
   %[1]s
+  %[3]s
   replication_specs = [{
     region_configs = [{
       provider_name = "AWS"
@@ -397,21 +410,22 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }]
   }]
 }
-`, edition, autoScaling)
+`, edition, autoScaling, effectiveFields)
 }
 
 // storageImportHTTPMock serves imported clusters across editions and topologies, tracking written limits.
 type storageImportHTTPMock struct {
-	clusterType      string
-	effectiveEdition string
-	updatedLimits    []int
-	mu               sync.Mutex
-	limit            int
-	priority         int
-	requestedEdition bool
-	omitDisk         bool
-	explicitFalse    bool
-	deleted          bool
+	clusterType           string
+	effectiveEdition      string
+	updatedLimits         []int
+	mu                    sync.Mutex
+	limit                 int
+	priority              int
+	requestedEdition      bool
+	omitDisk              bool
+	explicitFalse         bool
+	expectEffectiveFields bool
+	deleted               bool
 }
 
 func (m *storageImportHTTPMock) ModifyHTTPClient(client *http.Client) error {
@@ -432,6 +446,9 @@ func (m *storageImportHTTPMock) RoundTrip(req *http.Request) (*http.Response, er
 	case req.Method == http.MethodGet && req.URL.Path == clusterPath,
 		req.Method == http.MethodPatch && req.URL.Path == clusterPath:
 		if req.Method == http.MethodPatch {
+			if got := req.Header.Get("Use-Effective-Instance-Fields"); (got == "true") != m.expectEffectiveFields {
+				return nil, fmt.Errorf("Use-Effective-Instance-Fields header = %q, expected effective fields %t", got, m.expectEffectiveFields)
+			}
 			var patch admin.ClusterDescription20240805
 			if err := json.NewDecoder(req.Body).Decode(&patch); err != nil {
 				return nil, err
