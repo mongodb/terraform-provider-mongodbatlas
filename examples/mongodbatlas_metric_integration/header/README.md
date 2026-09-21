@@ -1,6 +1,6 @@
 # MongoDB Atlas Metric Integration with Datadog Example
 
-This example demonstrates how to configure a metric integration that exports MongoDB Atlas metrics to Datadog over OTLP.
+This example demonstrates how to configure a metric integration that exports Atlas metrics to Datadog over OTLP.
 The example also shows how to read the integration back with the singular and plural data sources.
 
 This example points at Datadog using a custom OTLP endpoint (`provider_type = "CUSTOM"`). To export metrics to a different provider, update the `endpoint` and authentication `headers` to that provider's values; for the named providers (`DATADOG`, `DYNATRACE`, or `NEW_RELIC`), set `provider_type` accordingly.
