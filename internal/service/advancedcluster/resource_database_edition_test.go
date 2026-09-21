@@ -358,8 +358,7 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 				ConfigStateChecks: append(computeOnlyChecks("M20"),
 					infiniteEffectiveSpecsChecks(clusterName, "M10", "M10", true)...),
 			},
-			// A compute-only PATCH with the flag on must keep returning hardware specs; Atlas used to drop
-			// them and the apply failed with an inconsistent result (CLOUDP-443190).
+			// A compute-only PATCH with the flag on must keep returning hardware specs in the response.
 			{
 				Config: configDatabaseEditionEffective(projectID, clusterName, "M10", strings.ReplaceAll(scaleDownConfig+databaseEditionStorageConfig(new(1024)), "M20", "M30_GEN_2"), false),
 				ConfigStateChecks: append(computeOnlyChecks("M30_GEN_2"),
@@ -377,10 +376,9 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 }
 
 // TestAccClusterAdvancedCluster_infiniteEffectiveFields exercises use_effective_fields on an INFINITE cluster
-// with the flag set at creation (CLOUDP-443190): configured hardware must be echoed in state while effective
-// specs report the actual running values, and updates with the flag on must keep returning hardware specs.
-// The cluster starts with electable compute auto-scaling only (the typical case) and adds analytics nodes
-// with analytics auto-scaling mid-test so both spec types are covered with the flag.
+// with the flag set at creation: configured hardware must be echoed in state while effective specs report
+// actual running values, and updates with the flag on must keep returning hardware specs. The cluster starts
+// with electable compute auto-scaling only (the typical case) and adds analytics nodes mid-test.
 func TestAccClusterAdvancedCluster_infiniteEffectiveFields(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3)
 	const computeAutoScaling = `
@@ -652,9 +650,7 @@ func configDatabaseEditionWithAutoScaling(projectID, clusterName string, databas
 }
 
 // configDatabaseEditionEffective builds an INFINITE config with use_effective_fields set on the resource and
-// both data sources. The configured instance size can differ from the running one while compute auto-scaling
-// is enabled, letting checks use deliberately different configured and effective values. withAnalytics adds a
-// fixed analytics node with analytics auto-scaling to exercise the analytics spec attributes with the flag.
+// both data sources. withAnalytics adds a fixed analytics node with analytics auto-scaling.
 func configDatabaseEditionEffective(projectID, clusterName, instanceSize, autoScalingAttributes string, withAnalytics bool) string {
 	return configDatabaseEditionFull(projectID, clusterName, new("INFINITE"), 2, instanceSize, autoScalingAttributes, false, true, withAnalytics)
 }
@@ -785,10 +781,9 @@ func infiniteAutoScalingChecks(clusterName, attribute string, attributes map[str
 }
 
 // infiniteEffectiveSpecsChecks asserts the use_effective_fields contract on an INFINITE cluster: configured
-// hardware is echoed in state while effective specs report the actual running values. Configured and effective
-// instance sizes deliberately differ when an update is echoed but not applied, so the checks cannot pass
-// because both happen to match. Effective spec attributes exist only in the data sources. Disk fields are not
-// asserted: Atlas omits them from INFINITE effective specs (CLOUDP-443190).
+// hardware is echoed in state while effective specs report actual running values, with configured and
+// effective instance sizes deliberately differing. Effective spec attributes exist only in the data sources.
+// Disk fields are not asserted: Atlas omits them from INFINITE effective specs.
 func infiniteEffectiveSpecsChecks(clusterName, configuredInstanceSize, effectiveInstanceSize string, flagEnabled bool) []statecheck.StateCheck {
 	regionPath := tfjsonpath.New("replication_specs").AtSliceIndex(0).AtMapKey("region_configs").AtSliceIndex(0)
 	electable := knownvalue.ObjectPartial(map[string]knownvalue.Check{
@@ -815,8 +810,7 @@ func infiniteEffectiveSpecsChecks(clusterName, configuredInstanceSize, effective
 	return append(checks, acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(clusterName), pluralChecks))
 }
 
-// infiniteEffectiveAnalyticsChecks asserts the use_effective_fields contract for INFINITE analytics nodes:
-// configured specs are echoed in state while effective_analytics_specs report the actual running values.
+// infiniteEffectiveAnalyticsChecks asserts the same echo/effective contract for INFINITE analytics nodes.
 func infiniteEffectiveAnalyticsChecks(clusterName, configuredInstanceSize, effectiveInstanceSize string) []statecheck.StateCheck {
 	regionPath := tfjsonpath.New("replication_specs").AtSliceIndex(0).AtMapKey("region_configs").AtSliceIndex(0)
 	analytics := knownvalue.ObjectPartial(map[string]knownvalue.Check{

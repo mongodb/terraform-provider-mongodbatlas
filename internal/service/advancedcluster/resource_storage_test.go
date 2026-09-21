@@ -219,9 +219,8 @@ func (m *storageConfigHTTPMock) RoundTrip(req *http.Request) (*http.Response, er
 
 func TestAutoScalingStorageConfigImportLifecycle(t *testing.T) {
 	const configuredLimit = 1024
-	// The effective variant covers the import lifecycle with use_effective_fields on an INFINITE cluster
-	// (CLOUDP-443190): it runs without the requested edition and expects the Use-Effective-Instance-Fields
-	// header on updates now that Atlas preserves hardware specs in update responses.
+	// The effective variant runs the import lifecycle with use_effective_fields on an INFINITE cluster
+	// without the requested edition, expecting the Use-Effective-Instance-Fields header on updates.
 	for _, effective := range []bool{false, true} {
 		for _, importBlock := range []bool{false, true} {
 			t.Run(fmt.Sprintf("effective=%t/block=%t", effective, importBlock), func(t *testing.T) {
@@ -254,7 +253,7 @@ func TestAutoScalingStorageConfigImportLifecycle(t *testing.T) {
 						{Config: configForLimit(0, importBlock), Check: storageImportStateCheck(0)},
 					},
 				})
-				// The flag-toggle apply skips the copy-from-state optimization, so it re-sends the configured
+				// The flag-toggle apply skips the copy-from-state optimization, re-sending the configured
 				// replication specs (with the current limit) once before the actual updates.
 				expectedLimits := []int{2048, 0}
 				if effective {
