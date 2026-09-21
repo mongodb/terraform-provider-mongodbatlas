@@ -390,9 +390,10 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 // actual running values, and updates with the flag on must keep returning hardware specs. The cluster starts
 // with electable compute auto-scaling only (the typical case) and adds analytics nodes mid-test.
 func TestAccClusterAdvancedCluster_infiniteEffectiveFields(t *testing.T) {
+	base := baseInfiniteEffectiveReq(t)
 	var (
-		initial        = baseInfiniteEffectiveReq(t)
-		updated        = initial.withInstanceSize("M20")
+		initial        = base.withUnsetSpecsNull()
+		updated        = base.withInstanceSize("M20")
 		computeUpdated = updated.withComputeAutoScaling("M30_GEN_2")
 		analyticsAdded = computeUpdated.withAnalytics()
 		backToRunning  = analyticsAdded.withInstanceSize("M10").withComputeAutoScaling("M20")
@@ -798,6 +799,7 @@ type infiniteEffectiveReq struct {
 	effectiveInstanceSize string // actual running size, lags the configured one while auto-scaling is enabled
 	analytics             bool
 	useEffectiveFields    bool
+	expectUnsetSpecsNull  bool
 }
 
 func newInfiniteEffectiveReq(projectID, clusterName string) infiniteEffectiveReq {
@@ -860,6 +862,14 @@ func (req infiniteEffectiveReq) withFlag() infiniteEffectiveReq {
 
 func (req infiniteEffectiveReq) withoutFlag() infiniteEffectiveReq {
 	req.useEffectiveFields = false
+	req.expectUnsetSpecsNull = false
+	return req
+}
+
+// withUnsetSpecsNull asserts that unconfigured read_only_specs and analytics_specs stay null. It only holds
+// for a cluster created with the flag on; enabling the flag on an existing cluster can echo empty maps.
+func (req infiniteEffectiveReq) withUnsetSpecsNull() infiniteEffectiveReq {
+	req.expectUnsetSpecsNull = true
 	return req
 }
 
@@ -932,11 +942,13 @@ func (req infiniteEffectiveReq) check() []statecheck.StateCheck {
 			"compute_enabled":           knownvalue.Bool(true),
 			"compute_max_instance_size": knownvalue.StringExact("M20"),
 		})...)
-	} else {
+	} else if req.expectUnsetSpecsNull {
 		checks = append(checks, statecheck.ExpectKnownValue(resourceName, regionConfigPath.AtMapKey("analytics_specs"), knownvalue.Null()))
 	}
-	// read_only_specs is never configured and must not be echoed into state.
-	return append(checks, statecheck.ExpectKnownValue(resourceName, regionConfigPath.AtMapKey("read_only_specs"), knownvalue.Null()))
+	if req.expectUnsetSpecsNull {
+		checks = append(checks, statecheck.ExpectKnownValue(resourceName, regionConfigPath.AtMapKey("read_only_specs"), knownvalue.Null()))
+	}
+	return checks
 }
 
 func shardSizeLimitChecks(clusterName string, shardSizeLimitGB *int) []statecheck.StateCheck {
