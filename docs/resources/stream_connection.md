@@ -58,7 +58,7 @@ resource "mongodbatlas_stream_connection" "test" {
     config = {
         "auto.offset.reset": "latest"
     }
-    bootstrap_servers = "localhost:9091,localhost:9092"
+    bootstrap_servers = "example.com:9092"
 }    
 ```
 
@@ -79,7 +79,7 @@ resource "mongodbatlas_stream_connection" "example_kafka_oauthbearer" {
         scope = "read:messages write:messages"
         sasl_oauthbearer_extensions = "logicalCluster=lkc-kmom,identityPoolId=pool-lAr"
     }
-    bootstrap_servers = "localhost:9092,localhost:9092"
+    bootstrap_servers = "example.com:9092"
     config = {
         "auto.offset.reset" : "earliest"
     }
@@ -114,7 +114,7 @@ resource "mongodbatlas_stream_connection" "test" {
     config = {
         "auto.offset.reset": "latest"
     }
-    bootstrap_servers = "localhost:9091,localhost:9092"
+    bootstrap_servers = "example.com:9092"
 }
 ```
 
