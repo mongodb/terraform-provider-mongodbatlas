@@ -81,6 +81,22 @@ func TestMongoDBRegionToAWSRegion(t *testing.T) {
 	}
 }
 
+func TestAWSRegionToMongoDBRegion(t *testing.T) {
+	tests := []struct {
+		region   string
+		expected string
+	}{
+		{"us-east-1", "US_EAST_1"},
+		{"US-EAST-1", "US_EAST_1"},
+	}
+
+	for _, test := range tests {
+		if resp := conversion.AWSRegionToMongoDBRegion(test.region); resp != test.expected {
+			t.Errorf("AWSRegionToMongoDBRegion(%v) = %v; want %v", test.region, resp, test.expected)
+		}
+	}
+}
+
 func TestSafeValue(t *testing.T) {
 	var boolPointer *bool
 	assert.False(t, conversion.SafeValue(boolPointer))
