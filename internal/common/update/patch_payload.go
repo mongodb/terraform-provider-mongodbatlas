@@ -16,7 +16,6 @@ type attrPatchOperations struct {
 	ignoreInStateSuffix  []string
 	ignoreInStatePrefix  []string
 	includeInStateSuffix []string
-	forceUpdateAttr      []string
 }
 
 func (m *attrPatchOperations) ignoreInStatePath(path string) bool {
@@ -45,20 +44,17 @@ func newAttrPatchOperations(patch jsondiff.Patch, options []PatchOptions) *attrP
 		ignoreSuffixInState  []string
 		ignorePrefixInState  []string
 		includeSuffixInState []string
-		forceUpdateAttr      []string
 	)
 	for _, option := range options {
 		ignoreSuffixInState = append(ignoreSuffixInState, option.IgnoreInStateSuffix...)
 		ignorePrefixInState = append(ignorePrefixInState, option.IgnoreInStatePrefix...)
 		includeSuffixInState = append(includeSuffixInState, option.IncludeInStateSuffix...)
-		forceUpdateAttr = append(forceUpdateAttr, option.ForceUpdateAttr...)
 	}
 	self := &attrPatchOperations{
 		data:                 map[string][]jsondiff.Operation{},
 		ignoreInStateSuffix:  ignoreSuffixInState,
 		ignoreInStatePrefix:  ignorePrefixInState,
 		includeInStateSuffix: includeSuffixInState,
-		forceUpdateAttr:      forceUpdateAttr,
 	}
 	for _, op := range patch {
 		if op.Path == "" {
@@ -92,9 +88,6 @@ func indexRemoval(path string) bool {
 }
 
 func (m *attrPatchOperations) hasChanged(attr string) bool {
-	if slices.Contains(m.forceUpdateAttr, attr) {
-		return true
-	}
 	for _, op := range m.get(attr) {
 		if slices.Contains(changeOps, op.Type) {
 			return true
@@ -110,12 +103,6 @@ func (m *attrPatchOperations) ChangedAttributes() []string {
 	attrs := []string{}
 	for attr := range m.data {
 		if m.hasChanged(attr) {
-			attrs = append(attrs, attr)
-		}
-	}
-	// There might be a case where there are no changes in m.data for the attributes in forceUpdateAttr
-	for _, attr := range m.forceUpdateAttr {
-		if !slices.Contains(attrs, attr) {
 			attrs = append(attrs, attr)
 		}
 	}
@@ -173,7 +160,6 @@ type PatchOptions struct {
 	IgnoreInStateSuffix  []string
 	IgnoreInStatePrefix  []string
 	IncludeInStateSuffix []string
-	ForceUpdateAttr      []string
 }
 
 // PatchPayload uses the state and plan to changes to find the patch request, including changes only when:
