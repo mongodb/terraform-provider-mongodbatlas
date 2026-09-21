@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -63,7 +64,7 @@ func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *t
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:                  new(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			Region:                   conversion.StringPtr(strings.ReplaceAll(strings.ToUpper(os.Getenv("AWS_REGION")), "-", "_")),
 			RequirePrivateNetworking: new(true),
 		}
 	)
@@ -185,16 +186,16 @@ func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:                  new(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			Region:                   conversion.StringPtr(strings.ReplaceAll(strings.ToUpper(os.Getenv("AWS_REGION")), "-", "_")),
 			RequirePrivateNetworking: new(false),
 		}
 		awsKmsPrivateNetworking = admin.AWSKMSConfiguration{
 			Enabled:                  new(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			Region:                   conversion.StringPtr(strings.ReplaceAll(strings.ToUpper(os.Getenv("AWS_REGION")), "-", "_")),
 			RequirePrivateNetworking: new(true),
 		}
-		region         = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
+		region         = strings.ReplaceAll(strings.ToUpper(os.Getenv("AWS_REGION")), "-", "_")
 		createTimeout  = "45m"
 		timeoutsConfig = acc.TimeoutConfig(&createTimeout, nil, nil)
 	)

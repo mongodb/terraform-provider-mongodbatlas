@@ -69,11 +69,6 @@ func MongoDBRegionToAWSRegion(region string) string {
 	return strings.ReplaceAll(strings.ToLower(region), "_", "-")
 }
 
-// AWSRegionToMongoDBRegion converts region in us-east-1-like format to US_EAST_1-like
-func AWSRegionToMongoDBRegion(region string) string {
-	return strings.ReplaceAll(strings.ToUpper(region), "-", "_")
-}
-
 type TFPrimitiveType interface {
 	IsUnknown() bool
 }

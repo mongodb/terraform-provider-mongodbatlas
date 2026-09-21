@@ -233,7 +233,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 		vpcCIDRBlock            = os.Getenv("AWS_VPC_CIDR_BLOCK")
 		awsAccountID            = os.Getenv("AWS_ACCOUNT_ID")
 		peerRegion              = os.Getenv("AWS_REGION")
-		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
+		containerRegion         = strings.ReplaceAll(strings.ToUpper(peerRegion), "-", "_")
 		providerName            = "AWS"
 		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
@@ -265,7 +265,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		vpcCIDRBlock            = os.Getenv("AWS_VPC_CIDR_BLOCK")
 		awsAccountID            = os.Getenv("AWS_ACCOUNT_ID")
 		peerRegion              = os.Getenv("AWS_REGION")
-		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
+		containerRegion         = strings.ReplaceAll(strings.ToUpper(peerRegion), "-", "_")
 		providerName            = "AWS"
 		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
@@ -326,7 +326,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t
 		vpcCIDRBlock            = os.Getenv("AWS_VPC_CIDR_BLOCK")
 		awsAccountID            = os.Getenv("AWS_ACCOUNT_ID")
 		peerRegion              = os.Getenv("AWS_REGION")
-		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
+		containerRegion         = strings.ReplaceAll(strings.ToUpper(peerRegion), "-", "_")
 		providerName            = "AWS"
 		networkPeeringConfig    = configNetworkPeeringAWS(
 			projectID,

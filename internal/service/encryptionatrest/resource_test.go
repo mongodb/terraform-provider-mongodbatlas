@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20250312025/admin"
@@ -42,7 +43,7 @@ func basicTestCaseAWS(tb testing.TB, useDatasource, useRequirePrivateNetworking,
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:                  new(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			Region:                   conversion.StringPtr(strings.ReplaceAll(strings.ToUpper(os.Getenv("AWS_REGION")), "-", "_")),
 			RequirePrivateNetworking: new(false),
 		}
 		awsKmsAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKms)
@@ -50,7 +51,7 @@ func basicTestCaseAWS(tb testing.TB, useDatasource, useRequirePrivateNetworking,
 		awsKmsUpdated = admin.AWSKMSConfiguration{
 			Enabled:                  new(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			Region:                   conversion.StringPtr(strings.ReplaceAll(strings.ToUpper(os.Getenv("AWS_REGION")), "-", "_")),
 			RequirePrivateNetworking: new(true),
 		}
 		awsKmsUpdatedAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKmsUpdated)
