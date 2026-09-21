@@ -285,9 +285,6 @@ func commonRSAndDSOverridesTransformation(attr *Attribute, paths *attrPaths, sch
 	if override.Computability != nil {
 		attr.ComputedOptionalRequired = getComputabilityFromConfig(*override.Computability)
 	}
-	if override.ClearDefault != nil && *override.ClearDefault {
-		clearStaticDefault(attr)
-	}
 	if override.Sensitive != nil {
 		attr.Sensitive = *override.Sensitive
 	}
@@ -390,23 +387,6 @@ func getComputabilityFromConfig(computability config.Computability) ComputedOpti
 		return Optional
 	}
 	return Required
-}
-
-// clearStaticDefault drops a static default copied from the API spec. Code generation otherwise emits
-// a schema Default, which forces computed_optional and is rejected by terraform-plugin-framework on a
-// non-computed attribute. Used when the provider should not expose the spec default, for example when
-// the default must not be written to state so a create-only attribute stays changeable after import.
-func clearStaticDefault(attr *Attribute) {
-	switch {
-	case attr.Bool != nil:
-		attr.Bool.Default = nil
-	case attr.String != nil:
-		attr.String.Default = nil
-	case attr.Int64 != nil:
-		attr.Int64.Default = nil
-	case attr.Float64 != nil:
-		attr.Float64.Default = nil
-	}
 }
 
 func applyReqBodyUsageOverride(reqBodyUsage config.ReqBodyUsage, attr *Attribute) error {
