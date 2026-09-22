@@ -530,7 +530,7 @@ import {
 `
 
 // TestExplicitNullStorageConfig verifies that setting storageConfig to explicit null
-// creates a detectable change in the PATCH payload without needing ForceUpdateAttr.
+// creates a detectable change in the PATCH payload.
 func TestExplicitNullStorageConfig(t *testing.T) {
 	// State: has storageConfig with shardSizeLimitGB
 	stateReq := &admin.ClusterDescription20240805{
