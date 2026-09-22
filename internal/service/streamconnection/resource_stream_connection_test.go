@@ -109,23 +109,23 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
+				Config: dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092,example.com:9092", "earliest", "", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckNoResourceAttr(resourceName, "authentication.aws"),
-					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
-					checkKafkaAttributesAcceptance(dataSourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
+					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user", "rawpassword", "example.com:9092,example.com:9092", "earliest", networkingTypePublic, false, true),
+					checkKafkaAttributesAcceptance(dataSourceName, instanceName, connectionName, "user", "rawpassword", "example.com:9092,example.com:9092", "earliest", networkingTypePublic, false, false),
 					streamConnectionsAttributeChecksAcceptance(pluralDataSourceName, nil, nil),
 				),
 			},
 			{
-				Config:   dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
+				Config:   dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092,example.com:9092", "earliest", "", false),
 				PlanOnly: true,
 			},
 			{
-				Config: dataSourcesWithPagination + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user2", "otherpassword", "", "", "", "", "", ""), "localhost:9093", "latest", kafkaNetworkingPublic, false),
+				Config: dataSourcesWithPagination + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user2", "otherpassword", "", "", "", "", "", ""), "example.com:9093", "latest", kafkaNetworkingPublic, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
-					checkKafkaAttributesAcceptance(dataSourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, false),
+					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user2", "otherpassword", "example.com:9093", "latest", networkingTypePublic, false, true),
+					checkKafkaAttributesAcceptance(dataSourceName, instanceName, connectionName, "user2", "otherpassword", "example.com:9093", "latest", networkingTypePublic, false, false),
 					streamConnectionsAttributeChecksAcceptance(pluralDataSourceName, new(2), new(1)),
 				),
 			},
@@ -156,22 +156,22 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfigMigration + dataSourcePluralConfigMigration + configureKafkaMigration(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
+				Config: dataSourceConfigMigration + dataSourcePluralConfigMigration + configureKafkaMigration(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092,example.com:9092", "earliest", "", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkKafkaAttributesMigration(resourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
-					checkKafkaAttributesMigration(dataSourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
+					checkKafkaAttributesMigration(resourceName, instanceName, connectionName, "user", "rawpassword", "example.com:9092,example.com:9092", "earliest", networkingTypePublic, false, true),
+					checkKafkaAttributesMigration(dataSourceName, instanceName, connectionName, "user", "rawpassword", "example.com:9092,example.com:9092", "earliest", networkingTypePublic, false, false),
 					streamConnectionsAttributeChecksMigration(pluralDataSourceName, nil, nil),
 				),
 			},
 			{
-				Config: dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
+				Config: dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092,example.com:9092", "earliest", "", false),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
 					},
 				},
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
+					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user", "rawpassword", "example.com:9092,example.com:9092", "earliest", networkingTypePublic, false, true),
 					resource.TestCheckNoResourceAttr(resourceName, "instance_name"),
 				),
 			},
@@ -199,18 +199,18 @@ func TestAccStreamRSStreamConnection_kafkaOAuthBearer(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("OAUTHBEARER", "", "", tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, method), "localhost:9092,localhost:9092", "earliest", "", false),
+				Config: dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("OAUTHBEARER", "", "", tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, method), "example.com:9092,example.com:9092", "earliest", "", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkKafkaOAuthAttributes(resourceName, connectionName, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, method, "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
-					checkKafkaOAuthAttributes(dataSourceName, connectionName, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, method, "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
+					checkKafkaOAuthAttributes(resourceName, connectionName, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, method, "example.com:9092,example.com:9092", "earliest", networkingTypePublic, false, true),
+					checkKafkaOAuthAttributes(dataSourceName, connectionName, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, method, "example.com:9092,example.com:9092", "earliest", networkingTypePublic, false, false),
 					streamConnectionsAttributeChecks(pluralDataSourceName, nil, nil),
 				),
 			},
 			{
-				Config: dataSourcesWithPagination + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("OAUTHBEARER", "", "", tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, method), "localhost:9093", "latest", kafkaNetworkingPublic, false),
+				Config: dataSourcesWithPagination + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("OAUTHBEARER", "", "", tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, method), "example.com:9093", "latest", kafkaNetworkingPublic, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkKafkaOAuthAttributes(resourceName, connectionName, tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, method, "localhost:9093", "latest", networkingTypePublic, false, true),
-					checkKafkaOAuthAttributes(dataSourceName, connectionName, tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, method, "localhost:9093", "latest", networkingTypePublic, false, false),
+					checkKafkaOAuthAttributes(resourceName, connectionName, tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, method, "example.com:9093", "latest", networkingTypePublic, false, true),
+					checkKafkaOAuthAttributes(dataSourceName, connectionName, tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, method, "example.com:9093", "latest", networkingTypePublic, false, false),
 					streamConnectionsAttributeChecks(pluralDataSourceName, new(2), new(1)),
 				),
 			},
@@ -244,8 +244,8 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-vpc", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
-				Check:  checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-vpc", "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
+				Config: networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-vpc", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingVPC, true),
+				Check:  checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-vpc", "user", "rawpassword", "example.com:9092", "earliest", networkingTypeVPC, true, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -278,14 +278,14 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf("%s\n%s", configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingPublic, true), dataSourceConfig),
+				Config: fmt.Sprintf("%s\n%s", configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingPublic, true), dataSourceConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-ssl", "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, true),
-					checkKafkaAttributesAcceptance(dataSourceName, instanceName, "kafka-conn-ssl", "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, false),
+					checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-ssl", "user", "rawpassword", "example.com:9092", "earliest", networkingTypePublic, true, true),
+					checkKafkaAttributesAcceptance(dataSourceName, instanceName, "kafka-conn-ssl", "user", "rawpassword", "example.com:9092", "earliest", networkingTypePublic, true, false),
 				),
 			},
 			{
-				Config: networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
+				Config: networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingVPC, true),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectResourceAction(
@@ -301,7 +301,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 					"kafka-conn-ssl",
 					"user",
 					"rawpassword",
-					"localhost:9092",
+					"example.com:9092",
 					"earliest",
 					networkingTypeVPC,
 					true,
@@ -365,7 +365,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t
 						"",
 						"",
 					),
-					"localhost:9092",
+					"example.com:9092",
 					"earliest",
 					kafkaNetworkingPublic,
 					true,
@@ -376,7 +376,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t
 					connectionName,
 					"user",
 					"rawpassword",
-					"localhost:9092",
+					"example.com:9092",
 					"earliest",
 					networkingTypePublic,
 					true,
@@ -401,7 +401,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t
 						"",
 						"",
 					),
-					"localhost:9092",
+					"example.com:9092",
 					"earliest",
 					kafkaNetworkingVPC,
 					true,
@@ -591,8 +591,8 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 				Config: fmt.Sprintf(`
 					%[1]s
 					%[2]s
-				`, privatelinkConfig, configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-privatelink", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingPrivatelink, true)),
-				Check: checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-privatelink", "user", "rawpassword", "localhost:9092", "earliest", networkingTypePrivatelink, true, true),
+				`, privatelinkConfig, configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-privatelink", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingPrivatelink, true)),
+				Check: checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-privatelink", "user", "rawpassword", "example.com:9092", "earliest", networkingTypePrivatelink, true, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -725,7 +725,7 @@ func TestAccStreamRSStreamConnection_instanceName(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: configureKafkaWithInstanceName(projectID, instanceName, connectionName, "user", "password", "localhost:9092"),
+				Config: configureKafkaWithInstanceName(projectID, instanceName, connectionName, "user", "password", "example.com:9092"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkStreamConnectionExists(),
 					resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
@@ -758,7 +758,7 @@ func TestAccStreamRSStreamConnection_conflictingFields(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config:      configureKafkaWithInstanceAndWorkspaceName(projectID, instanceName, connectionName, "user", "password", "localhost:9092"),
+				Config:      configureKafkaWithInstanceAndWorkspaceName(projectID, instanceName, connectionName, "user", "password", "example.com:9092"),
 				ExpectError: regexp.MustCompile("Attribute \"workspace_name\" cannot be specified when \"instance_name\" is\n.*specified"),
 			},
 		},
