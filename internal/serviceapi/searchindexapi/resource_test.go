@@ -15,6 +15,14 @@ const (
 	resourceName = "mongodbatlas_search_index_api.test"
 	database     = "sample_airbnb"
 	collection   = "listingsAndReviews"
+
+	// testTimeoutsBlock bounds one Terraform operation at 60 minutes in acceptance tests, well below the
+	// resource's 3-hour default and the CI job deadline.
+	testTimeoutsBlock = `timeouts {
+			create = "60m"
+			update = "60m"
+			delete = "60m"
+		}`
 )
 
 func TestAccSearchIndexAPI_basic(t *testing.T) {
@@ -233,11 +241,7 @@ func TestAccSearchIndexAPI_withStoredSourceUpdateSearchType(t *testing.T) {
 func configBasic(projectID, clusterName, indexName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index_api" "test" {
-			timeouts {
-				create = "60m"
-				update = "60m"
-				delete = "60m"
-			}
+			%s
 			group_id        = %[1]q
 			cluster_name    = %[2]q
 			name            = %[3]q
@@ -250,7 +254,7 @@ func configBasic(projectID, clusterName, indexName string) string {
 				}
 			}
 		}
-	`, projectID, clusterName, indexName, database, collection)
+	`, testTimeoutsBlock, projectID, clusterName, indexName, database, collection)
 }
 
 func configFieldMappingOptionalAnalyzers(projectID, clusterName, indexName string, includeAnalyzers bool) string {
@@ -281,11 +285,7 @@ func configFieldMappingOptionalAnalyzers(projectID, clusterName, indexName strin
 	}
 	return fmt.Sprintf(`
         resource "mongodbatlas_search_index_api" "test" {
-            timeouts {
-                create = "60m"
-                update = "60m"
-                delete = "60m"
-            }
+            %s
             group_id        = %[1]q
             cluster_name    = %[2]q
             name            = %[3]q
@@ -330,7 +330,7 @@ func configFieldMappingOptionalAnalyzers(projectID, clusterName, indexName strin
 				%[6]s
             }
         }
-    `, projectID, clusterName, indexName, database, collection, analyzers)
+    `, testTimeoutsBlock, projectID, clusterName, indexName, database, collection, analyzers)
 }
 
 func checkBasic(projectID, clusterName, indexName string) resource.TestCheckFunc {
@@ -434,11 +434,7 @@ func configWithSynonyms(projectID, clusterName, indexName string, with bool) str
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index_api" "test" {
-			timeouts {
-				create = "60m"
-				update = "60m"
-				delete = "60m"
-			}
+			%s
 			group_id        = %[1]q
 			cluster_name    = %[2]q
 			name            = %[3]q
@@ -453,17 +449,13 @@ func configWithSynonyms(projectID, clusterName, indexName string, with bool) str
 				%[6]s
 			}
 		}
-	`, projectID, clusterName, indexName, database, collection, synonyms)
+	`, testTimeoutsBlock, projectID, clusterName, indexName, database, collection, synonyms)
 }
 
 func configWithStoredSourceBool(projectID, clusterName, indexName string, val bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index_api" "test" {
-			timeouts {
-				create = "60m"
-				update = "60m"
-				delete = "60m"
-			}
+			%s
 			group_id        = %[1]q
 			cluster_name    = %[2]q
 			name            = %[3]q
@@ -472,20 +464,16 @@ func configWithStoredSourceBool(projectID, clusterName, indexName string, val bo
 
 			definition = {
 				mappings = { dynamic = jsonencode(true) }
-				stored_source = jsonencode(%[6]t)
+				stored_source = jsonencode(%[7]t)
 			}
 		}
-	`, projectID, clusterName, indexName, database, collection, val)
+	`, testTimeoutsBlock, projectID, clusterName, indexName, database, collection, val)
 }
 
 func configWithStoredSourceBoolAndType(projectID, clusterName, indexName, indexType string, val bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index_api" "test" {
-			timeouts {
-				create = "60m"
-				update = "60m"
-				delete = "60m"
-			}
+			%s
 			group_id        = %[1]q
 			cluster_name    = %[2]q
 			name            = %[3]q
@@ -495,20 +483,16 @@ func configWithStoredSourceBoolAndType(projectID, clusterName, indexName, indexT
 
 			definition = {
 				mappings = { dynamic = jsonencode(true) }
-				stored_source = jsonencode(%[7]t)
+				stored_source = jsonencode(%[8]t)
 			}
 		}
-	`, projectID, clusterName, indexName, database, collection, indexType, val)
+	`, testTimeoutsBlock, projectID, clusterName, indexName, database, collection, indexType, val)
 }
 
 func configWithStoredSourceJSON(projectID, clusterName, indexName, json string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index_api" "test" {
-			timeouts {
-				create = "60m"
-				update = "60m"
-				delete = "60m"
-			}
+			%s
 			group_id        = %[1]q
 			cluster_name    = %[2]q
 			name            = %[3]q
@@ -520,17 +504,13 @@ func configWithStoredSourceJSON(projectID, clusterName, indexName, json string) 
 				stored_source = jsonencode(%[6]s)
 			}
 		}
-	`, projectID, clusterName, indexName, database, collection, json)
+	`, testTimeoutsBlock, projectID, clusterName, indexName, database, collection, json)
 }
 
 func configVector(projectID, clusterName, indexName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index_api" "test" {
-			timeouts {
-				create = "60m"
-				update = "60m"
-				delete = "60m"
-			}
+			%s
 			group_id        = %[1]q
 			cluster_name    = %[2]q
 			name            = %[3]q
@@ -549,7 +529,7 @@ func configVector(projectID, clusterName, indexName string) string {
 				]
 			}
 		}
-	`, projectID, clusterName, indexName, database, collection)
+	`, testTimeoutsBlock, projectID, clusterName, indexName, database, collection)
 }
 
 func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON string, types []string) string {
@@ -562,11 +542,7 @@ func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON string, t
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index_api" "test" {
-			timeouts {
-				create = "60m"
-				update = "60m"
-				delete = "60m"
-			}
+			%s
 			group_id        = %[1]q
 			cluster_name    = %[2]q
 			name            = %[3]q
@@ -584,17 +560,13 @@ func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON string, t
 				}]
 			}
 		}
-	`, projectID, clusterName, indexName, database, collection, dynamicJSON, typesStr.String())
+	`, testTimeoutsBlock, projectID, clusterName, indexName, database, collection, dynamicJSON, typesStr.String())
 }
 
 func configWithTypeSetsOmitted(projectID, clusterName, indexName, dynamicJSON string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index_api" "test" {
-			timeouts {
-				create = "60m"
-				update = "60m"
-				delete = "60m"
-			}
+			%s
 			group_id        = %[1]q
 			cluster_name    = %[2]q
 			name            = %[3]q
@@ -608,7 +580,7 @@ func configWithTypeSetsOmitted(projectID, clusterName, indexName, dynamicJSON st
 				}
 			}
 		}
-	`, projectID, clusterName, indexName, database, collection, dynamicJSON)
+	`, testTimeoutsBlock, projectID, clusterName, indexName, database, collection, dynamicJSON)
 }
 
 func checkAttrs(projectID, clusterName, indexName string) resource.TestCheckFunc {
