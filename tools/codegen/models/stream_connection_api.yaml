@@ -138,7 +138,7 @@ schema:
                                   present_in_any_response: true
                                   request_only_required_on_create: false
                                 - string: {}
-                                  description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
+                                  description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.
                                   computed_optional_required: optional
                                   tf_schema_name: test_bucket
                                   tf_model_name: TestBucket
@@ -327,7 +327,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
+                      description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.
                       computed_optional_required: optional
                       tf_schema_name: test_bucket
                       tf_model_name: TestBucket
