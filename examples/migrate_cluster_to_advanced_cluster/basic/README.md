@@ -26,7 +26,7 @@ This step can be skipped if you already have a configuration file with a `mongod
 project_id = "{PROJECT_ID}" # replace with your project ID, should be similar to 664619d870c247237f4b86a6
 cluster_name = "cluster-mig-resource"
 instance_size = "M10"
-mongo_db_major_version = "8.0"
+mongo_db_major_version = "9.0"
 ```
 4. Run `terraform init`
 5. Run `terraform apply`
