@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
+	"go.mongodb.org/atlas-sdk/v20250312025/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -464,13 +464,9 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 		apiReq.EventTypeName = alertConfigPlan.EventType.ValueStringPointer()
 	}
 
-	if !reflect.DeepEqual(alertConfigPlan.MetricThresholdConfig, alertConfigState.MetricThresholdConfig) {
-		apiReq.MetricThreshold = NewMetricThreshold(alertConfigPlan.MetricThresholdConfig)
-	}
-
-	if !reflect.DeepEqual(alertConfigPlan.ThresholdConfig, alertConfigState.ThresholdConfig) {
-		apiReq.Threshold = NewThreshold(alertConfigPlan.ThresholdConfig)
-	}
+	// The read returns both metricThreshold and threshold for some event types, so the request must be reduced to the
+	// single threshold block the plan declares (or cleared when a block is removed).
+	PopulateThresholdFromPlan(apiReq, alertConfigPlan.MetricThresholdConfig, alertConfigPlan.ThresholdConfig, alertConfigState.MetricThresholdConfig, alertConfigState.ThresholdConfig)
 
 	if !reflect.DeepEqual(alertConfigPlan.Matcher, alertConfigState.Matcher) {
 		apiReq.Matchers = NewMatcherList(alertConfigPlan.Matcher)

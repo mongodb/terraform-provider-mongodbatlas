@@ -3,7 +3,7 @@ package alertconfiguration
 import (
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
+	"go.mongodb.org/atlas-sdk/v20250312025/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -336,4 +336,31 @@ func newTFThresholdModels(
 		return []TfMetricThresholdConfigModel{}, NewTFThresholdConfigModel(threshold, currThreshold)
 	}
 	return []TfMetricThresholdConfigModel{}, []TfThresholdConfigModel{}
+}
+
+// PopulateThresholdFromPlan sets the API threshold fields from the plan with metric precedence.
+// It clears both fields when the plan removes a threshold block that is in state.
+func PopulateThresholdFromPlan(
+	apiReq *admin.GroupAlertsConfig,
+	planMetricThreshold []TfMetricThresholdConfigModel,
+	planThreshold []TfThresholdConfigModel,
+	stateMetricThreshold []TfMetricThresholdConfigModel,
+	stateThreshold []TfThresholdConfigModel,
+) {
+	planMetricThresholdModel := NewMetricThreshold(planMetricThreshold)
+	planThresholdModel := NewThreshold(planThreshold)
+
+	switch {
+	case planMetricThresholdModel != nil:
+		apiReq.MetricThreshold = planMetricThresholdModel
+		apiReq.Threshold = nil
+	case planThresholdModel != nil:
+		apiReq.MetricThreshold = nil
+		apiReq.Threshold = planThresholdModel
+	case NewMetricThreshold(stateMetricThreshold) != nil, NewThreshold(stateThreshold) != nil:
+		// A configured threshold block was removed, so both API fields are cleared instead of echoing
+		// back what GetAlertConfig returned.
+		apiReq.MetricThreshold = nil
+		apiReq.Threshold = nil
+	}
 }

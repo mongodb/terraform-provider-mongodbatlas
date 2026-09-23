@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
+	"go.mongodb.org/atlas-sdk/v20250312025/admin"
 )
 
 const (
@@ -30,7 +30,7 @@ const (
 	saslOauthbearerExtentions = "logicalCluster=cluster-kmo17m,identityPoolId=pool-l7Arl"
 	method                    = "OIDC"
 	securityProtocol          = "SASL_SSL"
-	bootstrapServers          = "localhost:9092,another.host:9092"
+	bootstrapServers          = "example.com:9092,another.host:9092"
 	dbRole                    = "customRole"
 	dbRoleType                = "CUSTOM"
 	sampleConnectionName      = "sample_stream_solar"

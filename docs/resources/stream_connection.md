@@ -24,7 +24,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```
 
 ### Further Examples
-- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_stream_connection)
+- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_stream_connection)
 
 ### Example Cross Project Cluster Connection
 
@@ -58,7 +58,7 @@ resource "mongodbatlas_stream_connection" "test" {
     config = {
         "auto.offset.reset": "latest"
     }
-    bootstrap_servers = "localhost:9091,localhost:9092"
+    bootstrap_servers = "example.com:9092"
 }    
 ```
 
@@ -79,7 +79,7 @@ resource "mongodbatlas_stream_connection" "example_kafka_oauthbearer" {
         scope = "read:messages write:messages"
         sasl_oauthbearer_extensions = "logicalCluster=lkc-kmom,identityPoolId=pool-lAr"
     }
-    bootstrap_servers = "localhost:9092,localhost:9092"
+    bootstrap_servers = "example.com:9092"
     config = {
         "auto.offset.reset" : "earliest"
     }
@@ -114,7 +114,7 @@ resource "mongodbatlas_stream_connection" "test" {
     config = {
         "auto.offset.reset": "latest"
     }
-    bootstrap_servers = "localhost:9091,localhost:9092"
+    bootstrap_servers = "example.com:9092"
 }
 ```
 

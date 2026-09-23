@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_alert_configuration: Fixes `DUPLICATE_THRESHOLD_FIELD` errors when updating an `OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD` alert configuration
+```

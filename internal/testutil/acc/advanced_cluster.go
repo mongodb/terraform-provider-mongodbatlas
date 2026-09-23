@@ -166,7 +166,7 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 	stateConf := retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyWorkingState},
 		Target:     []string{retrystrategy.RetryStrategyCompletedState},
-		Timeout:    15 * time.Minute,
+		Timeout:    30 * time.Minute,
 		MinTimeout: 1 * time.Minute,
 		Delay:      1 * time.Minute,
 		Refresh: func() (result any, state string, err error) {
@@ -178,7 +178,7 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 				return nil, "", fmt.Errorf("sample dataset load %s returned nil job for cluster %s:%s", jobID, projectID, clusterName)
 			}
 			state = job.GetState()
-			if err := errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state); err != nil {
+			if err := errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state, job.GetErrorMessage()); err != nil {
 				return job, state, err
 			}
 			return job, state, nil
@@ -188,16 +188,19 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 	return err
 }
 
-func errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state string) error {
+func errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state, errorMessage string) error {
 	if state == retrystrategy.RetryStrategyFailedState {
+		if errorMessage != "" {
+			return fmt.Errorf("sample dataset load %s failed for cluster %s:%s: %s", jobID, projectID, clusterName, errorMessage)
+		}
 		return fmt.Errorf("sample dataset load %s failed for cluster %s:%s", jobID, projectID, clusterName)
 	}
 	return nil
 }
 
 // ErrIfSampleDatasetLoadFailedForTest exposes sample-dataset FAILED mapping for unit tests.
-func ErrIfSampleDatasetLoadFailedForTest(projectID, clusterName, jobID, state string) error {
-	return errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state)
+func ErrIfSampleDatasetLoadFailedForTest(projectID, clusterName, jobID, state, errorMessage string) error {
+	return errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state, errorMessage)
 }
 
 func ConfigBasicDedicated(projectID, name, zoneName string) string {

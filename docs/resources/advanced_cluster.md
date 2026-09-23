@@ -98,7 +98,7 @@ output "actual_instance_size" {
 }
 ```
 
-**For module authors:** See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete examples of using `use_effective_fields` and effective specs in reusable Terraform modules.
+**For module authors:** See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete examples of using `use_effective_fields` and effective specs in reusable Terraform modules.
 
 ### Example Tenant Cluster
 
@@ -494,37 +494,37 @@ output "endpoint_service_connection_string" {
 # Example return string: connection_string = "mongodb+srv://cluster-atlas-pl-0.ygo1m.mongodb.net"
 ```
 Refer to the following for full privatelink endpoint connection string examples:
-* [GCP Private Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
-* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_privatelink_endpoint/azure)
-* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
-* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
+* [GCP Private Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
+* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_privatelink_endpoint/azure)
+* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
 
 
 ### Further Examples
 
 **Target Examples (Recommended Starting Points):**
-- [Free Tier (M0)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/free-tier)
-- [Simple M10 Replica Set](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/m10-replicaset)
-- [M10 High-Availability Replica Set (2-2-1)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/m10-high-availability)
-- [Simple M30 Single-Shard Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/m30-single-shard)
-- [M30 Multi-Shard Cluster (2 Shards)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/m30-multi-shard)
+- [Free Tier (M0)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/free-tier)
+- [Simple M10 Replica Set](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/m10-replicaset)
+- [M10 High-Availability Replica Set (2-2-1)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/m10-high-availability)
+- [Simple M30 Single-Shard Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/m30-single-shard)
+- [M30 Multi-Shard Cluster (2 Shards)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/m30-multi-shard)
 
 **Cluster Types:**
-- [Replicaset](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/replicaset)
-- [Symmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster)
-- [Asymmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster)
-- [Global Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/global-cluster)
-- [Multi-Cloud](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/multi-cloud)
+- [Replicaset](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/replicaset)
+- [Symmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster)
+- [Asymmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster)
+- [Global Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/global-cluster)
+- [Multi-Cloud](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/multi-cloud)
 
 **Auto-scaling:**
-- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard)
-- [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/effective_fields)
+- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard)
+- [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/effective_fields)
 
 **Upgrades & Migrations:**
-- [Tenant Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/tenant-upgrade)
-- [Flex Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/flex-upgrade)
-- [Version Upgrade with Pinned FCV](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/version-upgrade-with-pinned-fcv)
-- [Migrate Cluster to Advanced Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/migrate_cluster_to_advanced_cluster/basic)
+- [Tenant Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/tenant-upgrade)
+- [Flex Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/flex-upgrade)
+- [Version Upgrade with Pinned FCV](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/version-upgrade-with-pinned-fcv)
+- [Migrate Cluster to Advanced Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/migrate_cluster_to_advanced_cluster/basic)
 
 ## Argument Reference
 
@@ -591,8 +591,8 @@ Refer to the following for full privatelink endpoint connection string examples:
 * `replica_set_scaling_strategy` - (Optional) Replica set scaling mode for your cluster. Valid values are `WORKLOAD_TYPE`, `SEQUENTIAL` and `NODE_TYPE`. By default, Atlas scales under `WORKLOAD_TYPE`. This mode allows Atlas to scale your analytics nodes in parallel to your operational nodes. When configured as `SEQUENTIAL`, Atlas scales all nodes sequentially. This mode is intended for steady-state workloads and applications performing latency-sensitive secondary reads. When configured as `NODE_TYPE`, Atlas scales your electable nodes in parallel with your read-only and analytics nodes. This mode is intended for large, dynamic workloads requiring frequent and timely cluster tier scaling. This is the fastest scaling strategy, but it might impact latency of workloads when performing extensive secondary reads. [Modify the Replica Set Scaling Mode](https://www.mongodb.com/docs/atlas/cluster-additional-settings/#configure-replica-set-scaling-mode)
 * `redact_client_log_data` - (Optional) Flag that enables or disables log redaction, see the [manual](https://www.mongodb.com/docs/manual/administration/monitoring/#log-redaction) for more information. Use this in conjunction with Encryption at Rest and TLS/SSL (Transport Encryption) to assist compliance with regulatory requirements. **Note**: Changing this setting on a cluster will trigger a rolling restart as soon as the cluster is updated.
 * `config_server_management_mode` - (Optional) Config Server Management Mode for creating or updating a sharded cluster. Valid values are `ATLAS_MANAGED` (default) and `FIXED_TO_DEDICATED`. When configured as `ATLAS_MANAGED`, Atlas may automatically switch the cluster's config server type for optimal performance and savings. When configured as `FIXED_TO_DEDICATED`, the cluster will always use a dedicated config server. To learn more, see the [Sharded Cluster Config Servers documentation](https://www.mongodb.com/docs/manual/core/sharded-cluster-config-servers/).
-- `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
-* `use_effective_fields` - (Optional) Controls how hardware specification fields are returned in the response. When set to true, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to false (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications. This opt-in feature enhances auto-scaling workflows by eliminating the need for `lifecycle.ignore_changes` blocks and preventing plan drift from Atlas-managed changes. This attribute applies to dedicated clusters, not to tenant or flex clusters. This attribute will be deprecated in provider version 2.x and removed in 3.x when the new behavior becomes default. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for more details.
+* `delete_on_create_timeout` - (Optional) Indicates whether to delete the cluster if a timeout is reached while waiting for Atlas to finish creating it. When set to `true` and a timeout occurs, the provider deletes the cluster and returns immediately without waiting for deletion to complete. When set to `false`, the provider does not delete the cluster on timeout. If you suspect a transient error when the value is `true`, wait before retrying to allow the deletion to finish. Default is `true`.
+* `use_effective_fields` - (Optional) Controls how hardware specification fields are returned in the response. When set to `true`, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to `false` (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications. This opt-in feature enhances auto-scaling workflows by eliminating the need for `lifecycle.ignore_changes` blocks and preventing plan drift from Atlas-managed changes. The spec-preserving behavior applies only while auto-scaling remains enabled. If an update toggles auto-scaling on or off, Atlas applies the requested spec values in that update. This attribute applies to dedicated clusters, not to tenant or flex clusters. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for more details.
 If your cluster has more than one `replication_specs` entry, see [Multi-shard clusters and topology changes](#multi-shard-clusters-and-topology-changes) before enabling this attribute.
 **Important:** Toggle this flag and remove any existing `lifecycle.ignore_changes` blocks for spec fields in the same apply, without combining other changes. Toggling will result in increased plan verbosity with `(known after apply)` markers, which can be safely ignored. If you previously removed `read_only_specs` or `analytics_specs` attributes from your configuration, you'll get a validation error for safety reasons to prevent accidental node loss. To resolve: add the blocks back (to keep nodes) or with `node_count = 0` (to delete nodes), apply without toggling the flag, then toggle in a separate apply.
 
@@ -871,7 +871,7 @@ replication_specs = [
 
 When auto-scaling is enabled, there are two approaches to manage your cluster configuration with Terraform:
 
-**Option 1 (Recommended):** Use `use_effective_fields = true` to enable the new effective fields behavior. With this option, Atlas-managed auto-scaling changes won't cause plan drift, eliminating the need for `lifecycle` ignore customizations. When either compute or disk auto-scaling is enabled (or both), all three fields (`instance_size`, `disk_size_gb`, and `disk_iops`) are ignored in the Terraform configuration, as Atlas may adjust any of these resources to maintain optimal cluster performance. You can read the actual scaled values using the `effective_electable_specs` and `effective_read_only_specs` attributes in the `mongodbatlas_advanced_cluster` data source. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for details.
+**Option 1 (Recommended):** Use `use_effective_fields = true` to enable the new effective fields behavior. With this option, Atlas-managed auto-scaling changes do not cause plan drift, eliminating the need for `lifecycle.ignore_changes` customizations. While auto-scaling remains enabled (compute or disk, or both), all three fields (`instance_size`, `disk_size_gb`, and `disk_iops`) are ignored in the Terraform configuration, as Atlas may adjust any of these resources to maintain optimal cluster performance. You can read the actual scaled values using the `effective_electable_specs` and `effective_read_only_specs` attributes in the `mongodbatlas_advanced_cluster` data source. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for details.
 
 **Important:** If you're enabling this flag on an existing cluster that has `lifecycle.ignore_changes` blocks for spec fields, enable the flag and remove the blocks in the same apply. The blocks are no longer needed and may interfere with the new behavior. If you previously removed `read_only_specs` or `analytics_specs` attributes, you may encounter a validation error. This is a safety check to prevent accidental node loss. To resolve: add the blocks back (to keep nodes) or with `node_count = 0` (to delete nodes), apply without toggling the flag, then toggle in a separate apply.
 
@@ -1012,7 +1012,9 @@ When auto-scaling is enabled on a cluster, Atlas automatically adjusts instance 
 
 ### How use_effective_fields works
 
-The `use_effective_fields` attribute changes how the provider handles specification attributes:
+The `use_effective_fields` attribute changes how the provider handles specification attributes. When auto-scaling is enabled, Atlas adjusts the cluster's compute and storage resources within the configured bounds (`compute_min_instance_size` through `compute_max_instance_size`, disk auto-scaling limits).
+
+**When does Atlas apply requested spec values?** Atlas preserves the running spec values and ignores configured `instance_size`, `disk_size_gb`, and `disk_iops` only when auto-scaling is enabled both before and after an update. If an update toggles auto-scaling (enabling or disabling compute or disk auto-scaling), Atlas applies the requested spec values in that update, as if `use_effective_fields` were not set. This is why the manual update workflow below works: disabling auto-scaling in the same apply allows the requested spec values to take effect.
 
 **When `use_effective_fields = false` (default - current behavior):**
 - Spec attributes (`electable_specs`, `analytics_specs`, `read_only_specs`) behavior:
@@ -1035,7 +1037,7 @@ See the [Example using effective fields with auto-scaling](#example-using-effect
 
 ### Manually Updating Specs with use_effective_fields
 
-When `use_effective_fields = true` and auto-scaling is enabled, you can update `instance_size`, `disk_size_gb`, or `disk_iops` in your configuration at any time without validation errors. However, Atlas echoes these values back in state while continuing to use auto-scaled values for actual cluster operations. To have your configured values take effect, temporarily disable auto-scaling:
+When `use_effective_fields = true` and auto-scaling remains enabled, you can update `instance_size`, `disk_size_gb`, or `disk_iops` in your configuration at any time without validation errors. However, Atlas preserves the auto-scaled values and the configured values do not take effect. An update that disables auto-scaling is not subject to this preservation, so to have your configured values take effect, temporarily disable auto-scaling:
 
 1. Set `compute_enabled = false` and `disk_gb_enabled = false` in the [`auto_scaling`](#auto_scaling) block, update `instance_size`, `disk_size_gb`, or `disk_iops` to your desired values, and apply.
 2. Re-enable auto-scaling by setting `compute_enabled` and/or `disk_gb_enabled` back to `true` and apply.
@@ -1051,7 +1053,7 @@ Changing the compute auto-scaling range (`compute_min_instance_size` or `compute
 - Raising `compute_min_instance_size` above the effective size.
 - Lowering `compute_max_instance_size` below the effective size.
 
-Atlas validates the new range against the current effective instance size, so attempting either in a single apply fails with a validation error from Atlas. Updating `instance_size` in the same apply as changing the range does not avoid the error, because the updated `instance_size` value is not applied while auto-scaling is enabled with `use_effective_fields = true`.
+Atlas validates the new range against the current effective instance size, so attempting either in a single apply fails with a validation error from Atlas. Updating `instance_size` in the same apply as changing the range does not avoid the error, because the updated `instance_size` value is not applied while auto-scaling remains enabled, even with `use_effective_fields = true`.
 
 To adjust the range when the new range would exclude the current effective instance size, move the effective instance size into the new range before changing the bounds:
 
@@ -1064,7 +1066,7 @@ The same process applies to the [`analytics_auto_scaling`](#analytics_auto_scali
 
 ### Terraform Modules
 
-`use_effective_fields` is particularly valuable for reusable Terraform modules. Without it, separate module implementations are required (one with lifecycle blocks for auto-scaling, one without). With `use_effective_fields`, a single module handles both scenarios without lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.17.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
+`use_effective_fields` is particularly valuable for reusable Terraform modules. Without it, separate module implementations are required (one with lifecycle blocks for auto-scaling, one without). With `use_effective_fields`, a single module handles both scenarios without lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
 
 ### Migration path and version 3.x
 

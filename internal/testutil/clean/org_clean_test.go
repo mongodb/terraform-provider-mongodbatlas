@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312024/admin"
+	"go.mongodb.org/atlas-sdk/v20250312025/admin"
 
 	"github.com/stretchr/testify/require"
 
@@ -161,6 +161,66 @@ func TestCleanProjectAndClusters(t *testing.T) {
 	})
 }
 
+// Using a test to simplify logging; kept separate from TestCleanProjectAndClusters so org users are cleaned even when project cleanup fails.
+func TestCleanOrgUsers(t *testing.T) {
+	cleanOrg, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_CLEAN_ORG"))
+	if !cleanOrg {
+		t.Skip("skipping test; set MONGODB_ATLAS_CLEAN_ORG=true to run")
+	}
+	dryRun, _ := strconv.ParseBool(os.Getenv("DRY_RUN"))
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	require.NotEmpty(t, orgID, "MONGODB_ATLAS_ORG_ID must be set")
+	prefixes := userEmailPrefixes()
+	t.Logf("cleaning users with email prefixes %v (DRY_RUN=%t)", prefixes, dryRun)
+	removedUsers, err := removeTestUsers(t.Context(), t, dryRun, acc.ConnV2(), orgID, prefixes)
+	if errors.Is(err, clean.ErrUnauthorized) {
+		t.Skipf("skipping test; unauthorized accessing org users (transient, will retry next run): %s", err)
+	}
+	require.NoError(t, err)
+	t.Logf("SUMMARY\nremoved_users=%d\nDRY_RUN=%t", removedUsers, dryRun)
+}
+
+// defaultUserEmailPrefixes mirrors the emails built by acc.RandomEmail (`acc.prefixName` + "-").
+var defaultUserEmailPrefixes = []string{"test-acc-tf-"}
+
+// removeTestUsers removes every org member whose email starts with one of the given prefixes.
+// In dry-run mode it only counts the users it would remove.
+func removeTestUsers(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, orgID string, prefixes []string) (int, error) {
+	t.Helper()
+	users, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.OrgUserResponse], *http.Response, error) {
+		orgUsers, resp, err := client.MongoDBCloudUsersAPI.ListOrgUsers(ctx, orgID).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
+		if err != nil {
+			return nil, resp, clean.SkipUnauthorizedErr(resp, err)
+		}
+		return orgUsers, resp, nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	removed := 0
+	for i := range users {
+		user := users[i]
+		if email := user.GetUsername(); !hasAnyPrefix(email, prefixes) {
+			continue
+		}
+		if dryRun {
+			t.Logf("would remove test user %s", user.GetUsername())
+			removed++
+			continue
+		}
+		resp, err := client.MongoDBCloudUsersAPI.RemoveOrgUser(ctx, orgID, user.GetId()).Execute()
+		if err != nil {
+			if admin.IsErrorCode(err, "RESOURCE_NOT_FOUND") {
+				continue // already removed by a concurrent run
+			}
+			return removed, clean.SkipUnauthorizedErr(resp, err)
+		}
+		t.Logf("removed test user %s", user.GetUsername())
+		removed++
+	}
+	return removed, nil
+}
+
 func readAllProjects(ctx context.Context, t *testing.T, client *admin.APIClient, orgID string) []admin.Group {
 	t.Helper()
 	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {
@@ -218,30 +278,41 @@ func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, clie
 }
 
 func projectPrefixes() []string {
-	prefixesStr := os.Getenv("MONGODB_ATLAS_CLEAN_PROJECT_PREFIXES")
-	if prefixesStr != "" {
-		prefixes := []string{}
-		for prefix := range strings.SplitSeq(prefixesStr, ",") {
-			if trimmed := strings.TrimSpace(prefix); trimmed != "" {
-				prefixes = append(prefixes, trimmed)
-			}
-		}
-		if len(prefixes) > 0 {
-			return prefixes
-		}
+	if prefixes := envPrefixes("MONGODB_ATLAS_CLEAN_PROJECT_PREFIXES"); len(prefixes) > 0 {
+		return prefixes
 	}
 	return defaultProjectPrefixes
 }
 
-func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bool, prefixes []string) string {
-	matchesPrefix := false
-	for _, prefix := range prefixes {
-		if strings.HasPrefix(p.GetName(), prefix) {
-			matchesPrefix = true
-			break
+func userEmailPrefixes() []string {
+	if prefixes := envPrefixes("MONGODB_ATLAS_CLEAN_USER_EMAIL_PREFIXES"); len(prefixes) > 0 {
+		return prefixes
+	}
+	return defaultUserEmailPrefixes
+}
+
+// envPrefixes reads a comma-separated prefix list, dropping blanks. Returns nil when unset or empty.
+func envPrefixes(envVar string) []string {
+	prefixes := []string{}
+	for prefix := range strings.SplitSeq(os.Getenv(envVar), ",") {
+		if trimmed := strings.TrimSpace(prefix); trimmed != "" {
+			prefixes = append(prefixes, trimmed)
 		}
 	}
-	if !matchesPrefix {
+	return prefixes
+}
+
+func hasAnyPrefix(value string, prefixes []string) bool {
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(value, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
+func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bool, prefixes []string) string {
+	if !hasAnyPrefix(p.GetName(), prefixes) {
 		return "name does not match cleanup prefixes"
 	}
 	if p.GetCreated().After(skipProjectsAfter) {
