@@ -11894,8 +11894,6 @@ components:
                             - Backup
                             - Data Transfer
                             - BI Connector
-                            - DSC Compute
-                            - DSC Storage
                             - Premium Features
                             - Atlas Data Federation
                             - Atlas Stream Processing
@@ -43738,6 +43736,7 @@ components:
                             - AI Model APIs
                             - Automated Embedding
                             - Native Reranking
+                            - Agent Engine
                             - Flex Consulting
                             - Support
                             - Credits
@@ -45358,7 +45357,7 @@ info:
     termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
     title: MongoDB Atlas Administration API
     version: "2.0"
-    x-xgen-sha: d3a47c60607ccc05e82cd7055c0c84fe10e35f35
+    x-xgen-sha: 9985ea6b409de8e18e59c60d556137813e699fe8
 openapi: 3.0.1
 paths:
     /api/atlas/v2:
