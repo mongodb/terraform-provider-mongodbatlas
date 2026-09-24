@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+NOTES:
+
+* resource/mongodbatlas_advanced_cluster: Clarifies that new MongoDB major versions are supported as soon as Atlas enables them; updates example `mongo_db_major_version` values to `9.0` ([#4753](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4753))
+
 FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_cluster_adaptive_settings` ([#4620](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4620))
