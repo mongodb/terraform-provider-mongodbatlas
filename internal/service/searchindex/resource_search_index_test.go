@@ -437,7 +437,6 @@ func configBasic(projectID, clusterName, indexName, indexType, storedSource stri
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
-			%s
 			cluster_name     = %[1]q
 			project_id       = %[2]q
 			name             = %[3]q
@@ -446,6 +445,7 @@ func configBasic(projectID, clusterName, indexName, indexType, storedSource stri
 			search_analyzer  = %[6]q
 			mappings_dynamic = "true"
 			%[7]s
+			%[8]s
 		}
 
 		data "mongodbatlas_search_index" "data_index" {
@@ -453,7 +453,7 @@ func configBasic(projectID, clusterName, indexName, indexType, storedSource stri
 			project_id       = mongodbatlas_search_index.test.project_id
 			index_id         = mongodbatlas_search_index.test.index_id
 		}
-	`, testTimeoutsBlock, clusterName, projectID, indexName, database, collection, searchAnalyzer, extra)
+	`, clusterName, projectID, indexName, database, collection, searchAnalyzer, extra, testTimeoutsBlock)
 }
 
 func checkBasic(projectID, clusterName, indexName, indexType, storedSource string) resource.TestCheckFunc {
@@ -474,7 +474,6 @@ func checkBasic(projectID, clusterName, indexName, indexType, storedSource strin
 func configWithMapping(projectID, indexName, clusterName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
-			%s
 			cluster_name     = %[1]q
 			project_id       = %[2]q
 			name             = %[3]q
@@ -484,6 +483,7 @@ func configWithMapping(projectID, indexName, clusterName string) string {
 			mappings_dynamic = false
 			%[7]s
 			%[8]s
+			%[9]s
 		}
 
 		data "mongodbatlas_search_index" "data_index" {
@@ -491,7 +491,7 @@ func configWithMapping(projectID, indexName, clusterName string) string {
 			project_id       = mongodbatlas_search_index.test.project_id
 			index_id         = mongodbatlas_search_index.test.index_id
 		}
-	`, testTimeoutsBlock, clusterName, projectID, indexName, database, collection, searchAnalyzer, analyzersTF, mappingsFieldsTF)
+	`, clusterName, projectID, indexName, database, collection, searchAnalyzer, analyzersTF, mappingsFieldsTF, testTimeoutsBlock)
 }
 
 func checkWithMapping(projectID, indexName, clusterName string) resource.TestCheckFunc {
@@ -518,7 +518,6 @@ func configWithSynonyms(projectID, indexName, clusterName string, has bool) stri
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
-			%s
 			cluster_name     = %[1]q
 			project_id       = %[2]q
 			name             = %[3]q
@@ -527,6 +526,7 @@ func configWithSynonyms(projectID, indexName, clusterName string, has bool) stri
 			search_analyzer  = %[6]q
 			mappings_dynamic = true
 			%[7]s
+			%[8]s
 		}
 
 		data "mongodbatlas_search_index" "data_index" {
@@ -534,7 +534,7 @@ func configWithSynonyms(projectID, indexName, clusterName string, has bool) stri
 			project_id       = mongodbatlas_search_index.test.project_id
 			index_id         = mongodbatlas_search_index.test.index_id
 		}
-	`, testTimeoutsBlock, clusterName, projectID, indexName, database, collection, searchAnalyzer, synonymsStr)
+	`, clusterName, projectID, indexName, database, collection, searchAnalyzer, synonymsStr, testTimeoutsBlock)
 }
 
 func checkWithSynonyms(projectID, indexName, clusterName string, has bool) resource.TestCheckFunc {
@@ -557,7 +557,6 @@ func checkWithSynonyms(projectID, indexName, clusterName string, has bool) resou
 func configAdditional(projectID, indexName, clusterName, additional string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
-			%s
 			cluster_name     = %[1]q
 			project_id       = %[2]q
 			name             = %[3]q
@@ -566,6 +565,7 @@ func configAdditional(projectID, indexName, clusterName, additional string) stri
 			search_analyzer  = %[6]q
 			mappings_dynamic = true
 			%[7]s
+			%[8]s
 		}
 
 		data "mongodbatlas_search_index" "data_index" {
@@ -573,7 +573,7 @@ func configAdditional(projectID, indexName, clusterName, additional string) stri
 			project_id       = mongodbatlas_search_index.test.project_id
 			index_id = mongodbatlas_search_index.test.index_id
 		}
-	`, testTimeoutsBlock, clusterName, projectID, indexName, database, collection, searchAnalyzer, additional)
+	`, clusterName, projectID, indexName, database, collection, searchAnalyzer, additional, testTimeoutsBlock)
 }
 
 func checkAdditionalAnalyzers(projectID, indexName, clusterName string, has bool) resource.TestCheckFunc {
@@ -599,7 +599,6 @@ func checkAdditionalMappingsFields(projectID, indexName, clusterName string, has
 func configVector(projectID, indexName, clusterName, fields string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
-			%s
 			cluster_name     = %[1]q
 			project_id       = %[2]q
 			name             = %[3]q
@@ -609,8 +608,9 @@ func configVector(projectID, indexName, clusterName, fields string) string {
 			type = "vectorSearch"
 
 			fields = <<-EOF
-	    %[6]s
+	    	%[6]s
 			EOF
+			%[7]s
 		}
 
 		data "mongodbatlas_search_index" "data_index" {
@@ -618,7 +618,7 @@ func configVector(projectID, indexName, clusterName, fields string) string {
 			project_id       = mongodbatlas_search_index.test.project_id
 			index_id         = mongodbatlas_search_index.test.index_id
 		}
-	`, testTimeoutsBlock, clusterName, projectID, indexName, database, collection, fields)
+	`, clusterName, projectID, indexName, database, collection, fields, testTimeoutsBlock)
 }
 
 func configVectorSearchWithNumPartitions(projectID, indexName, clusterName string, numPartitions *int) string {
@@ -641,28 +641,28 @@ func configVectorSearchWithNumPartitions(projectID, indexName, clusterName strin
 		}
 
 		resource "mongodbatlas_search_index" "test" {
-			%s
 			cluster_name     = %[1]q
 			project_id       = %[2]q
 			name             = %[3]q
 			database         = %[4]q
 			collection_name  = %[5]q
-		
+
 			type = "vectorSearch"
 			%[6]s
 			fields = <<-EOF
-	    %[7]s
+			%[7]s
 			EOF
-		
-		depends_on = [mongodbatlas_search_deployment.test]
+
+			depends_on = [mongodbatlas_search_deployment.test]
+			%[8]s
 		}
-	
+
 		data "mongodbatlas_search_index" "data_index" {
 			cluster_name     = mongodbatlas_search_index.test.cluster_name
 			project_id       = mongodbatlas_search_index.test.project_id
 			index_id         = mongodbatlas_search_index.test.index_id
 		}
-	`, testTimeoutsBlock, clusterName, projectID, indexName, database, collection, numPartitionsLine, fieldsJSON)
+	`, clusterName, projectID, indexName, database, collection, numPartitionsLine, fieldsJSON, testTimeoutsBlock)
 }
 func configSearchWithNumPartitions(projectID, indexName, clusterName string, numPartitions *int) string {
 	var numPartitionsLine string
@@ -684,7 +684,6 @@ func configSearchWithNumPartitions(projectID, indexName, clusterName string, num
 		}
 
 		resource "mongodbatlas_search_index" "test" {
-			%s
 			cluster_name     = %[1]q
 			project_id       = %[2]q
 			name             = %[3]q
@@ -696,7 +695,8 @@ func configSearchWithNumPartitions(projectID, indexName, clusterName string, num
 			type             = "search"
 			%[6]s
 
-		depends_on = [mongodbatlas_search_deployment.test]	
+			depends_on = [mongodbatlas_search_deployment.test]
+			%[7]s
 		}
 
 		data "mongodbatlas_search_index" "data_index" {
@@ -704,7 +704,7 @@ func configSearchWithNumPartitions(projectID, indexName, clusterName string, num
 			project_id       = mongodbatlas_search_index.test.project_id
 			index_id         = mongodbatlas_search_index.test.index_id
 		}
-	`, testTimeoutsBlock, clusterName, projectID, indexName, database, collection, numPartitionsLine)
+	`, clusterName, projectID, indexName, database, collection, numPartitionsLine, testTimeoutsBlock)
 }
 func checkVectorSearchWithNumPartitions(projectID, indexName, clusterName string, numPartitions *int) resource.TestCheckFunc {
 	indexType := "vectorSearch"
@@ -911,7 +911,6 @@ const (
 func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON, typeSetsJSON string) string {
 	return fmt.Sprintf(`
         resource "mongodbatlas_search_index" "test" {
-            %s
             cluster_name     = %[1]q
             project_id       = %[2]q
             name             = %[3]q
@@ -930,6 +929,7 @@ func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON, typeSets
               %[7]s
               EOF
             }
+            %[8]s
         }
 
         data "mongodbatlas_search_index" "data_index" {
@@ -937,13 +937,12 @@ func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON, typeSets
             project_id       = mongodbatlas_search_index.test.project_id
             index_id         = mongodbatlas_search_index.test.index_id
         }
-    `, testTimeoutsBlock, clusterName, projectID, indexName, database, collection, dynamicJSON, typeSetsJSON)
+    `, clusterName, projectID, indexName, database, collection, dynamicJSON, typeSetsJSON, testTimeoutsBlock)
 }
 
 func configWithTypeSetsOmitted(projectID, clusterName, indexName, dynamicJSON string) string {
 	return fmt.Sprintf(`
         resource "mongodbatlas_search_index" "test" {
-            %s
             cluster_name     = %[1]q
             project_id       = %[2]q
             name             = %[3]q
@@ -955,6 +954,7 @@ func configWithTypeSetsOmitted(projectID, clusterName, indexName, dynamicJSON st
             mappings_dynamic_config = <<-EOF
             %[6]s
             EOF
+            %[7]s
         }
 
         data "mongodbatlas_search_index" "data_index" {
@@ -962,5 +962,5 @@ func configWithTypeSetsOmitted(projectID, clusterName, indexName, dynamicJSON st
             project_id       = mongodbatlas_search_index.test.project_id
             index_id         = mongodbatlas_search_index.test.index_id
         }
-    `, testTimeoutsBlock, clusterName, projectID, indexName, database, collection, dynamicJSON)
+    `, clusterName, projectID, indexName, database, collection, dynamicJSON, testTimeoutsBlock)
 }
