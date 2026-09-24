@@ -34,6 +34,8 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 		ConfigServerType:                 types.StringValue(conversion.SafeValue(input.ConfigServerType)),
 		ConnectionStrings:                connectionStrings,
 		CreateDate:                       types.StringValue(conversion.SafeValue(conversion.TimePtrToStringPtr(input.CreateDate))),
+		DatabaseEdition:                  types.StringPointerValue(input.DatabaseEdition),
+		EffectiveDatabaseEdition:         types.StringPointerValue(input.EffectiveDatabaseEdition),
 		EncryptionAtRestProvider:         types.StringValue(conversion.SafeValue(input.EncryptionAtRestProvider)),
 		GlobalClusterSelfManagedSharding: types.BoolValue(conversion.SafeValue(input.GlobalClusterSelfManagedSharding)),
 		ProjectID:                        types.StringValue(conversion.SafeValue(input.GroupId)),
@@ -231,7 +233,7 @@ func newRegionConfigModel(ctx context.Context, item *admin.CloudRegionConfig2024
 	return TFRegionConfigsModel{
 		AnalyticsAutoScaling: newAutoScalingObjType(ctx, item.AnalyticsAutoScaling, diags),
 		AnalyticsSpecs:       newSpecsObjType(ctx, item.AnalyticsSpecs, diags),
-		AutoScaling:          newAutoScalingObjType(ctx, item.AutoScaling, diags),
+		AutoScaling:          newAutoScalingWithStorageConfigObjType(ctx, item.AutoScaling, diags),
 		BackingProviderName:  types.StringPointerValue(item.BackingProviderName),
 		ElectableSpecs:       newSpecsFromHwObjType(ctx, item.ElectableSpecs, diags),
 		Priority:             types.Int64PointerValue(conversion.IntPtrToInt64Ptr(item.Priority)),
@@ -378,4 +380,22 @@ func newAutoScalingObjType(ctx context.Context, input *admin.AdvancedAutoScaling
 	objType, diagsLocal := types.ObjectValueFrom(ctx, autoScalingObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
 	return objType
+}
+
+func newAutoScalingWithStorageConfigObjType(ctx context.Context, input *admin.AdvancedAutoScalingSettings, diags *diag.Diagnostics) types.Object {
+	if input == nil {
+		return types.ObjectNull(autoScalingWithStorageConfigObjType.AttrTypes)
+	}
+	attributes := newAutoScalingObjType(ctx, input, diags).Attributes()
+	attributes["storage_config"] = types.ObjectNull(storageConfigObjType.AttrTypes)
+	if input.StorageConfig != nil && input.StorageConfig.HasShardSizeLimitGB() {
+		storageConfig, localDiags := types.ObjectValueFrom(ctx, storageConfigObjType.AttrTypes, TFStorageConfigModel{
+			ShardSizeLimitGB: types.Int64Value(int64(input.StorageConfig.GetShardSizeLimitGB())),
+		})
+		diags.Append(localDiags...)
+		attributes["storage_config"] = storageConfig
+	}
+	result, diagsLocal := types.ObjectValue(autoScalingWithStorageConfigObjType.AttrTypes, attributes)
+	diags.Append(diagsLocal...)
+	return result
 }

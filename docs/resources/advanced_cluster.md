@@ -4,7 +4,9 @@ subcategory: "Clusters"
 
 # Resource: mongodbatlas_advanced_cluster
 
-`mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters.
+`mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters, including clusters that use the Atlas Infinite Database.
+
+To create an Atlas Infinite Database cluster, set the `database_edition` attribute to `INFINITE`. For more information, including supported features and limitations, see the [Atlas Infinite Database documentation](https://www.mongodb.com/docs/atlas/infinite/atlas-infinite-landing/). The `INFINITE` edition is currently only supported for `REPLICASET` clusters: the provider rejects the configuration if you combine `INFINITE` with the `SHARDED` or `GEOSHARDED` cluster type.
 
 We recommend all MongoDB Atlas Terraform users start with the [`Official MongoDB Atlas Cluster Module`](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/cluster/mongodbatlas/latest). This module simplifies cluster deployment and implements MongoDB Atlas best practices by default.
 
@@ -42,6 +44,39 @@ resource "mongodbatlas_advanced_cluster" "this" {
           provider_name = "AWS"
           priority      = 7
           region_name   = "US_EAST_1"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Example Atlas Infinite Database cluster with a per-shard data-size limit
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "infinite" {
+  project_id       = "PROJECT ID"
+  name             = "NAME OF CLUSTER"
+  cluster_type     = "REPLICASET"
+  database_edition = "INFINITE"
+
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 2
+          }
+          auto_scaling = {
+            compute_enabled = false
+            storage_config = {
+              shard_size_limit_gb = 1024 # Required when storage_config is present. Omit storage_config to use the Atlas default limit.
+            }
+          }
         }
       ]
     }
@@ -553,6 +588,7 @@ Refer to the following for full privatelink endpoint connection string examples:
       - `SHARDED`	Sharded cluster
       - `GEOSHARDED` Global Cluster
 
+* `database_edition` - (Optional) Database edition for the cluster. Valid values are `CORE` and `INFINITE`. If you omit this attribute, MongoDB Cloud selects the default database edition. Only `REPLICASET` clusters currently support the `INFINITE` edition: the provider rejects the configuration if you combine `INFINITE` with the `SHARDED` or `GEOSHARDED` cluster type.
 * `encryption_at_rest_provider` - (Optional) Possible values are AWS, GCP, AZURE or NONE.  Only needed if you desire to manage the keys, see [Encryption at Rest using Customer Key Management](https://www.mongodb.com/docs/atlas/security-kms-encryption/) for complete documentation.  You must configure encryption at rest for the Atlas project before enabling it on any cluster in the project. For Documentation, see [AWS](https://www.mongodb.com/docs/atlas/security-aws-kms/), [GCP](https://www.mongodb.com/docs/atlas/security-kms-encryption/) and [Azure](https://www.mongodb.com/docs/atlas/security-azure-kms/#std-label-security-azure-kms). Requirements are if `replication_specs[#].region_configs[#].<type>Specs.instance_size` is M10 or greater and `backup_enabled` is false or omitted.   
 * `tags` - (Optional) Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
 * `labels` - (Optional) Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
@@ -864,6 +900,8 @@ replication_specs = [
 * `compute_scale_down_enabled` - (Optional) Flag that indicates whether the instance size may scale down. Atlas requires this parameter if `replication_specs[#].region_configs[#].auto_scaling.compute_enabled` : true. If you enable this option, specify a value for `replication_specs[#].region_configs[#].auto_scaling.compute_min_instance_size`.
 * `compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale (such as M10). Atlas requires this parameter if `replication_specs[#].region_configs[#].auto_scaling.compute_scale_down_enabled` is true.
 * `compute_max_instance_size` - (Optional) Maximum instance size to which your cluster can automatically scale (such as M40). Atlas requires this parameter if `replication_specs[#].region_configs[#].auto_scaling.compute_enabled` is true.
+* `storage_config` - (Optional) Settings that determine the per-shard data-size limit for an Atlas INFINITE cluster.
+  * `shard_size_limit_gb` - (Required) Maximum data size that MongoDB Cloud allows each shard to reach, expressed in gigabytes. Set the same value for every region configuration. Omit `storage_config` to use the Atlas default limit.
 
   -> **NOTE:** MongoDB recommends enabling both [cluster tier (compute) and storage auto-scaling](https://www.mongodb.com/docs/atlas/cluster-autoscaling/#cluster-tier-and-cluster-storage-might-scale-in-parallel) together for optimal performance and cost efficiency. When only one type of auto-scaling is enabled, Atlas may still adjust both compute and storage resources to maintain optimal cluster performance. See the [Atlas Auto-Scaling documentation](https://www.mongodb.com/docs/atlas/cluster-autoscaling/) and [Scalability Best Practices](https://www.mongodb.com/docs/atlas/architecture/current/scalability/#all-deployment-paradigm-recommendations) for more information.
 
@@ -913,6 +951,7 @@ lifecycle {
 In addition to all arguments above, the following attributes are exported:
 
 * `cluster_id` - The cluster ID.
+* `effective_database_edition` - Database edition that the cluster currently uses. Valid values are `CORE` and `INFINITE`.
 * `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
 * `connection_strings` - Set of connection strings that your applications use to connect to this cluster. More information in [Connection-strings](https://www.mongodb.com/docs/manual/reference/connection-string/). Use the parameters in this object to connect your applications to this cluster. To learn more about the formats of connection strings, see [Connection String Options](https://www.mongodb.com/docs/atlas/reference/faq/connection-changes/). NOTE: Atlas returns the contents of this object after the cluster is operational, not while it builds the cluster.
 

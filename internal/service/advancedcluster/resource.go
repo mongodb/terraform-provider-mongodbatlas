@@ -26,16 +26,17 @@ var _ resource.ResourceWithUpgradeState = &rs{}
 var _ resource.ResourceWithModifyPlan = &rs{}
 
 const (
-	resourceName             = "advanced_cluster"
-	errorPatchPayload        = "error creating patch payload"
-	errorDetailDefault       = "cluster name: %s, API error details: %s"
-	errorReadResource        = "error reading advanced cluster"
-	errorAdvancedConfRead    = "error reading Advanced Configuration"
-	errorList                = "error reading advanced cluster list"
-	errorListDetail          = "project ID %s. Error %s"
-	errorResolveContainerIDs = "error resolving container IDs"
-	errorRegionPriorities    = "priority values in region_configs must be in descending order"
-
+	resourceName                         = "advanced_cluster"
+	errorPatchPayload                    = "error creating patch payload"
+	errorDetailDefault                   = "cluster name: %s, API error details: %s"
+	errorReadResource                    = "error reading advanced cluster"
+	errorAdvancedConfRead                = "error reading Advanced Configuration"
+	errorList                            = "error reading advanced cluster list"
+	errorListDetail                      = "project ID %s. Error %s"
+	errorResolveContainerIDs             = "error resolving container IDs"
+	errorRegionPriorities                = "priority values in region_configs must be in descending order"
+	errorInvalidAttributeConfiguration   = "Invalid Attribute Configuration"
+	errorInfiniteShardedEdition          = "Atlas does not support the INFINITE database edition for SHARDED or GEOSHARDED cluster types yet. Use a REPLICASET cluster type or a different database_edition."
 	ErrorCodeClusterNotFound             = "CLUSTER_NOT_FOUND"
 	operationUpdate                      = "update"
 	operationCreate                      = "create"
@@ -115,6 +116,12 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	if diags.HasError() {
+		return
+	}
+	// Gate one case the plan validator cannot see: values that only resolve at apply time, e.g.
+	// database_edition computed from another resource. Update gates the other case.
+	if isDatabaseEditionInfiniteSharded(plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), "") {
+		diags.AddError(errorInvalidAttributeConfiguration, errorInfiniteShardedEdition)
 		return
 	}
 	latestReq := newAtlasReq(ctx, &plan, diags)
@@ -234,9 +241,25 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
+	// Gate the other case the plan validator cannot see: database_edition omitted from config on an existing
+	// INFINITE cluster, e.g. switching an INFINITE replica set to sharded after dropping the attribute.
+	if isDatabaseEditionInfiniteSharded(plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), state.EffectiveDatabaseEdition.ValueString()) {
+		diags.AddError(errorInvalidAttributeConfiguration, errorInfiniteShardedEdition)
+		return
+	}
 	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
 	if diags.HasError() {
 		return
+	}
+	diff := findClusterDiff(ctx, &state, &plan, diags)
+	if diags.HasError() {
+		return
+	}
+	// Omit invalid fields that INFINITE rejects (e.g., empty auto-scaling children, analyticsSpecs
+	// without instanceSize). effective_database_edition is always populated by Read, so no extra GET
+	// is needed even after an import that leaves database_edition unset.
+	if diff.clusterPatchOnlyReq != nil && state.EffectiveDatabaseEdition.ValueString() == databaseEditionInfinite {
+		omitInvalidInfiniteConfig(diff.clusterPatchOnlyReq.GetReplicationSpecs())
 	}
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
@@ -245,32 +268,26 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	{
-		diff := findClusterDiff(ctx, &state, &plan, diags)
-		if diags.HasError() {
-			return
+	switch {
+	case diff.isUpgradeTenantToFlex:
+		if flexOut := handleFlexUpgrade(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
+			diags.Append(resp.State.Set(ctx, flexOut)...)
 		}
-		switch {
-		case diff.isUpgradeTenantToFlex:
-			if flexOut := handleFlexUpgrade(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
-				diags.Append(resp.State.Set(ctx, flexOut)...)
-			}
-			return
-		case diff.isUpdateOfFlex:
-			if flexOut := handleFlexUpdate(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
-				diags.Append(resp.State.Set(ctx, flexOut)...)
-			}
-			return
-		case diff.upgradeFlexToDedicatedReq != nil:
-			clusterResp = upgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
-		case diff.upgradeTenantReq != nil:
-			clusterResp = upgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
-		case diff.clusterPatchOnlyReq != nil:
-			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
+		return
+	case diff.isUpdateOfFlex:
+		if flexOut := handleFlexUpdate(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
+			diags.Append(resp.State.Set(ctx, flexOut)...)
 		}
-		if diags.HasError() {
-			return
-		}
+		return
+	case diff.upgradeFlexToDedicatedReq != nil:
+		clusterResp = upgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
+	case diff.upgradeTenantReq != nil:
+		clusterResp = upgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
+	case diff.clusterPatchOnlyReq != nil:
+		clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
+	}
+	if diags.HasError() {
+		return
 	}
 	// adaptive_capacity removed from config: needs special handling, see clearAdaptiveCapacity.
 	if !plan.AdaptiveCapacity.Equal(state.AdaptiveCapacity) && plan.AdaptiveCapacity.IsNull() {
@@ -531,10 +548,24 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknown and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
+	// SetStorageConfigNil marks the temporary SDK request before diffing; it does not change the Terraform plan.
+	// Explicit null makes storage removal detectable by PatchPayload.
+	// Selecting replicationSpecs still includes its complete planned value in the PATCH.
+	// The documented omission-clears behavior applies specifically to storageConfig.
+	if setStorageConfigNil(stateReq.ReplicationSpecs, planReq.ReplicationSpecs) {
+		// Cleanup remains necessary because conversion can produce invalid request objects.
+		omitInvalidInfiniteConfig(planReq.GetReplicationSpecs())
+	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
 		diags.AddError(errorPatchPayload, err.Error())
 		return clusterDiff{}
+	}
+	if stateReq.DatabaseEdition != nil && plan.DatabaseEdition.IsNull() {
+		if patchReq == nil {
+			patchReq = new(admin.ClusterDescription20240805)
+		}
+		patchReq.SetDatabaseEditionNil()
 	}
 	if update.IsZeroValues(patchReq) { // No changes to cluster
 		return clusterDiff{}
