@@ -34,16 +34,22 @@ func TestErrIfCloudBackupOrPITDisabled_okWhenBothOn(t *testing.T) {
 }
 
 func TestErrIfSampleDatasetLoadFailed_failedState(t *testing.T) {
-	err := acc.ErrIfSampleDatasetLoadFailedForTest("p1", "c1", "job-123", "FAILED")
+	err := acc.ErrIfSampleDatasetLoadFailedForTest("p1", "c1", "job-123", "FAILED", "")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "job-123")
 	assert.Contains(t, err.Error(), "c1")
 }
 
+func TestErrIfSampleDatasetLoadFailed_failedStateReportsReason(t *testing.T) {
+	err := acc.ErrIfSampleDatasetLoadFailedForTest("p1", "c1", "job-123", "FAILED", "Failed to mongorestore")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Failed to mongorestore")
+}
+
 func TestErrIfSampleDatasetLoadFailed_workingOrCompleted(t *testing.T) {
 	for _, state := range []string{"WORKING", "COMPLETED"} {
 		t.Run(state, func(t *testing.T) {
-			require.NoError(t, acc.ErrIfSampleDatasetLoadFailedForTest("p1", "c1", "job-123", state))
+			require.NoError(t, acc.ErrIfSampleDatasetLoadFailedForTest("p1", "c1", "job-123", state, ""))
 		})
 	}
 }

@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-version v1.9.0
 	github.com/hashicorp/hc-install v0.9.5 // indirect
-	github.com/hashicorp/hcl/v2 v2.24.0
+	github.com/hashicorp/hcl/v2 v2.25.0
 	github.com/hashicorp/terraform-exec v0.25.3
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.7.0
@@ -21,7 +21,7 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
 	github.com/jarcoal/httpmock v1.4.2
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20260907084341-27d27fe28d60
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20260923084102-144135929a32
 	github.com/pb33f/libopenapi v0.38.7
 	github.com/sebdah/goldie/v2 v2.8.0
 	github.com/spf13/cast v1.10.0
@@ -37,14 +37,14 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.47.0
-	github.com/aws/aws-sdk-go-v2/config v1.33.4
-	github.com/aws/aws-sdk-go-v2/credentials v1.20.4
-	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.49.0
-	github.com/aws/aws-sdk-go-v2/service/sts v1.50.0
+	github.com/aws/aws-sdk-go-v2/config v1.33.5
+	github.com/aws/aws-sdk-go-v2/credentials v1.20.5
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.50.0
+	github.com/aws/aws-sdk-go-v2/service/sts v1.51.0
 	github.com/hashicorp/terraform-json v0.28.0
 	github.com/hashicorp/terraform-plugin-framework-jsontypes v0.2.0
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
-	go.mongodb.org/atlas-sdk/v20250312025 v20250312025.0.0
+	go.mongodb.org/atlas-sdk/v20250312026 v20250312026.0.0
 	golang.org/x/oauth2 v0.37.0
 )
 
@@ -130,8 +130,8 @@ require (
 	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/tools v0.50.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
-	google.golang.org/grpc v1.83.2 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260706201446-f0a921348800 // indirect
+	google.golang.org/grpc v1.84.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
