@@ -184,6 +184,76 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 	}
 }
 
+func TestApplyTransformationsToResource_SpecDefaultWithOptionalOverride(t *testing.T) {
+	tests := map[string]struct {
+		expectOptional     bool
+		expectedDefaultSet bool
+		expectedCreateOnly bool
+		optionalOverride   bool
+	}{
+		"Optional override keeps the spec default but still applies create_only": {
+			optionalOverride:   true,
+			expectOptional:     true,
+			expectedDefaultSet: true,
+			expectedCreateOnly: true,
+		},
+		"Without the override the spec default keeps computed optional without create only": {
+			optionalOverride:   false,
+			expectOptional:     false,
+			expectedDefaultSet: true,
+			expectedCreateOnly: false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			attribute := codespec.Attribute{
+				TFSchemaName:             "bool_with_default",
+				TFModelName:              "BoolWithDefault",
+				Bool:                     &codespec.BoolAttribute{Default: new(false)},
+				ComputedOptionalRequired: codespec.ComputedOptional,
+				ReqBodyUsage:             codespec.OmitInUpdateBody,
+				PresentInAnyResponse:     false,
+			}
+			override := config.Override{}
+			if tc.optionalOverride {
+				override.Computability = &config.Computability{Optional: true}
+			}
+			resource := &codespec.Resource{
+				Name: "test_resource",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{attribute},
+				},
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{},
+					Read:   &codespec.APIOperation{},
+				},
+			}
+			resourceConfig := &config.Resource{
+				SchemaOptions: config.SchemaOptions{
+					Overrides: map[string]config.Override{"bool_with_default": override},
+				},
+			}
+			require.NoError(t, codespec.ApplyTransformationsToResource(resourceConfig, resource))
+			attr := resource.Schema.Attributes[0]
+			expectedComputability := codespec.ComputedOptional
+			if tc.expectOptional {
+				expectedComputability = codespec.Optional
+			}
+			assert.Equal(t, expectedComputability, attr.ComputedOptionalRequired)
+			// The spec default is retained: the schema generator ignores it for non-computed_optional
+			// attributes, so it must not be stripped here.
+			if tc.expectedDefaultSet {
+				require.NotNil(t, attr.Bool.Default)
+				assert.False(t, *attr.Bool.Default)
+			} else {
+				assert.Nil(t, attr.Bool.Default)
+			}
+			assert.Equal(t, tc.expectedCreateOnly, attr.CreateOnly)
+		})
+	}
+}
+
 func TestApplyTransformationsToResource_AliasAttributeTransformation(t *testing.T) {
 	tests := map[string]struct {
 		inputResource      *codespec.Resource

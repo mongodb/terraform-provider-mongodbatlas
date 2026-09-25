@@ -66,6 +66,16 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 			},
 			hasPlanModifier: true,
 		},
+		"Optional bool with create_only and a spec default - uses CreateOnly() so the default is not injected": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "test_optional_bool",
+				TFModelName:              "TestOptionalBool",
+				Bool:                     &codespec.BoolAttribute{Default: new(false)},
+				ComputedOptionalRequired: codespec.Optional,
+				CreateOnly:               true,
+			},
+			hasPlanModifier: true,
+		},
 		"Int64 attribute with create_only - uses CreateOnly()": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_int",
@@ -108,7 +118,8 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 				return
 			}
 			assert.Contains(t, code, "PlanModifiers:")
-			if tc.attribute.Bool != nil && tc.attribute.Bool.Default != nil {
+			if tc.attribute.Bool != nil && tc.attribute.Bool.Default != nil &&
+				tc.attribute.ComputedOptionalRequired == codespec.ComputedOptional {
 				expected := fmt.Sprintf("customplanmodifier.CreateOnlyBoolWithDefault(%t)", *tc.attribute.Bool.Default)
 				assert.Contains(t, code, expected)
 				return
