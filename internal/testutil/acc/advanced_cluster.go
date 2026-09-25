@@ -280,17 +280,14 @@ data "mongodbatlas_advanced_clusters" "test" {
 // ShardSizeLimitMetricsWait is how long tests wait before a step that adds or lowers
 // auto_scaling.storage_config.shard_size_limit_gb on an INFINITE cluster.
 //
-// Atlas validates a new per-shard data-size limit against the cluster's current data size.
-// For a newly created or recently updated cluster the current-data-size metrics can take up to
-// a minute to become queryable, and until then Atlas rejects the change with HTTP 503
-// SHARD_SIZE_LIMIT_CURRENT_SIZE_UNKNOWN. This is expected Atlas behavior (see CLOUDP-449163),
-// not a provider bug, and there is no API the provider can poll to observe that readiness, so
-// tests wait before exercising these transitions.
+// Atlas validates the new limit against the cluster's current data size, which can take up to a
+// minute to become queryable. Until then Atlas rejects the change with HTTP 503
+// SHARD_SIZE_LIMIT_CURRENT_SIZE_UNKNOWN. This is expected Atlas behavior (see CLOUDP-449163), not
+// a provider bug, and there is no API the provider can poll, so tests wait.
 const ShardSizeLimitMetricsWait = 1 * time.Minute
 
-// PreConfigWaitForShardSizeLimitMetrics returns a resource.TestStep.PreConfig that waits for
-// Atlas to make the cluster's current data size available. Use it on steps that add or lower
-// shard_size_limit_gb, matching where verifyShardSizeLimitAboveCurrentDataSize reads that size.
+// PreConfigWaitForShardSizeLimitMetrics returns a TestStep.PreConfig that waits before steps that
+// add or lower shard_size_limit_gb, which is when Atlas validates against the current data size.
 // See ShardSizeLimitMetricsWait.
 func PreConfigWaitForShardSizeLimitMetrics(tb testing.TB) func() {
 	tb.Helper()

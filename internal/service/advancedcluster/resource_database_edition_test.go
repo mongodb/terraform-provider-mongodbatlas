@@ -92,7 +92,7 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2, new(1024)),
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(1024)),
 			},
-			// Raising the limit short-circuits Atlas's current-size check, so no wait is needed here.
+			// Raising the limit skips the current-size check, so no wait here.
 			{
 				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2, new(2048)),
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(2048)),
@@ -111,8 +111,7 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "", true),
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, nil),
 			},
-			// Re-adding the limit after clearing it is a tightening in Atlas, which validates it
-			// against the current data size and can return SHARD_SIZE_LIMIT_CURRENT_SIZE_UNKNOWN.
+			// Adding a limit where none is set triggers the Atlas current-size check, so wait before it.
 			{
 				PreConfig: acc.PreConfigWaitForShardSizeLimitMetrics(t),
 				Config:    configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(1024), true),
@@ -321,10 +320,7 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 		compute_scale_down_enabled = true
 		compute_min_instance_size  = "M10"
 	`
-	// Start without storage to recover the CLOUDP-449163 repro: creating compute-only and adding
-	// storage_config later is a tightening, so Atlas reads the current data size and can return
-	// SHARD_SIZE_LIMIT_CURRENT_SIZE_UNKNOWN until the metrics are queryable. The wait before the
-	// add-storage step below covers that expected delay.
+	// Start without storage to mirror the CLOUDP-449163 repro.
 	computeOnlyConfig := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, computeConfig, false)
 	configWithStorage := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, scaleDownConfig+databaseEditionStorageConfig(new(1024)), false)
 	effectiveBase := newInfiniteEffectiveReq(projectID, clusterName).withInstanceSize("M10").withEffectiveInstanceSize("M10").withFlag()
@@ -366,7 +362,6 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
-			// Create without storage, then update the compute max size twice, mirroring the CLOUDP-449163 repro.
 			{
 				Config:            computeOnlyConfig,
 				Check:             checkDatabaseEdition(new("INFINITE"), "INFINITE"),
@@ -382,8 +377,7 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 				ConfigStateChecks: computeOnlyChecks("M20"),
 			},
 			acc.TestStepImportCluster(resourceName),
-			// Adding the limit to a cluster without one is a tightening in Atlas, so wait for the
-			// current data size to be queryable before this step. The later 1024 -> 2048 raise needs no wait.
+			// Adding a limit where none is set triggers the Atlas current-size check, so wait before it.
 			{
 				PreConfig:         acc.PreConfigWaitForShardSizeLimitMetrics(t),
 				Config:            configWithStorage,
@@ -399,6 +393,7 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 				Config:            configWithStorageEffectiveComputeUpdated.config(),
 				ConfigStateChecks: configWithStorageEffectiveComputeUpdated.check(),
 			},
+			// Raising the limit skips the current-size check, so no wait here.
 			{
 				Config:            configWithStorageEffectiveUpdated.config(),
 				ConfigStateChecks: configWithStorageEffectiveUpdated.check(),
