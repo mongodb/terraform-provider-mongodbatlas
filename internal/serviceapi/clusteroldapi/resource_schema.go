@@ -332,11 +332,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
 												Optional:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` to `GCP`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` to a Gen 2 instance size (`M30_GEN_2` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -416,11 +416,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
 												Optional:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` to `GCP`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` to a Gen 2 instance size (`M30_GEN_2` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -477,11 +477,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
 												Optional:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` to `GCP`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` to a Gen 2 instance size (`M30_GEN_2` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
