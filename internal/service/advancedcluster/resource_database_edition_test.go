@@ -88,14 +88,17 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 				})...),
 			},
 			{
+				PreConfig:         acc.PreConfigWaitForShardSizeLimitMetrics(t),
 				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2, new(1024)),
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(1024)),
 			},
+			// Raising the limit short-circuits Atlas's current-size check, so no wait is needed here.
 			{
 				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2, new(2048)),
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(2048)),
 			},
 			{
+				PreConfig:         acc.PreConfigWaitForShardSizeLimitMetrics(t),
 				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2, new(1024)),
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(1024)),
 			},
@@ -108,8 +111,11 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, "", true),
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, nil),
 			},
+			// Re-adding the limit after clearing it is a tightening in Atlas, which validates it
+			// against the current data size and can return SHARD_SIZE_LIMIT_CURRENT_SIZE_UNKNOWN.
 			{
-				Config: configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(1024), true),
+				PreConfig: acc.PreConfigWaitForShardSizeLimitMetrics(t),
+				Config:    configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(1024), true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkDatabaseEdition(new("INFINITE"), "INFINITE"),
 					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
@@ -315,7 +321,11 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 		compute_scale_down_enabled = true
 		compute_min_instance_size  = "M10"
 	`
-	// Create with storage from the start so Atlas has time to populate the current data size before updates.
+	// Start without storage to recover the CLOUDP-449163 repro: creating compute-only and adding
+	// storage_config later is a tightening, so Atlas reads the current data size and can return
+	// SHARD_SIZE_LIMIT_CURRENT_SIZE_UNKNOWN until the metrics are queryable. The wait before the
+	// add-storage step below covers that expected delay.
+	computeOnlyConfig := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, computeConfig, false)
 	configWithStorage := configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, scaleDownConfig+databaseEditionStorageConfig(new(1024)), false)
 	effectiveBase := newInfiniteEffectiveReq(projectID, clusterName).withInstanceSize("M10").withEffectiveInstanceSize("M10").withFlag()
 	configWithStorageEffective := effectiveBase.withAutoScaling(
@@ -339,32 +349,46 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 			"compute_max_instance_size":  knownvalue.StringExact("M20"),
 		}).withStorageLimit(2048)
 	computeOnlyChecks := func(maxInstanceSize string) []statecheck.StateCheck {
-		return append(shardSizeLimitChecks(clusterName, new(1024)), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+		return append(shardSizeLimitChecks(clusterName, nil), computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
 			"compute_enabled":           knownvalue.Bool(true),
 			"compute_max_instance_size": knownvalue.StringExact(maxInstanceSize),
 		})...)
 	}
+	computeChecks := computeAutoScalingChecks(clusterName, map[string]knownvalue.Check{
+		"compute_enabled":            knownvalue.Bool(true),
+		"compute_scale_down_enabled": knownvalue.Bool(true),
+		"compute_min_instance_size":  knownvalue.StringExact("M10"),
+		"compute_max_instance_size":  knownvalue.StringExact("M20"),
+	})
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
+			// Create without storage, then update the compute max size twice, mirroring the CLOUDP-449163 repro.
 			{
-				Config:            configWithStorage,
+				Config:            computeOnlyConfig,
 				Check:             checkDatabaseEdition(new("INFINITE"), "INFINITE"),
 				ConfigStateChecks: computeOnlyChecks("M20"),
 			},
 			acc.TestStepImportCluster(resourceName),
 			{
-				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, strings.ReplaceAll(scaleDownConfig+databaseEditionStorageConfig(new(1024)), "M20", "M30_GEN_2"), false),
+				Config:            configDatabaseEditionWithAutoScaling(projectID, clusterName, new("INFINITE"), 2, strings.ReplaceAll(computeConfig, "M20", "M30_GEN_2"), false),
 				ConfigStateChecks: computeOnlyChecks("M30_GEN_2"),
 			},
 			{
-				Config:            configWithStorage,
+				Config:            computeOnlyConfig,
 				ConfigStateChecks: computeOnlyChecks("M20"),
 			},
 			acc.TestStepImportCluster(resourceName),
+			// Adding the limit to a cluster without one is a tightening in Atlas, so wait for the
+			// current data size to be queryable before this step. The later 1024 -> 2048 raise needs no wait.
+			{
+				PreConfig:         acc.PreConfigWaitForShardSizeLimitMetrics(t),
+				Config:            configWithStorage,
+				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)), computeChecks...),
+			},
 			// Enabling use_effective_fields on an existing cluster must preserve the configured hardware in state.
 			{
 				Config:            configWithStorageEffective.config(),
@@ -538,10 +562,18 @@ func TestAccClusterAdvancedCluster_infiniteAnalyticsAutoScaling(t *testing.T) {
 			// Clearing storage while omitting computed blocks must preserve active nodes and analytics scaling.
 			{Config: clusterConfig(nil, "", "", true), ConfigStateChecks: checks(nil, "M30_GEN_2")},
 			acc.TestStepImportCluster(resourceName),
-			{Config: baseConfig, ConfigStateChecks: checks(new(1024), "M20")},
+			{
+				PreConfig:         acc.PreConfigWaitForShardSizeLimitMetrics(t),
+				Config:            baseConfig,
+				ConfigStateChecks: checks(new(1024), "M20"),
+			},
 			// Clearing storage must retain planned node counts and zone metadata when omitted from configuration.
 			{Config: partialHardwareConfig, ConfigStateChecks: checks(nil, "M20")},
-			{Config: baseConfig, ConfigStateChecks: checks(new(1024), "M20")},
+			{
+				PreConfig:         acc.PreConfigWaitForShardSizeLimitMetrics(t),
+				Config:            baseConfig,
+				ConfigStateChecks: checks(new(1024), "M20"),
+			},
 			{
 				Config:      clusterConfig(new(1024), "M20", "disk_gb_enabled = true", false),
 				ExpectError: regexp.MustCompile(`(?s)INVALID_ATTRIBUTE.*autoScaling\.diskGB`),
