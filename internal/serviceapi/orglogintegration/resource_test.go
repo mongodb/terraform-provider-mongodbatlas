@@ -119,7 +119,6 @@ func checkBasicOTel(endpoint string, withDS bool) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-// TODO(CLOUDP-433802): switch from preview SDK to prod SDK once Org Log Integrations API is GA
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
