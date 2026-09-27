@@ -13,8 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312025/admin"
-	admin20250312026 "go.mongodb.org/atlas-sdk/v20250312026/admin"
+	"go.mongodb.org/atlas-sdk/v20250312026/admin"
 )
 
 const (
@@ -43,10 +42,6 @@ func ConnPreview() *adminpreview.APIClient {
 
 func ConnV220241113() *admin20241113.APIClient {
 	return MongoDBClient.AtlasV220241113
-}
-
-func ConnV220250312026() *admin20250312026.APIClient {
-	return MongoDBClient.AtlasV220250312026
 }
 
 func ConnV2UsingGov() *admin.APIClient {

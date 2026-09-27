@@ -12,26 +12,11 @@ import (
 )
 
 type attrPatchOperations struct {
-	data                 map[string][]jsondiff.Operation
-	ignoreInStateSuffix  []string
-	ignoreInStatePrefix  []string
-	includeInStateSuffix []string
-	forceUpdateAttr      []string
+	data                map[string][]jsondiff.Operation
+	ignoreInStatePrefix []string
 }
 
 func (m *attrPatchOperations) ignoreInStatePath(path string) bool {
-	for _, include := range m.includeInStateSuffix {
-		suffix := "/" + include
-		if strings.HasSuffix(path, suffix) {
-			return false
-		}
-	}
-	for _, ignore := range m.ignoreInStateSuffix {
-		suffix := "/" + ignore
-		if strings.HasSuffix(path, suffix) {
-			return true
-		}
-	}
 	for _, ignore := range m.ignoreInStatePrefix {
 		if slices.Contains(strings.Split(path, "/"), ignore) {
 			return true
@@ -41,24 +26,13 @@ func (m *attrPatchOperations) ignoreInStatePath(path string) bool {
 }
 
 func newAttrPatchOperations(patch jsondiff.Patch, options []PatchOptions) *attrPatchOperations {
-	var (
-		ignoreSuffixInState  []string
-		ignorePrefixInState  []string
-		includeSuffixInState []string
-		forceUpdateAttr      []string
-	)
+	var ignorePrefixInState []string
 	for _, option := range options {
-		ignoreSuffixInState = append(ignoreSuffixInState, option.IgnoreInStateSuffix...)
 		ignorePrefixInState = append(ignorePrefixInState, option.IgnoreInStatePrefix...)
-		includeSuffixInState = append(includeSuffixInState, option.IncludeInStateSuffix...)
-		forceUpdateAttr = append(forceUpdateAttr, option.ForceUpdateAttr...)
 	}
 	self := &attrPatchOperations{
-		data:                 map[string][]jsondiff.Operation{},
-		ignoreInStateSuffix:  ignoreSuffixInState,
-		ignoreInStatePrefix:  ignorePrefixInState,
-		includeInStateSuffix: includeSuffixInState,
-		forceUpdateAttr:      forceUpdateAttr,
+		data:                map[string][]jsondiff.Operation{},
+		ignoreInStatePrefix: ignorePrefixInState,
 	}
 	for _, op := range patch {
 		if op.Path == "" {
@@ -92,9 +66,6 @@ func indexRemoval(path string) bool {
 }
 
 func (m *attrPatchOperations) hasChanged(attr string) bool {
-	if slices.Contains(m.forceUpdateAttr, attr) {
-		return true
-	}
 	for _, op := range m.get(attr) {
 		if slices.Contains(changeOps, op.Type) {
 			return true
@@ -110,12 +81,6 @@ func (m *attrPatchOperations) ChangedAttributes() []string {
 	attrs := []string{}
 	for attr := range m.data {
 		if m.hasChanged(attr) {
-			attrs = append(attrs, attr)
-		}
-	}
-	// There might be a case where there are no changes in m.data for the attributes in forceUpdateAttr
-	for _, attr := range m.forceUpdateAttr {
-		if !slices.Contains(attrs, attr) {
 			attrs = append(attrs, attr)
 		}
 	}
@@ -170,10 +135,7 @@ func convertJSONDiffToJSONPatch(patch jsondiff.Patch) (jsonpatch.Patch, error) {
 
 // Current limitation if the field is set as part of a nested attribute in a map
 type PatchOptions struct {
-	IgnoreInStateSuffix  []string
-	IgnoreInStatePrefix  []string
-	IncludeInStateSuffix []string
-	ForceUpdateAttr      []string
+	IgnoreInStatePrefix []string
 }
 
 // PatchPayload uses the state and plan to changes to find the patch request, including changes only when:

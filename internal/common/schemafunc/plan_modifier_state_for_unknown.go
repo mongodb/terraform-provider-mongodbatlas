@@ -15,28 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// HasUnknowns uses reflection to check if the object has any unknown fields
-// Pass &TFModel{}
-// Will only check the root level attributes
-func HasUnknowns(obj any) bool {
-	valObj := reflect.ValueOf(obj)
-	if valObj.Kind() != reflect.Pointer {
-		panic("params must be pointer")
-	}
-	valObj = valObj.Elem()
-	if valObj.Kind() != reflect.Struct {
-		panic("params must be pointer to struct")
-	}
-	typeObj := valObj.Type()
-	for i := range typeObj.NumField() {
-		field := valObj.Field(i)
-		if isUnknown(field) {
-			return true
-		}
-	}
-	return false
-}
-
 // UnknownInConfig lists the top-level attributes that the configuration leaves unknown, to be passed as
 // keepUnknown to CopyUnknowns. Planning their state value hides a change that the plan Terraform re-runs
 // during apply then reveals, so the apply fails with "Provider produced inconsistent final plan". This is

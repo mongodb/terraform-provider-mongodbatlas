@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	admin "go.mongodb.org/atlas-sdk/v20250312025/admin"
+	admin "go.mongodb.org/atlas-sdk/v20250312026/admin"
 )
 
 const (

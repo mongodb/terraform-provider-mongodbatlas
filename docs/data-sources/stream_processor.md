@@ -46,7 +46,7 @@ resource "mongodbatlas_stream_connection" "example-kafka" {
     username  = var.kafka_username
     password  = var.kafka_password
   }
-  bootstrap_servers = "localhost:9092,localhost:9092"
+  bootstrap_servers = "example.com:9092"
   config = {
     "auto.offset.reset" : "earliest"
   }

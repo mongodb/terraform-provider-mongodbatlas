@@ -237,7 +237,7 @@ jobs:
         with:
           ref: ${{ inputs.version_number }}
       - name: Configure AWS credentials for DevProd Platforms ECR
-        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd
         with:
           role-to-assume: ${{ env.ECR_ROLE_ARN }}
           aws-region: us-east-1

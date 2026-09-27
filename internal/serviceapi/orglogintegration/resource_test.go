@@ -132,7 +132,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if orgID == "" || integrationID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnV220250312026().PushBasedLogExportAPI.GetOrgLogIntegration(context.Background(), orgID, integrationID).Execute()
+		_, _, err := acc.ConnV2().PushBasedLogExportAPI.GetOrgLogIntegration(context.Background(), orgID, integrationID).Execute()
 		if err == nil {
 			return nil
 		}
@@ -150,7 +150,7 @@ func checkDestroy(state *terraform.State) error {
 		if orgID == "" || integrationID == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnV220250312026().PushBasedLogExportAPI.GetOrgLogIntegration(context.Background(), orgID, integrationID).Execute()
+		_, _, err := acc.ConnV2().PushBasedLogExportAPI.GetOrgLogIntegration(context.Background(), orgID, integrationID).Execute()
 		if err == nil {
 			return fmt.Errorf("org log integration for org_id %s with id %s still exists", orgID, integrationID)
 		}
