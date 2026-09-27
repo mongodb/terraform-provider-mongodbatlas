@@ -1755,8 +1755,8 @@ resources:
           otel_supplied_headers:
             sensitive: true
 
-  # TODO(CLOUDP-433802): spec is currently preview-only, regenerate from prod spec once Org Log Integrations API is GA
   org_log_integration:
+    version_header: application/vnd.atlas.2025-03-12+json
     read:
       path: /api/atlas/v2/orgs/{orgId}/logIntegrations/{logIntegrationId}
       method: GET

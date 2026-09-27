@@ -17,9 +17,10 @@ schema:
             element_type: 4
           description: Array of log types exported by this integration.
           custom_type:
-            package: customtypes
             model: customtypes.SetValue[types.String]
             schema: customtypes.NewSetType[types.String](ctx)
+            packages:
+                - customtypes
           computed_optional_required: required
           tf_schema_name: log_types
           tf_model_name: LogTypes
@@ -78,10 +79,11 @@ schema:
                       request_only_required_on_create: false
           description: HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.
           custom_type:
-            package: customtypes
             name: OtelSuppliedHeaders
             model: customtypes.NestedListValue[TFOtelSuppliedHeadersModel]
             schema: customtypes.NewNestedListType[TFOtelSuppliedHeadersModel](ctx)
+            packages:
+                - customtypes
           computed_optional_required: optional
           tf_schema_name: otel_supplied_headers
           tf_model_name: OtelSuppliedHeaders
@@ -115,7 +117,7 @@ operations:
     update:
         http_method: PUT
         path: /api/atlas/v2/orgs/{orgId}/logIntegrations/{integrationId}
-    version_header: application/vnd.atlas.preview+json
+    version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
     singular:
         description: Returns the configuration for one organization-level log integration identified by its unique ID.
@@ -135,9 +137,10 @@ data_sources:
                 element_type: 4
               description: Array of log types exported by this integration.
               custom_type:
-                package: customtypes
                 model: customtypes.SetValue[types.String]
                 schema: customtypes.NewSetType[types.String](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: log_types
               tf_model_name: LogTypes
@@ -212,9 +215,10 @@ data_sources:
                             element_type: 4
                           description: Array of log types exported by this integration.
                           custom_type:
-                            package: customtypes
                             model: customtypes.SetValue[types.String]
                             schema: customtypes.NewSetType[types.String](ctx)
+                            packages:
+                                - customtypes
                           computed_optional_required: computed
                           tf_schema_name: log_types
                           tf_model_name: LogTypes
@@ -248,10 +252,11 @@ data_sources:
                           request_only_required_on_create: false
               description: List of returned documents that MongoDB Cloud provides when completing this request.
               custom_type:
-                package: customtypes
                 name: Results
                 model: customtypes.NestedListValue[TFResultsModel]
                 schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+                packages:
+                    - customtypes
               computed_optional_required: computed
               tf_schema_name: results
               tf_model_name: Results
@@ -268,6 +273,6 @@ data_sources:
         list:
             http_method: GET
             path: /api/atlas/v2/orgs/{orgId}/logIntegrations
-        version_header: application/vnd.atlas.preview+json
+        version_header: application/vnd.atlas.2025-03-12+json
 name: org_log_integration
 packageName: orglogintegration
