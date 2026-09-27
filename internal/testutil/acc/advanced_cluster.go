@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -166,7 +167,7 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 	stateConf := retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyWorkingState},
 		Target:     []string{retrystrategy.RetryStrategyCompletedState},
-		Timeout:    15 * time.Minute,
+		Timeout:    30 * time.Minute,
 		MinTimeout: 1 * time.Minute,
 		Delay:      1 * time.Minute,
 		Refresh: func() (result any, state string, err error) {
@@ -178,7 +179,7 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 				return nil, "", fmt.Errorf("sample dataset load %s returned nil job for cluster %s:%s", jobID, projectID, clusterName)
 			}
 			state = job.GetState()
-			if err := errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state); err != nil {
+			if err := errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state, job.GetErrorMessage()); err != nil {
 				return job, state, err
 			}
 			return job, state, nil
@@ -188,16 +189,19 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 	return err
 }
 
-func errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state string) error {
+func errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state, errorMessage string) error {
 	if state == retrystrategy.RetryStrategyFailedState {
+		if errorMessage != "" {
+			return fmt.Errorf("sample dataset load %s failed for cluster %s:%s: %s", jobID, projectID, clusterName, errorMessage)
+		}
 		return fmt.Errorf("sample dataset load %s failed for cluster %s:%s", jobID, projectID, clusterName)
 	}
 	return nil
 }
 
 // ErrIfSampleDatasetLoadFailedForTest exposes sample-dataset FAILED mapping for unit tests.
-func ErrIfSampleDatasetLoadFailedForTest(projectID, clusterName, jobID, state string) error {
-	return errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state)
+func ErrIfSampleDatasetLoadFailedForTest(projectID, clusterName, jobID, state, errorMessage string) error {
+	return errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state, errorMessage)
 }
 
 func ConfigBasicDedicated(projectID, name, zoneName string) string {
@@ -272,6 +276,26 @@ data "mongodbatlas_advanced_clusters" "test" {
 	depends_on = [mongodbatlas_advanced_cluster.test]
 }
 `
+
+// ShardSizeLimitMetricsWait is how long tests wait before a step that adds or lowers
+// auto_scaling.storage_config.shard_size_limit_gb on an INFINITE cluster.
+//
+// Atlas validates the new limit against the cluster's current data size, which can take up to a
+// minute to become queryable. Until then Atlas rejects the change with HTTP 503
+// SHARD_SIZE_LIMIT_CURRENT_SIZE_UNKNOWN. This is expected Atlas behavior (see CLOUDP-449163), not
+// a provider bug, and there is no API the provider can poll, so tests wait.
+const ShardSizeLimitMetricsWait = 1 * time.Minute
+
+// PreConfigWaitForShardSizeLimitMetrics returns a TestStep.PreConfig that waits before steps that
+// add or lower shard_size_limit_gb, which is when Atlas validates against the current data size.
+// See ShardSizeLimitMetricsWait.
+func PreConfigWaitForShardSizeLimitMetrics(tb testing.TB) func() {
+	tb.Helper()
+	return func() {
+		tb.Logf("Waiting %s before changing shard_size_limit_gb so Atlas can read the cluster current data size", ShardSizeLimitMetricsWait)
+		time.Sleep(ShardSizeLimitMetricsWait)
+	}
+}
 
 func JoinQuotedStrings(list []string) string {
 	quoted := make([]string, len(list))

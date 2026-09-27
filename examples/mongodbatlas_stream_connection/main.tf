@@ -42,7 +42,7 @@ resource "mongodbatlas_stream_connection" "example-kafka-plaintext" {
     username  = var.kafka_username
     password  = var.kafka_password
   }
-  bootstrap_servers = "localhost:9092,localhost:9092"
+  bootstrap_servers = "example.com:9092"
   config = {
     "auto.offset.reset" : "earliest"
   }
@@ -70,7 +70,7 @@ resource "mongodbatlas_stream_connection" "example-kafka-oauthbearer" {
     scope                       = "read:messages write:messages"
     sasl_oauthbearer_extensions = "logicalCluster=lkc-kmom,identityPoolId=pool-lAr"
   }
-  bootstrap_servers = "localhost:9092,localhost:9092"
+  bootstrap_servers = "example.com:9092"
   config = {
     "auto.offset.reset" : "earliest"
   }
@@ -94,7 +94,7 @@ resource "mongodbatlas_stream_connection" "example-kafka-ssl" {
     username  = var.kafka_username
     password  = var.kafka_password
   }
-  bootstrap_servers = "localhost:9092,localhost:9092"
+  bootstrap_servers = "example.com:9092"
   config = {
     "auto.offset.reset" : "earliest"
   }
