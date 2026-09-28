@@ -1,11 +1,27 @@
 ## (Unreleased)
 
+NOTES:
+
+* resource/mongodbatlas_advanced_cluster: Clarifies that new MongoDB major versions are supported as soon as Atlas enables them; updates example `mongo_db_major_version` values to `9.0` ([#4753](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4753))
+
 FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_cluster_adaptive_settings` ([#4620](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4620))
 * **New Data Source:** `data-source/mongodbatlas_cluster_overload_simulation` ([#4618](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4618))
 * **New Resource:** `resource/mongodbatlas_cluster_adaptive_settings` ([#4620](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4620))
 * **New Resource:** `resource/mongodbatlas_cluster_overload_simulation` ([#4618](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4618))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_advanced_cluster: Adds `shard_size_limit_gb` for INFINITE clusters ([#4697](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4697))
+* data-source/mongodbatlas_advanced_cluster: Adds attribute database_edition ([#4613](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4613))
+* data-source/mongodbatlas_advanced_cluster: Adds attribute effective_database_edition ([#4613](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4613))
+* data-source/mongodbatlas_advanced_clusters: Adds `shard_size_limit_gb` for INFINITE clusters ([#4697](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4697))
+* data-source/mongodbatlas_advanced_clusters: Adds attribute database_edition ([#4613](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4613))
+* data-source/mongodbatlas_advanced_clusters: Adds attribute effective_database_edition ([#4613](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4613))
+* resource/mongodbatlas_advanced_cluster: Adds `shard_size_limit_gb` for INFINITE clusters ([#4697](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4697))
+* resource/mongodbatlas_advanced_cluster: Adds attribute `effective_database_edition` ([#4725](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4725))
+* resource/mongodbatlas_advanced_cluster: Adds attribute database_edition ([#4613](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4613))
 
 BUG FIXES:
 

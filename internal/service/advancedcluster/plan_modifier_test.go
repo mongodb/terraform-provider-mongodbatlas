@@ -1,7 +1,18 @@
 package advancedcluster_test
 
 import (
+	"context"
+	"fmt"
+	"maps"
 	"testing"
+
+	frameworkresource "github.com/hashicorp/terraform-plugin-framework/resource"
+	rsschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/stretchr/testify/require"
 
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -17,14 +28,18 @@ var (
 	regionConfig1 = repSpec1.AtMapKey("region_configs").AtSliceIndex(0)
 )
 
-func autoScalingKnownValue(computeEnabled, diskEnabled, scaleDown bool, minInstanceSize, maxInstanceSize string) knownvalue.Check {
-	return knownvalue.ObjectExact(map[string]knownvalue.Check{
+func autoScalingKnownValue(computeEnabled, diskEnabled, scaleDown bool, minInstanceSize, maxInstanceSize string, includeStorageConfig bool) knownvalue.Check {
+	attributes := map[string]knownvalue.Check{
 		"compute_enabled":            knownvalue.Bool(computeEnabled),
 		"disk_gb_enabled":            knownvalue.Bool(diskEnabled),
 		"compute_scale_down_enabled": knownvalue.Bool(scaleDown),
 		"compute_min_instance_size":  knownvalue.StringExact(minInstanceSize),
 		"compute_max_instance_size":  knownvalue.StringExact(maxInstanceSize),
-	})
+	}
+	if includeStorageConfig {
+		attributes["storage_config"] = knownvalue.Null()
+	}
+	return knownvalue.ObjectExact(attributes)
 }
 
 func specInstanceSizeNodeCount(instanceSize string, nodeCount int) knownvalue.Check {
@@ -36,10 +51,11 @@ func specInstanceSizeNodeCount(instanceSize string, nodeCount int) knownvalue.Ch
 
 func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 	var (
-		baseConfig         = unit.NewMockPlanChecksConfig(t, &mockConfig, unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs)
-		resourceName       = baseConfig.ResourceName
-		autoScalingEnabled = autoScalingKnownValue(true, true, true, "M10", "M30")
-		testCases          = []unit.PlanCheckTest{
+		baseConfig                  = unit.NewMockPlanChecksConfig(t, &mockConfig, unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs)
+		resourceName                = baseConfig.ResourceName
+		autoScalingEnabled          = autoScalingKnownValue(true, true, true, "M10", "M30", true)
+		analyticsAutoScalingEnabled = autoScalingKnownValue(true, true, true, "M10", "M30", false)
+		testCases                   = []unit.PlanCheckTest{
 			{
 				ConfigFilename: "main_removed_blocks_from_config_no_plan_changes.tf",
 				Checks: []plancheck.PlanCheck{
@@ -93,14 +109,14 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("read_only_specs"), specInstanceSizeNodeCount("M10", 2)),
 					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("electable_specs"), specInstanceSizeNodeCount("M10", 5)),
 					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling"), autoScalingEnabled),
-					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("analytics_auto_scaling"), autoScalingEnabled),
+					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("analytics_auto_scaling"), analyticsAutoScalingEnabled),
 					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("analytics_specs")), // analytics specs was defined in region_configs.0 but not in region_configs.1
 
 					// checks regionConfig1
 					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("read_only_specs"), specInstanceSizeNodeCount("M20", 1)),
 					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("electable_specs"), specInstanceSizeNodeCount("M20", 3)),
 					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling"), autoScalingEnabled),
-					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_auto_scaling"), autoScalingEnabled),
+					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_auto_scaling"), analyticsAutoScalingEnabled),
 					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_specs"), knownvalue.NotNull()),
 				},
 			},
@@ -109,6 +125,158 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.ConfigFilename, func(t *testing.T) {
 			unit.MockPlanChecksAndRun(t, baseConfig.WithPlanCheckTest(testCase))
+		})
+	}
+}
+
+func TestPlanRemoveAutoScalingStorageConfig(t *testing.T) {
+	ctx := context.Background()
+	_, typ := clusterSchema(ctx, t)
+	model := func(autoScaling any) tftypes.Value {
+		return planTestValue(typ, map[string]any{
+			"name": "example", "project_id": "111111111111111111111111", "cluster_type": "REPLICASET", "database_edition": "INFINITE",
+			"replication_specs": []any{map[string]any{"region_configs": []any{map[string]any{
+				"provider_name": "AWS", "region_name": "US_EAST_1", "priority": int64(7),
+				"electable_specs": map[string]any{"instance_size": "M10", "node_count": int64(2)},
+				"auto_scaling":    autoScaling,
+			}}}},
+		})
+	}
+	dynamic := func(value tftypes.Value) *tfprotov6.DynamicValue {
+		result, err := tfprotov6.NewDynamicValue(typ, value)
+		require.NoError(t, err)
+		return &result
+	}
+	storagePath := tftypes.NewAttributePath().WithAttributeName("replication_specs").WithElementKeyInt(0).
+		WithAttributeName("region_configs").WithElementKeyInt(0).WithAttributeName("auto_scaling").WithAttributeName("storage_config")
+	for _, computeEnabled := range []bool{false, true} {
+		attributes := map[string]any{
+			"storage_config": map[string]any{"shard_size_limit_gb": int64(1024)},
+		}
+		if computeEnabled {
+			attributes["compute_enabled"] = true
+			attributes["compute_scale_down_enabled"] = false
+			attributes["compute_max_instance_size"] = "M20"
+		}
+		withoutStorage := maps.Clone(attributes)
+		delete(withoutStorage, "storage_config")
+		for name, tc := range map[string]struct{ config, plan any }{
+			"remove parent with unknown plan": {nil, tftypes.UnknownValue},
+			"remove parent with known plan":   {nil, attributes},
+			"remove storage only":             {withoutStorage, withoutStorage},
+		} {
+			t.Run(fmt.Sprintf("compute=%t/%s", computeEnabled, name), func(t *testing.T) {
+				server, err := acc.TestAccProviderV6Factories["mongodbatlas"]()
+				require.NoError(t, err)
+				result, err := server.PlanResourceChange(ctx, &tfprotov6.PlanResourceChangeRequest{
+					TypeName:   "mongodbatlas_advanced_cluster",
+					PriorState: dynamic(model(attributes)), ProposedNewState: dynamic(model(tc.plan)), Config: dynamic(model(tc.config)),
+				})
+				require.NoError(t, err)
+				require.Empty(t, result.Diagnostics)
+				plan, err := result.PlannedState.Unmarshal(typ)
+				require.NoError(t, err)
+				storage, _, err := tftypes.WalkAttributePath(plan, storagePath)
+				require.NoError(t, err)
+				require.True(t, storage.(tftypes.Value).IsNull(), "removing storage_config or auto_scaling must clear the configured shard limit")
+				if computeEnabled {
+					computePath := tftypes.NewAttributePath().WithAttributeName("replication_specs").WithElementKeyInt(0).
+						WithAttributeName("region_configs").WithElementKeyInt(0).WithAttributeName("auto_scaling").WithAttributeName("compute_enabled")
+					compute, _, err := tftypes.WalkAttributePath(plan, computePath)
+					require.NoError(t, err)
+					require.Equal(t, tftypes.NewValue(tftypes.Bool, true), compute)
+				}
+			})
+		}
+	}
+}
+
+// clusterSchema returns the advanced_cluster resource schema and its Terraform type for plan tests.
+func clusterSchema(ctx context.Context, t *testing.T) (rsschema.Schema, tftypes.Type) {
+	t.Helper()
+	var resp frameworkresource.SchemaResponse
+	advancedcluster.Resource().Schema(ctx, frameworkresource.SchemaRequest{}, &resp)
+	return resp.Schema, resp.Schema.Type().TerraformType(ctx)
+}
+
+// clusterDynamic encodes attributes as a DynamicValue following the current resource schema.
+func clusterDynamic(t *testing.T, typ tftypes.Type, attributes map[string]any) *tfprotov6.DynamicValue {
+	t.Helper()
+	result, err := tfprotov6.NewDynamicValue(typ, planTestValue(typ, attributes))
+	require.NoError(t, err)
+	return &result
+}
+
+// planTestValue fills omitted attributes with typed nulls so the fixture follows the current resource schema.
+func planTestValue(typ tftypes.Type, value any) tftypes.Value {
+	if value == nil || value == tftypes.UnknownValue {
+		return tftypes.NewValue(typ, value)
+	}
+	switch shape := typ.(type) {
+	case tftypes.Object:
+		input := value.(map[string]any)
+		out := map[string]tftypes.Value{}
+		for name, childType := range shape.AttributeTypes {
+			out[name] = planTestValue(childType, input[name])
+		}
+		return tftypes.NewValue(typ, out)
+	case tftypes.List:
+		out := []tftypes.Value{}
+		for _, item := range value.([]any) {
+			out = append(out, planTestValue(shape.ElementType, item))
+		}
+		return tftypes.NewValue(typ, out)
+	default:
+		return tftypes.NewValue(typ, value)
+	}
+}
+
+// TestPlanUnknownConfigKeepsStateCopy pins the scope of unknownInConfig: an unresolved expression must keep
+// its own attribute unknown without discarding the state values that ModifyPlan copies into everything else.
+func TestPlanUnknownConfigKeepsStateCopy(t *testing.T) {
+	ctx := t.Context()
+	_, typ := clusterSchema(ctx, t)
+	computedAttributes := []string{"cluster_id", "backup_enabled", "encryption_at_rest_provider", "root_cert_type"}
+	model := func(instanceSize string, majorVersion any) map[string]any {
+		return map[string]any{
+			"name": "example", "project_id": "111111111111111111111111", "cluster_type": "REPLICASET",
+			"mongo_db_major_version": majorVersion,
+			"replication_specs": []any{map[string]any{"region_configs": []any{map[string]any{
+				"provider_name": "AWS", "region_name": "US_EAST_1", "priority": int64(7),
+				"electable_specs": map[string]any{"instance_size": instanceSize, "node_count": int64(3)},
+			}}}},
+		}
+	}
+	dynamic := func(value map[string]any) *tfprotov6.DynamicValue {
+		return clusterDynamic(t, typ, value)
+	}
+	prior := model("M10", "8.0")
+	maps.Copy(prior, map[string]any{
+		"cluster_id": "333333333333333333333333", "backup_enabled": true,
+		"encryption_at_rest_provider": "NONE", "root_cert_type": "ISRGROOTX1",
+	})
+	for name, majorVersion := range map[string]any{"known": "8.0", "unknown": tftypes.UnknownValue} {
+		t.Run("mongo_db_major_version="+name, func(t *testing.T) {
+			proposed := model("M20", majorVersion)
+			for _, attribute := range computedAttributes {
+				proposed[attribute] = tftypes.UnknownValue
+			}
+			server, err := acc.TestAccProviderV6Factories["mongodbatlas"]()
+			require.NoError(t, err)
+			result, err := server.PlanResourceChange(ctx, &tfprotov6.PlanResourceChangeRequest{
+				TypeName: "mongodbatlas_advanced_cluster", PriorState: dynamic(prior),
+				ProposedNewState: dynamic(proposed), Config: dynamic(model("M20", majorVersion)),
+			})
+			require.NoError(t, err)
+			require.Empty(t, result.Diagnostics)
+			plan, err := result.PlannedState.Unmarshal(typ)
+			require.NoError(t, err)
+			for _, attribute := range computedAttributes {
+				value, _, err := tftypes.WalkAttributePath(plan, tftypes.NewAttributePath().WithAttributeName(attribute))
+				require.NoError(t, err)
+				require.True(t, value.(tftypes.Value).IsKnown(),
+					"%s must keep its state value: only the unresolved attribute needs to stay unknown", attribute)
+			}
 		})
 	}
 }

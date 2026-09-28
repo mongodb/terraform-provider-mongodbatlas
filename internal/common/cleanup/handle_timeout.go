@@ -3,7 +3,6 @@ package cleanup
 import (
 	"context"
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -53,23 +52,6 @@ func OnTimeout(ctx context.Context, timeout time.Duration, warnDiags func(string
 		newContext := context.Background() // Create a new context for cleanup as the old context is expired
 		if err := cleanup(newContext); err != nil {
 			warnDiags("Error during cleanup", warningDetail+" error="+err.Error())
-		}
-	}
-}
-
-const (
-	contextDeadlineExceeded = "context deadline exceeded"
-	TimeoutReachedPrefix    = "Timeout reached after "
-)
-
-func ReplaceContextDeadlineExceededDiags(diags *diag.Diagnostics, duration time.Duration) {
-	for i := range len(*diags) {
-		d := (*diags)[i]
-		if strings.Contains(d.Detail(), contextDeadlineExceeded) {
-			(*diags)[i] = diag.NewErrorDiagnostic(
-				d.Summary(),
-				strings.ReplaceAll(d.Detail(), contextDeadlineExceeded, TimeoutReachedPrefix+duration.String()),
-			)
 		}
 	}
 }
