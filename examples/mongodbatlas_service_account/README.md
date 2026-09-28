@@ -1,12 +1,10 @@
 # MongoDB Atlas Provider -- Service Account
 
-This example shows how to create a Service Account without an Atlas-generated secret by setting `without_initial_secret = true`, then create its first secret as a managed resource.
-
-Setting `without_initial_secret = true` means Atlas returns no secret from the create request, so every secret is created and rotated through `mongodbatlas_service_account_secret`, which is what a rotation submodule expects.
+This example shows how to create a Service Account without an Atlas-generated secret by setting `without_initial_secret = true`, then create its first secret through `mongodbatlas_service_account_secret`.
 
 ## Important Notes
 
-`without_initial_secret` and `secret_expires_after_hours` are mutually exclusive on the Service Account. Set `without_initial_secret = true` and omit `secret_expires_after_hours`, or set `secret_expires_after_hours` and omit `without_initial_secret`. Atlas rejects a create request that sets both. This example sets the expiration only on the secret resource.
+Setting `without_initial_secret = true` is the preferred approach: Atlas returns no secret from the create request, so you manage it through `mongodbatlas_service_account_secret`. It is mutually exclusive with `secret_expires_after_hours`, and Atlas rejects a create request that sets both.
 
 The example includes a sensitive output `secret` that captures the secret value. You can retrieve it using (**warning**: this prints the secret to your terminal):
 
