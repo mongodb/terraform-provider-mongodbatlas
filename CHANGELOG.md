@@ -8,8 +8,11 @@ FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_cluster_adaptive_settings` ([#4620](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4620))
 * **New Data Source:** `data-source/mongodbatlas_cluster_overload_simulation` ([#4618](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4618))
+* **New Data Source:** `data-source/mongodbatlas_org_log_integration` ([#4635](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4635))
+* **New Data Source:** `data-source/mongodbatlas_org_log_integrations` ([#4635](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4635))
 * **New Resource:** `resource/mongodbatlas_cluster_adaptive_settings` ([#4620](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4620))
 * **New Resource:** `resource/mongodbatlas_cluster_overload_simulation` ([#4618](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4618))
+* **New Resource:** `resource/mongodbatlas_org_log_integration` ([#4634](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4634))
 
 ENHANCEMENTS:
 
