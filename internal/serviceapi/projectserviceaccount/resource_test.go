@@ -38,12 +38,14 @@ func TestAccProjectServiceAccount_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, name1, description1, roles1, new(24), false),
-				Check:  checkBasic(true, roles1, false),
+				Config:            configBasic(projectID, name1, description1, roles1, new(24), false),
+				Check:             checkBasic(true, roles1, false),
+				ConfigStateChecks: []statecheck.StateCheck{pluralSACheck(name1)},
 			},
 			{
-				Config: configBasic(projectID, name2, description2, roles2, new(24), false),
-				Check:  checkBasic(false, roles2, false),
+				Config:            configBasic(projectID, name2, description2, roles2, new(24), false),
+				Check:             checkBasic(false, roles2, false),
+				ConfigStateChecks: []statecheck.StateCheck{pluralSACheck(name2)},
 			},
 			{
 				ResourceName:                         resourceName,
@@ -285,7 +287,6 @@ func checkBasic(isCreate bool, roles []string, withoutInitialSecret bool) resour
 	}
 
 	additionalChecks = acc.AddAttrSetChecks(dataSourceName, additionalChecks, "secrets.0.masked_secret_value")
-	additionalChecks = acc.AddAttrSetChecksPrefix(dataSourcePluralName, additionalChecks, []string{"secrets.0.masked_secret_value"}, "results.0")
 	if withoutInitialSecret {
 		additionalChecks = append(additionalChecks, resource.TestCheckResourceAttr(resourceName, "without_initial_secret", strconv.FormatBool(withoutInitialSecret)))
 	} else {
@@ -293,6 +294,14 @@ func checkBasic(isCreate bool, roles []string, withoutInitialSecret bool) resour
 	}
 
 	return resource.ComposeAggregateTestCheckFunc(checks, resource.ComposeAggregateTestCheckFunc(additionalChecks...))
+}
+
+// pluralSACheck finds the Service Account by name in the plural data source. Tests in a package share one
+// project, so concurrent tests can occupy results.0 and the index is not stable.
+func pluralSACheck(name string) statecheck.StateCheck {
+	return acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(name), map[string]knownvalue.Check{
+		"secrets": knownvalue.ListSizeExact(1),
+	})
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
