@@ -590,7 +590,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 }
 
 func awsIAMRoleAuthAndS3Config(projectID string, config *s3Config) string {
-	return fmt.Sprintf(`
+	return acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
 		// Create IAM role & policy to authorize with Atlas
 		resource "aws_iam_role_policy" "test_policy" {
 		    name = %[4]q
