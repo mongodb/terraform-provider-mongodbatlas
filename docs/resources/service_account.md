@@ -10,40 +10,40 @@ subcategory: "Service Accounts"
 
 ## Example Usages
 
+The following example creates a Service Account without an Atlas-generated secret, then creates its first secret as a managed resource.
+
 ```terraform
+# Create a Service Account without an Atlas-generated secret, then create the first secret
+# explicitly with mongodbatlas_service_account_secret so this configuration owns it.
+
 resource "mongodbatlas_service_account" "this" {
+  org_id                 = var.org_id
+  name                   = "example-service-account"
+  description            = "Example Service Account"
+  roles                  = ["ORG_READ_ONLY"]
+  without_initial_secret = true
+}
+
+resource "mongodbatlas_service_account_secret" "this" {
   org_id                     = var.org_id
-  name                       = "example-service-account"
-  description                = "Example Service Account"
-  roles                      = ["ORG_READ_ONLY"]
+  client_id                  = mongodbatlas_service_account.this.client_id
   secret_expires_after_hours = 2160 # 90 days
 }
 
-data "mongodbatlas_service_account" "this" {
-  org_id    = var.org_id
-  client_id = mongodbatlas_service_account.this.client_id
-}
-
-data "mongodbatlas_service_accounts" "this" {
-  org_id = var.org_id
-}
-
 output "service_account_client_id" {
-  value = mongodbatlas_service_account.this.client_id
+  description = "The Client ID of the Service Account. Use it with a secret to authenticate."
+  value       = mongodbatlas_service_account.this.client_id
 }
 
-output "service_account_name" {
-  value = data.mongodbatlas_service_account.this.name
+output "secret_id" {
+  description = "The ID of the Service Account secret."
+  value       = mongodbatlas_service_account_secret.this.secret_id
 }
 
-output "service_account_first_secret" {
-  description = "The secret value of the first secret created with the Service Account. Available only immediately after initial creation."
-  value       = try(mongodbatlas_service_account.this.secrets[0].secret, null)
+output "secret" {
+  description = "The secret value for the Service Account. Returned only when the secret is created."
   sensitive   = true
-}
-
-output "service_accounts_results" {
-  value = data.mongodbatlas_service_accounts.this.results
+  value       = mongodbatlas_service_account_secret.this.secret
 }
 ```
 
@@ -59,7 +59,8 @@ output "service_accounts_results" {
 
 ### Optional
 
-- `secret_expires_after_hours` (Number) The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later.
+- `secret_expires_after_hours` (Number) The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. Set this field when you set `without_initial_secret` to false or omit `without_initial_secret`. Do not set this field when you set `without_initial_secret` to true. You cannot update this field after you create the Service Account.
+- `without_initial_secret` (Boolean) When true, creates the Service Account without generating an initial secret. If you set this field to true, do not set `secret_expires_after_hours`.
 
 ### Read-Only
 
@@ -86,6 +87,6 @@ Import the Service Account resource by using the Organization ID and Client ID i
 $ terraform import mongodbatlas_service_account.test 6117ac2fe2a3d04ed27a987v/mdb_sa_id_1234567890abcdef12345678
 ```
 
--> **NOTE:** `secret_expires_after_hours` is not populated during import and should be omitted in the resource definition when importing the resource.
+-> **NOTE:** Atlas does not populate `secret_expires_after_hours` or `without_initial_secret` during import. Omit both attributes from the resource definition when you import a Service Account.
 
 For more information, see [Create One Organization Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createorgserviceaccount) in the MongoDB Atlas API documentation.

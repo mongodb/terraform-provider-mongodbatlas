@@ -1,27 +1,62 @@
 # MongoDB Atlas Provider -- Service Account
 
-This example shows how to create a Service Account in MongoDB Atlas.
+This example shows how to create a Service Account without an Atlas-generated secret by setting `without_initial_secret = true`, then create its first secret as a managed resource.
+
+Setting `without_initial_secret = true` means Atlas returns no secret from the create request, so every secret is created and rotated through `mongodbatlas_service_account_secret`, which is what a rotation submodule expects.
 
 ## Important Notes
 
-When you create a Service Account, Atlas automatically generates a secret. The secret value is returned only once, at creation time.
+`without_initial_secret` and `secret_expires_after_hours` are mutually exclusive on the Service Account. Set `without_initial_secret = true` and omit `secret_expires_after_hours`, or set `secret_expires_after_hours` and omit `without_initial_secret`. Atlas rejects a create request that sets both. This example sets the expiration only on the secret resource.
 
-The example includes a sensitive output `service_account_first_secret` that captures this initial secret. 
-You can retrieve it using (**warning**: this prints the secret to your terminal):
+The example includes a sensitive output `secret` that captures the secret value. You can retrieve it using (**warning**: this prints the secret to your terminal):
 
 ```bash
-terraform output -raw service_account_first_secret
+terraform output -raw secret
 ```
 
-For secret rotation, see [Guide: Service Account Secret Rotation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/service-account-secret-rotation).
+For managing and rotating secrets, see [Guide: Service Account Secret Rotation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/service-account-secret-rotation).
 
-## Variables Required to be set:
-- `atlas_client_id`: MongoDB Atlas Service Account Client ID
-- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret  
-- `org_id`: Organization ID where the Service Account will be created
+## Prerequisites
+
+- Service Account with Organization Owner permissions used for provider authentication.
+
+## Variables Required to be set
+
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID.
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret.
+- `org_id`: Atlas Organization ID where this configuration creates the Service Account.
 
 ## Outputs
-- `service_account_client_id`: The Client ID of the created Service Account
-- `service_account_name`: The name of the Service Account
-- `service_account_first_secret` (sensitive): The initial secret value (only available at creation)
-- `service_accounts_results`: All Service Accounts in the organization
+
+- `service_account_client_id`: The Client ID of the Service Account
+- `secret_id`: The ID of the Service Account secret
+- `secret` (sensitive): The secret value
+
+## Usage
+
+**1. Create `terraform.tfvars`.**
+
+```hcl
+atlas_client_id     = "<ATLAS_CLIENT_ID>"
+atlas_client_secret = "<ATLAS_CLIENT_SECRET>"
+org_id              = "your-org-id"
+```
+
+**2. Plan and apply.**
+
+```bash
+terraform plan
+terraform apply
+```
+
+**3. Read the secret** (**warning**: this prints the secret to your terminal).
+
+```bash
+terraform output -raw secret
+```
+
+**4. Destroy.**
+
+```bash
+terraform destroy
+```
