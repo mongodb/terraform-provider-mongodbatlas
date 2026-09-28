@@ -1332,7 +1332,7 @@ func configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCI
 // registers it with the project. Callers can append service-specific IAM policies
 // and resources that consume mongodbatlas_cloud_provider_access_authorization.auth_role.
 func configureAWSCloudProviderAccessRole(projectID, awsIAMRoleName string) string {
-	return fmt.Sprintf(`
+	return acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
 			project_id    = %[1]q
 			provider_name = "AWS"
