@@ -26,6 +26,12 @@ This guide applies to both organization-level and project-level service accounts
 
 ~> **WARNING:** Service Account secrets expire after the configured `secret_expires_after_hours` period. To avoid losing access to the Atlas Administration API, update your application with the new client secret as soon as possible after rotation. If all secrets expire before being replaced, you will lose access to the organization. For more information, see [Rotate Service Account Secrets](https://www.mongodb.com/docs/atlas/tutorial/rotate-service-account-secrets/).
 
+
+## Security notes
+
+- Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. Follow [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
+- `terraform output -raw` prints the secret value to your terminal.
+
 ## Choose a model
 
 - **Single-secret rotation (Model A)**: Use this when no external consumer holds the secret, or a consumer can switch immediately. One secret resource with `create_before_destroy`. This is the simplest path and has no overlap window.
@@ -149,15 +155,17 @@ Alternating the slot that rotates keeps one live secret for consumers while the 
 terraform apply -replace="mongodbatlas_service_account_secret.secret_1"
 ```
 
-3. Retrieve and securely store the new secret value (**warning**: this prints the secret to your terminal):
+3. Read the credential to deploy and the deadline (**warning**: this prints the secret to your terminal):
 
 ```shell
 terraform output -json current_credentials
 terraform output -json expires_at
 ```
 
-4. Roll every consumer over to the new value within 7 days.
-   - Update the stored credential in each consumer, such as a CI secret, a secret manager entry, or an environment variable.
+`current_credentials` resolves to the slot with the largest `expires_at`, so it is the new secret. Deploy it as-is, without reconstructing the value from `secret_1` or `secret_2`. `expires_at` shows how long each slot has left, including the 7-day cut applied to the slot you did not replace. Use the non-rotated slot's `expires_at` as the handoff deadline.
+
+4. Roll every consumer over to the new value before that deadline.
+   - Update the stored credential in each consumer with the `client_secret` from `current_credentials`, such as a CI secret, a secret manager entry, or an environment variable.
    - Redeploy or restart the consumer.
    - Verify that it authenticates before the window closes.
 5. For the next cycle, replace `secret_2` instead and roll consumers back.
@@ -170,14 +178,9 @@ Notes for this model:
 - Terraform deletes the replaced secret as part of the apply, so you do not revoke it manually.
 - The account needs a role that can manage its own secrets only when you rotate while authenticated as that account. Otherwise the admin credential that runs the apply needs it.
 
-## Security notes
-
-- Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. Follow [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
-- `terraform output -raw` prints the secret value to your terminal.
-
 ## Related documentation
 
-- [Two-slot rotation example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_service_account_secret_rotation)
+- [Two-slot rotation example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_service_account_secret_rotation)
 - [`mongodbatlas_service_account`](../resources/service_account)
 - [`mongodbatlas_service_account_secret`](../resources/service_account_secret)
 - [`mongodbatlas_project_service_account`](../resources/project_service_account)

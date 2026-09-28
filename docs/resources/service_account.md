@@ -8,6 +8,8 @@ subcategory: "Service Accounts"
 
 ~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
+-> **NOTE:** To rotate secrets, see [Guide: Service Account Secret Rotation](../guides/service-account-secret-rotation).
+
 ## Example Usages
 
 The following example creates a Service Account without an Atlas-generated secret, then creates its first secret as a managed resource.

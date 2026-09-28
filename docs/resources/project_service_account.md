@@ -12,6 +12,8 @@ subcategory: "Service Accounts"
 
 ~> **IMPORTANT:** Deleting a `mongodbatlas_project_service_account` resource unassigns the associated Service Account from the project, but doesn't delete it from the organization.
 
+-> **NOTE:** To rotate secrets, see [Guide: Service Account Secret Rotation](../guides/service-account-secret-rotation).
+
 ## Example Usages
 
 The following example creates a Project Service Account without an Atlas-generated secret, then creates its first secret as a managed resource.
