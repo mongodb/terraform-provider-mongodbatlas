@@ -14,7 +14,7 @@ Service Account secrets expire after the `secret_expires_after_hours` you set, a
 
 Two terms used throughout this guide:
 
-- **Slot**: One `mongodbatlas_service_account_secret` resource. A Service Account holds at most two.
+- **Slot**: One secret resource. A Service Account and an MCP configuration each hold at most two.
 - **Consumer**: Anything that authenticates with the secret, such as an application, a CI job, or another Terraform stack.
 
 This guide applies to both organization-level and project-level service accounts:
@@ -178,6 +178,21 @@ Notes for this model:
 - Terraform deletes the replaced secret as part of the apply, so you do not revoke it manually.
 - The account needs a role that can manage its own secrets only when you rotate while authenticated as that account. Otherwise the admin credential that runs the apply needs it.
 
+## MCP configuration secrets
+
+MCP configuration secrets rotate with the same two-slot pattern. An MCP configuration holds at most two ingress secrets, so define two secret resources and replace them alternately.
+
+The same pattern applies to `mongodbatlas_project_mcp_config_secret`, with `project_id` in place of `org_id`.
+
+Rotate by replacing one slot at a time, alternating between them:
+
+```shell
+terraform apply -replace="mongodbatlas_mcp_config_secret.secret_1"
+terraform output -raw secret_1
+```
+
+The secret value is returned only in the create response, so read the output right after the replace. The 7-day overlap limit and the consumer handoff steps from [Model B](#model-b-two-slot-rotation) apply here as well.
+
 ## Related documentation
 
 - [Two-slot rotation example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_service_account_secret_rotation)
@@ -185,3 +200,5 @@ Notes for this model:
 - [`mongodbatlas_service_account_secret`](../resources/service_account_secret)
 - [`mongodbatlas_project_service_account`](../resources/project_service_account)
 - [`mongodbatlas_project_service_account_secret`](../resources/project_service_account_secret)
+- [`mongodbatlas_mcp_config_secret`](../resources/mcp_config_secret)
+- [`mongodbatlas_project_mcp_config_secret`](../resources/project_mcp_config_secret)
