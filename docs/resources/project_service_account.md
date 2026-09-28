@@ -37,11 +37,12 @@ resource "mongodbatlas_project_service_account_secret" "this" {
 data "mongodbatlas_project_service_account" "this" {
   project_id = var.project_id
   client_id  = mongodbatlas_project_service_account.this.client_id
+  depends_on = [mongodbatlas_project_service_account_secret.this]
 }
 
 data "mongodbatlas_project_service_accounts" "this" {
   project_id = var.project_id
-  depends_on = [mongodbatlas_project_service_account.this]
+  depends_on = [mongodbatlas_project_service_account_secret.this]
 }
 
 output "service_account_client_id" {

@@ -16,13 +16,14 @@ resource "mongodbatlas_service_account_secret" "this" {
 }
 
 data "mongodbatlas_service_account" "this" {
-  org_id    = var.org_id
-  client_id = mongodbatlas_service_account.this.client_id
+  org_id     = var.org_id
+  client_id  = mongodbatlas_service_account.this.client_id
+  depends_on = [mongodbatlas_service_account_secret.this]
 }
 
 data "mongodbatlas_service_accounts" "this" {
   org_id     = var.org_id
-  depends_on = [mongodbatlas_service_account.this]
+  depends_on = [mongodbatlas_service_account_secret.this]
 }
 
 output "service_account_client_id" {
