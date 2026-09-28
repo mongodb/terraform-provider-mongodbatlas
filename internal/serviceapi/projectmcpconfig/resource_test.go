@@ -57,8 +57,8 @@ func TestAccProjectMcpConfig_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, name1, []string{"GROUP_READ_ONLY"}, nil, withDS),
-				Check:  checkBasic([]string{"GROUP_READ_ONLY"}, nil, withDS),
+				Config: configBasic(projectID, name1, []string{"GROUP_READ_ONLY"}, nil, !withDS),
+				Check:  checkBasic([]string{"GROUP_READ_ONLY"}, nil, !withDS),
 			},
 			{
 				Config: configBasic(projectID, name2, []string{"GROUP_OWNER", "GROUP_READ_ONLY"}, nil, !withDS),
@@ -79,6 +79,10 @@ func TestAccProjectMcpConfig_basic(t *testing.T) {
 			{
 				Config: configBasic(projectID, name1, []string{"GROUP_OWNER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}, !withDS),
 				Check:  checkBasic([]string{"GROUP_OWNER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}, !withDS),
+			},
+			{ // No-op step: the plural list endpoint returns 404 while the backing service accounts are being updated, so read it only once the resource is stable.
+				Config: configBasic(projectID, name1, []string{"GROUP_OWNER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}, withDS),
+				Check:  checkBasic([]string{"GROUP_OWNER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}, withDS),
 			},
 			{
 				ResourceName:                         resourceName,

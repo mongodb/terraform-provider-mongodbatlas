@@ -58,8 +58,8 @@ func TestAccMcpConfig_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name1, []string{"ORG_READ_ONLY"}, nil, withDS),
-				Check:  checkBasic([]string{"ORG_READ_ONLY"}, nil, withDS),
+				Config: configBasic(orgID, name1, []string{"ORG_READ_ONLY"}, nil, !withDS),
+				Check:  checkBasic([]string{"ORG_READ_ONLY"}, nil, !withDS),
 			},
 			{
 				Config: configBasic(orgID, name2, []string{"ORG_MEMBER", "ORG_READ_ONLY"}, nil, !withDS),
@@ -80,6 +80,10 @@ func TestAccMcpConfig_basic(t *testing.T) {
 			{
 				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}, !withDS),
 				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}, !withDS),
+			},
+			{ // No-op step: the plural list endpoint returns 404 while the backing service accounts are being updated, so read it only once the resource is stable.
+				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}, withDS),
+				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}, withDS),
 			},
 			{
 				ResourceName:                         resourceName,
