@@ -182,6 +182,8 @@ func configWithoutInitialSecretWithSecrets(projectID, name string) string {
 			project_id                 = %[1]q
 			client_id                  = mongodbatlas_project_service_account.test.client_id
 			secret_expires_after_hours = 24
+			// Creating two secrets in parallel hits DATA_CONCURRENCY_ERROR (409); serialize the second.
+			depends_on = [mongodbatlas_project_service_account_secret.first]
 		}
 
 		data "mongodbatlas_project_service_account" "test" {
