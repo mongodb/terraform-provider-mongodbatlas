@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -147,8 +149,14 @@ func TestAccProjectServiceAccount_withoutInitialSecretWithSecrets(t *testing.T) 
 					resource.TestCheckResourceAttrSet("mongodbatlas_project_service_account_secret.first", "secret_id"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project_service_account_secret.second", "secret_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "secrets.#", "2"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.secrets.#", "2"),
 				),
+				// The plural data source can return other Service Accounts in the project, so the test account is
+				// not guaranteed to be at results.0. Find it by name before asserting.
+				ConfigStateChecks: []statecheck.StateCheck{
+					acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(name), map[string]knownvalue.Check{
+						"secrets": knownvalue.ListSizeExact(2),
+					}),
+				},
 			},
 		},
 	})
