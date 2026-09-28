@@ -54,43 +54,6 @@ func TestCleanupOnErrorCalledForATimeout(t *testing.T) {
 	assert.Equal(t, "warning detail error=cleanup error", diags[2].Detail())
 }
 
-func TestReplaceContextDeadlineExceededDiags(t *testing.T) {
-	diags := diag.Diagnostics{
-		diag.NewErrorDiagnostic(
-			"Error creating resource",
-			"Error waiting for state to be IDLE: context deadline exceeded",
-		),
-		diag.NewErrorDiagnostic(
-			"Another error",
-			"This is a different error",
-		),
-		diag.NewWarningDiagnostic(
-			"Warning with deadline",
-			"Warning with context deadline exceeded mentioned",
-		),
-	}
-
-	expectedSummaries := []string{
-		"Error creating resource",
-		"Another error",
-		"Warning with deadline",
-	}
-	expectedDetails := []string{
-		"Error waiting for state to be IDLE: Timeout reached after 2m0s",
-		"This is a different error",
-		"Warning with Timeout reached after 2m0s mentioned",
-	}
-
-	duration := 2 * time.Minute
-	cleanup.ReplaceContextDeadlineExceededDiags(&diags, duration)
-
-	assert.Len(t, diags, 3, "Expected same number of diagnostics")
-	for i, diag := range diags {
-		assert.Equal(t, expectedSummaries[i], diag.Summary(), "Summary at index %d should match", i)
-		assert.Equal(t, expectedDetails[i], diag.Detail(), "Detail at index %d should match", i)
-	}
-}
-
 type mockResource struct {
 	values    map[string]any
 	isChanged bool

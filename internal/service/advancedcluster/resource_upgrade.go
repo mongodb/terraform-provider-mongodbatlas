@@ -48,6 +48,7 @@ func getUpgradeFlexToDedicatedRequest(state, patch *admin.ClusterDescription2024
 	req := admin.AtlasTenantClusterUpgradeRequest20240805{
 		Name:             state.GetName(),
 		ClusterType:      state.ClusterType,
+		DatabaseEdition:  patch.DatabaseEdition,
 		ReplicationSpecs: patch.ReplicationSpecs,
 	}
 

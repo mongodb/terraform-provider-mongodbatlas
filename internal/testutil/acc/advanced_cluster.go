@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -275,6 +276,26 @@ data "mongodbatlas_advanced_clusters" "test" {
 	depends_on = [mongodbatlas_advanced_cluster.test]
 }
 `
+
+// ShardSizeLimitMetricsWait is how long tests wait before a step that adds or lowers
+// auto_scaling.storage_config.shard_size_limit_gb on an INFINITE cluster.
+//
+// Atlas validates the new limit against the cluster's current data size, which can take up to a
+// minute to become queryable. Until then Atlas rejects the change with HTTP 503
+// SHARD_SIZE_LIMIT_CURRENT_SIZE_UNKNOWN. This is expected Atlas behavior (see CLOUDP-449163), not
+// a provider bug, and there is no API the provider can poll, so tests wait.
+const ShardSizeLimitMetricsWait = 1 * time.Minute
+
+// PreConfigWaitForShardSizeLimitMetrics returns a TestStep.PreConfig that waits before steps that
+// add or lower shard_size_limit_gb, which is when Atlas validates against the current data size.
+// See ShardSizeLimitMetricsWait.
+func PreConfigWaitForShardSizeLimitMetrics(tb testing.TB) func() {
+	tb.Helper()
+	return func() {
+		tb.Logf("Waiting %s before changing shard_size_limit_gb so Atlas can read the cluster current data size", ShardSizeLimitMetricsWait)
+		time.Sleep(ShardSizeLimitMetricsWait)
+	}
+}
 
 func JoinQuotedStrings(list []string) string {
 	quoted := make([]string, len(list))

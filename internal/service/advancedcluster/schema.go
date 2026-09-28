@@ -2,6 +2,7 @@ package advancedcluster
 
 import (
 	"context"
+	"maps"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -44,6 +45,10 @@ const (
 	descPriority                  = "Precedence is given to this region when a primary election occurs. If your **regionConfigs** has only **readOnlySpecs**, **analyticsSpecs**, or both, set this value to `0`. If you have multiple **regionConfigs** objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is `7`.\n\n**Example:** If you have three regions, their priorities would be `7`, `6`, and `5` respectively. If you added two more regions for supporting electable nodes, the priorities of those regions would be `4` and `3` respectively."
 	descBackingProviderNameTenant = "Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when **providerName** is `TENANT` and **electableSpecs.instanceSize** is `M0`."
 	descContainerID               = "A key-value map of the Network Peering Container ID(s) for the configuration specified in region_configs. The Container ID is the id of the container created when the first cluster in the region (AWS/Azure) or project (GCP) was created."
+	descDatabaseEdition           = "Available in Public Preview: Optional value that indicates whether the cluster uses the `CORE` or `INFINITE` database edition. If you omit this attribute, MongoDB Cloud selects the default database edition. Only `REPLICASET` clusters currently support the `INFINITE` edition: the provider rejects the configuration if you combine `INFINITE` with the `SHARDED` or `GEOSHARDED` cluster type."
+	descEffectiveDatabaseEdition  = "Available in Public Preview: Database edition that the cluster currently uses. This value is `CORE` or `INFINITE` and can differ from `database_edition` when MongoDB Cloud applies the default."
+	descStorageConfig             = "Settings that determine the per-shard data-size limit for this cluster. You can configure these settings only for Atlas INFINITE clusters."
+	descShardSizeLimitGB          = "Maximum data size that MongoDB Cloud allows each shard of this cluster to reach, expressed in gigabytes. Set the same value for every region configuration. Remove `storage_config` to clear the configured limit."
 )
 
 func resourceSchema(ctx context.Context) schema.Schema {
@@ -78,7 +83,10 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"cluster_type": schema.StringAttribute{
-				Required:            true,
+				Required: true,
+				Validators: []validator.String{
+					InfiniteDatabaseEditionValidator{},
+				},
 				MarkdownDescription: "Configuration of nodes that comprise the cluster.",
 			},
 			"config_server_management_mode": schema.StringAttribute{
@@ -159,6 +167,14 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			"create_date": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Date and time when MongoDB Cloud created this cluster. This parameter expresses its value in ISO 8601 format in UTC.",
+			},
+			"database_edition": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: descDatabaseEdition,
+			},
+			"effective_database_edition": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: descEffectiveDatabaseEdition,
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed: true,
@@ -252,7 +268,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 								Attributes: map[string]schema.Attribute{
 									"analytics_auto_scaling": autoScalingSchema(),
 									"analytics_specs":        specsSchema(),
-									"auto_scaling":           autoScalingSchema(),
+									"auto_scaling":           autoScalingWithStorageConfigSchema(),
 									"backing_provider_name": schema.StringAttribute{
 										Optional:            true,
 										MarkdownDescription: descBackingProviderNameTenant,
@@ -414,7 +430,7 @@ func replicationSpecsSchemaDS() dsschema.ListNestedAttribute {
 						Attributes: map[string]dsschema.Attribute{
 							"analytics_auto_scaling": autoScalingSchemaDS(),
 							"analytics_specs":        specsSchemaDS(),
-							"auto_scaling":           autoScalingSchemaDS(),
+							"auto_scaling":           autoScalingWithStorageConfigSchemaDS(),
 							"backing_provider_name": dsschema.StringAttribute{
 								Computed:            true,
 								MarkdownDescription: descBackingProviderNameTenant,
@@ -487,6 +503,22 @@ func autoScalingSchema() schema.SingleNestedAttribute {
 	}
 }
 
+func autoScalingWithStorageConfigSchema() schema.SingleNestedAttribute {
+	result := autoScalingSchema()
+	result.PlanModifiers = []planmodifier.Object{clearRemovedStorageConfig{}}
+	result.Attributes["storage_config"] = schema.SingleNestedAttribute{
+		Optional:            true,
+		MarkdownDescription: descStorageConfig,
+		Attributes: map[string]schema.Attribute{
+			"shard_size_limit_gb": schema.Int64Attribute{
+				Required:            true,
+				MarkdownDescription: descShardSizeLimitGB,
+			},
+		},
+	}
+	return result
+}
+
 func autoScalingSchemaDS() dsschema.SingleNestedAttribute {
 	return dsschema.SingleNestedAttribute{
 		Computed:            true,
@@ -514,6 +546,21 @@ func autoScalingSchemaDS() dsschema.SingleNestedAttribute {
 			},
 		},
 	}
+}
+
+func autoScalingWithStorageConfigSchemaDS() dsschema.SingleNestedAttribute {
+	result := autoScalingSchemaDS()
+	result.Attributes["storage_config"] = dsschema.SingleNestedAttribute{
+		Computed:            true,
+		MarkdownDescription: descStorageConfig,
+		Attributes: map[string]dsschema.Attribute{
+			"shard_size_limit_gb": dsschema.Int64Attribute{
+				Computed:            true,
+				MarkdownDescription: descShardSizeLimitGB,
+			},
+		},
+	}
+	return result
 }
 
 func specsSchema() schema.SingleNestedAttribute {
@@ -688,6 +735,8 @@ type TFModel struct {
 	BiConnectorConfig                             types.Object   `tfsdk:"bi_connector_config"`
 	ClusterType                                   types.String   `tfsdk:"cluster_type"`
 	CreateDate                                    types.String   `tfsdk:"create_date"`
+	DatabaseEdition                               types.String   `tfsdk:"database_edition"`
+	EffectiveDatabaseEdition                      types.String   `tfsdk:"effective_database_edition"`
 	AcceptDataRisksAndForceReplicaSetReconfig     types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
 	EncryptionAtRestProvider                      types.String   `tfsdk:"encryption_at_rest_provider"`
 	Timeouts                                      timeouts.Value `tfsdk:"timeouts"`
@@ -736,6 +785,8 @@ type TFModelDS struct {
 	StateName                                     types.String `tfsdk:"state_name"`
 	ReplicaSetScalingStrategy                     types.String `tfsdk:"replica_set_scaling_strategy"`
 	CreateDate                                    types.String `tfsdk:"create_date"`
+	DatabaseEdition                               types.String `tfsdk:"database_edition"`
+	EffectiveDatabaseEdition                      types.String `tfsdk:"effective_database_edition"`
 	Name                                          types.String `tfsdk:"name"`
 	ProjectID                                     types.String `tfsdk:"project_id"`
 	ClusterID                                     types.String `tfsdk:"cluster_id"`
@@ -851,7 +902,7 @@ type TFRegionConfigsModel struct {
 var regionConfigsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"analytics_auto_scaling": autoScalingObjType,
 	"analytics_specs":        specsObjType,
-	"auto_scaling":           autoScalingObjType,
+	"auto_scaling":           autoScalingWithStorageConfigObjType,
 	"backing_provider_name":  types.StringType,
 	"electable_specs":        specsObjType,
 	"priority":               types.Int64Type,
@@ -878,7 +929,7 @@ type TFRegionConfigsDSModel struct {
 var regionConfigsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"analytics_auto_scaling":    autoScalingObjType,
 	"analytics_specs":           specsDSObjType,
-	"auto_scaling":              autoScalingObjType,
+	"auto_scaling":              autoScalingWithStorageConfigObjType,
 	"backing_provider_name":     types.StringType,
 	"effective_analytics_specs": specsDSObjType,
 	"effective_electable_specs": specsDSObjType,
@@ -905,6 +956,20 @@ var autoScalingObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"compute_scale_down_enabled": types.BoolType,
 	"disk_gb_enabled":            types.BoolType,
 }}
+
+type TFStorageConfigModel struct {
+	ShardSizeLimitGB types.Int64 `tfsdk:"shard_size_limit_gb"`
+}
+
+var storageConfigObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"shard_size_limit_gb": types.Int64Type,
+}}
+
+var autoScalingWithStorageConfigObjType = types.ObjectType{AttrTypes: func() map[string]attr.Type {
+	result := maps.Clone(autoScalingObjType.AttrTypes)
+	result["storage_config"] = storageConfigObjType
+	return result
+}()}
 
 type TFSpecsModel struct {
 	DiskSizeGb    types.Float64 `tfsdk:"disk_size_gb"`
