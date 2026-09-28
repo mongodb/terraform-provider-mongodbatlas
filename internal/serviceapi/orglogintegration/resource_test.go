@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -135,7 +136,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if err == nil {
 			return nil
 		}
-		return fmt.Errorf("org log integration for org_id %s with id %s does not exist", orgID, integrationID)
+		return fmt.Errorf("org log integration for org_id %s with id %s does not exist: %w", orgID, integrationID, err)
 	}
 }
 
@@ -149,11 +150,14 @@ func checkDestroy(state *terraform.State) error {
 		if orgID == "" || integrationID == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnV2().PushBasedLogExportAPI.GetOrgLogIntegration(context.Background(), orgID, integrationID).Execute()
+		_, resp, err := acc.ConnV2().PushBasedLogExportAPI.GetOrgLogIntegration(context.Background(), orgID, integrationID).Execute()
 		if err == nil {
 			return fmt.Errorf("org log integration for org_id %s with id %s still exists", orgID, integrationID)
 		}
-		return nil
+		if validate.StatusNotFound(resp) {
+			return nil
+		}
+		return fmt.Errorf("checkDestroy, could not confirm deletion of org log integration for org_id %s with id %s: %w", orgID, integrationID, err)
 	}
 	return nil
 }
