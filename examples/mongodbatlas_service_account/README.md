@@ -29,8 +29,10 @@ For managing and rotating secrets, see [Guide: Service Account Secret Rotation](
 ## Outputs
 
 - `service_account_client_id`: The Client ID of the Service Account
+- `service_account_name`: The name of the Service Account, read from the data source
 - `secret_id`: The ID of the Service Account secret
 - `secret` (sensitive): The secret value
+- `service_accounts_results`: All Service Accounts in the organization
 
 ## Usage
 
