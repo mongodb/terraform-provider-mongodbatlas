@@ -91,6 +91,8 @@ output "secret" {
 }
 ```
 
+`ORG_READ_ONLY` works when the apply runs with an admin credential. When the provider authenticates as this Service Account, its role must allow managing its own secrets, such as `ORG_OWNER`.
+
 ### Rotate
 
 1. Replace the secret:
@@ -123,7 +125,7 @@ The account carries two secrets. Rotating one leaves the other valid while consu
 
 ### Configuration
 
-The [two-slot rotation example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_service_account_secret_rotation) is the full configuration. It creates the account with `without_initial_secret = true`, manages both slots, and reads the live expiry of each slot through `data "mongodbatlas_service_account"`. It exposes `current_credentials`, the credential consumers adopt after a rotation, resolved to the slot with the largest `expires_at`, and `expires_at` for both slots.
+The [two-slot rotation example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_service_account_secret_rotation) is the full configuration. It creates the account with `without_initial_secret = true`, manages both slots, and reads the live expiry of each slot through `data "mongodbatlas_service_account"`. It exposes `current_credentials`, the credential consumers adopt after a rotation, resolved to the slot with the largest `expires_at`, and `expires_at` for both slots.
 
 Two points to carry over when you build your own:
 
@@ -191,7 +193,7 @@ terraform apply -replace="mongodbatlas_mcp_config_secret.secret_1"
 terraform output -raw secret_1
 ```
 
-The secret value is returned only in the create response, so read the output right after the replace. The 7-day overlap limit and the consumer handoff steps from [Model B](#model-b-two-slot-rotation) apply here as well.
+The secret value is returned only in the create response, so read the output right after the replace. The snippet assumes an output named `secret_1` for the first slot's value; define one output per slot. The 7-day overlap limit and the consumer handoff steps from [Model B](#model-b-two-slot-rotation) apply here as well.
 
 ## Related documentation
 
