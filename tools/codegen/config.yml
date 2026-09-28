@@ -1761,6 +1761,47 @@ resources:
           otel_supplied_headers:
             sensitive: true
 
+  org_log_integration:
+    version_header: application/vnd.atlas.2025-03-12+json
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/logIntegrations/{logIntegrationId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/logIntegrations
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/logIntegrations/{logIntegrationId}
+      method: PUT
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/logIntegrations/{logIntegrationId}
+      method: DELETE
+    schema:
+      aliases:
+        logIntegrationId: integrationId
+        id: integrationId
+      overrides:
+          org_id:
+            description: *org_id_description
+          integration_id:
+            immutable_computed: true
+          otel_supplied_headers:
+            sensitive: true
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/logIntegrations/{logIntegrationId}
+        method: GET
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/logIntegrations
+        method: GET
+      schema:
+        aliases:
+          logIntegrationId: integrationId
+          id: integrationId
+          results.id: integrationId
+        overrides:
+          org_id:
+            description: *org_id_description
+        ignores: ["otel_supplied_headers", "results.otel_supplied_headers"] # `otel_supplied_headers` values are redacted on read responses, no value in adding for data sources
   metric_integration:
     read:
       path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
