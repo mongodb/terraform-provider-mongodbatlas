@@ -85,3 +85,5 @@ ephemeral "mongodbatlas_service_account_jwt" "token" {
   client_secret = mongodbatlas_service_account_secret.jwt_sa.secret
 }
 ```
+
+For rotating the dedicated Service Account's secret, see [Guide: Service Account Secret Rotation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/service-account-secret-rotation).
