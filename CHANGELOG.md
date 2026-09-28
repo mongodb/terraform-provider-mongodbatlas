@@ -25,7 +25,8 @@ ENHANCEMENTS:
 * resource/mongodbatlas_advanced_cluster: Adds `shard_size_limit_gb` for INFINITE clusters ([#4697](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4697))
 * resource/mongodbatlas_advanced_cluster: Adds attribute `effective_database_edition` ([#4725](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4725))
 * resource/mongodbatlas_advanced_cluster: Adds attribute database_edition ([#4613](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4613))
-* resource/mongodbatlas_service_account: Adds `without_initial_secret` attribute to create a Service Account without generating an initial secret. `secret_expires_after_hours` is now optional when `without_initial_secret` is `true` ([#4727](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4727))
+* resource/mongodbatlas_project_service_account: Adds `without_initial_secret` attribute to create a Project Service Account without generating an initial secret. `secret_expires_after_hours` is mutually exclusive with `without_initial_secret` and must be omitted when it is `true` ([#4764](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4764))
+* resource/mongodbatlas_service_account: Adds `without_initial_secret` attribute to create a Service Account without generating an initial secret. `secret_expires_after_hours` is mutually exclusive with `without_initial_secret` and must be omitted when it is `true` ([#4727](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4727))
 
 BUG FIXES:
 
