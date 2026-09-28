@@ -129,6 +129,72 @@ func TestAccProjectServiceAccount_withoutInitialSecret(t *testing.T) {
 	})
 }
 
+func TestAccProjectServiceAccount_withoutInitialSecretWithSecrets(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		name      = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithoutInitialSecretWithSecrets(projectID, name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "secrets.#", "0"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_project_service_account_secret.first", "secret_id"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_project_service_account_secret.second", "secret_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "secrets.#", "2"),
+					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.secrets.#", "2"),
+				),
+			},
+		},
+	})
+}
+
+func configWithoutInitialSecretWithSecrets(projectID, name string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project_service_account" "test" {
+			project_id             = %[1]q
+			name                   = %[2]q
+			description            = "Acceptance Test Project SA without an initial secret"
+			roles                  = ["GROUP_OWNER"]
+			without_initial_secret = true
+		}
+
+		resource "mongodbatlas_project_service_account_secret" "first" {
+			project_id                 = %[1]q
+			client_id                  = mongodbatlas_project_service_account.test.client_id
+			secret_expires_after_hours = 12
+		}
+
+		resource "mongodbatlas_project_service_account_secret" "second" {
+			project_id                 = %[1]q
+			client_id                  = mongodbatlas_project_service_account.test.client_id
+			secret_expires_after_hours = 24
+		}
+
+		data "mongodbatlas_project_service_account" "test" {
+			project_id = %[1]q
+			client_id  = mongodbatlas_project_service_account.test.client_id
+			depends_on = [
+				mongodbatlas_project_service_account_secret.first,
+				mongodbatlas_project_service_account_secret.second,
+			]
+		}
+
+		data "mongodbatlas_project_service_accounts" "test" {
+			project_id = %[1]q
+			depends_on = [
+				mongodbatlas_project_service_account_secret.first,
+				mongodbatlas_project_service_account_secret.second,
+			]
+		}
+	`, projectID, name)
+}
+
 func TestAccProjectServiceAccount_pluralDSIncludeSystemManaged(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
