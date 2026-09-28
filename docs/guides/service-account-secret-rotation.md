@@ -113,112 +113,23 @@ When the provider authenticates with a different credential, `create_before_dest
 
 Use this model when an application, a CI job, or another Terraform stack holds the secret and must keep authenticating through the switch.
 
+The account carries two secrets. Rotating one leaves the other valid while consumers switch.
+
 ### Configuration
 
-```terraform
-variable "org_id" {
-  description = "MongoDB Atlas Organization ID"
-  type        = string
-}
+The [two-slot rotation example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_service_account_secret_rotation) is the full configuration. It creates the account with `without_initial_secret = true`, manages both slots, and reads the live expiry of each slot through `data "mongodbatlas_service_account"`. It exposes `current_credentials`, the credential consumers adopt after a rotation, resolved to the slot with the largest `expires_at`, and `expires_at` for both slots.
 
-# Create the Service Account without an Atlas-generated secret.
-resource "mongodbatlas_service_account" "this" {
-  org_id                 = var.org_id
-  name                   = "example-service-account"
-  description            = "Example Service Account"
-  roles                  = ["ORG_READ_ONLY"]
-  without_initial_secret = true
-}
+Two points to carry over when you build your own:
 
-resource "mongodbatlas_service_account_secret" "secret_1" {
-  org_id                     = var.org_id
-  client_id                  = mongodbatlas_service_account.this.client_id
-  secret_expires_after_hours = 2160 # 90 days
-}
-
-resource "mongodbatlas_service_account_secret" "secret_2" {
-  org_id                     = var.org_id
-  client_id                  = mongodbatlas_service_account.this.client_id
-  secret_expires_after_hours = 2160 # 90 days
-
-  # Serialize the creates to avoid DATA_CONCURRENCY_ERROR (HTTP 409).
-  depends_on = [mongodbatlas_service_account_secret.secret_1]
-}
-
-output "secret_1" {
-  sensitive = true
-  value     = mongodbatlas_service_account_secret.secret_1.secret
-}
-
-output "secret_2" {
-  sensitive = true
-  value     = mongodbatlas_service_account_secret.secret_2.secret
-}
-```
-
-Do not set `secret_expires_after_hours` on the Service Account when `without_initial_secret = true`. Atlas rejects a create request that sets both.
-
-The two `output` blocks above expose each slot's secret. In a real stack you also want a single output for the credential consumers adopt, and the live Atlas expiry of each slot. Add a data source and a `locals` block to the same configuration:
-
-```terraform
-# Read the live secret metadata from Atlas. A resource `expires_at` refreshes only when that
-# resource is read, so the slot that is not rotating keeps a stale value in state. This data
-# source always returns the current expiry for both slots.
-data "mongodbatlas_service_account" "this" {
-  org_id    = var.org_id
-  client_id = mongodbatlas_service_account.this.client_id
-
-  depends_on = [
-    mongodbatlas_service_account_secret.secret_1,
-    mongodbatlas_service_account_secret.secret_2,
-  ]
-}
-
-locals {
-  # Creating a secret cuts every existing secret to min(remaining lifetime, 7 days), so the slot
-  # with the largest expires_at is the one created or rotated last. ISO 8601 UTC strings are
-  # fixed width, so lexical order matches chronological order.
-  live_secrets    = data.mongodbatlas_service_account.this.secrets
-  by_secret_id    = { for s in local.live_secrets : s.secret_id => s }
-  freshest_expiry = sort([for s in local.live_secrets : s.expires_at])[length(local.live_secrets) - 1]
-  freshest_secret_id = [
-    for s in local.live_secrets : s.secret_id if s.expires_at == local.freshest_expiry
-  ][0]
-
-  slots = {
-    secret_1 = mongodbatlas_service_account_secret.secret_1.secret_id
-    secret_2 = mongodbatlas_service_account_secret.secret_2.secret_id
-  }
-
-  # The freshest slot is the credential consumers adopt after a rotation.
-  current_credentials = {
-    client_id     = mongodbatlas_service_account.this.client_id
-    client_secret = local.freshest_secret_id == local.slots.secret_1 ? mongodbatlas_service_account_secret.secret_1.secret : mongodbatlas_service_account_secret.secret_2.secret
-  }
-}
-
-output "current_credentials" {
-  description = "The credential consumers adopt after a rotation."
-  sensitive   = true
-  value       = local.current_credentials
-}
-
-output "expires_at" {
-  description = "Live Atlas expiry for each slot, read through the data source."
-  value = {
-    secret_1 = local.by_secret_id[local.slots.secret_1].expires_at
-    secret_2 = local.by_secret_id[local.slots.secret_2].expires_at
-  }
-}
-```
-
-`current_credentials` gives consumers one value to adopt instead of picking a slot by hand. `expires_at` shows the real expiry of both slots, including the 7-day cut on the slot you did not rotate.
-
-`secret_2` declares `depends_on = [mongodbatlas_service_account_secret.secret_1]`. Without it, Terraform creates the two secrets in parallel and the second POST can fail with:
+- `secret_2` needs `depends_on = [mongodbatlas_service_account_secret.secret_1]`. Without it, Terraform creates the two secrets in parallel and the second POST can fail with:
 
 ```text
 HTTP 409 Conflict (Error code: "DATA_CONCURRENCY_ERROR")
 ```
+
+- Read each slot's expiry from the data source, not from the resource. A resource `expires_at` refreshes only when that resource is read, so the slot that is not rotating keeps a stale value in state.
+
+Do not set `secret_expires_after_hours` on the Service Account when `without_initial_secret = true`. Atlas rejects a create request that sets both.
 
 ### How consumers map to slots
 
@@ -241,12 +152,11 @@ terraform apply -replace="mongodbatlas_service_account_secret.secret_1"
 3. Retrieve and securely store the new secret value (**warning**: this prints the secret to your terminal):
 
 ```shell
-terraform output -raw secret_1
+terraform output -json current_credentials
+terraform output -json expires_at
 ```
 
-4. Roll every consumer over to the new value within 7 days. Consumers that read Terraform outputs can
-   adopt `terraform output -json current_credentials` instead of tracking slots, and check
-   `terraform output -json expires_at` for the live expiry of both slots.
+4. Roll every consumer over to the new value within 7 days.
    - Update the stored credential in each consumer, such as a CI secret, a secret manager entry, or an environment variable.
    - Redeploy or restart the consumer.
    - Verify that it authenticates before the window closes.
@@ -258,6 +168,7 @@ Notes for this model:
 
 - `client_id` stays constant through rotation; only the secret changes.
 - Terraform deletes the replaced secret as part of the apply, so you do not revoke it manually.
+- The account needs a role that can manage its own secrets only when you rotate while authenticated as that account. Otherwise the admin credential that runs the apply needs it.
 
 ## Security notes
 
@@ -266,6 +177,7 @@ Notes for this model:
 
 ## Related documentation
 
+- [Two-slot rotation example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.18.0/examples/mongodbatlas_service_account_secret_rotation)
 - [`mongodbatlas_service_account`](../resources/service_account)
 - [`mongodbatlas_service_account_secret`](../resources/service_account_secret)
 - [`mongodbatlas_project_service_account`](../resources/project_service_account)

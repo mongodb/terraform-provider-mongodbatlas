@@ -14,6 +14,8 @@ terraform output -raw secret
 
 For managing and rotating both secrets, see [Guide: Service Account Secret Rotation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/service-account-secret-rotation).
 
+For a runnable two-slot rotation, see [`examples/mongodbatlas_service_account_secret_rotation/`](../mongodbatlas_service_account_secret_rotation/README.md).
+
 ## Prerequisites
 - Service Account with Organization Owner permissions used for Provider Authentication
 
