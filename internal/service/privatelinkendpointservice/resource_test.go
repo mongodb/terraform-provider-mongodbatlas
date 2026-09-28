@@ -143,6 +143,7 @@ func configCompleteAWS(projectID, vpcID, subnetID, securityGroupID string) strin
 	return fmt.Sprintf(`
 		provider "aws" {
 			region = %[5]q
+			%[6]s
 		}
 
 		resource "mongodbatlas_privatelink_endpoint" "this" {
@@ -178,7 +179,7 @@ func configCompleteAWS(projectID, vpcID, subnetID, securityGroupID string) strin
 			endpoint_service_id = mongodbatlas_privatelink_endpoint_service.this.endpoint_service_id
 			provider_name       = mongodbatlas_privatelink_endpoint.this.provider_name
 		}
-	`, projectID, vpcID, subnetID, securityGroupID, region)
+	`, projectID, vpcID, subnetID, securityGroupID, region, acc.ConfigDefaultTags())
 }
 
 func checkCompleteAWS() resource.TestCheckFunc {

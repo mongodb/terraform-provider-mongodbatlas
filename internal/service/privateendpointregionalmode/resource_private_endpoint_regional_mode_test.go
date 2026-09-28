@@ -196,6 +196,7 @@ func testConfigUnmanagedAWS(awsAccessKey, awsSecretKey, projectID, providerName,
 			region     = %[5]q
 			access_key = %[1]q
 			secret_key = %[2]q
+			%[7]s
 		}
 		resource "mongodbatlas_privatelink_endpoint" "test" {
 			project_id    = %[3]q
@@ -267,5 +268,5 @@ func testConfigUnmanagedAWS(awsAccessKey, awsSecretKey, projectID, providerName,
 			  cidr_blocks = ["0.0.0.0/0"]
 			}
 		  }
-	`, awsAccessKey, awsSecretKey, projectID, providerName, region, serviceResourceName)
+	`, awsAccessKey, awsSecretKey, projectID, providerName, region, serviceResourceName, acc.ConfigDefaultTags())
 }
