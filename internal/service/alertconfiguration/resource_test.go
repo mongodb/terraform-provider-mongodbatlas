@@ -762,11 +762,12 @@ func TestAccConfigRSAlertConfiguration_withWebhookTemplates(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"updated"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateProjectIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// webhook_url is not returned by api in import operation
+				ImportStateVerifyIgnore: []string{"updated", "notification.0.webhook_url"},
 			},
 		},
 	})
