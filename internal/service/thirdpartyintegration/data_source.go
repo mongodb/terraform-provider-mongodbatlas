@@ -118,6 +118,10 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"send_sharding_metrics": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }

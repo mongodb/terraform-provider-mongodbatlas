@@ -55,6 +55,9 @@ func integrationToSchema(d *schema.ResourceData, integration *admin.ThirdPartyIn
 	if integrationSchema.SendDatabaseMetrics == nil {
 		integrationSchema.SendDatabaseMetrics = integration.SendDatabaseMetrics
 	}
+	if integrationSchema.SendShardingMetrics == nil {
+		integrationSchema.SendShardingMetrics = integration.SendShardingMetrics
+	}
 
 	out := map[string]any{
 		"id":                               integration.Id,
@@ -76,6 +79,7 @@ func integrationToSchema(d *schema.ResourceData, integration *admin.ThirdPartyIn
 		"send_database_metrics":            integration.SendDatabaseMetrics,
 		"send_user_provided_resource_tags": integration.SendUserProvidedResourceTags,
 		"send_query_stats_metrics":         integration.SendQueryStatsMetrics,
+		"send_sharding_metrics":            integration.SendShardingMetrics,
 	}
 
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
@@ -169,6 +173,10 @@ func schemaToIntegration(in *schema.ResourceData) (out *admin.ThirdPartyIntegrat
 		out.SendQueryStatsMetrics = new(sendQueryStatsMetrics.(bool))
 	}
 
+	if sendShardingMetrics, ok := in.GetOk("send_sharding_metrics"); ok {
+		out.SendShardingMetrics = new(sendShardingMetrics.(bool))
+	}
+
 	return out
 }
 
@@ -237,5 +245,9 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *admin.Thir
 
 	if d.HasChange("send_query_stats_metrics") {
 		integration.SendQueryStatsMetrics = new(d.Get("send_query_stats_metrics").(bool))
+	}
+
+	if d.HasChange("send_sharding_metrics") {
+		integration.SendShardingMetrics = new(d.Get("send_sharding_metrics").(bool))
 	}
 }

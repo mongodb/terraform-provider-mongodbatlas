@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_third_party_integration: Adds `send_sharding_metrics` attribute to the `DATADOG` integration type
+```
