@@ -597,7 +597,7 @@ func TestAlertConfigurationSdkToTFDSModel(t *testing.T) {
 				Matcher:               []alertconfiguration.TfMatcherModel{},
 				MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{},
 				ThresholdConfig:       []alertconfiguration.TfThresholdConfigModel{},
-				Notification:          []alertconfiguration.TfNotificationModel{},
+				Notification:          []alertconfiguration.TfNotificationDSModel{},
 			},
 		},
 	}
@@ -641,7 +641,7 @@ func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
 					Matcher:               []alertconfiguration.TfMatcherModel{},
 					MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{},
 					ThresholdConfig:       []alertconfiguration.TfThresholdConfigModel{},
-					Notification:          []alertconfiguration.TfNotificationModel{},
+					Notification:          []alertconfiguration.TfNotificationDSModel{},
 					Output: []alertconfiguration.TfAlertConfigurationOutputModel{
 						{
 							Type:  types.StringValue("resource_hcl"),
@@ -682,7 +682,7 @@ func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
 					Matcher:               []alertconfiguration.TfMatcherModel{},
 					MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{},
 					ThresholdConfig:       []alertconfiguration.TfThresholdConfigModel{},
-					Notification:          []alertconfiguration.TfNotificationModel{},
+					Notification:          []alertconfiguration.TfNotificationDSModel{},
 					Output: []alertconfiguration.TfAlertConfigurationOutputModel{
 						{
 							Type:  types.StringValue("resource_hcl"),

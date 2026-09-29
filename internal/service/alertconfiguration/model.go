@@ -107,6 +107,35 @@ func NewTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currSt
 	}
 }
 
+// NewTFNotificationDSModelList maps an API notification list into the data source
+// notification model. Sensitive attributes are never mapped because the API redacts
+// them on read, so data sources always expose them as null.
+func NewTFNotificationDSModelList(n []admin.AlertsNotificationRootForGroup) []TfNotificationDSModel {
+	notifications := make([]TfNotificationDSModel, len(n))
+	for i := range n {
+		value := n[i]
+		notifications[i] = TfNotificationDSModel{
+			TeamName:       conversion.StringPtrNullIfEmpty(value.TeamName),
+			Roles:          value.GetRoles(),
+			ChannelName:    conversion.StringPtrNullIfEmpty(value.ChannelName),
+			DatadogRegion:  conversion.StringPtrNullIfEmpty(value.DatadogRegion),
+			DelayMin:       types.Int64PointerValue(conversion.IntPtrToInt64Ptr(value.DelayMin)),
+			EmailAddress:   conversion.StringPtrNullIfEmpty(value.EmailAddress),
+			IntervalMin:    types.Int64PointerValue(conversion.IntPtrToInt64Ptr(value.IntervalMin)),
+			MobileNumber:   conversion.StringPtrNullIfEmpty(value.MobileNumber),
+			OpsGenieRegion: conversion.StringPtrNullIfEmpty(value.OpsGenieRegion),
+			TeamID:         conversion.StringPtrNullIfEmpty(value.TeamId),
+			NotifierID:     types.StringPointerValue(value.NotifierId),
+			IntegrationID:  types.StringPointerValue(value.IntegrationId),
+			TypeName:       conversion.StringPtrNullIfEmpty(value.TypeName),
+			Username:       conversion.StringPtrNullIfEmpty(value.Username),
+			EmailEnabled:   types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled),
+			SMSEnabled:     types.BoolValue(value.SmsEnabled != nil && *value.SmsEnabled),
+		}
+	}
+	return notifications
+}
+
 func NewTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currStateNotifications []TfNotificationModel) []TfNotificationModel {
 	notifications := make([]TfNotificationModel, len(n))
 
@@ -293,7 +322,7 @@ func NewTfAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, proj
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
 		MetricThresholdConfig: metricThresholdConfig,
 		ThresholdConfig:       thresholdConfig,
-		Notification:          NewTFNotificationModelList(apiRespConfig.GetNotifications(), []TfNotificationModel{}),
+		Notification:          NewTFNotificationDSModelList(apiRespConfig.GetNotifications()),
 		Matcher:               NewTFMatcherModelList(apiRespConfig.GetMatchers(), []TfMatcherModel{}),
 		SeverityOverride:      types.StringPointerValue(apiRespConfig.SeverityOverride),
 	}
