@@ -3,10 +3,17 @@
 ############################################################
 
 resource "mongodbatlas_service_account" "this" {
+  org_id                 = var.org_id
+  name                   = var.service_account_name
+  description            = "Description for the Service Account"
+  roles                  = var.org_roles
+  without_initial_secret = true
+}
+
+# Create the secret explicitly so this configuration owns it and can rotate it later.
+resource "mongodbatlas_service_account_secret" "this" {
   org_id                     = var.org_id
-  name                       = var.service_account_name
-  description                = "Description for the Service Account"
-  roles                      = var.org_roles
+  client_id                  = mongodbatlas_service_account.this.client_id
   secret_expires_after_hours = var.secret_expires_after_hours
 }
 

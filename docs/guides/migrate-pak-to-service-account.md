@@ -76,10 +76,17 @@ Add the Service Account resources to your configuration while keeping the existi
 
 ```terraform
 resource "mongodbatlas_service_account" "this" {
+  org_id                 = var.org_id
+  name                   = "example-service-account"
+  description            = "Example Service Account"
+  roles                  = ["ORG_MEMBER"]
+  without_initial_secret = true
+}
+
+# Create the secret explicitly so this configuration owns it and can rotate it later.
+resource "mongodbatlas_service_account_secret" "this" {
   org_id                     = var.org_id
-  name                       = "example-service-account"
-  description                = "Example Service Account"
-  roles                      = ["ORG_MEMBER"]
+  client_id                  = mongodbatlas_service_account.this.client_id
   secret_expires_after_hours = 2160 # 90 days
 }
 
@@ -96,9 +103,9 @@ resource "mongodbatlas_service_account_access_list_entry" "this" {
   # Alternative: ip_address = "192.168.1.100"
 }
 
-output "service_account_first_secret" {
-  description = "The secret value of the first secret created with the Service Account. Available only immediately after initial creation."
-  value       = try(mongodbatlas_service_account.this.secrets[0].secret, null)
+output "service_account_secret" {
+  description = "The secret value for the Service Account. Returned only when the secret is created."
+  value       = mongodbatlas_service_account_secret.this.secret
   sensitive   = true
 }
 ```
@@ -107,10 +114,10 @@ output "service_account_first_secret" {
 
 1. Run `terraform plan` to review the changes.
 2. Run `terraform apply` to create the Service Account resources.
-3. Retrieve and securely store the `service_account_first_secret` value (**warning**: this prints the secret to your terminal):
+3. Retrieve and securely store the `service_account_secret` value (**warning**: this prints the secret to your terminal):
 
    ```bash
-   terraform output -raw service_account_first_secret
+   terraform output -raw service_account_secret
    ```
 
 4. Test your Service Account in your applications and verify that both PAK and SA authentication methods work correctly.
@@ -122,10 +129,17 @@ Once you have verified that the Service Account works correctly, remove the PAK 
 
 ```terraform
 resource "mongodbatlas_service_account" "this" {
+  org_id                 = var.org_id
+  name                   = "example-service-account"
+  description            = "Example Service Account"
+  roles                  = ["ORG_MEMBER"]
+  without_initial_secret = true
+}
+
+# Create the secret explicitly so this configuration owns it and can rotate it later.
+resource "mongodbatlas_service_account_secret" "this" {
   org_id                     = var.org_id
-  name                       = "example-service-account"
-  description                = "Example Service Account"
-  roles                      = ["ORG_MEMBER"]
+  client_id                  = mongodbatlas_service_account.this.client_id
   secret_expires_after_hours = 2160 # 90 days
 }
 
@@ -212,10 +226,17 @@ Add the Service Account resources to your configuration while keeping the existi
 
 ```terraform
 resource "mongodbatlas_project_service_account" "this" {
+  project_id             = var.project_id
+  name                   = "example-project-service-account"
+  description            = "Example Project Service Account"
+  roles                  = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"]
+  without_initial_secret = true
+}
+
+# Create the secret explicitly so this configuration owns it and can rotate it later.
+resource "mongodbatlas_project_service_account_secret" "this" {
   project_id                 = var.project_id
-  name                       = "example-project-service-account"
-  description                = "Example Project Service Account"
-  roles                      = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"]
+  client_id                  = mongodbatlas_project_service_account.this.client_id
   secret_expires_after_hours = 2160 # 90 days
 }
 
@@ -226,9 +247,9 @@ resource "mongodbatlas_project_service_account_access_list_entry" "this" {
   # Alternative: ip_address = "192.168.1.100"
 }
 
-output "project_service_account_first_secret" {
-  description = "The secret value of the first secret created with the Project Service Account. Available only immediately after initial creation."
-  value       = try(mongodbatlas_project_service_account.this.secrets[0].secret, null)
+output "project_service_account_secret" {
+  description = "The secret value for the Project Service Account. Returned only when the secret is created."
+  value       = mongodbatlas_project_service_account_secret.this.secret
   sensitive   = true
 }
 ```
@@ -237,10 +258,10 @@ output "project_service_account_first_secret" {
 
 1. Run `terraform plan` to review the changes.
 2. Run `terraform apply` to create the Service Account resource.
-3. Retrieve and securely store the `project_service_account_first_secret` value (**warning**: this prints the secret to your terminal):
+3. Retrieve and securely store the `project_service_account_secret` value (**warning**: this prints the secret to your terminal):
 
    ```bash
-   terraform output -raw project_service_account_first_secret
+   terraform output -raw project_service_account_secret
    ```
 
 4. Test your Service Account in your applications and verify that both PAK and SA authentication methods work correctly.
@@ -252,10 +273,17 @@ Once you have verified that the Service Account works correctly, remove the PAK 
 
 ```terraform
 resource "mongodbatlas_project_service_account" "this" {
+  project_id             = var.project_id
+  name                   = "example-project-service-account"
+  description            = "Example Project Service Account"
+  roles                  = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"]
+  without_initial_secret = true
+}
+
+# Create the secret explicitly so this configuration owns it and can rotate it later.
+resource "mongodbatlas_project_service_account_secret" "this" {
   project_id                 = var.project_id
-  name                       = "example-project-service-account"
-  description                = "Example Project Service Account"
-  roles                      = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"]
+  client_id                  = mongodbatlas_project_service_account.this.client_id
   secret_expires_after_hours = 2160 # 90 days
 }
 
