@@ -1354,32 +1354,32 @@ func TestAccCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, "8.0"),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, nil, nil),
 			},
 			{ // pins fcv
-				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(firstExpirationDate), new(7)),
+				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "8.0"),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, new(firstExpirationDate), new(8)),
 			},
 			{ // using incorrect format
-				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
+				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, "8.0"),
 				ExpectError: regexp.MustCompile("expiration_date format is incorrect: " + invalidDateFormat),
 			},
 			{ // updates expiration date of fcv
-				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(updatedExpirationDate), new(7)),
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, new(updatedExpirationDate), new(8)),
 			},
 			{ // upgrade mongodb version with fcv pinned
-				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, new(updatedExpirationDate), new(7)),
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "9.0"),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 9, new(updatedExpirationDate), new(8)),
 			},
 			{ // downgrade mongodb version with fcv pinned
-				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(updatedExpirationDate), new(7)),
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, new(updatedExpirationDate), new(8)),
 			},
 			{ // unpins fcv
-				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, "8.0"),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, nil, nil),
 			},
 		},
 	})
