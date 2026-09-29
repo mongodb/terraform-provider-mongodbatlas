@@ -8,7 +8,14 @@ page_title: "Guide: Service Account Secret Rotation"
 
 **Scope**: This guide creates a new Service Account with `without_initial_secret = true`, which requires provider v2.19.0 or later. You cannot set the `without_initial_secret` attribute on an existing Service Account, so the configurations below apply to accounts this stack creates.
 
-To manage an existing Service Account instead, import it and omit `without_initial_secret` and `secret_expires_after_hours` from its definition to avoid a plan change after import. Import its current secret into `mongodbatlas_service_account_secret`, then replace it right away with `terraform apply -replace`: Atlas returns a secret value only once, at creation, so an imported secret has no value in Terraform state to hand to consumers. With Model A, keeping the existing secret without importing it is also fine: it only occupies the second slot, and expired secrets are not deleted automatically, so delete it through the API when you no longer need it.
+To manage an existing Service Account instead, import it and omit `without_initial_secret` and `secret_expires_after_hours` from its definition to avoid a plan change after import. Import its current secret into `mongodbatlas_service_account_secret`:
+
+```shell
+terraform import mongodbatlas_service_account.this ORG_ID/CLIENT_ID
+terraform import mongodbatlas_service_account_secret.this ORG_ID/CLIENT_ID/SECRET_ID
+```
+
+Then replace the imported secret right away with `terraform apply -replace`: Atlas returns a secret value only once, at creation, so an imported secret has no value in Terraform state to hand to consumers. With Model A, keeping the existing secret without importing it is also fine: it only occupies the second slot, and expired secrets are not deleted automatically, so delete it through the API when you no longer need it.
 
 ## Overview
 
