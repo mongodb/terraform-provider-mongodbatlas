@@ -4,15 +4,30 @@ page_title: "Guide: Service Account Secret Rotation"
 
 # Guide: Service Account Secret Rotation
 
-**Objective**: This guide shows a simple approach to manage and rotate Service Account secrets via Terraform, using a two-secret rotation pattern that allows you to rotate secrets without downtime.
+**Objective**: This guide shows two rotation models for Service Account secrets, and how to choose between them. The choice depends on whether credential consumers outside Terraform need a handoff window while the secret changes.
+
+**Scope**: This guide creates a new Service Account with `without_initial_secret = true`, which requires provider v2.19.0 or later. You cannot set the `without_initial_secret` attribute on an existing Service Account, so the configurations below apply to accounts this stack creates.
+
+To manage an existing Service Account instead, import the Service Account definition and omit `without_initial_secret` and `secret_expires_after_hours` to avoid a plan change after import. Import the Service Account's current secret into `mongodbatlas_service_account_secret`:
+
+```shell
+terraform import mongodbatlas_service_account.this ORG_ID/CLIENT_ID
+terraform import mongodbatlas_service_account_secret.this ORG_ID/CLIENT_ID/SECRET_ID
+```
+
+Then replace the imported secret right away with `terraform apply -replace`: Atlas returns a secret value only once, at creation, so an imported secret has no value in Terraform state to hand to consumers. With Model A, you can also keep the existing secret without importing it: the existing secret occupies the second slot. Expired secrets are not deleted automatically, so delete it through the API when you no longer need it.
 
 ## Overview
 
-When you create a Service Account, Atlas automatically generates a secret. The secret value is returned only once, at creation time.
+Service Account secrets expire after the `secret_expires_after_hours` you set, anywhere from 8 hours to 365 days. Terraform cannot update a secret in place, so rotation recreates the `mongodbatlas_service_account_secret` resource using `terraform apply -replace`. Atlas returns the new secret value only once, at creation time.
 
-For production environments, you typically want to maintain two secrets at any given time, allowing you to rotate one while the other remains active.
+This guide uses the following two terms:
+
+- **Slot**: One secret resource. A Service Account and an MCP configuration can each hold at most two.
+- **Consumer**: Anything that authenticates using the secret, such as an application, a CI job, or another Terraform stack.
 
 This guide applies to both organization-level and project-level service accounts:
+
 - **Organization-level**: Use `mongodbatlas_service_account` and `mongodbatlas_service_account_secret`
 - **Project-level**: Use `mongodbatlas_project_service_account` and `mongodbatlas_project_service_account_secret`
 
@@ -20,17 +35,38 @@ This guide applies to both organization-level and project-level service accounts
 
 ~> **WARNING:** Service Account secrets expire after the configured `secret_expires_after_hours` period. To avoid losing access to the Atlas Administration API, update your application with the new client secret as soon as possible after rotation. If all secrets expire before being replaced, you will lose access to the organization. For more information, see [Rotate Service Account Secrets](https://www.mongodb.com/docs/atlas/tutorial/rotate-service-account-secrets/).
 
-## Best Practices Before Starting
 
-- **Backup your Terraform state file** before making any changes.
-- **Test the rotation process in a non-production environment** if possible.
-- Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
+## Security notes
 
-## Setup
+- Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. Follow [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
+- `terraform output -raw` prints the secret value to your terminal.
 
-### Step 1: Initial Configuration
+## Choose a model
 
-1. Start with the following configuration. It creates a service account (which includes an initial secret) and a second secret:
+- **Single-secret rotation (Model A)**: Use this when no external consumers hold the secret, or a consumer can switch secrets immediately. This model uses one secret resource with `create_before_destroy`. This is the simplest path and has no overlap window.
+- **Two-slot rotation (Model B)**: Use this when an external consumer holds the secret and needs time to roll over. The account carries two secrets, and rotating one leaves the other valid while consumers switch. This model adds an extra secret resource and uses a two-cycle schedule.
+
+Both models set `without_initial_secret = true` on the Service Account. Atlas doesn't create a secret at create time. Every secret is managed by `mongodbatlas_service_account_secret`, and there is no import step.
+
+Do not configure the provider to authenticate using the secret that the rotation replaces, unless you use `lifecycle { create_before_destroy = true }` (see Model A). Atlas revokes an OAuth token as soon as the secret that minted it is deleted. A plain replace, which destroys a secret before it creates a new secret, fails with an `HTTP 401` error. With `create_before_destroy`, the create runs while the old secret still exists and the provider's token stays valid.
+
+## The 7-day overlap limit
+
+Creating a new secret shortens the lifetime of every existing secret on the same Service Account. Atlas documents this in [Rotate Service Account Secrets](https://www.mongodb.com/docs/atlas/tutorial/rotate-service-account-secrets/):
+
+- Generating a new secret shortens the lifetime of each existing secret to the shorter of its remaining lifetime and **7 days**.
+- The new secret keeps the `secret_expires_after_hours` you requested.
+- A Service Account can hold at most two secrets, and expired secrets are not deleted automatically.
+
+The overlap between the old and new secret is therefore at most 7 days, no matter what `secret_expires_after_hours` says. For example, two secrets configured with `secret_expires_after_hours = 2160` do not give you a 90-day overlap. Plan every consumer handoff to occur within that 7-day window.
+
+This limit only applies to Model B, which carries two secrets. Model A replaces its single secret and has no overlap. In Model B, the secret you do not replace still triggers the Atlas `Service Account Secrets are about to expire` alert each cycle. Replace it on schedule or accept the notification.
+
+## Model A: Single-secret rotation
+
+Use this model when no external consumers hold the secret, a consumer can switch secrets immediately, or your Service Account authenticates the Terraform stack itself.
+
+### Configuration
 
 ```terraform
 variable "org_id" {
@@ -38,167 +74,141 @@ variable "org_id" {
   type        = string
 }
 
-# Create service account (also creates the first secret)
+# Create the Service Account without an Atlas-generated secret.
 resource "mongodbatlas_service_account" "this" {
-  org_id                     = var.org_id
-  name                       = "example-service-account"
-  description                = "Example Service Account"
-  roles                      = ["ORG_READ_ONLY"]
-  secret_expires_after_hours = 2160 # 90 days
+  org_id                 = var.org_id
+  name                   = "example-service-account"
+  description            = "Example Service Account"
+  roles                  = ["ORG_READ_ONLY"]
+  without_initial_secret = true
 }
 
-# Create secret_2 as a separate resource
-resource "mongodbatlas_service_account_secret" "secret_2" {
-  org_id                     = var.org_id
-  client_id                  = mongodbatlas_service_account.this.client_id
-  secret_expires_after_hours = 2160 # 90 days
-}
-
-# Output the import ID for secret_1
-output "secret_1_import_id" {
-  value       = "${var.org_id}/${mongodbatlas_service_account.this.client_id}/${mongodbatlas_service_account.this.secrets[0].secret_id}"
-  description = "Import ID for secret_1. Use this to import the initial secret into Terraform."
-}
-
-output "secret_2" {
-  sensitive = true
-  value     = mongodbatlas_service_account_secret.secret_2.secret
-}
-```
-
-2. Apply the configuration:
-```shell
-terraform apply
-```
-
-3. Copy the `secret_1_import_id` value from the output. It is required for Step 2.
-
-4. Retrieve and securely store the `secret_2` value (**warning**: this prints the secret to your terminal):
-```shell
-terraform output -raw secret_2
-```
-
-### Step 2: Import the Initial Secret into Terraform
-
-To manage the initial secret (created automatically with the service account) as a Terraform resource, you need to import it.
-
-1. Add the `secret_1` resource and output to your configuration:
-```terraform
-# Define secret_1
-resource "mongodbatlas_service_account_secret" "secret_1" {
-  org_id    = var.org_id
-  client_id = mongodbatlas_service_account.this.client_id
-}
-
-output "secret_1" {
-  sensitive = true
-  value     = mongodbatlas_service_account_secret.secret_1.secret
-}
-```
-
-2. Import `secret_1` using the ID from the previous step:
-
-```shell
-terraform import mongodbatlas_service_account_secret.secret_1 <secret_1_import_id>
-```
-
-**Note**: After import, `mongodbatlas_service_account_secret.secret_1.secret` is `null` since secret values are only returned at creation time. The secret will have a value after the first rotation.
-
-3. Verify that the import was successful:
-```shell
-terraform plan
-```
-
-You should see no planned changes.
-
-4. Remove the `secret_1_import_id` output. It is no longer needed.
-
-## Secret Rotation
-
-After the initial setup is complete, you can rotate secrets using Terraform's `-replace` flag. This recreates the resource, generating a new secret.
-
-### Rotate secret_1
-
-1. Add the `secret_expires_after_hours` attribute to the `secret_1` resource:
-```terraform
-resource "mongodbatlas_service_account_secret" "secret_1" {
+resource "mongodbatlas_service_account_secret" "this" {
   org_id                     = var.org_id
   client_id                  = mongodbatlas_service_account.this.client_id
   secret_expires_after_hours = 2160 # 90 days
+
+  # Create the new secret before the old one is deleted.
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+output "secret" {
+  sensitive = true
+  value     = mongodbatlas_service_account_secret.this.secret
 }
 ```
 
-2. Rotate the secret:
-```shell
-terraform apply -replace="mongodbatlas_service_account_secret.secret_1"
-```
+`ORG_READ_ONLY` works when the apply runs with an admin credential. If the provider authenticates as this Service Account, its role must allow managing its own secrets, such as `ORG_OWNER`.
 
-3. Retrieve and securely store the new secret value (**warning**: this prints the secret to your terminal):
-```shell
-terraform output -raw secret_1
-```
+### Rotate
 
-4. Update your applications with the new secret value.
-
-### Rotate secret_2
-
-**Note**: `secret_2` already has a value from the initial setup. You can skip this section until you need to rotate it.
-
-1. Rotate the secret:
+1. Replace the secret:
 
 ```shell
-terraform apply -replace="mongodbatlas_service_account_secret.secret_2"
+terraform apply -replace="mongodbatlas_service_account_secret.this"
 ```
 
 2. Retrieve and securely store the new secret value (**warning**: this prints the secret to your terminal):
 
 ```shell
-terraform output -raw secret_2
+terraform output -raw secret
 ```
 
-3. Update your applications with the new secret value.
+3. Update every consumer with the new secret value. A consumer that can switch immediately is the right fit for this model. When the provider authenticates using this Service Account, you must also update the provider credential: set `MONGODB_ATLAS_CLIENT_SECRET` to the new secret value before the next `terraform plan` or `terraform apply`, or the run fails with `HTTP 401`.
 
-### Ongoing rotation
+### Why `create_before_destroy` matters
 
-Continue alternating between secrets when rotating. This ensures that the older secret remains active while the new one is rotated and deployed to your applications.
+There is no overlap window. Terraform deletes the old secret after it creates the new one, and a consumer can keep authenticating with the old secret only until that destroy completes.
 
-## Complete Configuration
+That ordering is also what makes this configuration safe when the provider authenticates with the secret it rotates. A plain replace destroys the old secret first, which revokes the OAuth token minted from it, and the create that follows fails with `HTTP 401`. `create_before_destroy` runs the create first, so the token stays valid and the apply completes.
 
-This is the full configuration after the first rotation is complete:
+When the provider authenticates with a different credential, `create_before_destroy` is optional.
 
-```terraform
-variable "org_id" {
-  description = "MongoDB Atlas Organization ID"
-  type        = string
-}
+## Model B: Two-slot rotation
 
-resource "mongodbatlas_service_account" "this" {
-  org_id                     = var.org_id
-  name                       = "example-service-account"
-  description                = "Example Service Account"
-  roles                      = ["ORG_READ_ONLY"]
-  secret_expires_after_hours = 2160 # 90 days
-}
+Use this model when an application, a CI job, or another Terraform stack holds the secret and must keep authenticating through the switch.
 
-resource "mongodbatlas_service_account_secret" "secret_1" {
-  org_id                     = var.org_id
-  client_id                  = mongodbatlas_service_account.this.client_id
-  secret_expires_after_hours = 2160 # 90 days
-}
+Your Service Account carries two secrets. Rotating one leaves the other valid while consumers switch.
 
-resource "mongodbatlas_service_account_secret" "secret_2" {
-  org_id                     = var.org_id
-  client_id                  = mongodbatlas_service_account.this.client_id
-  secret_expires_after_hours = 2160 # 90 days
-}
+### Configuration
 
-output "secret_1" {
-  sensitive = true
-  value     = mongodbatlas_service_account_secret.secret_1.secret
-}
+The [two-slot rotation example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_service_account_secret_rotation) demonstrates the full configuration. It creates a Service Account with `without_initial_secret = true`, manages both slots, and reads the live expiry of each slot through `data "mongodbatlas_service_account"`. It exposes `current_credentials`, the credentials consumers adopt after a rotation, resolved to the slot with the largest `expires_at`. It also exposes `expires_at` for both slots.
 
-output "secret_2" {
-  sensitive = true
-  value     = mongodbatlas_service_account_secret.secret_2.secret
-}
+Keep the following points in mind when you build your own:
+
+- `secret_2` needs `depends_on = [mongodbatlas_service_account_secret.secret_1]`. Without it, Terraform creates the two secrets in parallel and the second POST can fail with:
+
+```text
+HTTP 409 Conflict (Error code: "DATA_CONCURRENCY_ERROR")
 ```
+
+- Read each slot's expiry from the data source, not from the resource. A resource's `expires_at` refreshes only when that resource is read, so the slot that is not rotating keeps a stale value in state.
+- Do not set `secret_expires_after_hours` on the Service Account when `without_initial_secret = true`. Atlas rejects a create request that sets both.
+
+### How consumers map to slots
+
+Keep each consumer on the slot you are not rotating, and move it to the new secret after the replace:
+
+- Cycle 1: Consumers authenticate with `secret_2`. Replace `secret_1`, then move consumers to the new `secret_1`.
+- Cycle 2: Consumers authenticate with `secret_1`. Replace `secret_2`, then move consumers back to the new `secret_2`.
+
+Alternating the slot that rotates keeps one live secret for consumers while the other is replaced and deployed.
+
+### Rotate
+
+1. Confirm that consumers currently authenticate with the alternate slot. For the first cycle, that is `secret_2`.
+2. Replace the `secret_1` slot:
+
+```shell
+terraform apply -replace="mongodbatlas_service_account_secret.secret_1"
+```
+
+3. Read the credential to deploy and the deadline (**warning**: this prints the secret to your terminal):
+
+```shell
+terraform output -json current_credentials
+terraform output -json expires_at
+```
+
+`current_credentials` resolves to the slot with the largest `expires_at`, so it is the new secret. Use `current_credentials` as-is, without reconstructing the value from `secret_1` or `secret_2`. `expires_at` shows how long each slot has left, including the 7-day cut applied to the slot you did not replace. Use the non-rotated slot's `expires_at` as the handoff deadline.
+
+4. Switch every consumer to use the new secret value before that deadline.
+   - Update the stored credential in each consumer with the `client_secret` from `current_credentials`, such as a CI secret, a secret manager entry, or an environment variable.
+   - Redeploy or restart the consumer.
+   - Verify that it authenticates before the window closes.
+5. For the next cycle, replace `secret_2` instead and roll consumers back to the new `secret_2`.
+
+Replacing `secret_1` shortens the `expires_at` of `secret_2` to 7 days from the creation of the new `secret_1`. Roll consumers over to use the new `secret_1` before `secret_2` expires.
+
+Notes for this model:
+
+- `client_id` stays constant through rotation; only the secret changes.
+- Terraform deletes the replaced secret as part of the apply, so you do not revoke it manually.
+- The account that issues the `apply` command needs a role that can manage its own secrets. This is either your Service Account or the admin credentials.
+
+## MCP configuration secrets
+
+MCP configuration secrets rotate with the same two-slot pattern. An MCP configuration holds at most two ingress secrets, so define two secret resources and replace them alternately.
+
+The same pattern applies to `mongodbatlas_project_mcp_config_secret`, with `project_id` in place of `org_id`.
+
+Rotate by replacing one slot at a time, alternating between them:
+
+```shell
+terraform apply -replace="mongodbatlas_mcp_config_secret.secret_1"
+terraform output -raw secret_1
+```
+
+The secret value is returned only in the create response, so read the output right after the replace. The snippet assumes an output named `secret_1` for the first slot's value; define one output per slot. The 7-day overlap limit and the consumer handoff steps from [Model B](#model-b-two-slot-rotation) apply here as well.
+
+## Related documentation
+
+- [Two-slot rotation example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_service_account_secret_rotation)
+- [`mongodbatlas_service_account`](../resources/service_account)
+- [`mongodbatlas_service_account_secret`](../resources/service_account_secret)
+- [`mongodbatlas_project_service_account`](../resources/project_service_account)
+- [`mongodbatlas_project_service_account_secret`](../resources/project_service_account_secret)
+- [`mongodbatlas_mcp_config_secret`](../resources/mcp_config_secret)
+- [`mongodbatlas_project_mcp_config_secret`](../resources/project_mcp_config_secret)

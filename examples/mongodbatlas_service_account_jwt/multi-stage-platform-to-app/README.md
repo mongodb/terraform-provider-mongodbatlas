@@ -28,6 +28,8 @@ The hand-off is automated using `local-exec` provisioners that trigger downstrea
 | `phase-1-app-bootstrap/` | Uses the JWT to create a project-scoped SA, stores its credentials in AWS Secrets Manager, and triggers `phase-2-app-ongoing`. |
 | `phase-2-app-ongoing/` | Reads SA credentials from Secrets Manager, configures the Atlas provider, and creates a dedicated cluster. |
 
+The project-scoped Service Account secret that `phase-1-app-bootstrap` creates has an expiration and must be rotated. See [Guide: Service Account Secret Rotation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/service-account-secret-rotation).
+
 ## Prerequisites
 
 - An org-level MongoDB Atlas Service Account with permissions to create projects.

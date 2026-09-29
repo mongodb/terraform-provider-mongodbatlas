@@ -1,5 +1,5 @@
-output "project_service_account_first_secret" {
-  description = "The secret value of the first secret created with the Project Service Account. Only available after initial creation."
-  value       = try(mongodbatlas_project_service_account.this.secrets[0].secret, null)
+output "project_service_account_secret" {
+  description = "The secret value for the Project Service Account. Returned only when the secret is created."
+  value       = mongodbatlas_project_service_account_secret.this.secret
   sensitive   = true
 }

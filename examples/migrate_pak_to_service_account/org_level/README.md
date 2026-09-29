@@ -30,9 +30,11 @@ Clean final configuration using only:
 4. Verify that both PAK and SA authentication methods work correctly
 5. Apply v3 configuration for the final clean state
 
+For help rotating the Service Account secret after migration, see [Guide: Service Account Secret Rotation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/service-account-secret-rotation).
+
 ## Prerequisites
 
-- MongoDB Atlas Terraform Provider with Service Account support
+- MongoDB Atlas Terraform Provider with Service Account support (v2.19.0 or later for `without_initial_secret`)
 - Valid MongoDB Atlas organization and project IDs
 - Appropriate permissions to manage API keys and Service Accounts
 
