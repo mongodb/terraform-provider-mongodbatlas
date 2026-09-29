@@ -49,15 +49,6 @@ func integrationToSchema(d *schema.ResourceData, integration *admin.ThirdPartyIn
 	if integrationSchema.Url == nil {
 		integrationSchema.Url = integration.Url
 	}
-	if integrationSchema.SendCollectionLatencyMetrics == nil {
-		integrationSchema.SendCollectionLatencyMetrics = integration.SendCollectionLatencyMetrics
-	}
-	if integrationSchema.SendDatabaseMetrics == nil {
-		integrationSchema.SendDatabaseMetrics = integration.SendDatabaseMetrics
-	}
-	if integrationSchema.SendShardingMetrics == nil {
-		integrationSchema.SendShardingMetrics = integration.SendShardingMetrics
-	}
 
 	out := map[string]any{
 		"id":                               integration.Id,
