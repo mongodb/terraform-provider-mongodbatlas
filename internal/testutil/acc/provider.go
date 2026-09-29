@@ -157,8 +157,9 @@ func ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID stri
 			client_id       = %[2]q
 			client_secret   = %[3]q
 			tenant_id       = %[4]q
+			%[5]s
 		}
-	`, subscriptionID, clientID, clientSecret, tenantID)
+	`, subscriptionID, clientID, clientSecret, tenantID, ConfigDefaultTags())
 }
 
 func ConfigDefaultTags() string {
