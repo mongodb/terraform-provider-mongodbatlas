@@ -1262,10 +1262,10 @@ func configWithVictorOps(projectID, apiKey string, enabled bool) string {
 func configWithWebhookTemplates(projectID, webhookURL, bodyTemplate, headersTemplate string) string {
 	var templates string
 	if bodyTemplate != "" {
-		templates += fmt.Sprintf("webhook_body_template    = %q\n", bodyTemplate)
+		templates += fmt.Sprintf("webhook_body_template    = %q\n", escapeHclInterpolation(bodyTemplate))
 	}
 	if headersTemplate != "" {
-		templates += fmt.Sprintf("webhook_headers_template = %q\n", headersTemplate)
+		templates += fmt.Sprintf("webhook_headers_template = %q\n", escapeHclInterpolation(headersTemplate))
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_alert_configuration" "test" {
@@ -1295,6 +1295,11 @@ func configWithWebhook(projectID, webhookURL string) string {
 			}
 		}
 	`, projectID, webhookURL)
+}
+
+// escapeHclInterpolation doubles the dollar sign so Terraform renders ${field} literally in the config.
+func escapeHclInterpolation(s string) string {
+	return strings.ReplaceAll(s, "${", "$${")
 }
 
 func configWithTeamsNotificationAndIntervalMin(projectID, webhookURL string, enabled bool) string {
