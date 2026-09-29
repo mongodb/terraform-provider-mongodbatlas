@@ -1275,8 +1275,9 @@ func configWithWebhookTemplates(projectID, webhookURL, bodyTemplate, headersTemp
 			event_type = "NO_PRIMARY"
 
 			notification {
-				type_name  = "WEBHOOK"
-				webhook_url = %[2]q
+				type_name    = "WEBHOOK"
+				webhook_url  = %[2]q
+				interval_min = 5
 				%[3]s
 			}
 		}
@@ -1291,8 +1292,9 @@ func configWithWebhook(projectID, webhookURL string) string {
 			event_type = "NO_PRIMARY"
 
 			notification {
-				type_name   = "WEBHOOK"
-				webhook_url = %[2]q
+				type_name    = "WEBHOOK"
+				webhook_url  = %[2]q
+				interval_min = 5
 			}
 		}
 	`, projectID, webhookURL)
