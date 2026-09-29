@@ -1,3 +1,11 @@
 ```release-note:enhancement
 resource/mongodbatlas_alert_configuration: Adds `notification.webhook_body_template` and `notification.webhook_headers_template` attributes to customize the JSON body and headers of `WEBHOOK` notifications
 ```
+
+```release-note:enhancement
+data-source/mongodbatlas_alert_configuration: Adds `notification.webhook_body_template` and `notification.webhook_headers_template` attributes
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_alert_configurations: Adds `notification.webhook_body_template` and `notification.webhook_headers_template` attributes
+```

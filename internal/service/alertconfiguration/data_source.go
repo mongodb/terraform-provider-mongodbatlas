@@ -32,39 +32,9 @@ type TFAlertConfigurationDSModel struct {
 	Matcher               []TfMatcherModel                  `tfsdk:"matcher"`
 	MetricThresholdConfig []TfMetricThresholdConfigModel    `tfsdk:"metric_threshold_config"`
 	ThresholdConfig       []TfThresholdConfigModel          `tfsdk:"threshold_config"`
-	Notification          []TfNotificationDSModel           `tfsdk:"notification"`
+	Notification          []TfNotificationModel             `tfsdk:"notification"`
 	Output                []TfAlertConfigurationOutputModel `tfsdk:"output"`
 	Enabled               types.Bool                        `tfsdk:"enabled"`
-}
-
-// TfNotificationDSModel is the data source notification model. It omits the sensitive
-// attributes that the API redacts on read, so they are never exposed in data sources.
-type TfNotificationDSModel struct {
-	OpsGenieRegion           types.String `tfsdk:"ops_genie_region"`
-	Username                 types.String `tfsdk:"username"`
-	APIToken                 types.String `tfsdk:"api_token"`
-	DatadogRegion            types.String `tfsdk:"datadog_region"`
-	ServiceKey               types.String `tfsdk:"service_key"`
-	EmailAddress             types.String `tfsdk:"email_address"`
-	WebhookSecret            types.String `tfsdk:"webhook_secret"`
-	MicrosoftTeamsWebhookURL types.String `tfsdk:"microsoft_teams_webhook_url"`
-	MobileNumber             types.String `tfsdk:"mobile_number"`
-	VictorOpsRoutingKey      types.String `tfsdk:"victor_ops_routing_key"`
-	DatadogAPIKey            types.String `tfsdk:"datadog_api_key"`
-	WebhookURL               types.String `tfsdk:"webhook_url"`
-	OpsGenieAPIKey           types.String `tfsdk:"ops_genie_api_key"`
-	TeamID                   types.String `tfsdk:"team_id"`
-	TeamName                 types.String `tfsdk:"team_name"`
-	NotifierID               types.String `tfsdk:"notifier_id"`
-	IntegrationID            types.String `tfsdk:"integration_id"`
-	TypeName                 types.String `tfsdk:"type_name"`
-	ChannelName              types.String `tfsdk:"channel_name"`
-	VictorOpsAPIKey          types.String `tfsdk:"victor_ops_api_key"`
-	Roles                    []string     `tfsdk:"roles"`
-	IntervalMin              types.Int64  `tfsdk:"interval_min"`
-	DelayMin                 types.Int64  `tfsdk:"delay_min"`
-	SMSEnabled               types.Bool   `tfsdk:"sms_enabled"`
-	EmailEnabled             types.Bool   `tfsdk:"email_enabled"`
 }
 
 type TfAlertConfigurationOutputModel struct {
@@ -268,6 +238,14 @@ var alertConfigDSSchemaAttributes = map[string]schema.Attribute{
 					Computed:  true,
 				},
 				"webhook_url": schema.StringAttribute{
+					Sensitive: true,
+					Computed:  true,
+				},
+				"webhook_body_template": schema.StringAttribute{
+					Sensitive: true,
+					Computed:  true,
+				},
+				"webhook_headers_template": schema.StringAttribute{
 					Sensitive: true,
 					Computed:  true,
 				},
