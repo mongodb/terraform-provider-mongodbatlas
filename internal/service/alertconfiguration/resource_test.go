@@ -754,7 +754,7 @@ func TestAccConfigRSAlertConfiguration_withWebhookTemplates(t *testing.T) {
 			},
 			{
 				// Unset both templates.
-				Config: configWithWebhook(projectID, webhookURL),
+				Config: configWithWebhookTemplates(projectID, webhookURL, "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckNoResourceAttr(resourceName, "notification.0.webhook_body_template"),
@@ -1282,22 +1282,6 @@ func configWithWebhookTemplates(projectID, webhookURL, bodyTemplate, headersTemp
 			}
 		}
 	`, projectID, webhookURL, templates)
-}
-
-func configWithWebhook(projectID, webhookURL string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_alert_configuration" "test" {
-			project_id = %[1]q
-			enabled    = true
-			event_type = "NO_PRIMARY"
-
-			notification {
-				type_name    = "WEBHOOK"
-				webhook_url  = %[2]q
-				interval_min = 5
-			}
-		}
-	`, projectID, webhookURL)
 }
 
 // escapeHclInterpolation doubles the dollar sign so Terraform renders ${field} literally in the config.
