@@ -10,7 +10,7 @@ variable "service_account_name" {
 }
 
 variable "service_account_roles" {
-  description = "Roles for the Service Account. It needs a role that can manage its own secrets to rotate while authenticated as itself."
+  description = "Roles for the Service Account. The Service Account needs a role that can manage its own secrets to rotate while authenticated as itself."
   type        = list(string)
   default     = ["ORG_OWNER"]
 }

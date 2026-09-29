@@ -72,7 +72,7 @@ resource "mongodbatlas_access_list_api_key" "this" {
 
 ### Step 2: Intermediate State - Add Service Account Resources Alongside Existing PAK Resources
 
-Add the Service Account resources to your configuration while keeping the existing PAK resources. This allows both authentication methods to work simultaneously, enabling you to test Service Accounts before removing PAKs.
+Add the Service Account resources to your configuration while keeping the existing PAK resources. This allows both authentication methods to work simultaneously, enabling you to test Service Accounts before removing PAKs. The `without_initial_secret` attribute requires provider v2.19.0 or later.
 
 ```terraform
 resource "mongodbatlas_service_account" "this" {
@@ -222,7 +222,7 @@ resource "mongodbatlas_access_list_api_key" "this" {
 
 ### Step 2: Intermediate State - Add Service Account Resources Alongside Existing PAK Resources
 
-Add the Service Account resources to your configuration while keeping the existing PAK resources. This allows both authentication methods to work simultaneously, enabling you to test Service Accounts before removing PAKs.
+Add the Service Account resources to your configuration while keeping the existing PAK resources. This allows both authentication methods to work simultaneously, enabling you to test Service Accounts before removing PAKs. The `without_initial_secret` attribute requires provider v2.19.0 or later.
 
 ```terraform
 resource "mongodbatlas_project_service_account" "this" {

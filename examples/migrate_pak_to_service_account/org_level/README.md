@@ -34,7 +34,7 @@ For help rotating the Service Account secret after migration, see [Guide: Servic
 
 ## Prerequisites
 
-- MongoDB Atlas Terraform Provider with Service Account support
+- MongoDB Atlas Terraform Provider with Service Account support (v2.19.0 or later for `without_initial_secret`)
 - Valid MongoDB Atlas organization and project IDs
 - Appropriate permissions to manage API keys and Service Accounts
 

@@ -39,7 +39,7 @@ terraform output -json current_credentials
 terraform output -json expires_at
 ```
 
-**4. Roll consumers onto the new value before the non-rotated slot expires.** Its `expires_at` output is the handoff deadline: at most 7 days after the replace, possibly less. Update the stored credential in each consumer, redeploy or restart the consumer, and verify it authenticates before that time.
+**4. Roll consumers onto the new secret value before the non-rotated slot expires.** The non-rotated slot's `expires_at` output is the handoff deadline: at most 7 days after the replace, possibly less. Update the stored credential in each consumer, redeploy or restart the consumer, and verify it authenticates before that time.
 
 **5. On the next cycle, replace `secret_2` and roll consumers back.**
 
