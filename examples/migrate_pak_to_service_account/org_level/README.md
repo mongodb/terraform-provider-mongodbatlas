@@ -30,7 +30,7 @@ Clean final configuration using only:
 4. Verify that both PAK and SA authentication methods work correctly
 5. Apply v3 configuration for the final clean state
 
-For rotating the Service Account secret after migration, see [Guide: Service Account Secret Rotation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/service-account-secret-rotation).
+For help rotating the Service Account secret after migration, see [Guide: Service Account Secret Rotation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/service-account-secret-rotation).
 
 ## Prerequisites
 

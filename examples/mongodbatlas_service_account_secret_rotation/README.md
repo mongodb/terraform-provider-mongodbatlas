@@ -7,24 +7,24 @@ For product limits, see [Rotate Service Account Secrets](https://www.mongodb.com
 
 ## How it works
 
-A Service Account holds at most two secrets. This example manages both:
+A Service Account holds at most two secrets, and each `mongodbatlas_service_account_secret` resource is one **slot**. This example manages both slots:
 
 - `secret_1` and `secret_2` are `mongodbatlas_service_account_secret` resources on one `mongodbatlas_service_account` created with `without_initial_secret = true`. No import step.
-- `secret_2` depends on `secret_1` so the two creates run one after the other. Without that ordering the second POST can fail with `DATA_CONCURRENCY_ERROR` (HTTP 409).
-- `current_credentials` is the credential consumers adopt after a rotation. It resolves to the slot with the largest live `expires_at`.
+- `secret_2` depends on `secret_1` so the two creates run one after the other. Without that ordering, the second `POST` can fail with `DATA_CONCURRENCY_ERROR` (`HTTP 409`).
+- `current_credentials` is the credentials consumers adopt after a rotation. It resolves to the slot with the largest live `expires_at`.
 - `expires_at` reports the live expiry of both slots, read through `data.mongodbatlas_service_account`.
 
 ## The 7-day overlap
 
-Creating a secret cuts every existing secret on the same Service Account to the shorter of its remaining lifetime and 7 days. The new secret keeps the requested `secret_expires_after_hours`. Two secrets requested at 90 days do not give a 90-day overlap; the real overlap is at most 7 days.
+Creating a secret cuts the lifetime of every existing secret on the same Service Account to the shorter of its remaining lifetime and 7 days. The new secret keeps the requested `secret_expires_after_hours`.
 
-After apply, `expires_at` shows this: the slot created second expires in about 90 days, and the slot created first drops to about 7 days.
+For example, two secrets requested at 90 days do not give a 90-day overlap. After apply, the `expires_at` for the slot created second shows about 90 days, and the `expires_at` for the slot created first drops to about 7 days.
 
 ## Rotate
 
-Rotate the slot consumers are not using, then roll them onto the new value.
+Rotate the slot consumers are not using, then roll them over to use that newly rotated value.
 
-**1. Confirm which slot consumers use.** `current_credentials` resolves to it. On a fresh apply that is `secret_2`.
+**1. Confirm which slot consumers use.** `current_credentials` resolves to this slot. On a fresh apply, that is `secret_2`.
 
 **2. Replace the other slot.**
 
@@ -39,9 +39,9 @@ terraform output -json current_credentials
 terraform output -json expires_at
 ```
 
-**4. Roll consumers onto the new value within 7 days.** Update the stored credential in each consumer, redeploy or restart it, and verify it authenticates before the window closes.
+**4. Roll consumers onto the new value before the non-rotated slot expires.** Its `expires_at` output is the handoff deadline: at most 7 days after the replace, possibly less. Update the stored credential in each consumer, redeploy or restart the consumer, and verify it authenticates before that time.
 
-**5. Next cycle, replace `secret_2` and roll consumers back.**
+**5. On the next cycle, replace `secret_2` and roll consumers back.**
 
 `client_id` stays constant through rotation; only the secret changes. Terraform deletes the replaced secret as part of the apply.
 
@@ -82,9 +82,9 @@ terraform output expires_at
 terraform output -json current_credentials
 ```
 
-**4. Rotate.** Replace the slot consumers are not using, then roll them over. See Rotate above. To rotate while authenticated as the Service Account itself, run the replace with `MONGODB_ATLAS_CLIENT_ID` set to its `client_id` and `MONGODB_ATLAS_CLIENT_SECRET` set to the secret of the slot you are not replacing.
+**4. Rotate.** Replace the slot consumers are not using, then roll them over to that new slot. See Rotate above. To rotate while authenticated as the Service Account itself, run the replace with `MONGODB_ATLAS_CLIENT_ID` set to its `client_id` and `MONGODB_ATLAS_CLIENT_SECRET` set to the secret of the slot you are not replacing.
 
-**5. Destroy.**
+**5. Restore the bootstrap admin credentials and destroy.** If step 4 ran the replace self-authenticated, `MONGODB_ATLAS_CLIENT_ID` and `MONGODB_ATLAS_CLIENT_SECRET` point at this Service Account. Export the bootstrap admin credentials again before destroying, or the destroy fails once the secrets are deleted.
 
 ```bash
 terraform destroy
