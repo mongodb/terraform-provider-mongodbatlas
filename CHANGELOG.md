@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.19.0 (September 30, 2026)
+
 NOTES:
 
 * resource/mongodbatlas_advanced_cluster: Clarifies that new MongoDB major versions are supported as soon as Atlas enables them; updates example `mongo_db_major_version` values to `9.0` ([#4753](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4753))
