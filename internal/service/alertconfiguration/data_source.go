@@ -239,6 +239,14 @@ var alertConfigDSSchemaAttributes = map[string]schema.Attribute{
 					Sensitive: true,
 					Computed:  true,
 				},
+				"webhook_body_template": schema.StringAttribute{
+					Sensitive: true,
+					Computed:  true,
+				},
+				"webhook_headers_template": schema.StringAttribute{
+					Sensitive: true,
+					Computed:  true,
+				},
 			},
 		},
 	},

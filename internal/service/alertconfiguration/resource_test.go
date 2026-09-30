@@ -719,6 +719,67 @@ func TestAccConfigRSAlertConfiguration_updateNotificationTypeFromTeamsToPagerDut
 	})
 }
 
+func TestAccConfigRSAlertConfiguration_withWebhookTemplates(t *testing.T) {
+	var (
+		projectID    = acc.ProjectIDExecution(t)
+		webhookURL   = "https://webhook.com/xxxx"
+		bodyTemplate = `{"alert": "${eventType}", "project": "${projectId}"}`
+		headers      = `{"X-Custom-Header": "static-value"}`
+		updatedBody  = `{"alert": "${eventType}"}`
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy(),
+		Steps: []resource.TestStep{
+			{
+				Config: configWithWebhookTemplates(projectID, webhookURL, bodyTemplate, headers),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "notification.0.type_name", "WEBHOOK"),
+					resource.TestCheckResourceAttr(resourceName, "notification.0.webhook_url", webhookURL),
+					resource.TestCheckResourceAttr(resourceName, "notification.0.webhook_body_template", bodyTemplate),
+					resource.TestCheckResourceAttr(resourceName, "notification.0.webhook_headers_template", headers),
+				),
+			},
+			{
+				// Import while the templates are configured. Sensitive attributes are
+				// redacted by the API on read, so the imported state has them null.
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateProjectIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"updated",
+					"notification.0.webhook_url",
+					"notification.0.webhook_body_template",
+					"notification.0.webhook_headers_template",
+					"notification.0.integration_id",
+				},
+			},
+			{
+				// Update body template and unset headers template.
+				Config: configWithWebhookTemplates(projectID, webhookURL, updatedBody, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "notification.0.webhook_body_template", updatedBody),
+					resource.TestCheckNoResourceAttr(resourceName, "notification.0.webhook_headers_template"),
+				),
+			},
+			{
+				// Unset both templates.
+				Config: configWithWebhookTemplates(projectID, webhookURL, "", ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckNoResourceAttr(resourceName, "notification.0.webhook_body_template"),
+					resource.TestCheckNoResourceAttr(resourceName, "notification.0.webhook_headers_template"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConfigRSAlertConfiguration_withSeverityOverride(t *testing.T) {
 	var (
 		projectID  = acc.ProjectIDExecution(t)
@@ -1204,6 +1265,35 @@ func configWithVictorOps(projectID, apiKey string, enabled bool) string {
 			}
 		}
 	`, projectID, apiKey, enabled)
+}
+
+func configWithWebhookTemplates(projectID, webhookURL, bodyTemplate, headersTemplate string) string {
+	var templates string
+	if bodyTemplate != "" {
+		templates += fmt.Sprintf("webhook_body_template    = %q\n", escapeHclInterpolation(bodyTemplate))
+	}
+	if headersTemplate != "" {
+		templates += fmt.Sprintf("webhook_headers_template = %q\n", escapeHclInterpolation(headersTemplate))
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = %[1]q
+			enabled    = true
+			event_type = "NO_PRIMARY"
+
+			notification {
+				type_name    = "WEBHOOK"
+				webhook_url  = %[2]q
+				interval_min = 5
+				%[3]s
+			}
+		}
+	`, projectID, webhookURL, templates)
+}
+
+// escapeHclInterpolation doubles the dollar sign so Terraform renders ${field} literally in the config.
+func escapeHclInterpolation(s string) string {
+	return strings.ReplaceAll(s, "${", "$${")
 }
 
 func configWithTeamsNotificationAndIntervalMin(projectID, webhookURL string, enabled bool) string {
