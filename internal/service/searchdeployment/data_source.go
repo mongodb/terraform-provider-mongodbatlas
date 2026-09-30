@@ -15,9 +15,7 @@ var _ datasource.DataSourceWithConfigure = &searchDeploymentDS{}
 
 func DataSource() datasource.DataSource {
 	return &searchDeploymentDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: resourceName,
-		},
+		DataSourceName: resourceName,
 	}
 }
 

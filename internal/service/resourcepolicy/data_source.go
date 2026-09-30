@@ -17,9 +17,7 @@ const (
 
 func DataSource() datasource.DataSource {
 	return &resourcePolicyDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: resourceName,
-		},
+		DataSourceName: resourceName,
 	}
 }
 

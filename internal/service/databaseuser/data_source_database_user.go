@@ -15,9 +15,7 @@ type databaseUserDS struct {
 
 func DataSource() datasource.DataSource {
 	return &databaseUserDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: databaseUserResourceName,
-		},
+		DataSourceName: databaseUserResourceName,
 	}
 }
 

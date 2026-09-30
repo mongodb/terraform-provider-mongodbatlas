@@ -243,10 +243,10 @@ func buildRestructuredBlock(attrs []parsedAttribute) []string {
 	if len(common) > 0 {
 		result = append(result, "")
 	}
-	result = append(result, postProcessMarker, fmt.Sprintf("The following attributes depend on the value of `%s`:", discriminator))
+	result = append(result, postProcessMarker, fmt.Sprintf("The following attributes depend on the value of %#q:", discriminator))
 
 	for _, typeName := range sortedTypeKeys(typeGroups) {
-		result = append(result, "", fmt.Sprintf("#### `%s`", typeName))
+		result = append(result, "", fmt.Sprintf("#### %#q", typeName))
 
 		entries := typeGroups[typeName]
 		slices.SortFunc(entries, func(a, b typeEntry) int {
@@ -332,14 +332,13 @@ func renderTypeEntries(entries []typeEntry) []string {
 }
 
 func renderAttrLine(entry *typeEntry) []string {
-	lines := []string{fmt.Sprintf("- `%s` (%s) %s", entry.attr.name, entry.attr.typeInfo, entry.attr.description)}
+	lines := []string{fmt.Sprintf("- %#q (%s) %s", entry.attr.name, entry.attr.typeInfo, entry.attr.description)}
 	lines = append(lines, entry.attr.sourceLines[1:]...)
 	return lines
 }
 
 func applyReplacements(lines []string, replacements []replacement) string {
-	for i := len(replacements) - 1; i >= 0; i-- {
-		r := replacements[i]
+	for _, r := range slices.Backward(replacements) {
 		var newLines []string
 		newLines = append(newLines, lines[:r.startLine]...)
 		newLines = append(newLines, r.newContent...)

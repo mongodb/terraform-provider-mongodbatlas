@@ -33,9 +33,7 @@ var _ resource.ResourceWithImportState = &streamConnectionRS{}
 
 func Resource() resource.Resource {
 	return &streamConnectionRS{
-		RSCommon: config.RSCommon{
-			ResourceName: streamConnectionName,
-		},
+		ResourceName: streamConnectionName,
 	}
 }
 

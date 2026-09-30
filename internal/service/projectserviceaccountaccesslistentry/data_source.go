@@ -21,9 +21,7 @@ var _ datasource.DataSourceWithConfigure = &ds{}
 
 func DataSource() datasource.DataSource {
 	return &ds{
-		DSCommon: config.DSCommon{
-			DataSourceName: resourceName,
-		},
+		DataSourceName: resourceName,
 	}
 }
 

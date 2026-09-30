@@ -17,9 +17,7 @@ var _ datasource.DataSourceWithConfigure = &StreamProccesorDS{}
 
 func PluralDataSource() datasource.DataSource {
 	return &streamProcessorsDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: fmt.Sprintf("%ss", StreamProcessorName),
-		},
+		DataSourceName: fmt.Sprintf("%ss", StreamProcessorName),
 	}
 }
 

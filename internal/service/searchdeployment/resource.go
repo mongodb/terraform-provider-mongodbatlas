@@ -24,9 +24,7 @@ const resourceName = "search_deployment"
 
 func Resource() resource.Resource {
 	return &rs{
-		RSCommon: config.RSCommon{
-			ResourceName: resourceName,
-		},
+		ResourceName: resourceName,
 	}
 }
 

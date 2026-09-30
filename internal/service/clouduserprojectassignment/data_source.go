@@ -12,9 +12,7 @@ var _ datasource.DataSourceWithConfigure = &cloudUserProjectAssignmentDS{}
 
 func DataSource() datasource.DataSource {
 	return &cloudUserProjectAssignmentDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: resourceName,
-		},
+		DataSourceName: resourceName,
 	}
 }
 

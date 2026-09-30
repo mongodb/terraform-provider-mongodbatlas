@@ -18,9 +18,7 @@ const pluralDatasourceName = "service_account_access_list_entries"
 
 func PluralDataSource() datasource.DataSource {
 	return &pluralDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: pluralDatasourceName,
-		},
+		DataSourceName: pluralDatasourceName,
 	}
 }
 
