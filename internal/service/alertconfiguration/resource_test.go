@@ -766,8 +766,8 @@ func TestAccConfigRSAlertConfiguration_withWebhookTemplates(t *testing.T) {
 				ImportStateIdFunc: importStateProjectIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
-				// webhook_url is not returned by api in import operation
-				ImportStateVerifyIgnore: []string{"updated", "notification.0.webhook_url"},
+				// webhook_url and integration_id are not returned by api in the same way during import
+				ImportStateVerifyIgnore: []string{"updated", "notification.0.webhook_url", "notification.0.integration_id"},
 			},
 		},
 	})
