@@ -180,8 +180,6 @@ func ConfigAWSProviderWithTags() string {
 	`, ConfigDefaultTags())
 }
 
-// tagValue reads the tag value from envVar. Without TF_ACC, configs are never applied,
-// so a placeholder value is returned instead of failing.
 func tagValue(envVar string) string {
 	if v := os.Getenv(envVar); v != "" {
 		return v
