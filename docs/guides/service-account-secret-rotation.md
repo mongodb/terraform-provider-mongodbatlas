@@ -134,7 +134,7 @@ Your Service Account carries two secrets. Rotating one leaves the other valid wh
 
 ### Configuration
 
-The [two-slot rotation example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_service_account_secret_rotation) demonstrates the full configuration. It creates a Service Account with `without_initial_secret = true`, manages both slots, and reads the live expiry of each slot through `data "mongodbatlas_service_account"`. It exposes `current_credentials`, the credentials consumers adopt after a rotation, resolved to the slot with the largest `expires_at`. It also exposes `expires_at` for both slots.
+The [two-slot rotation example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.19.0/examples/mongodbatlas_service_account_secret_rotation) demonstrates the full configuration. It creates a Service Account with `without_initial_secret = true`, manages both slots, and reads the live expiry of each slot through `data "mongodbatlas_service_account"`. It exposes `current_credentials`, the credentials consumers adopt after a rotation, resolved to the slot with the largest `expires_at`. It also exposes `expires_at` for both slots.
 
 Keep the following points in mind when you build your own:
 
@@ -205,7 +205,7 @@ The secret value is returned only in the create response, so read the output rig
 
 ## Related documentation
 
-- [Two-slot rotation example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_service_account_secret_rotation)
+- [Two-slot rotation example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.19.0/examples/mongodbatlas_service_account_secret_rotation)
 - [`mongodbatlas_service_account`](../resources/service_account)
 - [`mongodbatlas_service_account_secret`](../resources/service_account_secret)
 - [`mongodbatlas_project_service_account`](../resources/project_service_account)
