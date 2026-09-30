@@ -1334,9 +1334,11 @@ func TestAccCluster_create_RedactClientLogData(t *testing.T) {
 
 func TestAccCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName() //  Using single project to assert plural data source
-		clusterName = acc.RandomClusterName()
+		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName     = acc.RandomProjectName() //  Using single project to assert plural data source
+		clusterName     = acc.RandomClusterName()
+		previousVersion = acc.MongoDBMajorVersionString(acc.PreviousMongoDBMajorVersion)
+		latestVersion   = acc.MongoDBMajorVersionString(acc.LatestMongoDBMajorVersion)
 	)
 
 	now := time.Now()
@@ -1354,32 +1356,32 @@ func TestAccCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, previousVersion),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, acc.PreviousMongoDBMajorVersion, nil, nil),
 			},
 			{ // pins fcv
-				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(firstExpirationDate), new(7)),
+				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, previousVersion),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, acc.PreviousMongoDBMajorVersion, new(firstExpirationDate), new(acc.PreviousMongoDBMajorVersion)),
 			},
 			{ // using incorrect format
-				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
+				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, previousVersion),
 				ExpectError: regexp.MustCompile("expiration_date format is incorrect: " + invalidDateFormat),
 			},
 			{ // updates expiration date of fcv
-				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(updatedExpirationDate), new(7)),
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, previousVersion),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, acc.PreviousMongoDBMajorVersion, new(updatedExpirationDate), new(acc.PreviousMongoDBMajorVersion)),
 			},
 			{ // upgrade mongodb version with fcv pinned
-				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, new(updatedExpirationDate), new(7)),
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, latestVersion),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, acc.LatestMongoDBMajorVersion, new(updatedExpirationDate), new(acc.PreviousMongoDBMajorVersion)),
 			},
 			{ // downgrade mongodb version with fcv pinned
-				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(updatedExpirationDate), new(7)),
+				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, previousVersion),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, acc.PreviousMongoDBMajorVersion, new(updatedExpirationDate), new(acc.PreviousMongoDBMajorVersion)),
 			},
 			{ // unpins fcv
-				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+				Config: configFCVPinning(orgID, projectName, clusterName, nil, previousVersion),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, acc.PreviousMongoDBMajorVersion, nil, nil),
 			},
 		},
 	})
