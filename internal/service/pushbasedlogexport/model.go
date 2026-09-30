@@ -11,14 +11,12 @@ import (
 
 func NewTFPushBasedLogExport(projectID string, apiResp *admin.PushBasedLogExportProject, timeout *timeouts.Value, deleteOnCreateTimeout *types.Bool) *TFPushBasedLogExportRSModel {
 	tfModel := &TFPushBasedLogExportRSModel{
-		TFPushBasedLogExportCommonModel: TFPushBasedLogExportCommonModel{
-			ProjectID:  types.StringPointerValue(&projectID),
-			BucketName: types.StringPointerValue(apiResp.BucketName),
-			IamRoleID:  types.StringPointerValue(apiResp.IamRoleId),
-			PrefixPath: types.StringPointerValue(apiResp.PrefixPath),
-			CreateDate: types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreateDate)),
-			State:      types.StringPointerValue(apiResp.State),
-		},
+		ProjectID:  types.StringPointerValue(&projectID),
+		BucketName: types.StringPointerValue(apiResp.BucketName),
+		IamRoleID:  types.StringPointerValue(apiResp.IamRoleId),
+		PrefixPath: types.StringPointerValue(apiResp.PrefixPath),
+		CreateDate: types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreateDate)),
+		State:      types.StringPointerValue(apiResp.State),
 	}
 
 	if timeout != nil {

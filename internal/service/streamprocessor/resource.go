@@ -29,9 +29,7 @@ const (
 
 func Resource() resource.Resource {
 	return &streamProcessorRS{
-		RSCommon: config.RSCommon{
-			ResourceName: StreamProcessorName,
-		},
+		ResourceName: StreamProcessorName,
 	}
 }
 

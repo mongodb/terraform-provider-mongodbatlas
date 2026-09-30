@@ -26,9 +26,7 @@ type projectIPAccessListDS struct {
 
 func DataSource() datasource.DataSource {
 	return &projectIPAccessListDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: projectIPAccessList,
-		},
+		DataSourceName: projectIPAccessList,
 	}
 }
 

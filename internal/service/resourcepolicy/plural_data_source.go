@@ -22,9 +22,7 @@ const (
 
 func PluralDataSource() datasource.DataSource {
 	return &resourcePolicysDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: dataSourcePluralName,
-		},
+		DataSourceName: dataSourcePluralName,
 	}
 }
 

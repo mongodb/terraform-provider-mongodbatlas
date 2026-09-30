@@ -37,9 +37,7 @@ type databaseUserRS struct {
 
 func Resource() resource.Resource {
 	return &databaseUserRS{
-		RSCommon: config.RSCommon{
-			ResourceName: databaseUserResourceName,
-		},
+		ResourceName: databaseUserResourceName,
 	}
 }
 

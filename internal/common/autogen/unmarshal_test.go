@@ -918,9 +918,7 @@ func TestUnmarshalEmbeddedExpandedModel(t *testing.T) {
 		Type           types.String `tfsdk:"type"`
 	}
 	model := ModelExpanded{
-		ModelExpandedFields: ModelExpandedFields{
-			ID: types.StringUnknown(),
-		},
+		ID:             types.StringUnknown(),
 		ConnectionName: types.StringUnknown(),
 		Type:           types.StringUnknown(),
 	}

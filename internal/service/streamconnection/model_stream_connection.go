@@ -204,18 +204,16 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 	rID := fmt.Sprintf("%s-%s-%s", streamWorkspaceName, projID, conversion.SafeValue(apiResp.Name))
 
 	connectionModel := TFStreamConnectionModel{
-		TFStreamConnectionCommonModel: TFStreamConnectionCommonModel{
-			ID:                     types.StringValue(rID),
-			ProjectID:              types.StringValue(projID),
-			ConnectionName:         types.StringPointerValue(apiResp.Name),
-			Type:                   types.StringPointerValue(apiResp.Type),
-			ClusterName:            types.StringPointerValue(apiResp.ClusterName),
-			ClusterProjectID:       types.StringPointerValue(apiResp.ClusterGroupId),
-			BootstrapServers:       types.StringPointerValue(apiResp.BootstrapServers),
-			URL:                    types.StringPointerValue(apiResp.Url),
-			SchemaRegistryURLs:     types.ListNull(types.StringType),
-			SchemaRegistryProvider: types.StringPointerValue(apiResp.Provider),
-		},
+		ID:                     types.StringValue(rID),
+		ProjectID:              types.StringValue(projID),
+		ConnectionName:         types.StringPointerValue(apiResp.Name),
+		Type:                   types.StringPointerValue(apiResp.Type),
+		ClusterName:            types.StringPointerValue(apiResp.ClusterName),
+		ClusterProjectID:       types.StringPointerValue(apiResp.ClusterGroupId),
+		BootstrapServers:       types.StringPointerValue(apiResp.BootstrapServers),
+		URL:                    types.StringPointerValue(apiResp.Url),
+		SchemaRegistryURLs:     types.ListNull(types.StringType),
+		SchemaRegistryProvider: types.StringPointerValue(apiResp.Provider),
 	}
 
 	// Preserve user-configured timeouts

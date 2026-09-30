@@ -37,9 +37,7 @@ type tfListOptionsModel struct {
 
 func PluralDataSource() datasource.DataSource {
 	return &AlertConfigurationsDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: alertConfigurationsDataSourceName,
-		},
+		DataSourceName: alertConfigurationsDataSourceName,
 	}
 }
 

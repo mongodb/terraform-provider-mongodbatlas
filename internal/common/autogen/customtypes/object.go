@@ -54,7 +54,7 @@ func NewObjectType[T any](ctx context.Context) ObjectType[T] {
 	}
 
 	result := ObjectType[T]{
-		ObjectType: basetypes.ObjectType{AttrTypes: attrTypes},
+		AttrTypes: attrTypes,
 	}
 	return result
 }

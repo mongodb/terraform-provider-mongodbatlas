@@ -42,9 +42,7 @@ type closeData struct {
 
 func New() ephemeral.EphemeralResource {
 	r := &ER{
-		ESCommon: config.ESCommon{
-			ResourceName: ResourceTypeName,
-		},
+		ResourceName: ResourceTypeName,
 	}
 	r.TokenGen = r
 	return r

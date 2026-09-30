@@ -18,9 +18,7 @@ var _ datasource.DataSourceWithConfigure = &streamsWorkspacesDS{}
 
 func PluralDataSource() datasource.DataSource {
 	return &streamsWorkspacesDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: fmt.Sprintf("%ss", streamsWorkspaceName),
-		},
+		DataSourceName: fmt.Sprintf("%ss", streamsWorkspaceName),
 	}
 }
 

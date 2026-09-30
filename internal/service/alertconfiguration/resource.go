@@ -40,9 +40,7 @@ var _ resource.ResourceWithImportState = &alertConfigurationRS{}
 
 func Resource() resource.Resource {
 	return &alertConfigurationRS{
-		RSCommon: config.RSCommon{
-			ResourceName: alertConfigurationResourceName,
-		},
+		ResourceName: alertConfigurationResourceName,
 	}
 }
 

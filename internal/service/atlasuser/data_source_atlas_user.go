@@ -55,9 +55,7 @@ type tfAtlasUserRoleModel struct {
 
 func DataSource() datasource.DataSource {
 	return &atlasUserDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: AtlasUserDataSourceName,
-		},
+		DataSourceName: AtlasUserDataSourceName,
 	}
 }
 

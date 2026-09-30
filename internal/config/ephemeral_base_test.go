@@ -27,7 +27,7 @@ func (f *mockEphemeralResource) Close(_ context.Context, _ ephemeral.CloseReques
 }
 
 func TestNoEphemeralInterfaceLoss(t *testing.T) {
-	mock := &mockEphemeralResource{ESCommon: config.ESCommon{ResourceName: "test_ephemeral"}}
+	mock := &mockEphemeralResource{ResourceName: "test_ephemeral"}
 	wrapped := config.AnalyticsEphemeralResourceFunc(mock)()
 	_, ok := wrapped.(ephemeral.EphemeralResourceWithRenew)
 	assert.True(t, ok)

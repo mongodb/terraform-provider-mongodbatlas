@@ -80,7 +80,7 @@ func performValidation(ctx context.Context, state *tfsdk.State, plan *tfsdk.Plan
 		return
 	}
 	if !*isCompatible {
-		diags.AddError(fmt.Sprintf("`%s` %s", validationPath, v.Description(ctx)), "")
+		diags.AddError(fmt.Sprintf("%#q %s", validationPath, v.Description(ctx)), "")
 	}
 }
 

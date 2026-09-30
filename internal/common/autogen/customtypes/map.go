@@ -42,7 +42,7 @@ type MapType[T attr.Value] struct {
 func NewMapType[T attr.Value](ctx context.Context) MapType[T] {
 	elemType := getValueType[T](ctx)
 	return MapType[T]{
-		MapType: basetypes.MapType{ElemType: elemType},
+		ElemType: elemType,
 	}
 }
 

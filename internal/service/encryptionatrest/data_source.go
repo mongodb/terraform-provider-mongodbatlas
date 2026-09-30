@@ -14,9 +14,7 @@ var _ datasource.DataSourceWithConfigure = &encryptionAtRestDS{}
 
 func DataSource() datasource.DataSource {
 	return &encryptionAtRestDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: encryptionAtRestResourceName,
-		},
+		DataSourceName: encryptionAtRestResourceName,
 	}
 }
 
