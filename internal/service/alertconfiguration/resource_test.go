@@ -744,6 +744,21 @@ func TestAccConfigRSAlertConfiguration_withWebhookTemplates(t *testing.T) {
 				),
 			},
 			{
+				// Import while the templates are configured. Sensitive attributes are
+				// redacted by the API on read, so the imported state has them null.
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateProjectIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"updated",
+					"notification.0.webhook_url",
+					"notification.0.webhook_body_template",
+					"notification.0.webhook_headers_template",
+					"notification.0.integration_id",
+				},
+			},
+			{
 				// Update body template and unset headers template.
 				Config: configWithWebhookTemplates(projectID, webhookURL, updatedBody, ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -760,14 +775,6 @@ func TestAccConfigRSAlertConfiguration_withWebhookTemplates(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "notification.0.webhook_body_template"),
 					resource.TestCheckNoResourceAttr(resourceName, "notification.0.webhook_headers_template"),
 				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateProjectIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-				// webhook_url and integration_id are not returned by api in the same way during import
-				ImportStateVerifyIgnore: []string{"updated", "notification.0.webhook_url", "notification.0.integration_id"},
 			},
 		},
 	})
