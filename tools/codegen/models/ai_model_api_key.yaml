@@ -13,7 +13,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Cloud provider scope for this API key. Must be "ANY". Additional cloud values will be supported in future API versions.
+          description: Cloud provider scope for this API key. Use "ANY" for a cloud-agnostic scope. Additional cloud values will be supported in future API versions.
           computed_optional_required: required
           tf_schema_name: cloud
           tf_model_name: Cloud
@@ -59,7 +59,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Geography scope for this API key. Must be "ANY". Additional geography values will be supported in future API versions.
+          description: Geography scope for this API key. Use "ANY" for a geography-agnostic scope. Additional geography values will be supported in future API versions.
           computed_optional_required: required
           tf_schema_name: geography
           tf_model_name: Geography
