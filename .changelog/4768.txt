@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_third_party_integration: Adds `send_sharding_metrics` attribute to the `DATADOG` integration type
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_third_party_integration: Adds `send_sharding_metrics` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_third_party_integrations: Adds `send_sharding_metrics` attribute
+```
