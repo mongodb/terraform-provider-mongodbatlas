@@ -169,7 +169,7 @@ func ConfigDefaultTags() string {
 				"mongodb-env"   = %[2]q
 			}
 		}
-	`, tagOwner(), tagEnv())
+	`, tagValue(tagOwnerEnvVar), tagValue(tagEnvEnvVar))
 }
 
 func ConfigAWSProviderWithTags() string {
@@ -180,18 +180,16 @@ func ConfigAWSProviderWithTags() string {
 	`, ConfigDefaultTags())
 }
 
-func tagOwner() string {
-	if v := os.Getenv(tagOwnerEnvVar); v != "" {
+// tagValue reads the tag value from envVar. Without TF_ACC, configs are never applied,
+// so a placeholder value is returned instead of failing.
+func tagValue(envVar string) string {
+	if v := os.Getenv(envVar); v != "" {
 		return v
 	}
-	panic("MONGODB_TAG_OWNER must be set")
-}
-
-func tagEnv() string {
-	if v := os.Getenv(tagEnvEnvVar); v != "" {
-		return v
+	if os.Getenv("TF_ACC") == "" {
+		return "unused"
 	}
-	panic("MONGODB_TAG_ENV must be set")
+	panic(fmt.Sprintf("%s must be set", envVar))
 }
 
 func ConfigConfluentProvider() string {
