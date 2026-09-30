@@ -16,10 +16,8 @@ const googleProviderVersion = "7.0.0"
 // Cloud Tag Policy: resources created by acceptance tests must carry
 // mongodb-owner and mongodb-env tags
 const (
-	tagOwnerEnvVar  = "MONGODB_TAG_OWNER"
-	tagEnvEnvVar    = "MONGODB_TAG_ENV"
-	defaultTagOwner = "api-experience-integrations-team@mongodb.com"
-	defaultTagEnv   = "test"
+	tagOwnerEnvVar = "MONGODB_TAG_OWNER"
+	tagEnvEnvVar   = "MONGODB_TAG_ENV"
 )
 
 func ExternalProviders(versionAtlasProvider string) map[string]resource.ExternalProvider {
@@ -171,7 +169,7 @@ func ConfigDefaultTags() string {
 				"mongodb-env"   = %[2]q
 			}
 		}
-	`, tagValue(tagOwnerEnvVar, defaultTagOwner), tagValue(tagEnvEnvVar, defaultTagEnv))
+	`, tagOwner(), tagEnv())
 }
 
 func ConfigAWSProviderWithTags() string {
@@ -182,11 +180,18 @@ func ConfigAWSProviderWithTags() string {
 	`, ConfigDefaultTags())
 }
 
-func tagValue(envVar, defaultValue string) string {
-	if v := os.Getenv(envVar); v != "" {
+func tagOwner() string {
+	if v := os.Getenv(tagOwnerEnvVar); v != "" {
 		return v
 	}
-	return defaultValue
+	panic("MONGODB_TAG_OWNER must be set")
+}
+
+func tagEnv() string {
+	if v := os.Getenv(tagEnvEnvVar); v != "" {
+		return v
+	}
+	panic("MONGODB_TAG_ENV must be set")
 }
 
 func ConfigConfluentProvider() string {
