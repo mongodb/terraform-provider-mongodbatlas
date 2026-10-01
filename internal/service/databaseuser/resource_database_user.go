@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -362,12 +363,12 @@ func (r *databaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 
 	connV2 := r.Client.AtlasV2
-	_, err := connV2.DatabaseUsersAPI.DeleteDatabaseUser(
+	httpResponse, err := connV2.DatabaseUsersAPI.DeleteDatabaseUser(
 		ctx,
 		state.ProjectID.ValueString(),
 		state.AuthDatabaseName.ValueString(),
 		state.Username.ValueString()).Execute()
-	if err != nil {
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResponse, err) {
 		resp.Diagnostics.AddError("error when destroying the database user resource", err.Error())
 		return
 	}
