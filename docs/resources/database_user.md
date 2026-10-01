@@ -207,10 +207,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The database user's name.
 
-## Deletion behavior
-
-When the resource is deleted, the provider calls the Atlas Administration API to remove the database user. If the API returns a `404` (for example, because the user was already removed outside of Terraform), the provider treats the delete as successful and removes the resource from state.
-
 ## Import
 
 Database users can be imported using project ID, username, and auth database name in the format:
