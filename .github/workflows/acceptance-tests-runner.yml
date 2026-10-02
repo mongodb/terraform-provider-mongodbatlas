@@ -467,13 +467,16 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - &checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+      - &setup-go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+      - &setup-tf
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -492,16 +495,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
@@ -518,16 +514,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
@@ -564,16 +553,9 @@ jobs:
     name: assume_role – ${{ matrix.name }}
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - id: sts-assume-role
         name: Generate STS Temporary credential for acceptance testing
         shell: bash
@@ -605,16 +587,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests (Service Account)
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ""
@@ -653,16 +628,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests (Service Account JWT)
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ""
@@ -685,16 +653,9 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           workload_identity_provider: ${{ secrets.gcp_workload_identity_provider }}
@@ -761,16 +722,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Enable internal autogen resources
         run: make tools enable-internal-autogen
       - name: Acceptance Tests
@@ -795,16 +749,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
@@ -834,16 +781,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -858,16 +798,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -880,16 +813,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -910,16 +836,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -932,16 +851,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -956,16 +868,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -978,16 +883,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
@@ -1027,16 +925,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - id: create-token
         run: make access-token-create
       - name: Migration Tests with Access Token
@@ -1088,16 +979,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -1127,16 +1011,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -1149,16 +1026,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_FEDERATION_SETTINGS_ID: ${{ inputs.mongodb_atlas_federation_settings_id }}
@@ -1190,16 +1060,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -1212,16 +1075,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
@@ -1239,16 +1095,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -1261,16 +1110,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LDAP_HOSTNAME: ${{ secrets.mongodb_atlas_ldap_hostname }}
@@ -1290,16 +1132,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -1312,16 +1147,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PRIVATE_ENDPOINT_ID: ${{ secrets.mongodb_atlas_private_endpoint_id }}
@@ -1361,16 +1189,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
@@ -1399,16 +1220,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
@@ -1427,16 +1241,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ inputs.use_sa != true && secrets.mongodb_atlas_rp_public_key || '' }}
@@ -1454,16 +1261,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true' # required for migration tests that use provider version < 2.0.0
@@ -1477,16 +1277,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -1499,16 +1292,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false
+      - *checkout
+      - *setup-go
+      - *setup-tf
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -1528,16 +1314,9 @@ jobs:
       runs-on: ubuntu-latest
       permissions: {}
       steps:
-        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-          with:
-            ref: ${{ inputs.ref || github.ref }}
-        - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
-          with:
-            go-version-file: 'go.mod'
-        - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
-          with:
-            terraform_version: ${{ inputs.terraform_version }}
-            terraform_wrapper: false  
+        - *checkout
+        - *setup-go
+        - *setup-tf
         - name: Acceptance Tests
           env:
             MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
