@@ -182,7 +182,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 }
 
 func configAWSBasic(projectID, bucketName, policyName, roleName string) string {
-	return fmt.Sprintf(`
+	return acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
     resource "aws_iam_role_policy" "test_policy" {
         name = %[3]q
         role = aws_iam_role.test_role.id
