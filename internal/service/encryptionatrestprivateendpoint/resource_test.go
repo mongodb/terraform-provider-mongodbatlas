@@ -118,6 +118,12 @@ func basicTestCaseAzure(tb testing.TB) *resource.TestCase {
 				Check:  checkBasic(projectID, *azureKeyVault.AzureEnvironment, region, false),
 			},
 			importStep(configAzureBasic(projectID, azureKeyVault, region, false)),
+			{
+				// Delete the private endpoint in a controlled apply so cleanup
+				// does not rely on post-test destroy, which leaves a dangling
+				// endpoint when the backend delete is blocked or slow.
+				Config: acc.ConfigEARAzureKeyVault(projectID, azureKeyVault, false, true),
+			},
 		},
 	}
 }
@@ -221,6 +227,13 @@ func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 				Check:  checkBasic(projectID, "AWS", region, true),
 			},
 			importStep(configAWSBasic(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKms)),
+			{
+				// Delete the private endpoint in a controlled apply so cleanup
+				// does not rely on post-test destroy, which fails with
+				// CANNOT_DISABLE_ENCRYPTION_AT_REST_DUE_TO_PRIVATE_ENDPOINTS
+				// when the endpoint deletion has not fully propagated.
+				Config: acc.ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKms, false, true, false),
+			},
 		},
 	}
 }
