@@ -5185,7 +5185,7 @@ components:
                     $ref: '#/components/schemas/ApiAtlasClusterAdvancedConfigurationView'
                 backupEnabled:
                     default: false
-                    description: Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.
+                    description: 'Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn''t use backups. For Atlas Infinite clusters (`databaseEdition: INFINITE`), this flag means Additional Backup Retention rather than whether backups run: backups always run and include a 24-hour continuous window. Set this flag to `true` to retain snapshots beyond that window with a policy you control. Set this flag to `false` to keep only the included window under an Atlas-managed retention policy that you can''t edit. This flag defaults to `true` for Atlas Infinite clusters when omitted. A cluster covered by a Data Protection policy has this set to `true` regardless of the requested value.'
                     externalDocs:
                         description: Cloud Backups
                         url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
@@ -5350,7 +5350,7 @@ components:
                     description: Flag that indicates whether the cluster is paused.
                     type: boolean
                 pitEnabled:
-                    description: Flag that indicates whether the cluster uses continuous cloud backups.
+                    description: Flag that indicates whether the cluster uses continuous cloud backups. Atlas Infinite clusters always use continuous cloud backups. Atlas sets this flag to `true` on create and update for Atlas Infinite clusters and ignores a requested value of `false`.
                     externalDocs:
                         description: Continuous Cloud Backups
                         url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
@@ -10450,7 +10450,7 @@ components:
                     $ref: '#/components/schemas/ApiAtlasClusterAdvancedConfigurationView'
                 backupEnabled:
                     default: false
-                    description: Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.
+                    description: 'Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn''t use backups. For Atlas Infinite clusters (`databaseEdition: INFINITE`), this flag means Additional Backup Retention rather than whether backups run: backups always run and include a 24-hour continuous window. Set this flag to `true` to retain snapshots beyond that window with a policy you control. Set this flag to `false` to keep only the included window under an Atlas-managed retention policy that you can''t edit. This flag defaults to `true` for Atlas Infinite clusters when omitted. A cluster covered by a Data Protection policy has this set to `true` regardless of the requested value.'
                     externalDocs:
                         description: Cloud Backups
                         url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
@@ -10615,7 +10615,7 @@ components:
                     description: Flag that indicates whether the cluster is paused.
                     type: boolean
                 pitEnabled:
-                    description: Flag that indicates whether the cluster uses continuous cloud backups.
+                    description: Flag that indicates whether the cluster uses continuous cloud backups. Atlas Infinite clusters always use continuous cloud backups. Atlas sets this flag to `true` on create and update for Atlas Infinite clusters and ignores a requested value of `false`.
                     externalDocs:
                         description: Continuous Cloud Backups
                         url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
@@ -46069,7 +46069,7 @@ info:
     termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
     title: MongoDB Atlas Administration API
     version: "2.0"
-    x-xgen-sha: d7a00f00333b964140d2cb4417e7d209287f8046
+    x-xgen-sha: 66cdb08e0ccfd70e7ba3db7117239cb48a16b4ad
 openapi: 3.0.1
 paths:
     /api/atlas/v2:
