@@ -8,7 +8,7 @@ subcategory: "Remote MCP"
 
 ~> **IMPORTANT:** Managing MCP Config Secrets with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
--> **NOTE:** This resource does not support updates. To rotate a secret, create a new secret resource and delete the old one once no longer needed. Up to two secrets can be active at once.
+-> **NOTE:** This resource does not support updates. To rotate a secret, define two secret resources and replace them alternately. See [Guide: Service Account Secret Rotation](../guides/service-account-secret-rotation#mcp-configuration-secrets).
 
 ## Example Usages
 

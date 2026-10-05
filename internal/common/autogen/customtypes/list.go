@@ -42,7 +42,7 @@ type ListType[T attr.Value] struct {
 func NewListType[T attr.Value](ctx context.Context) ListType[T] {
 	elemType := getValueType[T](ctx)
 	return ListType[T]{
-		ListType: basetypes.ListType{ElemType: elemType},
+		ElemType: elemType,
 	}
 }
 

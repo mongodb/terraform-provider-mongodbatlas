@@ -151,6 +151,11 @@ func Resource() *schema.Resource {
 				Computed: true,
 				Optional: true,
 			},
+			"send_sharding_metrics": {
+				Type:     schema.TypeBool,
+				Computed: true,
+				Optional: true,
+			},
 		},
 	}
 }

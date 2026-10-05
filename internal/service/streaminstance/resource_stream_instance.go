@@ -20,9 +20,7 @@ const streamInstanceName = "stream_instance"
 
 func Resource() resource.Resource {
 	return &streamInstanceRS{
-		RSCommon: config.RSCommon{
-			ResourceName: streamInstanceName,
-		},
+		ResourceName: streamInstanceName,
 	}
 }
 

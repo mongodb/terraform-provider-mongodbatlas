@@ -19,9 +19,7 @@ var _ datasource.DataSourceWithConfigure = &encryptionAtRestPrivateEndpointsDS{}
 
 func PluralDataSource() datasource.DataSource {
 	return &encryptionAtRestPrivateEndpointsDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: fmt.Sprintf("%ss", encryptionAtRestPrivateEndpointName),
-		},
+		DataSourceName: fmt.Sprintf("%ss", encryptionAtRestPrivateEndpointName),
 	}
 }
 

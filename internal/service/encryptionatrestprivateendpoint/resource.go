@@ -32,9 +32,7 @@ var _ resource.ResourceWithImportState = &encryptionAtRestPrivateEndpointRS{}
 
 func Resource() resource.Resource {
 	return &encryptionAtRestPrivateEndpointRS{
-		RSCommon: config.RSCommon{
-			ResourceName: encryptionAtRestPrivateEndpointName,
-		},
+		ResourceName: encryptionAtRestPrivateEndpointName,
 	}
 }
 

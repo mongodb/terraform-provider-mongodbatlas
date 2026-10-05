@@ -31,9 +31,7 @@ var _ datasource.DataSourceWithConfigure = &atlasUsersDS{}
 
 func PluralDataSource() datasource.DataSource {
 	return &atlasUsersDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: AtlasUsersDataSourceName,
-		},
+		DataSourceName: AtlasUsersDataSourceName,
 	}
 }
 

@@ -38,9 +38,7 @@ var _ resource.ResourceWithImportState = &projectRS{}
 
 func Resource() resource.Resource {
 	return &projectRS{
-		RSCommon: config.RSCommon{
-			ResourceName: projectResourceName,
-		},
+		ResourceName: projectResourceName,
 	}
 }
 

@@ -13,9 +13,7 @@ var _ datasource.DataSourceWithConfigure = &streamInstanceDS{}
 
 func DataSource() datasource.DataSource {
 	return &streamInstanceDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: streamInstanceName,
-		},
+		DataSourceName: streamInstanceName,
 	}
 }
 

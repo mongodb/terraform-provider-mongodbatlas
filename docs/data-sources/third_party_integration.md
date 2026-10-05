@@ -52,6 +52,7 @@ Additional values based on Type
   * `send_database_metrics` - Toggle sending database metrics that includes database names and metrics on the number of collections, storage size, and index size.
   * `send_user_provided_resource_tags` - Toggle sending user provided group and cluster resource tags with the Datadog metrics.
   * `send_query_stats_metrics` - Toggle sending query shape metrics that includes query hash and metrics on latency, execution frequency, documents returned, and timestamps.
+  * `send_sharding_metrics` - Toggle sending sharding metrics that includes sharding distribution and chunk metrics per cluster, shard, and collection.
 * `OPS_GENIE`
   * `api_key` - Your API Key.
   * `region` - Two-letter code that indicates which API URL to use. See the `region` response field of [MongoDB API Third-Party Service Integration documentation](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getthirdpartyintegration) for more details. Opsgenie will use US by default.

@@ -20,9 +20,7 @@ var _ datasource.DataSourceWithConfigure = &StreamProccesorDS{}
 
 func DataSource() datasource.DataSource {
 	return &StreamProccesorDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: StreamProcessorName,
-		},
+		DataSourceName: StreamProcessorName,
 	}
 }
 

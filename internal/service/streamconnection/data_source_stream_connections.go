@@ -21,9 +21,7 @@ var _ datasource.DataSourceWithConfigure = &streamConnectionsDS{}
 
 func PluralDataSource() datasource.DataSource {
 	return &streamConnectionsDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: fmt.Sprintf("%ss", streamConnectionName),
-		},
+		DataSourceName: fmt.Sprintf("%ss", streamConnectionName),
 	}
 }
 

@@ -76,7 +76,7 @@ func (v Int64Value) ValueInt64() int64 { return v.value }
 // String reads name from raw config. Missing, JSON null, and wrong type are null.
 // Empty string is a set value. Unknown stays unknown.
 func String(d resourceView, name string) StringValue {
-	v := StringValue{state: state{changed: d.HasChange(name)}}
+	v := StringValue{changed: d.HasChange(name)}
 	raw := attrAt(d.GetRawConfig(), name)
 	switch {
 	case !raw.IsKnown():
@@ -92,7 +92,7 @@ func String(d resourceView, name string) StringValue {
 // Bool reads name from raw config. Missing, JSON null, and wrong type are null.
 // false is a set value. ValueBool on null is false, so a Removed value PATCHes false.
 func Bool(d resourceView, name string) BoolValue {
-	v := BoolValue{state: state{changed: d.HasChange(name)}}
+	v := BoolValue{changed: d.HasChange(name)}
 	raw := attrAt(d.GetRawConfig(), name)
 	switch {
 	case !raw.IsKnown():
@@ -110,7 +110,7 @@ func Bool(d resourceView, name string) BoolValue {
 // A number that is not an exact int64 (fractional or out of range) is unknown,
 // so no predicate can send a truncated or clamped value.
 func Int64(d resourceView, name string) Int64Value {
-	v := Int64Value{state: state{changed: d.HasChange(name)}}
+	v := Int64Value{changed: d.HasChange(name)}
 	raw := attrAt(d.GetRawConfig(), name)
 	switch {
 	case !raw.IsKnown():

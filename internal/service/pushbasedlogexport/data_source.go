@@ -14,9 +14,7 @@ var _ datasource.DataSourceWithConfigure = &pushBasedLogExportDS{}
 
 func DataSource() datasource.DataSource {
 	return &pushBasedLogExportDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: pushBasedLogExportName,
-		},
+		DataSourceName: pushBasedLogExportName,
 	}
 }
 

@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -36,12 +38,14 @@ func TestAccProjectServiceAccount_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, name1, description1, roles1, 24),
-				Check:  checkBasic(true, roles1),
+				Config:            configBasic(projectID, name1, description1, roles1, new(24), false),
+				Check:             checkBasic(true, roles1, false),
+				ConfigStateChecks: []statecheck.StateCheck{pluralSACheck(name1)},
 			},
 			{
-				Config: configBasic(projectID, name2, description2, roles2, 24),
-				Check:  checkBasic(false, roles2),
+				Config:            configBasic(projectID, name2, description2, roles2, new(24), false),
+				Check:             checkBasic(false, roles2, false),
+				ConfigStateChecks: []statecheck.StateCheck{pluralSACheck(name2)},
 			},
 			{
 				ResourceName:                         resourceName,
@@ -49,7 +53,9 @@ func TestAccProjectServiceAccount_basic(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "client_id",
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				ImportStateVerifyIgnore:              []string{"secret_expires_after_hours"},
+				// Neither attribute is populated by the API on read: secret_expires_after_hours is create-only and
+				// without_initial_secret is request-only. Import state cannot reproduce them from config.
+				ImportStateVerifyIgnore: []string{"secret_expires_after_hours", "without_initial_secret"},
 			},
 		},
 	})
@@ -68,21 +74,137 @@ func TestAccProjectServiceAccount_createOnlyAttributes(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, name, description, roles, 24),
+				Config: configBasic(projectID, name, description, roles, new(24), false),
 				Check:  checkExists(resourceName),
 			},
 			{
-				Config:      configBasic(projectID, name, description, roles, 48),
+				Config:      configBasic(projectID, name, description, roles, new(48), false),
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile("secret_expires_after_hours cannot be updated"),
 			},
 			{
-				Config:      configBasic("updated-project-id", name, description, roles, 24),
+				Config:      configBasic("updated-project-id", name, description, roles, new(24), false),
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile("project_id cannot be updated"),
 			},
+			{
+				// without_initial_secret is optional-only, so a config that omits it stores null. Setting it on
+				// update is not rejected (validateCreateOnly skips the check when the state value is null). The
+				// resulting plan is non-empty: the attribute changes from null to true and the API ignores the
+				// PATCH field, so no server-side change happens.
+				Config:             configBasic(projectID, name, description, roles, new(24), true),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
 		},
 	})
+}
+
+func TestAccProjectServiceAccount_withoutInitialSecret(t *testing.T) {
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		name        = acc.RandomName()
+		description = "Without initial secret"
+		roles       = []string{"GROUP_READ_ONLY"}
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectID, name, description, roles, nil, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "secrets.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "without_initial_secret", "true"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "client_id"),
+				),
+			},
+			{
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportStateVerifyIdentifierAttribute: "client_id",
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIgnore:              []string{"without_initial_secret"},
+			},
+		},
+	})
+}
+
+func TestAccProjectServiceAccount_withoutInitialSecretWithSecrets(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		name      = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithoutInitialSecretWithSecrets(projectID, name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "secrets.#", "0"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_project_service_account_secret.first", "secret_id"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_project_service_account_secret.second", "secret_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "secrets.#", "2"),
+				),
+				// The plural data source can return other Service Accounts in the project, so the test account is
+				// not guaranteed to be at results.0. Find it by name before asserting.
+				ConfigStateChecks: []statecheck.StateCheck{
+					acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(name), map[string]knownvalue.Check{
+						"secrets": knownvalue.ListSizeExact(2),
+					}),
+				},
+			},
+		},
+	})
+}
+
+func configWithoutInitialSecretWithSecrets(projectID, name string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project_service_account" "test" {
+			project_id             = %[1]q
+			name                   = %[2]q
+			description            = "Acceptance Test Project SA without an initial secret"
+			roles                  = ["GROUP_OWNER"]
+			without_initial_secret = true
+		}
+
+		resource "mongodbatlas_project_service_account_secret" "first" {
+			project_id                 = %[1]q
+			client_id                  = mongodbatlas_project_service_account.test.client_id
+			secret_expires_after_hours = 12
+		}
+
+		resource "mongodbatlas_project_service_account_secret" "second" {
+			project_id                 = %[1]q
+			client_id                  = mongodbatlas_project_service_account.test.client_id
+			secret_expires_after_hours = 24
+			// Creating two secrets in parallel hits DATA_CONCURRENCY_ERROR (409); serialize the second.
+			depends_on = [mongodbatlas_project_service_account_secret.first]
+		}
+
+		data "mongodbatlas_project_service_account" "test" {
+			project_id = %[1]q
+			client_id  = mongodbatlas_project_service_account.test.client_id
+			depends_on = [
+				mongodbatlas_project_service_account_secret.first,
+				mongodbatlas_project_service_account_secret.second,
+			]
+		}
+
+		data "mongodbatlas_project_service_accounts" "test" {
+			project_id = %[1]q
+			depends_on = [
+				mongodbatlas_project_service_account_secret.first,
+				mongodbatlas_project_service_account_secret.second,
+			]
+		}
+	`, projectID, name)
 }
 
 func TestAccProjectServiceAccount_pluralDSIncludeSystemManaged(t *testing.T) {
@@ -120,16 +242,23 @@ func TestAccProjectServiceAccount_pluralDSIncludeSystemManaged(t *testing.T) {
 	})
 }
 
-func configBasic(projectID, name, description string, roles []string, secretExpiresAfterHours int) string {
+func configBasic(projectID, name, description string, roles []string, secretExpiresAfterHours *int, withoutInitialSecret bool) string {
 	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	rolesHCL := fmt.Sprintf("[%s]", rolesStr)
+	secretExpiresLine := ""
+	if secretExpiresAfterHours != nil {
+		secretExpiresLine = fmt.Sprintf("\n\t\t\tsecret_expires_after_hours = %d", *secretExpiresAfterHours)
+	}
+	withoutInitialSecretLine := ""
+	if withoutInitialSecret {
+		withoutInitialSecretLine = "\n\t\t\twithout_initial_secret = true"
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_service_account" "test" {
 			project_id                 = %[1]q
 			name                       = %[2]q
 			description                = %[3]q
-			roles                      = %[4]s
-			secret_expires_after_hours = %[5]d
+			roles                      = %[4]s%[5]s%[6]s
 		}
 
 		data "mongodbatlas_project_service_account" "test" {
@@ -141,10 +270,10 @@ func configBasic(projectID, name, description string, roles []string, secretExpi
 			project_id = %[1]q
 			depends_on = [mongodbatlas_project_service_account.test]
 		}
-	`, projectID, name, description, rolesHCL, secretExpiresAfterHours)
+	`, projectID, name, description, rolesHCL, secretExpiresLine, withoutInitialSecretLine)
 }
 
-func checkBasic(isCreate bool, roles []string) resource.TestCheckFunc {
+func checkBasic(isCreate bool, roles []string, withoutInitialSecret bool) resource.TestCheckFunc {
 	commonAttrsSet := []string{"client_id", "created_at", "secrets.0.secret_id", "secrets.0.created_at", "secrets.0.expires_at"}
 	commonAttrsMap := map[string]string{"secrets.#": "1", "roles.#": strconv.Itoa(len(roles))}
 
@@ -158,9 +287,21 @@ func checkBasic(isCreate bool, roles []string) resource.TestCheckFunc {
 	}
 
 	additionalChecks = acc.AddAttrSetChecks(dataSourceName, additionalChecks, "secrets.0.masked_secret_value")
-	additionalChecks = acc.AddAttrSetChecksPrefix(dataSourcePluralName, additionalChecks, []string{"secrets.0.masked_secret_value"}, "results.0")
+	if withoutInitialSecret {
+		additionalChecks = append(additionalChecks, resource.TestCheckResourceAttr(resourceName, "without_initial_secret", strconv.FormatBool(withoutInitialSecret)))
+	} else {
+		additionalChecks = append(additionalChecks, resource.TestCheckNoResourceAttr(resourceName, "without_initial_secret"))
+	}
 
 	return resource.ComposeAggregateTestCheckFunc(checks, resource.ComposeAggregateTestCheckFunc(additionalChecks...))
+}
+
+// pluralSACheck finds the Service Account by name in the plural data source. Tests in a package share one
+// project, so concurrent tests can occupy results.0 and the index is not stable.
+func pluralSACheck(name string) statecheck.StateCheck {
+	return acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(name), map[string]knownvalue.Check{
+		"secrets": knownvalue.ListSizeExact(1),
+	})
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {

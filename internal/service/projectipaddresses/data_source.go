@@ -16,9 +16,7 @@ var _ datasource.DataSourceWithConfigure = &projectIPAddressesDS{}
 
 func DataSource() datasource.DataSource {
 	return &projectIPAddressesDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: projectIPAddressesName,
-		},
+		DataSourceName: projectIPAddressesName,
 	}
 }
 

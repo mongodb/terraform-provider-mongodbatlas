@@ -779,9 +779,7 @@ func TestMarshalEmbeddedExpandedModel(t *testing.T) {
 		Type           types.String `tfsdk:"type"`
 	}
 	model := modelExpanded{
-		modelExpandedFields: modelExpandedFields{
-			ID: types.StringValue("ws-123-conn"),
-		},
+		ID:             types.StringValue("ws-123-conn"),
 		ConnectionName: types.StringValue("conn"),
 		Type:           types.StringValue("Sample"),
 	}
@@ -808,10 +806,8 @@ func TestMarshalEmbeddedExpandedModel_WithSendableExpandedField(t *testing.T) {
 		Type           types.String `tfsdk:"type"`
 	}
 	model := modelExpanded{
-		modelExpandedFields: modelExpandedFields{
-			ID:           types.StringValue("ws-123-proj-conn"),
-			ExpandedAttr: types.StringValue("expanded-attr"),
-		},
+		ID:             types.StringValue("ws-123-proj-conn"),
+		ExpandedAttr:   types.StringValue("expanded-attr"),
 		ConnectionName: types.StringValue("conn"),
 		Type:           types.StringValue("Kafka"),
 	}

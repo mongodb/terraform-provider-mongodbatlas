@@ -18,9 +18,7 @@ var _ datasource.DataSourceWithConfigure = &projectDS{}
 
 func DataSource() datasource.DataSource {
 	return &projectDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: projectResourceName,
-		},
+		DataSourceName: projectResourceName,
 	}
 }
 

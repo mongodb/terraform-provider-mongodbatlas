@@ -46,14 +46,12 @@ func TestNewTFPushBasedLogExport(t *testing.T) {
 				State:      new(activeState),
 			},
 			expectedTFModel: &pushbasedlogexport.TFPushBasedLogExportRSModel{
-				TFPushBasedLogExportCommonModel: pushbasedlogexport.TFPushBasedLogExportCommonModel{
-					ProjectID:  types.StringValue(testProjectID),
-					BucketName: types.StringValue(testBucketName),
-					IamRoleID:  types.StringValue(testIAMRoleID),
-					PrefixPath: types.StringValue(testPrefixPath),
-					State:      types.StringValue(activeState),
-					CreateDate: types.StringPointerValue(conversion.TimePtrToStringPtr(&currentTime)),
-				},
+				ProjectID:  types.StringValue(testProjectID),
+				BucketName: types.StringValue(testBucketName),
+				IamRoleID:  types.StringValue(testIAMRoleID),
+				PrefixPath: types.StringValue(testPrefixPath),
+				State:      types.StringValue(activeState),
+				CreateDate: types.StringPointerValue(conversion.TimePtrToStringPtr(&currentTime)),
 			},
 		},
 		{
@@ -67,14 +65,12 @@ func TestNewTFPushBasedLogExport(t *testing.T) {
 				State:      new(activeState),
 			},
 			expectedTFModel: &pushbasedlogexport.TFPushBasedLogExportRSModel{
-				TFPushBasedLogExportCommonModel: pushbasedlogexport.TFPushBasedLogExportCommonModel{
-					ProjectID:  types.StringValue(testProjectID),
-					BucketName: types.StringValue(testBucketName),
-					IamRoleID:  types.StringValue(testIAMRoleID),
-					PrefixPath: types.StringValue(prefixPathEmpty),
-					State:      types.StringValue(activeState),
-					CreateDate: types.StringPointerValue(conversion.TimePtrToStringPtr(&currentTime)),
-				},
+				ProjectID:  types.StringValue(testProjectID),
+				BucketName: types.StringValue(testBucketName),
+				IamRoleID:  types.StringValue(testIAMRoleID),
+				PrefixPath: types.StringValue(prefixPathEmpty),
+				State:      types.StringValue(activeState),
+				CreateDate: types.StringPointerValue(conversion.TimePtrToStringPtr(&currentTime)),
 			},
 		},
 	}
@@ -101,11 +97,9 @@ func TestNewPushBasedLogExportReq(t *testing.T) {
 		{
 			name: "Valid TF state",
 			input: &pushbasedlogexport.TFPushBasedLogExportRSModel{
-				TFPushBasedLogExportCommonModel: pushbasedlogexport.TFPushBasedLogExportCommonModel{
-					BucketName: types.StringValue(testBucketName),
-					IamRoleID:  types.StringValue(testIAMRoleID),
-					PrefixPath: types.StringValue(testPrefixPath),
-				},
+				BucketName: types.StringValue(testBucketName),
+				IamRoleID:  types.StringValue(testIAMRoleID),
+				PrefixPath: types.StringValue(testPrefixPath),
 			},
 			expectedCreateReq: &admin.CreatePushBasedLogExportProjectRequest{
 				BucketName: testBucketName,
@@ -121,11 +115,9 @@ func TestNewPushBasedLogExportReq(t *testing.T) {
 		{
 			name: "Valid TF state with empty prefix path",
 			input: &pushbasedlogexport.TFPushBasedLogExportRSModel{
-				TFPushBasedLogExportCommonModel: pushbasedlogexport.TFPushBasedLogExportCommonModel{
-					BucketName: types.StringValue(testBucketName),
-					IamRoleID:  types.StringValue(testIAMRoleID),
-					PrefixPath: types.StringValue(prefixPathEmpty),
-				},
+				BucketName: types.StringValue(testBucketName),
+				IamRoleID:  types.StringValue(testIAMRoleID),
+				PrefixPath: types.StringValue(prefixPathEmpty),
 			},
 			expectedCreateReq: &admin.CreatePushBasedLogExportProjectRequest{
 				BucketName: testBucketName,

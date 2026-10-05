@@ -66,6 +66,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/mcpconfigsecret"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/metricintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orgdelegationsettings"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orglogintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orgmaintenancesettings"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive"
 	autogenprojectipaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectipaccesslist"
@@ -353,6 +354,8 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		projectserviceaccountaccesslistentry.PluralDataSource,
 		logintegration.DataSource,
 		logintegration.PluralDataSource,
+		orglogintegration.DataSource,
+		orglogintegration.PluralDataSource,
 		orgmaintenancesettings.DataSource,
 		metricintegration.DataSource,
 		metricintegration.PluralDataSource,
@@ -395,6 +398,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		cloudbackupcollectionrestorejob.Resource,
 		project.Resource,
 		logintegration.Resource,
+		orglogintegration.Resource,
 		orgmaintenancesettings.Resource,
 		encryptionatrest.Resource,
 		databaseuser.Resource,

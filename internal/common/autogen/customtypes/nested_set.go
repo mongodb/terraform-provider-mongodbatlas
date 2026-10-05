@@ -55,7 +55,7 @@ func NewNestedSetType[T any](ctx context.Context) NestedSetType[T] {
 	}
 
 	result := NestedSetType[T]{
-		SetType: basetypes.SetType{ElemType: elemType},
+		ElemType: elemType,
 	}
 	return result
 }

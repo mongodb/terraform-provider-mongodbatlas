@@ -16,9 +16,7 @@ var _ datasource.DataSourceWithConfigure = &cloudUserOrgAssignmentDS{}
 
 func DataSource() datasource.DataSource {
 	return &cloudUserOrgAssignmentDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: resourceName,
-		},
+		DataSourceName: resourceName,
 	}
 }
 
