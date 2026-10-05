@@ -15,9 +15,7 @@ var _ datasource.DataSourceWithConfigure = &controlPlaneIPAddressesDS{}
 
 func DataSource() datasource.DataSource {
 	return &controlPlaneIPAddressesDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: controlPlaneIPAddressesName,
-		},
+		DataSourceName: controlPlaneIPAddressesName,
 	}
 }
 

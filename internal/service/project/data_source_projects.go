@@ -22,9 +22,7 @@ var _ datasource.DataSourceWithConfigure = &ProjectsDS{}
 
 func PluralDataSource() datasource.DataSource {
 	return &ProjectsDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: projectsDataSourceName,
-		},
+		DataSourceName: projectsDataSourceName,
 	}
 }
 

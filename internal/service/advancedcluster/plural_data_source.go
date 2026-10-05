@@ -22,9 +22,7 @@ var _ datasource.DataSourceWithConfigure = &pluralDS{}
 
 func PluralDataSource() datasource.DataSource {
 	return &pluralDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: fmt.Sprintf("%ss", resourceName),
-		},
+		DataSourceName: fmt.Sprintf("%ss", resourceName),
 	}
 }
 

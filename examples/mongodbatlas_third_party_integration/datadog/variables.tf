@@ -51,3 +51,9 @@ variable "send_query_stats_metrics" {
   default     = false
   type        = bool
 }
+
+variable "send_sharding_metrics" {
+  description = "Send sharding metrics (only for Datadog integrations)"
+  default     = false
+  type        = bool
+}

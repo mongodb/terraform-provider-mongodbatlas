@@ -46,9 +46,10 @@ func (e ipAccessListEntry) hclStr() string {
 
 func TestAccMcpConfig_basic(t *testing.T) {
 	var (
-		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		name1 = acc.RandomName()
-		name2 = fmt.Sprintf("%s-updated", name1)
+		orgID  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		name1  = acc.RandomName()
+		name2  = fmt.Sprintf("%s-updated", name1)
+		withDS = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -57,28 +58,32 @@ func TestAccMcpConfig_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name1, []string{"ORG_READ_ONLY"}, nil),
-				Check:  checkBasic([]string{"ORG_READ_ONLY"}, nil),
+				Config: configBasic(orgID, name1, []string{"ORG_READ_ONLY"}, nil, !withDS),
+				Check:  checkBasic([]string{"ORG_READ_ONLY"}, nil, !withDS),
 			},
 			{
-				Config: configBasic(orgID, name2, []string{"ORG_MEMBER", "ORG_READ_ONLY"}, nil),
-				Check:  checkBasic([]string{"ORG_MEMBER", "ORG_READ_ONLY"}, nil),
+				Config: configBasic(orgID, name2, []string{"ORG_MEMBER", "ORG_READ_ONLY"}, nil, !withDS),
+				Check:  checkBasic([]string{"ORG_MEMBER", "ORG_READ_ONLY"}, nil, !withDS),
 			},
 			{
-				Config: configBasic(orgID, name2, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
-				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
+				Config: configBasic(orgID, name2, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}, !withDS),
+				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}, !withDS),
 			},
 			{ // Change name keeping ip_access_list the same, plans ip + cidr, hook removes cidr.
-				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
-				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}),
+				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}, !withDS),
+				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.113.0"}}, !withDS),
 			},
 			{
-				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{cidr: "203.0.113.0/24"}}),
-				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{cidr: "203.0.113.0/24"}}),
+				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{cidr: "203.0.113.0/24"}}, !withDS),
+				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{cidr: "203.0.113.0/24"}}, !withDS),
 			},
 			{
-				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}),
-				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}),
+				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}, !withDS),
+				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}, !withDS),
+			},
+			{ // No-op step: the plural list endpoint returns 404 while the backing service accounts are being updated, so read it only once the resource is stable.
+				Config: configBasic(orgID, name1, []string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}, withDS),
+				Check:  checkBasic([]string{"ORG_MEMBER"}, []ipAccessListEntry{{ip: "203.0.111.0"}, {cidr: "203.0.112.0/32"}, {cidr: "203.0.113.0/24"}}, withDS),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -91,7 +96,7 @@ func TestAccMcpConfig_basic(t *testing.T) {
 	})
 }
 
-func configBasic(orgID, name string, roles []string, entries []ipAccessListEntry) string {
+func configBasic(orgID, name string, roles []string, entries []ipAccessListEntry, withDS bool) string {
 	rolesHCL := hcl.StringSliceToHCL(roles)
 	pluralDSHCL := ""
 	ipAccessListHCL := ""
@@ -101,9 +106,10 @@ func configBasic(orgID, name string, roles []string, entries []ipAccessListEntry
 			entryBlocks = append(entryBlocks, e.hclStr())
 		}
 		ipAccessListHCL = fmt.Sprintf("ip_access_list = [%s]", strings.Join(entryBlocks, ", "))
-	} else {
-		// API list operation is flaky (returns 404) when the underlying MCP Config SAs are being updated concurrently.
-		// So add plural DS when not updating ip_access_list which triggers an SA update.
+	}
+	// The list operation returns 404 while the backing MCP Config service accounts are being
+	// created or updated, so only request it in a step that does not mutate the resource.
+	if withDS {
 		pluralDSHCL = fmt.Sprintf(`
 			data "mongodbatlas_mcp_configs" "test" {
 				org_id     = %[1]q
@@ -129,7 +135,7 @@ func configBasic(orgID, name string, roles []string, entries []ipAccessListEntry
 	`, orgID, name, rolesHCL, ipAccessListHCL, pluralDSHCL)
 }
 
-func checkBasic(roles []string, entries []ipAccessListEntry) resource.TestCheckFunc {
+func checkBasic(roles []string, entries []ipAccessListEntry, withDS bool) resource.TestCheckFunc {
 	commonAttrsSet := []string{"mcp_config_id", "client_id", "egress_client_id"}
 	attrsMap := map[string]string{
 		"roles.#":          fmt.Sprintf("%d", len(roles)),
@@ -138,7 +144,7 @@ func checkBasic(roles []string, entries []ipAccessListEntry) resource.TestCheckF
 	checks := []resource.TestCheckFunc{
 		acc.CheckRSAndDS(resourceName, new(dataSourceName), nil, commonAttrsSet, attrsMap, checkExists(resourceName)),
 	}
-	if len(entries) == 0 {
+	if withDS {
 		checks = append(checks, resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)))
 	}
 	for _, e := range entries {

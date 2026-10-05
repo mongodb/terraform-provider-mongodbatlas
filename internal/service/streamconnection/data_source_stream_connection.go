@@ -19,9 +19,7 @@ var _ datasource.DataSourceWithConfigure = &streamConnectionDS{}
 
 func DataSource() datasource.DataSource {
 	return &streamConnectionDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: streamConnectionName,
-		},
+		DataSourceName: streamConnectionName,
 	}
 }
 

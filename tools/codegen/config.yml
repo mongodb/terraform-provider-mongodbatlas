@@ -1373,8 +1373,14 @@ resources:
         created_at:
           immutable_computed: true
         secret_expires_after_hours:
-          # Adding clarification that the attribute is required for creation and can't be updated later.
-          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later."
+          # Clarifying the mutually exclusive create inputs and create-only behavior.
+          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. Set this field when you set `without_initial_secret` to false or omit `without_initial_secret`. Do not set this field when you set `without_initial_secret` to true. You cannot update this field after you create the Service Account."
+        without_initial_secret:
+          # Optional only, so the create-only modifier applies and the API spec default is not injected:
+          # the provider must not write a value the user did not configure.
+          computability:
+            optional: true
+          description: "When true, creates the Service Account without generating an initial secret. If you set this field to true, do not set `secret_expires_after_hours`."
         secrets:
           type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
           skip_state_list_merge: true # Prevent keeping old secret values in the state.
@@ -1423,8 +1429,14 @@ resources:
         created_at:
           immutable_computed: true
         secret_expires_after_hours:
-          # Adding clarification that the attribute is required for creation and can't be updated later.
-          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later."
+          # Clarifying the mutually exclusive create inputs and create-only behavior.
+          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. Set this field when you set `without_initial_secret` to false or omit `without_initial_secret`. Do not set this field when you set `without_initial_secret` to true. You cannot update this field after you create the Service Account."
+        without_initial_secret:
+          # Optional only, so the create-only modifier applies and the API spec default is not injected:
+          # the provider must not write a value the user did not configure.
+          computability:
+            optional: true
+          description: "When true, creates the Service Account without generating an initial secret. If you set this field to true, do not set `secret_expires_after_hours`."
         secrets:
           type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
           skip_state_list_merge: true # Prevent keeping old secret values in the state.
@@ -1755,6 +1767,47 @@ resources:
           otel_supplied_headers:
             sensitive: true
 
+  org_log_integration:
+    version_header: application/vnd.atlas.2025-03-12+json
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/logIntegrations/{logIntegrationId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/logIntegrations
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/logIntegrations/{logIntegrationId}
+      method: PUT
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/logIntegrations/{logIntegrationId}
+      method: DELETE
+    schema:
+      aliases:
+        logIntegrationId: integrationId
+        id: integrationId
+      overrides:
+          org_id:
+            description: *org_id_description
+          integration_id:
+            immutable_computed: true
+          otel_supplied_headers:
+            sensitive: true
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/logIntegrations/{logIntegrationId}
+        method: GET
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/logIntegrations
+        method: GET
+      schema:
+        aliases:
+          logIntegrationId: integrationId
+          id: integrationId
+          results.id: integrationId
+        overrides:
+          org_id:
+            description: *org_id_description
+        ignores: ["otel_supplied_headers", "results.otel_supplied_headers"] # `otel_supplied_headers` values are redacted on read responses, no value in adding for data sources
   metric_integration:
     read:
       path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}

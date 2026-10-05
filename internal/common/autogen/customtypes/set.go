@@ -42,7 +42,7 @@ type SetType[T attr.Value] struct {
 func NewSetType[T attr.Value](ctx context.Context) SetType[T] {
 	elemType := getValueType[T](ctx)
 	return SetType[T]{
-		SetType: basetypes.SetType{ElemType: elemType},
+		ElemType: elemType,
 	}
 }
 

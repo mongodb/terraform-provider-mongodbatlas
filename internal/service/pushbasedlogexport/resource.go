@@ -31,9 +31,7 @@ var _ resource.ResourceWithImportState = &pushBasedLogExportRS{}
 
 func Resource() resource.Resource {
 	return &pushBasedLogExportRS{
-		RSCommon: config.RSCommon{
-			ResourceName: pushBasedLogExportName,
-		},
+		ResourceName: pushBasedLogExportName,
 	}
 }
 

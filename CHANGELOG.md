@@ -1,5 +1,16 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_alert_configuration: Adds `notification.webhook_body_template` and `notification.webhook_headers_template` attributes ([#4773](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4773))
+* data-source/mongodbatlas_alert_configurations: Adds `notification.webhook_body_template` and `notification.webhook_headers_template` attributes ([#4773](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4773))
+* data-source/mongodbatlas_third_party_integration: Adds `send_sharding_metrics` attribute ([#4768](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4768))
+* data-source/mongodbatlas_third_party_integrations: Adds `send_sharding_metrics` attribute ([#4768](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4768))
+* resource/mongodbatlas_alert_configuration: Adds `notification.webhook_body_template` and `notification.webhook_headers_template` attributes to customize the JSON body and headers of `WEBHOOK` notifications ([#4773](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4773))
+* resource/mongodbatlas_third_party_integration: Adds `send_sharding_metrics` attribute to the `DATADOG` integration type ([#4768](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4768))
+
+## 2.19.0 (September 30, 2026)
+
 NOTES:
 
 * resource/mongodbatlas_advanced_cluster: Clarifies that new MongoDB major versions are supported as soon as Atlas enables them; updates example `mongo_db_major_version` values to `9.0` ([#4753](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4753))
@@ -8,8 +19,11 @@ FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_cluster_adaptive_settings` ([#4620](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4620))
 * **New Data Source:** `data-source/mongodbatlas_cluster_overload_simulation` ([#4618](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4618))
+* **New Data Source:** `data-source/mongodbatlas_org_log_integration` ([#4635](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4635))
+* **New Data Source:** `data-source/mongodbatlas_org_log_integrations` ([#4635](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4635))
 * **New Resource:** `resource/mongodbatlas_cluster_adaptive_settings` ([#4620](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4620))
 * **New Resource:** `resource/mongodbatlas_cluster_overload_simulation` ([#4618](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4618))
+* **New Resource:** `resource/mongodbatlas_org_log_integration` ([#4634](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4634))
 
 ENHANCEMENTS:
 
@@ -22,6 +36,8 @@ ENHANCEMENTS:
 * resource/mongodbatlas_advanced_cluster: Adds `shard_size_limit_gb` for INFINITE clusters ([#4697](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4697))
 * resource/mongodbatlas_advanced_cluster: Adds attribute `effective_database_edition` ([#4725](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4725))
 * resource/mongodbatlas_advanced_cluster: Adds attribute database_edition ([#4613](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4613))
+* resource/mongodbatlas_project_service_account: Adds `without_initial_secret` attribute to create a Project Service Account without generating an initial secret. `secret_expires_after_hours` is mutually exclusive with `without_initial_secret` and must be omitted when it is `true` ([#4764](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4764))
+* resource/mongodbatlas_service_account: Adds `without_initial_secret` attribute to create a Service Account without generating an initial secret. `secret_expires_after_hours` is mutually exclusive with `without_initial_secret` and must be omitted when it is `true` ([#4727](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4727))
 
 BUG FIXES:
 

@@ -55,7 +55,7 @@ func NewNestedMapType[T any](ctx context.Context) NestedMapType[T] {
 	}
 
 	result := NestedMapType[T]{
-		MapType: basetypes.MapType{ElemType: elemType},
+		ElemType: elemType,
 	}
 	return result
 }

@@ -15,6 +15,18 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
+// MongoDB major versions used by acceptance tests that create clusters on a specific version or upgrade between versions.
+// Update both when Atlas supports a new major version.
+const (
+	PreviousMongoDBMajorVersion = 8
+	LatestMongoDBMajorVersion   = 9
+)
+
+// MongoDBMajorVersionString formats a major version the way mongo_db_major_version expects it, e.g. 9 -> "9.0".
+func MongoDBMajorVersionString(majorVersion int) string {
+	return fmt.Sprintf("%d.0", majorVersion)
+}
+
 var (
 	ClusterTagsMap1 = map[string]string{
 		"key":   "key 1",

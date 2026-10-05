@@ -82,7 +82,7 @@ components:
                 pattern: ^([a-f0-9]{20})$
                 type: string
         includeCount:
-            description: Flag that indicates whether the response returns the total number of items (`totalCount`) in the response.
+            description: Flag that indicates whether MongoDB Cloud calculates the total number of items for the response. When set to `false`, MongoDB Cloud may skip an additional count operation. The response may still include `totalCount` when the count is available without additional calculation.
             in: query
             name: includeCount
             schema:
@@ -12478,8 +12478,6 @@ components:
                             - Backup
                             - Data Transfer
                             - BI Connector
-                            - DSC Compute
-                            - DSC Storage
                             - Premium Features
                             - Atlas Data Federation
                             - Atlas Stream Processing
@@ -13541,6 +13539,7 @@ components:
                 - properties:
                     clusterName:
                         description: Human-readable label of the MongoDB Cloud cluster on which the store is based.
+                        pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
                         type: string
                     projectId:
                         description: Unique 24-hexadecimal digit string that identifies the project.
@@ -19015,10 +19014,11 @@ components:
                     description: Status of the Ephemeral cluster.
                     enum:
                         - ACTIVE
+                        - PROVISIONING
                         - PAUSED
                     type: string
                 termsOfService:
-                    description: Notice that by using this API, you agree to MongoDB's Cloud Terms of Service at <https://www.mongodb.com/legal/terms-and-conditions/cloud> and Privacy Policy at <https://www.mongodb.com/legal/privacy/privacy-policy>. Includes a link to the full terms.
+                    description: Notice that by using this API, you agree to MongoDB's Cloud Terms of Service at <https://www.mongodb.com/legal/terms-and-conditions/cloud> and Privacy Policy at <https://www.mongodb.com/legal/privacy/privacy-policy>.
                     type: string
             type: object
         EphemeralClusterStatusResponse:
@@ -19047,7 +19047,7 @@ components:
                         - PAUSED
                     type: string
                 termsOfService:
-                    description: Notice that by using this API, you agree to MongoDB's Cloud Terms of Service at <https://www.mongodb.com/legal/terms-and-conditions/cloud> and Privacy Policy at <https://www.mongodb.com/legal/privacy/privacy-policy>. Includes a link to the full terms.
+                    description: Notice that by using this API, you agree to MongoDB's Cloud Terms of Service at <https://www.mongodb.com/legal/terms-and-conditions/cloud> and Privacy Policy at <https://www.mongodb.com/legal/privacy/privacy-policy>.
                     type: string
             type: object
         EventSeverity:
@@ -19597,6 +19597,7 @@ components:
                     - SERVERLESS_UPGRADE_TO_DEDICATED_SUCCESSFUL
                     - SERVERLESS_UPGRADE_TO_DEDICATED_FAILED
                     - CLUSTER_FORCE_RECONFIG_REQUESTED
+                    - SLS_LOG_AND_MONGOD_NODES_RECREATION_REQUESTED
                     - AGENT_FORCE_RESTART_REQUESTED
                     - CLUSTER_RESET_FORCE_RECONFIG_REQUESTED
                     - CLUSTER_FORCE_PAUSE_REQUESTED
@@ -20184,6 +20185,9 @@ components:
                     - SHADOW_CLUSTER_ORG_OPT_IN
                     - SHADOW_CLUSTER_ORG_OPT_OUT
                     - ATLAS_MAINTENANCE_FLEET_ACTIVE_WAVE_CLOSED_BY_ADMIN
+                    - MAINTENANCE_WAVE_ASSIGNMENT_ADDED
+                    - MAINTENANCE_WAVE_ASSIGNMENT_MODIFIED
+                    - MAINTENANCE_WAVE_ASSIGNMENT_REMOVED
                   title: Atlas Audit Types
                   type: string
                 - enum:
@@ -24285,7 +24289,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -28139,6 +28143,7 @@ components:
                             - MONGOS
                             - MONGOD_AUDIT
                             - MONGOS_AUDIT
+                            - EVENTS
                         type: string
                     maxItems: 10
                     type: array
@@ -28192,6 +28197,7 @@ components:
                             - MONGOS
                             - MONGOD_AUDIT
                             - MONGOS_AUDIT
+                            - EVENTS
                         type: string
                     maxItems: 10
                     type: array
@@ -30311,6 +30317,7 @@ components:
                 - SERVERLESS_UPGRADE_TO_DEDICATED_SUCCESSFUL
                 - SERVERLESS_UPGRADE_TO_DEDICATED_FAILED
                 - CLUSTER_FORCE_RECONFIG_REQUESTED
+                - SLS_LOG_AND_MONGOD_NODES_RECREATION_REQUESTED
                 - AGENT_FORCE_RESTART_REQUESTED
                 - CLUSTER_RESET_FORCE_RECONFIG_REQUESTED
                 - CLUSTER_FORCE_PAUSE_REQUESTED
@@ -30442,6 +30449,9 @@ components:
                 - SHADOW_CLUSTER_ORG_OPT_IN
                 - SHADOW_CLUSTER_ORG_OPT_OUT
                 - ATLAS_MAINTENANCE_FLEET_ACTIVE_WAVE_CLOSED_BY_ADMIN
+                - MAINTENANCE_WAVE_ASSIGNMENT_ADDED
+                - MAINTENANCE_WAVE_ASSIGNMENT_MODIFIED
+                - MAINTENANCE_WAVE_ASSIGNMENT_REMOVED
             example: ORG_LIMIT_UPDATED
             title: Atlas Audit Types
             type: string
@@ -33446,7 +33456,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34233,7 +34243,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34259,7 +34269,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34285,7 +34295,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34311,7 +34321,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34337,7 +34347,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34363,7 +34373,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34389,7 +34399,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34415,7 +34425,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34442,7 +34452,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34468,7 +34478,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34494,7 +34504,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34520,7 +34530,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34546,7 +34556,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34572,7 +34582,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34598,7 +34608,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34624,7 +34634,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34650,7 +34660,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34676,7 +34686,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34702,7 +34712,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34728,7 +34738,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34754,7 +34764,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34780,7 +34790,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34806,7 +34816,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34832,7 +34842,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34858,7 +34868,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34884,7 +34894,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34910,7 +34920,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -34988,7 +34998,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35014,7 +35024,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35066,7 +35076,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35093,7 +35103,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35120,7 +35130,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35146,7 +35156,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35172,7 +35182,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35198,7 +35208,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35224,7 +35234,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35250,7 +35260,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35276,7 +35286,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35302,7 +35312,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35329,7 +35339,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35356,7 +35366,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35382,7 +35392,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35409,7 +35419,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35435,7 +35445,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35462,7 +35472,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35488,7 +35498,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35514,7 +35524,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35540,7 +35550,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35566,7 +35576,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35592,7 +35602,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35619,7 +35629,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35645,7 +35655,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35671,7 +35681,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35697,7 +35707,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35723,7 +35733,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35749,7 +35759,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35775,7 +35785,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35801,7 +35811,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35827,7 +35837,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35853,7 +35863,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35879,7 +35889,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35905,7 +35915,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35931,7 +35941,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35957,7 +35967,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -35984,7 +35994,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36010,7 +36020,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36036,7 +36046,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36063,7 +36073,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36089,7 +36099,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36115,7 +36125,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36141,7 +36151,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36168,7 +36178,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36195,7 +36205,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36221,7 +36231,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36248,7 +36258,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36274,7 +36284,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36300,7 +36310,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36327,7 +36337,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36353,7 +36363,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36379,7 +36389,33 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
+                    format: int32
+                    minimum: 0
+                    readOnly: true
+                    type: integer
+            required:
+                - results
+            type: object
+        PaginatedStreamsWorkspacePrivateEndpointResponse:
+            properties:
+                links:
+                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                    externalDocs:
+                        description: Web Linking Specification (RFC 5988)
+                        url: https://datatracker.ietf.org/doc/html/rfc5988
+                    items:
+                        $ref: '#/components/schemas/Link'
+                    readOnly: true
+                    type: array
+                results:
+                    description: List of returned documents that MongoDB Cloud provides when completing this request.
+                    items:
+                        $ref: '#/components/schemas/StreamsWorkspacePrivateEndpointResponse'
+                    readOnly: true
+                    type: array
+                totalCount:
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36413,32 +36449,6 @@ components:
             required:
                 - results
             type: object
-        PaginatedStreamsWorkspacePrivateEndpointResponse:
-            properties:
-                links:
-                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-                    externalDocs:
-                        description: Web Linking Specification (RFC 5988)
-                        url: https://datatracker.ietf.org/doc/html/rfc5988
-                    items:
-                        $ref: '#/components/schemas/Link'
-                    readOnly: true
-                    type: array
-                results:
-                    description: List of returned documents that MongoDB Cloud provides when completing this request.
-                    items:
-                        $ref: '#/components/schemas/StreamsWorkspacePrivateEndpointResponse'
-                    readOnly: true
-                    type: array
-                totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
-                    format: int32
-                    minimum: 0
-                    readOnly: true
-                    type: integer
-            required:
-                - results
-            type: object
         PaginatedTeamRoleView:
             properties:
                 links:
@@ -36457,7 +36467,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36483,7 +36493,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -36509,7 +36519,7 @@ components:
                     readOnly: true
                     type: array
                 totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
                     format: int32
                     minimum: 0
                     readOnly: true
@@ -43604,6 +43614,25 @@ components:
                     pattern: ^([a-f0-9]{24})$
                     readOnly: true
                     type: string
+        StreamsWorkspacePrivateEndpointRequest:
+            description: Customer VPC endpoint to register for inbound private connectivity to Atlas Stream Processing.
+            properties:
+                customerDnsName:
+                    description: DNS name of the customer's VPC endpoint.
+                    example: vpce-0abc123def4567890-abc123.us-east-1.vpce.amazonaws.com
+                    type: string
+                id:
+                    description: Unique identifier of the customer's VPC endpoint.
+                    example: vpce-0abc123def4567890
+                    type: string
+                region:
+                    description: Human-readable label identifying the region of the customer's VPC endpoint.
+                    example: US_EAST_1
+                    type: string
+            required:
+                - customerDnsName
+                - id
+                - region
             type: object
         StreamsWorkspacePrivateEndpointResponse:
             description: Customer VPC endpoint registered for inbound private connectivity to Atlas Stream Processing.
@@ -45436,8 +45465,6 @@ components:
                             - Backup
                             - Data Transfer
                             - BI Connector
-                            - DSC Compute
-                            - DSC Storage
                             - Premium Features
                             - Atlas Data Federation
                             - Atlas Stream Processing
@@ -47069,7 +47096,7 @@ info:
     termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
     title: MongoDB Atlas Administration API
     version: "2.0"
-    x-xgen-sha: b6592364200439091a7c164c989eaf177ff9c276
+    x-xgen-sha: d7a00f00333b964140d2cb4417e7d209287f8046
 openapi: 3.0.1
 paths:
     /api/atlas/v2:
@@ -48549,6 +48576,8 @@ paths:
                             $ref: '#/components/headers/HeaderRateLimitLimit'
                         RateLimit-Remaining:
                             $ref: '#/components/headers/HeaderRateLimitRemaining'
+                "400":
+                    $ref: '#/components/responses/badRequest'
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
@@ -56311,6 +56340,56 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/listGroupClusterPrivateEndpointConnectionStrings
             x-xgen-operation-id-override: listEndpointConnectionStrings
     /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/privateEndpointConnectionStrings/{connectionStringId}:
+        delete:
+            description: Deletes one private endpoint connection string from the specified cluster.
+            operationId: deleteGroupClusterPrivateEndpointConnectionString
+            parameters:
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/pretty'
+                - description: Human-readable label that identifies the cluster.
+                  in: path
+                  name: clusterName
+                  required: true
+                  schema:
+                    type: string
+                - description: Unique 24-hexadecimal digit string that identifies this private endpoint connection string.
+                  in: path
+                  name: connectionStringId
+                  required: true
+                  schema:
+                    pattern: ^([a-f0-9]{24})$
+                    type: string
+            responses:
+                "204":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            x-xgen-preview:
+                                name: private-endpoint-connection-strings
+                            x-xgen-version: preview
+                    description: No Content
+                    headers:
+                        RateLimit-Limit:
+                            $ref: '#/components/headers/HeaderRateLimitLimit'
+                        RateLimit-Remaining:
+                            $ref: '#/components/headers/HeaderRateLimitRemaining'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "429":
+                    $ref: '#/components/responses/tooManyRequests'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Delete One Private Endpoint Connection String from One Cluster
+            tags:
+                - Clusters
+            x-rolesRequirements:
+                - Project Owner
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/deleteGroupClusterPrivateEndpointConnectionString
+            x-xgen-operation-id-override: deleteEndpointConnectionString
         get:
             description: Returns one private endpoint connection string from the specified cluster. This endpoint treats `deleteRequested = true` records as not found.
             operationId: getGroupClusterPrivateEndpointConnectionString
@@ -71858,6 +71937,65 @@ paths:
                 - Project Stream Processing Owner
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/listGroupStreamsWorkspacePrivateEndpoints
             x-xgen-operation-id-override: listWorkspacePrivateEndpoints
+        post:
+            description: Registers one customer VPC endpoint for Atlas Stream Processing in the specified project.
+            operationId: createGroupStreamsWorkspacePrivateEndpoint
+            parameters:
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+            requestBody:
+                content:
+                    application/vnd.atlas.preview+json:
+                        schema:
+                            $ref: '#/components/schemas/StreamsWorkspacePrivateEndpointRequest'
+                        x-xgen-preview:
+                            name: streams-workspace-private-endpoint
+                        x-xgen-version: preview
+                description: Customer VPC endpoint to register for Atlas Stream Processing.
+                required: true
+            responses:
+                "202":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            x-xgen-preview:
+                                name: streams-workspace-private-endpoint
+                            x-xgen-version: preview
+                    description: Accepted
+                    headers:
+                        Location:
+                            description: Relative URI of the registered workspace private endpoint, which reports the registration once it has been applied.
+                            schema:
+                                description: Relative URI of the workspace private endpoint.
+                                format: uri
+                                type: string
+                            style: simple
+                        RateLimit-Limit:
+                            $ref: '#/components/headers/HeaderRateLimitLimit'
+                        RateLimit-Remaining:
+                            $ref: '#/components/headers/HeaderRateLimitRemaining'
+                "400":
+                    $ref: '#/components/responses/badRequest'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "409":
+                    $ref: '#/components/responses/conflict'
+                "429":
+                    $ref: '#/components/responses/tooManyRequests'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Create One Workspace Private Endpoint for Atlas Stream Processing
+            tags:
+                - Streams
+            x-rolesRequirements:
+                - Organization Stream Processing Admin
+                - Project Stream Processing Owner
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createGroupStreamsWorkspacePrivateEndpoint
+            x-xgen-operation-id-override: createWorkspacePrivateEndpoint
     /api/atlas/v2/groups/{groupId}/streamsWorkspacePrivateEndpoints/{endpointId}:
         get:
             description: Returns one private endpoint registered for Atlas Stream Processing in the specified project.
@@ -75369,9 +75507,14 @@ paths:
             responses:
                 "200":
                     content:
+                        application/vnd.atlas.2025-03-12+json:
+                            schema:
+                                $ref: '#/components/schemas/PaginatedOrgLogIntegrationResponse'
+                            x-xgen-version: "2025-03-12"
                         application/vnd.atlas.preview+json:
                             schema:
                                 $ref: '#/components/schemas/PaginatedOrgLogIntegrationResponse'
+                            x-sunset: "2026-10-26"
                             x-xgen-preview:
                                 public: "true"
                             x-xgen-version: preview
@@ -75408,9 +75551,14 @@ paths:
                 - $ref: '#/components/parameters/pretty'
             requestBody:
                 content:
+                    application/vnd.atlas.2025-03-12+json:
+                        schema:
+                            $ref: '#/components/schemas/OrgLogIntegrationRequest'
+                        x-xgen-version: "2025-03-12"
                     application/vnd.atlas.preview+json:
                         schema:
                             $ref: '#/components/schemas/OrgLogIntegrationRequest'
+                        x-sunset: "2026-10-26"
                         x-xgen-preview:
                             public: "true"
                         x-xgen-version: preview
@@ -75419,9 +75567,14 @@ paths:
             responses:
                 "201":
                     content:
+                        application/vnd.atlas.2025-03-12+json:
+                            schema:
+                                $ref: '#/components/schemas/OrgLogIntegrationResponse'
+                            x-xgen-version: "2025-03-12"
                         application/vnd.atlas.preview+json:
                             schema:
                                 $ref: '#/components/schemas/OrgLogIntegrationResponse'
+                            x-sunset: "2026-10-26"
                             x-xgen-preview:
                                 public: "true"
                             x-xgen-version: preview
@@ -75466,7 +75619,10 @@ paths:
             responses:
                 "204":
                     content:
+                        application/vnd.atlas.2025-03-12+json:
+                            x-xgen-version: "2025-03-12"
                         application/vnd.atlas.preview+json:
+                            x-sunset: "2026-10-26"
                             x-xgen-preview:
                                 public: "true"
                             x-xgen-version: preview
@@ -75510,9 +75666,14 @@ paths:
             responses:
                 "200":
                     content:
+                        application/vnd.atlas.2025-03-12+json:
+                            schema:
+                                $ref: '#/components/schemas/OrgLogIntegrationResponse'
+                            x-xgen-version: "2025-03-12"
                         application/vnd.atlas.preview+json:
                             schema:
                                 $ref: '#/components/schemas/OrgLogIntegrationResponse'
+                            x-sunset: "2026-10-26"
                             x-xgen-preview:
                                 public: "true"
                             x-xgen-version: preview
@@ -75555,9 +75716,14 @@ paths:
                     type: string
             requestBody:
                 content:
+                    application/vnd.atlas.2025-03-12+json:
+                        schema:
+                            $ref: '#/components/schemas/OrgLogIntegrationUpdateRequest'
+                        x-xgen-version: "2025-03-12"
                     application/vnd.atlas.preview+json:
                         schema:
                             $ref: '#/components/schemas/OrgLogIntegrationUpdateRequest'
+                        x-sunset: "2026-10-26"
                         x-xgen-preview:
                             public: "true"
                         x-xgen-version: preview
@@ -75566,9 +75732,14 @@ paths:
             responses:
                 "200":
                     content:
+                        application/vnd.atlas.2025-03-12+json:
+                            schema:
+                                $ref: '#/components/schemas/OrgLogIntegrationResponse'
+                            x-xgen-version: "2025-03-12"
                         application/vnd.atlas.preview+json:
                             schema:
                                 $ref: '#/components/schemas/OrgLogIntegrationResponse'
+                            x-sunset: "2026-10-26"
                             x-xgen-preview:
                                 public: "true"
                             x-xgen-version: preview
@@ -78871,7 +79042,7 @@ paths:
                         x-xgen-preview:
                             public: "true"
                         x-xgen-version: preview
-                description: Ephemeral cluster to create.
+                description: Ephemeral cluster to create. An empty body creates a cluster with the default name.
                 required: true
             responses:
                 "201":

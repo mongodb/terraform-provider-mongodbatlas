@@ -42,9 +42,7 @@ var _ resource.ResourceWithImportState = &encryptionAtRestRS{}
 
 func Resource() resource.Resource {
 	return &encryptionAtRestRS{
-		RSCommon: config.RSCommon{
-			ResourceName: encryptionAtRestResourceName,
-		},
+		ResourceName: encryptionAtRestResourceName,
 	}
 }
 

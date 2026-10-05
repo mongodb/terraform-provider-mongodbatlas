@@ -40,9 +40,7 @@ var _ resource.ResourceWithImportState = &alertConfigurationRS{}
 
 func Resource() resource.Resource {
 	return &alertConfigurationRS{
-		RSCommon: config.RSCommon{
-			ResourceName: alertConfigurationResourceName,
-		},
+		ResourceName: alertConfigurationResourceName,
 	}
 }
 
@@ -98,6 +96,8 @@ type TfNotificationModel struct {
 	VictorOpsRoutingKey      types.String `tfsdk:"victor_ops_routing_key"`
 	DatadogAPIKey            types.String `tfsdk:"datadog_api_key"`
 	WebhookURL               types.String `tfsdk:"webhook_url"`
+	WebhookBodyTemplate      types.String `tfsdk:"webhook_body_template"`
+	WebhookHeadersTemplate   types.String `tfsdk:"webhook_headers_template"`
 	OpsGenieAPIKey           types.String `tfsdk:"ops_genie_api_key"`
 	TeamID                   types.String `tfsdk:"team_id"`
 	TeamName                 types.String `tfsdk:"team_name"`
@@ -344,6 +344,14 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 							Optional:  true,
 						},
 						"webhook_url": schema.StringAttribute{
+							Sensitive: true,
+							Optional:  true,
+						},
+						"webhook_body_template": schema.StringAttribute{
+							Sensitive: true,
+							Optional:  true,
+						},
+						"webhook_headers_template": schema.StringAttribute{
 							Sensitive: true,
 							Optional:  true,
 						},

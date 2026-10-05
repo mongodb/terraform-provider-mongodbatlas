@@ -38,6 +38,8 @@ func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificatio
 			MicrosoftTeamsWebhookUrl: n.MicrosoftTeamsWebhookURL.ValueStringPointer(),
 			WebhookSecret:            n.WebhookSecret.ValueStringPointer(),
 			WebhookUrl:               n.WebhookURL.ValueStringPointer(),
+			WebhookBodyTemplate:      n.WebhookBodyTemplate.ValueStringPointer(),
+			WebhookHeadersTemplate:   n.WebhookHeadersTemplate.ValueStringPointer(),
 			IntegrationId:            conversion.StringPtr(n.IntegrationID.ValueString()),
 			NotifierId:               conversion.StringPtr(n.NotifierID.ValueString()),
 		}
@@ -148,6 +150,8 @@ func NewTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currSt
 			VictorOpsRoutingKey:      conversion.StringNullIfEmpty(currState.VictorOpsRoutingKey.ValueString()),
 			WebhookURL:               conversion.StringNullIfEmpty(currState.WebhookURL.ValueString()),
 			WebhookSecret:            conversion.StringNullIfEmpty(currState.WebhookSecret.ValueString()),
+			WebhookBodyTemplate:      conversion.StringNullIfEmpty(currState.WebhookBodyTemplate.ValueString()),
+			WebhookHeadersTemplate:   conversion.StringNullIfEmpty(currState.WebhookHeadersTemplate.ValueString()),
 			MicrosoftTeamsWebhookURL: conversion.StringNullIfEmpty(currState.MicrosoftTeamsWebhookURL.ValueString()),
 			NotifierID:               types.StringPointerValue(value.NotifierId),
 			IntegrationID:            types.StringPointerValue(value.IntegrationId),

@@ -55,7 +55,7 @@ func NewNestedListType[T any](ctx context.Context) NestedListType[T] {
 	}
 
 	result := NestedListType[T]{
-		ListType: basetypes.ListType{ElemType: elemType},
+		ElemType: elemType,
 	}
 	return result
 }

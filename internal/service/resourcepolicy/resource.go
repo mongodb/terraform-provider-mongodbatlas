@@ -31,9 +31,7 @@ const (
 
 func Resource() resource.Resource {
 	return &resourcePolicyRS{
-		RSCommon: config.RSCommon{
-			ResourceName: resourceName,
-		},
+		ResourceName: resourceName,
 	}
 }
 

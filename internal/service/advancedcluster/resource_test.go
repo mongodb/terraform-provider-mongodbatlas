@@ -868,9 +868,11 @@ func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName() // Using single project to assert plural data source
-		clusterName = acc.RandomClusterName()
+		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName     = acc.RandomProjectName() // Using single project to assert plural data source
+		clusterName     = acc.RandomClusterName()
+		previousVersion = acc.MongoDBMajorVersionString(acc.PreviousMongoDBMajorVersion)
+		latestVersion   = acc.MongoDBMajorVersionString(acc.LatestMongoDBMajorVersion)
 	)
 
 	now := time.Now()
@@ -887,32 +889,32 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configFCVPinning(t, orgID, projectName, clusterName, nil, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+				Config: configFCVPinning(t, orgID, projectName, clusterName, nil, previousVersion),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, acc.PreviousMongoDBMajorVersion, nil, nil),
 			},
 			{ // pins fcv
-				Config: configFCVPinning(t, orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(firstExpirationDate), new(7)),
+				Config: configFCVPinning(t, orgID, projectName, clusterName, &firstExpirationDate, previousVersion),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, acc.PreviousMongoDBMajorVersion, new(firstExpirationDate), new(acc.PreviousMongoDBMajorVersion)),
 			},
 			{ // using incorrect format
-				Config:      configFCVPinning(t, orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
+				Config:      configFCVPinning(t, orgID, projectName, clusterName, &invalidDateFormat, previousVersion),
 				ExpectError: regexp.MustCompile("expiration_date format is incorrect: " + invalidDateFormat),
 			},
 			{ // updates expiration date of fcv
-				Config: configFCVPinning(t, orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(updatedExpirationDate), new(7)),
+				Config: configFCVPinning(t, orgID, projectName, clusterName, &updatedExpirationDate, previousVersion),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, acc.PreviousMongoDBMajorVersion, new(updatedExpirationDate), new(acc.PreviousMongoDBMajorVersion)),
 			},
 			{ // upgrade mongodb version with fcv pinned
-				Config: configFCVPinning(t, orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, new(updatedExpirationDate), new(7)),
+				Config: configFCVPinning(t, orgID, projectName, clusterName, &updatedExpirationDate, latestVersion),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, acc.LatestMongoDBMajorVersion, new(updatedExpirationDate), new(acc.PreviousMongoDBMajorVersion)),
 			},
 			{ // downgrade mongodb version with fcv pinned
-				Config: configFCVPinning(t, orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(updatedExpirationDate), new(7)),
+				Config: configFCVPinning(t, orgID, projectName, clusterName, &updatedExpirationDate, previousVersion),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, acc.PreviousMongoDBMajorVersion, new(updatedExpirationDate), new(acc.PreviousMongoDBMajorVersion)),
 			},
 			{ // unpins fcv
-				Config: configFCVPinning(t, orgID, projectName, clusterName, nil, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, nil, nil),
+				Config: configFCVPinning(t, orgID, projectName, clusterName, nil, previousVersion),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, acc.PreviousMongoDBMajorVersion, nil, nil),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -2249,7 +2251,7 @@ func configGeoSharded(t *testing.T, projectID, name string, numShardsFirstZone, 
 			project_id = %[1]q
 			name = %[2]q
 			backup_enabled = false
-			mongo_db_major_version = "7.0"
+			mongo_db_major_version = %[6]q
 			cluster_type   = "GEOSHARDED"
 			global_cluster_self_managed_sharding = %[5]t
 			disk_size_gb  = 60
@@ -2293,7 +2295,7 @@ func configGeoSharded(t *testing.T, projectID, name string, numShardsFirstZone, 
 			}
 		}
 
-	`, projectID, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
+	`, projectID, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding, acc.MongoDBMajorVersionString(acc.LatestMongoDBMajorVersion))
 		return advClusterConfig + dataSourcesConfig
 	}
 
@@ -2346,7 +2348,7 @@ func configGeoSharded(t *testing.T, projectID, name string, numShardsFirstZone, 
 			project_id = %[1]q
 			name = %[2]q
 			backup_enabled = false
-			mongo_db_major_version = "7.0"
+			mongo_db_major_version = %[5]q
 			cluster_type   = "GEOSHARDED"
 			global_cluster_self_managed_sharding = %[3]t
 
@@ -2354,7 +2356,7 @@ func configGeoSharded(t *testing.T, projectID, name string, numShardsFirstZone, 
 			%[4]s
 			]
 		}
-		`, projectID, name, selfManagedSharding, replicationSpecs)
+		`, projectID, name, selfManagedSharding, replicationSpecs, acc.MongoDBMajorVersionString(acc.LatestMongoDBMajorVersion))
 
 	return advClusterConfig + dataSourcesConfig
 }
@@ -2627,7 +2629,7 @@ func configGeoShardedNewSchema(t *testing.T, projectID, name string, includeThir
 			project_id = %[1]q
 			name = %[2]q
 			backup_enabled = false
-			mongo_db_major_version = "7.0"
+			mongo_db_major_version = %[4]q
 			cluster_type   = "GEOSHARDED"
 
 			replication_specs = [{
@@ -2656,7 +2658,7 @@ func configGeoShardedNewSchema(t *testing.T, projectID, name string, includeThir
 				}]
 			}]
     	}
-	`, projectID, name, thirdReplicationSpec) + dataSourcesConfig
+	`, projectID, name, thirdReplicationSpec, acc.MongoDBMajorVersionString(acc.LatestMongoDBMajorVersion)) + dataSourcesConfig
 }
 
 func checkGeoShardedNewSchema(includeThirdShardInFirstZone bool) resource.TestCheckFunc {

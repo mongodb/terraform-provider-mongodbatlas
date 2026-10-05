@@ -20,9 +20,7 @@ const streamsWorkspaceName = "stream_workspace"
 
 func Resource() resource.Resource {
 	return &rs{
-		RSCommon: config.RSCommon{
-			ResourceName: streamsWorkspaceName,
-		},
+		ResourceName: streamsWorkspaceName,
 	}
 }
 

@@ -11,6 +11,8 @@ You can retrieve it using (**warning**: this prints the secret to your terminal)
 terraform output -raw secret
 ```
 
+For help rotating the secret, see [Guide: Service Account Secret Rotation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/service-account-secret-rotation#mcp-configuration-secrets).
+
 ## Required Variables
 - `atlas_client_id`: The MongoDB Atlas Service Account Client ID
 - `atlas_client_secret`: The MongoDB Atlas Service Account Client Secret

@@ -45,9 +45,7 @@ type TfAlertConfigurationOutputModel struct {
 
 func DataSource() datasource.DataSource {
 	return &alertConfigurationDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: alertConfigurationResourceName,
-		},
+		DataSourceName: alertConfigurationResourceName,
 	}
 }
 
@@ -238,6 +236,14 @@ var alertConfigDSSchemaAttributes = map[string]schema.Attribute{
 					Computed:  true,
 				},
 				"webhook_url": schema.StringAttribute{
+					Sensitive: true,
+					Computed:  true,
+				},
+				"webhook_body_template": schema.StringAttribute{
+					Sensitive: true,
+					Computed:  true,
+				},
+				"webhook_headers_template": schema.StringAttribute{
 					Sensitive: true,
 					Computed:  true,
 				},

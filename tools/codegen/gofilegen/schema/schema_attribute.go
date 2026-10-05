@@ -265,7 +265,11 @@ func planModifierStatement(attr *codespec.Attribute, planModifierType string) (*
 	imports := make(map[string]struct{})
 
 	if attr.CreateOnly {
-		if attr.Bool != nil && attr.Bool.Default != nil {
+		// CreateOnlyBoolWithDefault injects the default into the plan on create, which is only valid for
+		// computed_optional attributes: a default on a non-computed attribute is rejected by
+		// terraform-plugin-framework. Optional-only attributes must keep the value the user configured
+		// (including null when omitted), so they always use the plain create-only modifier.
+		if attr.Bool != nil && attr.Bool.Default != nil && attr.ComputedOptionalRequired == codespec.ComputedOptional {
 			modifiers = append(modifiers, fmt.Sprintf("customplanmodifier.CreateOnlyBoolWithDefault(%t)", *attr.Bool.Default))
 		} else {
 			modifiers = append(modifiers, "customplanmodifier.CreateOnly()")

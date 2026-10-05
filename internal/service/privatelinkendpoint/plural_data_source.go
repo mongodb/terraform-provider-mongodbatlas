@@ -13,9 +13,7 @@ var _ datasource.DataSourceWithConfigure = &pluralDS{}
 
 func PluralDataSource() datasource.DataSource {
 	return &pluralDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: "privatelink_endpoints",
-		},
+		DataSourceName: "privatelink_endpoints",
 	}
 }
 

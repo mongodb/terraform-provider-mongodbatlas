@@ -14,9 +14,7 @@ var _ datasource.DataSourceWithConfigure = &streamsWorkspaceDS{}
 
 func DataSource() datasource.DataSource {
 	return &streamsWorkspaceDS{
-		DSCommon: config.DSCommon{
-			DataSourceName: streamsWorkspaceName,
-		},
+		DataSourceName: streamsWorkspaceName,
 	}
 }
 
