@@ -163,8 +163,11 @@ func (r *pushBasedLogExportRS) Delete(ctx context.Context, req resource.DeleteRe
 	connV2 := r.Client.AtlasV2
 	projectID := tfState.ProjectID.ValueString()
 	httpResp, err := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute()
-	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
-		resp.Diagnostics.AddError("Error when deleting push-based log export configuration", err.Error())
+	if err != nil {
+		if !deletenotfound.IsNotFound(ctx, httpResp, err) {
+			resp.Diagnostics.AddError("Error when deleting push-based log export configuration", err.Error())
+			return
+		}
 		return
 	}
 
