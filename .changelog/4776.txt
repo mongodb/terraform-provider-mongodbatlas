@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_advanced_cluster: Documents that NVMe clusters require either the `PROVISIONED` or `HIGH_PERFORMANCE` `ebs_volume_type` value
+```
