@@ -179,11 +179,10 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	httpResp, err := conn.CloudBackupsAPI.DeleteExportBucket(ctx, projectID, bucketID).Execute()
 
-	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
-		return diag.Errorf("error deleting snapshot export bucket (%s): %s", bucketID, err)
-	}
-
 	if err != nil {
+		if !deletenotfound.IsNotFound(ctx, httpResp, err) {
+			return diag.Errorf("error deleting snapshot export bucket (%s): %s", bucketID, err)
+		}
 		return nil
 	}
 
