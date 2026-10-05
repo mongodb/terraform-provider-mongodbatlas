@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20250312026/admin"
 )
@@ -206,7 +207,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 	if details != nil && orgID != "" {
-		if _, err = connV2.ProgrammaticAPIKeysAPI.DeleteOrgApiKey(ctx, orgID, apiKeyID).Execute(); err != nil {
+		httpResp, err := connV2.ProgrammaticAPIKeysAPI.DeleteOrgApiKey(ctx, orgID, apiKeyID).Execute()
+		if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 			return diag.FromErr(fmt.Errorf("error deleting project key (%s): %s", apiKeyID, err))
 		}
 	}

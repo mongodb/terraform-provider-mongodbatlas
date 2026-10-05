@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -653,9 +654,13 @@ func deleteProject(ctx context.Context, clustersAPI admin.ClustersAPI, projectsA
 		tflog.Info(ctx, fmt.Sprintf("[ERROR] could not determine MongoDB project %s dependents status: %s", projectID, err.Error()))
 	}
 
-	_, err = projectsAPI.DeleteGroup(ctx, projectID).Execute()
+	httpResp, err := projectsAPI.DeleteGroup(ctx, projectID).Execute()
 
-	return err
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
+		return err
+	}
+
+	return nil
 }
 
 /*

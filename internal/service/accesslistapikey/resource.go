@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -170,8 +171,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	apiKeyID := ids["api_key_id"]
 	ipAddress := ids["entry"]
 
-	_, err := connV2.ProgrammaticAPIKeysAPI.DeleteAccessEntry(ctx, orgID, apiKeyID, ipAddress).Execute()
-	if err != nil {
+	httpResp, err := connV2.ProgrammaticAPIKeysAPI.DeleteAccessEntry(ctx, orgID, apiKeyID, ipAddress).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf("error deleting API Key: %s", err))
 	}
 	return nil

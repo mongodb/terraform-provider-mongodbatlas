@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -128,7 +129,8 @@ func (r *streamInstanceRS) Delete(ctx context.Context, req resource.DeleteReques
 	connV2 := r.Client.AtlasV2
 	projectID := streamInstanceState.ProjectID.ValueString()
 	instanceName := streamInstanceState.InstanceName.ValueString()
-	if _, err := connV2.StreamsAPI.DeleteStreamWorkspace(ctx, projectID, instanceName).Execute(); err != nil {
+	httpResp, err := connV2.StreamsAPI.DeleteStreamWorkspace(ctx, projectID, instanceName).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		resp.Diagnostics.AddError("error during resource delete", err.Error())
 		return
 	}

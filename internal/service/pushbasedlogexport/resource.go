@@ -13,6 +13,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -161,7 +162,8 @@ func (r *pushBasedLogExportRS) Delete(ctx context.Context, req resource.DeleteRe
 
 	connV2 := r.Client.AtlasV2
 	projectID := tfState.ProjectID.ValueString()
-	if _, err := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute(); err != nil {
+	httpResp, err := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		resp.Diagnostics.AddError("Error when deleting push-based log export configuration", err.Error())
 		return
 	}

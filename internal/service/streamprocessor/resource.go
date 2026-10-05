@@ -12,6 +12,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -286,7 +287,8 @@ func (r *streamProcessorRS) Delete(ctx context.Context, req resource.DeleteReque
 
 	connV2 := r.Client.AtlasV2
 	workspaceOrInstanceName := GetWorkspaceOrInstanceName(streamProcessorState.WorkspaceName, streamProcessorState.InstanceName)
-	if _, err := connV2.StreamsAPI.DeleteStreamProcessor(ctx, streamProcessorState.ProjectID.ValueString(), workspaceOrInstanceName, streamProcessorState.ProcessorName.ValueString()).Execute(); err != nil {
+	httpResp, err := connV2.StreamsAPI.DeleteStreamProcessor(ctx, streamProcessorState.ProjectID.ValueString(), workspaceOrInstanceName, streamProcessorState.ProcessorName.ValueString()).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

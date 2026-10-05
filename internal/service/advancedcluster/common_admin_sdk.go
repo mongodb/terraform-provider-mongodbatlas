@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -93,8 +94,8 @@ func deleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 		ClusterName:   waitParams.ClusterName,
 		RetainBackups: retainBackups,
 	}
-	_, err := client.AtlasV2.ClustersAPI.DeleteClusterWithParams(ctx, params).Execute()
-	if err != nil {
+	httpResp, err := client.AtlasV2.ClustersAPI.DeleteClusterWithParams(ctx, params).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		if !admin.IsErrorCode(err, "CANNOT_USE_FLEX_CLUSTER_IN_CLUSTER_API") {
 			addErrorDiag(diags, operationDelete, defaultAPIErrorDetails(waitParams.ClusterName, err))
 			return
