@@ -99,8 +99,12 @@ In addition to all arguments above, the following attributes are exported:
 * `tenant_id` - Unique identifier of the Azure Active Directory tenant where the service principal resides.
 * `role_id` - Unique identifier of the role that the Federated Database Instance can use to access the data stores.
 
+#### `gcp` - Google Cloud provider of the cloud service where the Federated Database Instance can access Google Cloud Storage.
+* `gcp_service_account` - Email address of the Google Cloud Platform (GCP) service account created by Atlas, which should be authorized to allow Atlas to access Google Cloud Storage.
+* `role_id` - Unique identifier of the role that the Federated Database Instance can use to access the data stores.
+
 ### `data_process_region` - The cloud provider region to which the Federated Instance routes client connections for data processing.
-* `cloud_provider` -  Name of the cloud service provider. Supported providers: `AWS`, `AZURE`.
+* `cloud_provider` -  Name of the cloud service provider. Supported providers: `AWS`, `AZURE`, `GCP`.
 * `region` - Name of the region to which the Federated Instance routes client connections for data processing.
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) Documentation for more information.

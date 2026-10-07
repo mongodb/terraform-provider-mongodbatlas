@@ -45,6 +45,20 @@ data "mongodbatlas_federated_database_instance" "test" {
 }
 ```
 
+## Example of Google Cloud Storage as storage database
+
+```terraform
+data "mongodbatlas_federated_database_instance" "test" {
+  project_id = "<PROJECT_ID>"
+  name       = "<TENANT_NAME_OF_THE_FEDERATED_DATABASE_INSTANCE>"
+  cloud_provider_config {
+    gcp {
+      role_id = "<GCP_ROLE_ID>"
+    }
+  }
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to create a Federated Database Instance, also known as `groupId` in the official documentation.
@@ -123,8 +137,12 @@ In addition to all arguments above, the following attributes are exported:
 * `tenant_id` - Unique identifier of the Azure Active Directory tenant where the service principal resides.
 * `role_id` - Unique identifier of the role that the Federated Database Instance can use to access the data stores.
 
+#### `gcp` - Google Cloud provider of the cloud service where the Federated Database Instance can access Google Cloud Storage.
+* `gcp_service_account` - Email address of the Google Cloud Platform (GCP) service account created by Atlas, which should be authorized to allow Atlas to access Google Cloud Storage.
+* `role_id` - Unique identifier of the role that the Federated Database Instance can use to access the data stores.
+
 ### `data_process_region` - The cloud provider region to which the Federated Instance routes client connections for data processing.
-* `cloud_provider` -  Name of the cloud service provider. Supported providers: `AWS`, `AZURE`.
+* `cloud_provider` -  Name of the cloud service provider. Supported providers: `AWS`, `AZURE`, `GCP`.
 * `region` - Name of the region to which the Federated Instance routes client connections for data processing.
 
 To learn more, see the [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) documentation.
