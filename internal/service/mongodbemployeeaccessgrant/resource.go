@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -84,7 +83,9 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.ClusterName.ValueString()
 	httpResp, err := connV2.ClustersAPI.RevokeMongoEmployeeAccess(ctx, projectID, clusterName).Execute()
-	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
+	// TODO: this condition is inverted and other errors are silently swallowed; surface them
+	// after evaluating the impact, tracked separately (see CLOUDP-437881 for a similar analysis).
+	if err != nil && validate.StatusNotFound(httpResp) {
 		resp.Diagnostics.AddError(errorDelete, err.Error())
 		return
 	}
