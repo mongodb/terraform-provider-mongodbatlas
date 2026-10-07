@@ -37,11 +37,10 @@ data "mongodbatlas_federated_database_instance" "test" {
 data "mongodbatlas_federated_database_instance" "test" {
   project_id = "<PROJECT_ID>"
   name       = "<TENANT_NAME_OF_THE_FEDERATED_DATABASE_INSTANCE>"
-  cloud_provider_config {
-    azure {
-      role_id = "<AZURE_ROLE_ID>"
-    }
-  }
+}
+
+output "azure_role_id" {
+  value = data.mongodbatlas_federated_database_instance.test.cloud_provider_config[0].azure[0].role_id
 }
 ```
 
@@ -51,11 +50,10 @@ data "mongodbatlas_federated_database_instance" "test" {
 data "mongodbatlas_federated_database_instance" "test" {
   project_id = "<PROJECT_ID>"
   name       = "<TENANT_NAME_OF_THE_FEDERATED_DATABASE_INSTANCE>"
-  cloud_provider_config {
-    gcp {
-      role_id = "<GCP_ROLE_ID>"
-    }
-  }
+}
+
+output "gcp_service_account" {
+  value = data.mongodbatlas_federated_database_instance.test.cloud_provider_config[0].gcp[0].gcp_service_account
 }
 ```
 
