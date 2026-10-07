@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
@@ -22,4 +23,15 @@ func IsNotFound(ctx context.Context, resp *http.Response, err error) bool {
 	}
 	tflog.Info(ctx, "delete returned 404, resource already no longer exists, considering the delete as successful")
 	return true
+}
+
+// IsNotFound is the equivalent of IsNotFound for legacy SDKs (go.mongodb.org/atlas and
+// go.mongodb.org/realm) whose calls return a wrapper instead of the raw *http.Response.
+// The wrapper can be nil when the request fails before a response exists (e.g. a transport
+// failure), in which case the error is not treated as not-found.
+func IsNotFoundLegacy(ctx context.Context, resp *mongodbatlas.Response, err error) bool {
+	if resp == nil {
+		return false
+	}
+	return IsNotFound(ctx, resp.Response, err)
 }

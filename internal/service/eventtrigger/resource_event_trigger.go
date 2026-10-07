@@ -465,7 +465,7 @@ func resourceMongoDBAtlasEventTriggersDelete(ctx context.Context, d *schema.Reso
 	triggerID := ids["trigger_id"]
 
 	httpResp, err := conn.EventTriggers.Delete(ctx, projectID, appID, triggerID)
-	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp.Response, err) {
+	if err != nil && !deletenotfound.IsNotFoundLegacy(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf(errorEventTriggersDelete, projectID, appID, err))
 	}
 

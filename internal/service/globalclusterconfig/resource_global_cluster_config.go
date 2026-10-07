@@ -315,9 +315,9 @@ func removeManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, remov
 			GroupId:     projectID,
 		}
 
-		_, _, err := connV2.GlobalClustersAPI.DeleteManagedNamespacesWithParams(ctx, managedNamespace).Execute()
+		_, httpResp, err := connV2.GlobalClustersAPI.DeleteManagedNamespacesWithParams(ctx, managedNamespace).Execute()
 
-		if err != nil {
+		if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 			return err
 		}
 	}

@@ -1331,7 +1331,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	httpResp, err := conn.Clusters.Delete(ctx, projectID, clusterName, options)
-	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp.Response, err) {
+	if err != nil && !deletenotfound.IsNotFoundLegacy(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf(errorClusterDelete, clusterName, err))
 	}
 
