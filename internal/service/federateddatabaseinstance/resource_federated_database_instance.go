@@ -697,6 +697,7 @@ func newCloudProviderConfig(d *schema.ResourceData) *admin.DataLakeCloudProvider
 		return &admin.DataLakeCloudProviderConfig{
 			Aws:   newAWSConfig(cloudProvider),
 			Azure: newAzureConfig(cloudProvider),
+			Gcp:   newGCPConfig(cloudProvider),
 		}
 	}
 
@@ -740,6 +741,7 @@ func flattenCloudProviderConfig(d *schema.ResourceData, cloudProviderConfig *adm
 		{
 			"aws":   flattenAWSCloudProviderConfig(d, cloudProviderConfig.Aws),
 			"azure": flattenAzureCloudProviderConfig(cloudProviderConfig.Azure),
+			"gcp":   flattenGCPCloudProviderConfig(cloudProviderConfig.Gcp),
 		},
 	}
 }
@@ -780,6 +782,19 @@ func flattenAzureCloudProviderConfig(azure *admin.DataFederationAzureCloudProvid
 			"atlas_app_id":         azure.GetAtlasAppId(),
 			"service_principal_id": azure.GetServicePrincipalId(),
 			"tenant_id":            azure.GetTenantId(),
+		},
+	}
+}
+
+func flattenGCPCloudProviderConfig(gcp *admin.DataFederationGCPCloudProviderConfig) []map[string]any {
+	if gcp == nil {
+		return nil
+	}
+
+	return []map[string]any{
+		{
+			"role_id":             gcp.GetRoleId(),
+			"gcp_service_account": gcp.GetGcpServiceAccount(),
 		},
 	}
 }
