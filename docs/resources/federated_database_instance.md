@@ -20,7 +20,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
       data_sources {
           collection = "COLLECTION IN THE CLUSTER"
           database = "DB IN THE CLUSTER"
-          store_name =  "CLUSTER NAME"
+          store_name =  "STORE 1 NAME"
       }
     }
   }
@@ -75,7 +75,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
       data_sources {
           collection = "COLLECTION IN THE CLUSTER"
           database = "DB IN THE CLUSTER"
-          store_name =  "CLUSTER NAME"
+          store_name =  "STORE 1 NAME"
       }
       data_sources {
           store_name = "S3 BUCKET NAME"
@@ -125,7 +125,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
       data_sources {
         collection = "COLLECTION IN THE CLUSTER"
         database   = "DB IN THE CLUSTER"
-        store_name = "CLUSTER NAME"
+        store_name = "STORE NAME"
       }
       data_sources {
         store_name = "AZURE BLOB STORAGE NAME"
@@ -171,7 +171,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
       data_sources {
         collection = "COLLECTION IN THE CLUSTER"
         database   = "DB IN THE CLUSTER"
-        store_name = "CLUSTER NAME"
+        store_name = "STORE NAME"
       }
       data_sources {
         store_name = "GOOGLE CLOUD STORAGE BUCKET NAME"
