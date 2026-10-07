@@ -721,6 +721,14 @@ func newAzureConfig(cloudProvider []any) *admin.DataFederationAzureCloudProvider
 	return nil
 }
 
+func newGCPConfig(cloudProvider []any) *admin.DataFederationGCPCloudProviderConfig {
+	if gcp, ok := cloudProvider[0].(map[string]any)["gcp"].([]any); ok && len(gcp) == 1 {
+		gcpSchema := gcp[0].(map[string]any)
+		return admin.NewDataFederationGCPCloudProviderConfig(gcpSchema["role_id"].(string))
+	}
+	return nil
+}
+
 func newDataProcessRegion(d *schema.ResourceData) *admin.DataLakeDataProcessRegion {
 	if dataProcessRegion, ok := d.Get("data_process_region").([]any); ok && len(dataProcessRegion) == 1 {
 		return &admin.DataLakeDataProcessRegion{
