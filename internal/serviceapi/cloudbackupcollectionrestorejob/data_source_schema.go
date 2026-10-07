@@ -121,7 +121,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"state": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Current state of the collection restore job.",
+				MarkdownDescription: "Current state of the collection restore job. A `SUCCESSFUL` job can include individual `UNSUPPORTED` collection restores. Use the restore job collections endpoint to get per-collection detailed states.",
 			},
 			"target_cluster_name": dsschema.StringAttribute{
 				Computed:            true,
