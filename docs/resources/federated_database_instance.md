@@ -40,6 +40,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
 ### Further Examples
 - [AWS Federated Database Instance](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.19.0/examples/mongodbatlas_federated_database_instance/aws)
 - [Azure Federated Database Instance](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.19.0/examples/mongodbatlas_federated_database_instance/azure)
+- [Google Cloud Federated Database Instance](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.19.0/examples/mongodbatlas_federated_database_instance/gcp)
 
 ## Example Usages with Amazon S3 bucket as storage database
 
