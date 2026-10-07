@@ -6,7 +6,7 @@ subcategory: "Database Users"
 
 `mongodbatlas_custom_db_role` provides a Custom DB Role resource. The customDBRoles resource lets you retrieve, create and modify the custom MongoDB roles in your cluster. Use custom MongoDB roles to specify custom sets of actions which cannot be described by the built-in Atlas database user privileges.
 
--> **IMPORTANT**  You define custom roles at the project level for all clusters in the project. The `mongodbatlas_custom_db_role` resource supports a subset of MongoDB privilege actions. For a complete list of [privilege actions](https://www.mongodb.com/docs/manual/reference/privilege-actions/) available for this resource, see [Custom Role actions](https://www.mongodb.com/docs/atlas/reference/api/custom-role-actions/). Custom roles must include actions that all project's clusters support, and that are compatible with each MongoDB version used by your project's clusters. For example, if your project has MongoDB 4.2 clusters, you can't create custom roles that use actions introduced in MongoDB 4.4.
+-> **IMPORTANT**  You define custom roles at the project level for all clusters in the project. The `mongodbatlas_custom_db_role` resource supports a subset of MongoDB privilege actions. For a complete list of [privilege actions](https://www.mongodb.com/docs/manual/reference/privilege-actions/) available for this resource, see [Custom Role actions](https://www.mongodb.com/docs/atlas/reference/api/custom-role-actions/). Custom roles must include actions that all project's clusters support, and that are compatible with each MongoDB version used by your project's clusters. For example, if your project has MongoDB 8.0 clusters, you can't create custom roles that use actions introduced in MongoDB 9.0.
 
 
 ## Example Usage
