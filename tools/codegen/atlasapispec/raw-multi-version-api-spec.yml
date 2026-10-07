@@ -5185,7 +5185,7 @@ components:
                     $ref: '#/components/schemas/ApiAtlasClusterAdvancedConfigurationView'
                 backupEnabled:
                     default: false
-                    description: Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.
+                    description: 'Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn''t use backups. For Atlas Infinite clusters (`databaseEdition: INFINITE`), this flag means Additional Backup Retention rather than whether backups run: backups always run and include a 24-hour continuous window. Set this flag to `true` to retain snapshots beyond that window with a policy you control. Set this flag to `false` to keep only the included window under an Atlas-managed retention policy that you can''t edit. This flag defaults to `true` for Atlas Infinite clusters when omitted. A cluster covered by a Data Protection policy has this set to `true` regardless of the requested value.'
                     externalDocs:
                         description: Cloud Backups
                         url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
@@ -5350,7 +5350,7 @@ components:
                     description: Flag that indicates whether the cluster is paused.
                     type: boolean
                 pitEnabled:
-                    description: Flag that indicates whether the cluster uses continuous cloud backups.
+                    description: Flag that indicates whether the cluster uses continuous cloud backups. Atlas Infinite clusters always use continuous cloud backups. Atlas sets this flag to `true` on create and update for Atlas Infinite clusters and ignores a requested value of `false`.
                     externalDocs:
                         description: Continuous Cloud Backups
                         url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
@@ -10450,7 +10450,7 @@ components:
                     $ref: '#/components/schemas/ApiAtlasClusterAdvancedConfigurationView'
                 backupEnabled:
                     default: false
-                    description: Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.
+                    description: 'Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn''t use backups. For Atlas Infinite clusters (`databaseEdition: INFINITE`), this flag means Additional Backup Retention rather than whether backups run: backups always run and include a 24-hour continuous window. Set this flag to `true` to retain snapshots beyond that window with a policy you control. Set this flag to `false` to keep only the included window under an Atlas-managed retention policy that you can''t edit. This flag defaults to `true` for Atlas Infinite clusters when omitted. A cluster covered by a Data Protection policy has this set to `true` regardless of the requested value.'
                     externalDocs:
                         description: Cloud Backups
                         url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
@@ -10615,7 +10615,7 @@ components:
                     description: Flag that indicates whether the cluster is paused.
                     type: boolean
                 pitEnabled:
-                    description: Flag that indicates whether the cluster uses continuous cloud backups.
+                    description: Flag that indicates whether the cluster uses continuous cloud backups. Atlas Infinite clusters always use continuous cloud backups. Atlas sets this flag to `true` on create and update for Atlas Infinite clusters and ignores a requested value of `false`.
                     externalDocs:
                         description: Continuous Cloud Backups
                         url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
@@ -12047,6 +12047,7 @@ components:
                             - AI Model APIs
                             - Automated Embedding
                             - Native Reranking
+                            - Agent Engine
                             - Flex Consulting
                             - Support
                             - Credits
@@ -44449,6 +44450,7 @@ components:
                             - AI Model APIs
                             - Automated Embedding
                             - Native Reranking
+                            - Agent Engine
                             - Flex Consulting
                             - Support
                             - Credits
@@ -46069,7 +46071,7 @@ info:
     termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
     title: MongoDB Atlas Administration API
     version: "2.0"
-    x-xgen-sha: d7a00f00333b964140d2cb4417e7d209287f8046
+    x-xgen-sha: 6bbcc06d136ee9b68fb348217630a11bf5423eff
 openapi: 3.0.1
 paths:
     /api/atlas/v2:
@@ -50711,6 +50713,8 @@ paths:
             x-rolesRequirements:
                 - Project Owner
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/deleteGroupCluster
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-operation-id-override: deleteCluster
         get:
             description: |-
@@ -53986,6 +53990,8 @@ paths:
                 "2025-05-08": Corrects an issue where the endpoint would allow a rolling index build to be initiated while there was already an index build in progress. The endpoint now returns 400 if an index build is already in progress.
                 "2026-04-06": Corrects an issue where index creation was throwing a 500 error instead of a 409 error when there was an existing index with the same name.
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rolling-Index/operation/createGroupClusterIndexRollingIndex
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-method-verb-override:
                 customMethod: false
                 verb: createRollingIndex
@@ -54682,6 +54688,8 @@ paths:
             x-rolesRequirements:
                 - Project Cluster Manager
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Overload-Protection-Simulation/operation/deleteGroupClusterOverloadSimulation
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-operation-id-override: deleteClusterOverloadSimulation
         get:
             description: Returns the overload protection simulation for one cluster.
@@ -58096,6 +58104,8 @@ paths:
                 - Project Database Access Admin
                 - Project Stream Processing Owner
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Custom-Database-Roles/operation/createGroupCustomDbRoleRole
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-operation-id-override: createCustomDbRole
     /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}:
         delete:
@@ -59668,6 +59678,8 @@ paths:
             x-rolesRequirements:
                 - Project Owner
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Encryption-at-Rest-using-Customer-Key-Management/operation/createGroupEncryptionAtRestPrivateEndpoint
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-operation-id-override: createRestPrivateEndpoint
     /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}:
         delete:
@@ -61838,6 +61850,8 @@ paths:
             x-rolesRequirements:
                 - Organization Owner
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Migration-Service/operation/cutoverGroupLiveMigration
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-method-verb-override:
                 customMethod: true
             x-xgen-operation-id-override: cutoverMigration
@@ -63465,6 +63479,8 @@ paths:
             x-rolesRequirements:
                 - Project Network Access Manager
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Network-Peering/operation/deleteGroupPeer
+            x-xgen-long-running-operation:
+                legacy: true
         get:
             description: Returns details about one specified network peering connection in the specified project.
             operationId: getGroupPeer
@@ -67513,6 +67529,8 @@ paths:
             x-xgen-changelog:
                 "2023-09-11": The MongoDB Atlas Streams Processing API is now exposed as part of private preview, but is subject to change until GA.
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamWorkspace
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-method-verb-override:
                 customMethod: false
                 verb: deleteWorkspace
@@ -67870,6 +67888,8 @@ paths:
                 - Organization Stream Processing Admin
                 - Project Stream Processing Manager
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamConnection
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-operation-id-override: deleteStreamConnection
         get:
             description: Returns the details of one stream connection within the specified stream workspace.
@@ -69008,6 +69028,8 @@ paths:
             x-xgen-changelog:
                 "2024-10-02": The MongoDB Atlas Streams Processing Private Link API is now exposed as part of private preview, but is subject to change until GA.
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamPrivateLinkConnection
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-operation-id-override: deletePrivateLinkConnection
         get:
             description: Returns the details of one Private Link connection within the project.
@@ -69195,6 +69217,8 @@ paths:
                 - Organization Stream Processing Admin
                 - Project Stream Processing Owner
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamVpcPeeringConnection
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-operation-id-override: deleteVpcPeeringConnection
     /api/atlas/v2/groups/{groupId}/streams/vpcPeeringConnections/{id}:accept:
         post:
@@ -69244,6 +69268,8 @@ paths:
                 - Organization Stream Processing Admin
                 - Project Stream Processing Owner
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/acceptGroupStreamVpcPeeringConnection
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-operation-id-override: acceptVpcPeeringConnection
     /api/atlas/v2/groups/{groupId}/streams/vpcPeeringConnections/{id}:reject:
         post:
@@ -69286,6 +69312,8 @@ paths:
                 - Organization Stream Processing Admin
                 - Project Stream Processing Owner
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/rejectGroupStreamVpcPeeringConnection
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-operation-id-override: rejectVpcPeeringConnection
     /api/atlas/v2/groups/{groupId}/streams:withSampleConnections:
         post:
@@ -69440,6 +69468,8 @@ paths:
                 - Organization Stream Processing Admin
                 - Project Stream Processing Owner
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createGroupStreamsWorkspacePrivateEndpoint
+            x-xgen-long-running-operation:
+                legacy: false
             x-xgen-operation-id-override: createWorkspacePrivateEndpoint
     /api/atlas/v2/groups/{groupId}/streamsWorkspacePrivateEndpoints/{endpointId}:
         get:
@@ -69821,6 +69851,8 @@ paths:
             x-rolesRequirements:
                 - Project Owner
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/LDAP-Configuration/operation/updateGroupUserSecurity
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-operation-id-override: updateUserSecurity
     /api/atlas/v2/groups/{groupId}/userSecurity/customerX509:
         delete:
@@ -69861,6 +69893,8 @@ paths:
             x-rolesRequirements:
                 - Project Owner
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/X.509-Authentication/operation/disableGroupUserSecurityCustomerX509
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-method-verb-override:
                 customMethod: "True"
                 verb: disable
@@ -69902,6 +69936,8 @@ paths:
             x-rolesRequirements:
                 - Project Owner
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/LDAP-Configuration/operation/deleteGroupUserSecurityLdapUserToDnMapping
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-operation-id-override: deleteLdapUserMapping
     /api/atlas/v2/groups/{groupId}/userSecurity/ldap/verify:
         post:
@@ -71567,6 +71603,8 @@ paths:
             x-rolesRequirements:
                 - Organization Billing Viewer
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Invoices/operation/createOrgBillingCostExplorerUsageProcess
+            x-xgen-long-running-operation:
+                legacy: true
             x-xgen-method-verb-override:
                 customMethod: false
                 verb: createProcess
