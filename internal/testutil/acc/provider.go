@@ -167,7 +167,7 @@ func ConfigTags() string {
 	return fmt.Sprintf(`tags = {
 		"mongodb-owner" = %[1]q
 		"mongodb-env"   = %[2]q
-	}`, tagValue(tagOwnerEnvVar, defaultTagOwner), tagValue(tagEnvEnvVar, defaultTagEnv))
+	}`, tagValue(tagOwnerEnvVar), tagValue(tagEnvEnvVar))
 }
 
 func ConfigDefaultTags() string {
