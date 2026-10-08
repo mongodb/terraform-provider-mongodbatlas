@@ -226,7 +226,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
     * `cloud_provider_config.azure` - Microsoft Azure provider of the cloud service where the Federated Database Instance can access Blob Storage.
       * `cloud_provider_config.azure.role_id` - (Required) Unique identifier of the role that the Federated Database Instance can use to access the data stores.
     * `cloud_provider_config.gcp` - Google Cloud provider of the cloud service where the Federated Database Instance can access Google Cloud Storage.
-      * `cloud_provider_config.gcp.role_id` - (Required) Unique identifier of the role that the Federated Database Instance can use to access the data stores.
+      * `cloud_provider_config.gcp.role_id` - (Required) Unique identifier of the role that the Federated Database Instance uses to access the data stores.
 * `data_process_region` - (Optional) The cloud provider region to which the Federated Instance routes client connections for data processing.
   * `data_process_region.cloud_provider` - (Required) Name of the cloud service provider. Supported providers: `AWS`, `AZURE`, `GCP`.
   * `data_process_region.region` - (Required) Name of the region to which the Federated Instance routes client connections for data processing. See the [documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createFederatedDatabase) for the available region.
