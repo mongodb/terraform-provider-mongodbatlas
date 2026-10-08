@@ -56,6 +56,12 @@ func TestSpecChangeWarning_fields(t *testing.T) {
 	}
 }
 
+func TestSpecChangeWarning_previouslyOmittedDiskFields(t *testing.T) {
+	prior := specWarningRegion("electable_specs", map[string]any{"disk_size_gb": nil, "disk_iops": nil}, "compute_enabled")
+	planned := specWarningRegion("electable_specs", map[string]any{"disk_size_gb": float64(30), "disk_iops": int64(4000)}, "compute_enabled")
+	assertSpecWarning(t, runSpecWarningPlan(t, specWarningModel(prior), specWarningModel(planned), specWarningModel(planned)), "disk_size_gb, disk_iops", 0, "electable_specs")
+}
+
 func TestSpecChangeWarning_conditions(t *testing.T) {
 	for name, change := range map[string]func(prior, planned, config map[string]any){
 		"effective fields disabled": func(_, planned, _ map[string]any) { planned["use_effective_fields"] = false },

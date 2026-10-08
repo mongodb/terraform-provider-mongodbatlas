@@ -100,7 +100,7 @@ func changedSpecPaths(ctx context.Context, diags *diag.Diagnostics, config tfsdk
 	before, after, configuredAttrs := state.Attributes(), plan.Attributes(), configured.Attributes()
 	var ignored []string
 	for _, field := range fields {
-		if !isKnown(configuredAttrs[field]) || !isKnown(before[field]) || !isKnown(after[field]) || before[field].Equal(after[field]) {
+		if !isKnown(configuredAttrs[field]) || before[field].IsUnknown() || !isKnown(after[field]) || before[field].Equal(after[field]) {
 			continue
 		}
 		if field == "instance_size" && after[field].(types.String).ValueString() == "AUTO" {
