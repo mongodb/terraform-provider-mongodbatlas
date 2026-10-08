@@ -43,7 +43,7 @@ func warnIgnoredSpecChanges(ctx context.Context, diags *diag.Diagnostics, config
 		return
 	}
 	diags.AddAttributeWarning(path.Root("replication_specs"),
-		"Spec changes are ignored while auto-scaling remains enabled",
+		"Spec changes are ignored while use_effective_fields and auto-scaling remain enabled",
 		fmt.Sprintf("With use_effective_fields = true and auto-scaling remaining enabled, Atlas ignores changes to the following attributes, although Terraform stores their new values in state:\n\n- %s\n\n"+
 			"To apply these changes, disable auto-scaling and apply the desired values, then re-enable auto-scaling in a separate apply. "+
 			"See: https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#manually-updating-specs-with-use_effective_fields",
@@ -84,32 +84,21 @@ func changedSpecPaths(ctx context.Context, diags *diag.Diagnostics, config tfsdk
 	if !isKnown(state) || !isKnown(plan) {
 		return nil
 	}
-	var configured types.Object
-	diags.Append(config.GetAttribute(ctx, specsPath, &configured)...)
-	if diags.HasError() || !isKnown(configured) {
+	var configuredObj types.Object
+	diags.Append(config.GetAttribute(ctx, specsPath, &configuredObj)...)
+	if diags.HasError() || !isKnown(configuredObj) {
 		return nil
 	}
-	changed := IgnoredSpecFields(state, plan, configured, fields...)
-	paths := make([]string, len(changed))
-	for i, field := range changed {
-		paths[i] = specsPath.AtName(field).String()
-	}
-	return paths
-}
-
-// IgnoredSpecFields returns the explicitly configured fields whose value changed and that Atlas ignores while
-// auto-scaling is enabled. Exported so the decision can be unit-tested without the provider protocol.
-func IgnoredSpecFields(before, after, configured types.Object, fields ...string) []string {
-	beforeAttrs, afterAttrs, configuredAttrs := before.Attributes(), after.Attributes(), configured.Attributes()
+	before, after, configured := state.Attributes(), plan.Attributes(), configuredObj.Attributes()
 	var ignored []string
 	for _, field := range fields {
-		if !isKnown(configuredAttrs[field]) || beforeAttrs[field].IsUnknown() || !isKnown(afterAttrs[field]) || beforeAttrs[field].Equal(afterAttrs[field]) {
+		if !isKnown(configured[field]) || before[field].IsUnknown() || !isKnown(after[field]) || before[field].Equal(after[field]) {
 			continue
 		}
-		if field == "instance_size" && afterAttrs[field].(types.String).ValueString() == "AUTO" {
+		if field == "instance_size" && after[field].(types.String).ValueString() == "AUTO" {
 			continue
 		}
-		ignored = append(ignored, field)
+		ignored = append(ignored, specsPath.AtName(field).String())
 	}
 	return ignored
 }

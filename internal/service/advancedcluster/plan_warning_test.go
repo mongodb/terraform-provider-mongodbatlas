@@ -6,12 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -43,12 +41,13 @@ func TestSpecChangeWarning_valueChanges(t *testing.T) {
 		before, after map[string]any
 		fields        string
 	}{
-		"unchanged":       {nil, nil, ""},
-		"instance size":   {nil, map[string]any{"instance_size": "M20"}, "instance_size"},
-		"disk size":       {nil, map[string]any{"disk_size_gb": float64(30)}, "disk_size_gb"},
-		"disk IOPS":       {nil, map[string]any{"disk_iops": int64(4000)}, "disk_iops"},
-		"AUTO":            {nil, map[string]any{"instance_size": "AUTO"}, ""},
-		"unrelated field": {nil, map[string]any{"node_count": int64(5)}, ""},
+		"unchanged":           {nil, nil, ""},
+		"instance size":       {nil, map[string]any{"instance_size": "M20"}, "instance_size"},
+		"disk size":           {nil, map[string]any{"disk_size_gb": float64(30)}, "disk_size_gb"},
+		"disk IOPS":           {nil, map[string]any{"disk_iops": int64(4000)}, "disk_iops"},
+		"AUTO":                {nil, map[string]any{"instance_size": "AUTO"}, ""},
+		"unrelated field":     {nil, map[string]any{"node_count": int64(5)}, ""},
+		"unknown prior value": {map[string]any{"instance_size": tftypes.UnknownValue}, map[string]any{"instance_size": "M20"}, ""},
 		"AUTO with disk changes": {nil, map[string]any{
 			"instance_size": "AUTO", "disk_size_gb": float64(30), "disk_iops": int64(4000),
 		}, "disk_size_gb, disk_iops"},
@@ -65,34 +64,6 @@ func TestSpecChangeWarning_valueChanges(t *testing.T) {
 			prior := specWarningModel(specWarningRegion("electable_specs", tc.before, "compute_enabled"))
 			planned := specWarningModel(specWarningRegion("electable_specs", tc.after, "compute_enabled"))
 			assertSpecWarning(t, runSpecWarningPlan(t, prior, planned, planned), tc.fields, 0, "electable_specs")
-		})
-	}
-}
-
-func TestIgnoredSpecFields(t *testing.T) {
-	specObj := func(instanceSize, diskSizeGB, diskIOPS attr.Value) types.Object {
-		return types.ObjectValueMust(
-			map[string]attr.Type{"instance_size": types.StringType, "disk_size_gb": types.Int64Type, "disk_iops": types.Int64Type},
-			map[string]attr.Value{"instance_size": instanceSize, "disk_size_gb": diskSizeGB, "disk_iops": diskIOPS},
-		)
-	}
-	str, num := types.StringValue, types.Int64Value
-	unchanged := func() types.Object { return specObj(str("M10"), num(20), num(3000)) }
-	for name, tc := range map[string]struct {
-		configured, before, after types.Object
-		want                      []string
-	}{
-		"instance size changed":    {specObj(str("M20"), num(20), num(3000)), unchanged(), specObj(str("M20"), num(20), num(3000)), []string{"instance_size"}},
-		"all fields changed":       {specObj(str("M20"), num(30), num(4000)), unchanged(), specObj(str("M20"), num(30), num(4000)), []string{"instance_size", "disk_size_gb", "disk_iops"}},
-		"instance size AUTO":       {specObj(str("AUTO"), num(20), num(3000)), unchanged(), specObj(str("AUTO"), num(20), num(3000)), nil},
-		"previously omitted disks": {specObj(str("M10"), num(30), num(4000)), specObj(str("M10"), types.Int64Null(), types.Int64Null()), specObj(str("M10"), num(30), num(4000)), []string{"disk_size_gb", "disk_iops"}},
-		"removed disks":            {specObj(str("M10"), types.Int64Null(), types.Int64Null()), specObj(str("M10"), num(30), num(4000)), specObj(str("M10"), types.Int64Null(), types.Int64Null()), nil},
-		"unconfigured field":       {specObj(str("M10"), types.Int64Null(), num(3000)), unchanged(), specObj(str("M10"), num(30), num(3000)), nil},
-		"unchanged":                {unchanged(), unchanged(), unchanged(), nil},
-		"unknown prior value":      {specObj(str("M20"), num(20), num(3000)), specObj(types.StringUnknown(), num(20), num(3000)), specObj(str("M20"), num(20), num(3000)), nil},
-	} {
-		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.want, advancedcluster.IgnoredSpecFields(tc.before, tc.after, tc.configured, "instance_size", "disk_size_gb", "disk_iops"))
 		})
 	}
 }
@@ -330,7 +301,7 @@ func TestSpecChangeWarning_providerProtocol(t *testing.T) {
 			require.Len(t, response.Diagnostics, 1)
 			warning := response.Diagnostics[0]
 			assert.Equal(t, tfprotov6.DiagnosticSeverityWarning, warning.Severity)
-			assert.Equal(t, "Spec changes are ignored while auto-scaling remains enabled", warning.Summary)
+			assert.Equal(t, "Spec changes are ignored while use_effective_fields and auto-scaling remain enabled", warning.Summary)
 			assert.True(t, tftypes.NewAttributePath().WithAttributeName("replication_specs").Equal(warning.Attribute))
 			assert.Contains(t, warning.Detail, "\n\n- replication_specs[0].region_configs[0].electable_specs.instance_size\n"+
 				"- replication_specs[0].region_configs[0].electable_specs.disk_size_gb\n"+
@@ -421,7 +392,7 @@ func assertCombinedSpecWarning(t *testing.T, diagnostics diag.Diagnostics, expec
 	require.Len(t, diagnostics, 1)
 	warning := diagnostics[0]
 	assert.Equal(t, diag.SeverityWarning, warning.Severity())
-	assert.Equal(t, "Spec changes are ignored while auto-scaling remains enabled", warning.Summary())
+	assert.Equal(t, "Spec changes are ignored while use_effective_fields and auto-scaling remain enabled", warning.Summary())
 	assert.Contains(t, warning.Detail(), "Atlas ignores changes to the following attributes, although Terraform stores their new values in state:")
 	assert.Contains(t, warning.Detail(), "\n\n- "+strings.Join(expectedPaths, "\n- ")+"\n\n")
 	advice := "disable auto-scaling and apply the desired values, then re-enable auto-scaling in a separate apply"
