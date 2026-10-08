@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -458,7 +459,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	name := ids["name"]
 
-	if _, err := connV2.DataFederationAPI.DeleteDataFederation(ctx, projectID, name).Execute(); err != nil {
+	httpResp, err := connV2.DataFederationAPI.DeleteDataFederation(ctx, projectID, name).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceDelete, name, err))
 	}
 

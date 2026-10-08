@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	serviceaccountaccesslistentry "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountaccesslistentry"
@@ -118,7 +119,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	cidrOrIP := getCidrOrIP(&state)
 
 	connV2 := r.Client.AtlasV2
-	if _, err := connV2.ServiceAccountsAPI.DeleteGroupAccessEntry(ctx, projectID, clientID, cidrOrIP).Execute(); err != nil {
+	httpResp, err := connV2.ServiceAccountsAPI.DeleteGroupAccessEntry(ctx, projectID, clientID, cidrOrIP).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

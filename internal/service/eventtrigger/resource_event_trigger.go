@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	"go.mongodb.org/realm/realm"
@@ -463,8 +464,8 @@ func resourceMongoDBAtlasEventTriggersDelete(ctx context.Context, d *schema.Reso
 	appID := ids["app_id"]
 	triggerID := ids["trigger_id"]
 
-	_, err = conn.EventTriggers.Delete(ctx, projectID, appID, triggerID)
-	if err != nil {
+	httpResp, err := conn.EventTriggers.Delete(ctx, projectID, appID, triggerID)
+	if err != nil && !deletenotfound.IsNotFoundLegacy(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf(errorEventTriggersDelete, projectID, appID, err))
 	}
 

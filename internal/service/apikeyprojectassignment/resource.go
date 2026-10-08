@@ -149,7 +149,10 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 	projectID := assignmentState.ProjectId.ValueString()
 	apiKeyID := assignmentState.ApiKeyId.ValueString()
-	if _, err := connV2.ProgrammaticAPIKeysAPI.RemoveGroupApiKey(ctx, projectID, apiKeyID).Execute(); err != nil {
+	// The API returns 400 API_KEY_NOT_FOUND instead of 404 when the key is already gone,
+	// so handling a 404 here would be a no-op.
+	_, err := connV2.ProgrammaticAPIKeysAPI.RemoveGroupApiKey(ctx, projectID, apiKeyID).Execute()
+	if err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

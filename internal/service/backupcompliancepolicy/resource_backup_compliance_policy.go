@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
@@ -379,8 +380,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
-	_, err := connV2.CloudBackupsAPI.DisableCompliancePolicy(ctx, projectID).Execute()
-	if err != nil {
+	httpResp, err := connV2.CloudBackupsAPI.DisableCompliancePolicy(ctx, projectID).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicyDelete, projectID, err))
 	}
 	return nil

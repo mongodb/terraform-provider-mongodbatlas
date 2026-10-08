@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -359,7 +360,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	federationSettingsID, idpID := DecodeIDs(d.Id())
 	resp, err := connV2.FederatedAuthenticationAPI.DeleteIdentityProvider(ctx, federationSettingsID, idpID).Execute()
 	if err != nil {
-		if validate.StatusNotFound(resp) {
+		if deletenotfound.IsNotFound(ctx, resp, err) {
 			d.SetId("")
 			return nil
 		}

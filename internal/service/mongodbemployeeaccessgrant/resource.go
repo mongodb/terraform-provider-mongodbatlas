@@ -83,6 +83,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	projectID := tfModel.ProjectID.ValueString()
 	clusterName := tfModel.ClusterName.ValueString()
 	httpResp, err := connV2.ClustersAPI.RevokeMongoEmployeeAccess(ctx, projectID, clusterName).Execute()
+	// TODO: this condition is inverted and other errors are silently swallowed; surface them
+	// after evaluating the impact, tracked in CLOUDP-455865.
 	if err != nil && validate.StatusNotFound(httpResp) {
 		resp.Diagnostics.AddError(errorDelete, err.Error())
 		return

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -250,8 +251,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			AuthorizationEnabled:  new(false),
 		},
 	}
-	_, _, err := connV2.LDAPConfigurationAPI.UpdateUserSecurity(ctx, d.Id(), params).Execute()
-	if err != nil {
+	_, httpResp, err := connV2.LDAPConfigurationAPI.UpdateUserSecurity(ctx, d.Id(), params).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf(errorDelete, d.Id(), err))
 	}
 	return nil

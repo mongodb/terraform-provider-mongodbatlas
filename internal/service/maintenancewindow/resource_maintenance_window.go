@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin "go.mongodb.org/atlas-sdk/v20250312026/admin"
@@ -295,8 +296,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Id()
 
-	_, err := connV2.MaintenanceWindowsAPI.ResetMaintenanceWindow(ctx, projectID).Execute()
-	if err != nil {
+	httpResp, err := connV2.MaintenanceWindowsAPI.ResetMaintenanceWindow(ctx, projectID).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceDelete, projectID, err))
 	}
 	return nil

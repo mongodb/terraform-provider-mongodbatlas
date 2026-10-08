@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -145,8 +146,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	auditingReq := &admin.AuditLog{
 		Enabled: new(false),
 	}
-	_, _, err := connV2.AuditingAPI.UpdateAuditLog(ctx, d.Id(), auditingReq).Execute()
-	if err != nil {
+	_, httpResp, err := connV2.AuditingAPI.UpdateAuditLog(ctx, d.Id(), auditingReq).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf(errorAuditingDelete, d.Id(), err))
 	}
 	d.SetId("")

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20250312026/admin"
@@ -224,8 +225,8 @@ func deleteOutageSimulationWithCleanup(ctx context.Context, connV2 *admin.APICli
 
 // endOutageSimulationAndWait ends the outage simulation and waits for it to complete
 func endOutageSimulationAndWait(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, timeout time.Duration) error {
-	_, _, err := connV2.ClusterOutageSimulationAPI.EndOutageSimulation(ctx, projectID, clusterName).Execute()
-	if err != nil {
+	_, httpResponse, err := connV2.ClusterOutageSimulationAPI.EndOutageSimulation(ctx, projectID, clusterName).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResponse, err) {
 		return fmt.Errorf(errorClusterOutageSimulationDelete, projectID, clusterName, err)
 	}
 

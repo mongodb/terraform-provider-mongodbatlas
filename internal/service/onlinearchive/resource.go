@@ -17,6 +17,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -336,14 +337,9 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, err := connV2.OnlineArchiveAPI.DeleteOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
+	httpResp, err := connV2.OnlineArchiveAPI.DeleteOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
 
-	if err != nil {
-		alreadyDeleted := strings.Contains(err.Error(), "404") && !d.IsNewResource()
-		if alreadyDeleted {
-			return nil
-		}
-
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf(errorOnlineArchivesDelete, err, archiveID))
 	}
 	return nil

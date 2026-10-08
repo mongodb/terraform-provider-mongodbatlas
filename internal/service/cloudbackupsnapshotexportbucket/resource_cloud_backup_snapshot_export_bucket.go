@@ -16,6 +16,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -176,10 +177,13 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
-	_, err := conn.CloudBackupsAPI.DeleteExportBucket(ctx, projectID, bucketID).Execute()
+	httpResp, err := conn.CloudBackupsAPI.DeleteExportBucket(ctx, projectID, bucketID).Execute()
 
 	if err != nil {
-		return diag.Errorf("error deleting snapshot export bucket (%s): %s", bucketID, err)
+		if !deletenotfound.IsNotFound(ctx, httpResp, err) {
+			return diag.Errorf("error deleting snapshot export bucket (%s): %s", bucketID, err)
+		}
+		return nil
 	}
 
 	_, err = stateConf.WaitForStateContext(ctx)

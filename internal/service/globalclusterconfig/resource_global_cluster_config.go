@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -250,7 +251,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if v, ok := d.GetOk("custom_zone_mappings"); ok {
 		if v.(*schema.Set).Len() > 0 {
-			if _, _, err := connV2.GlobalClustersAPI.DeleteCustomZoneMapping(ctx, projectID, clusterName).Execute(); err != nil {
+			_, httpResp, err := connV2.GlobalClustersAPI.DeleteCustomZoneMapping(ctx, projectID, clusterName).Execute()
+			if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 				return diag.FromErr(fmt.Errorf(errorGlobalClusterDelete, clusterName, err))
 			}
 		}
@@ -313,9 +315,9 @@ func removeManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, remov
 			GroupId:     projectID,
 		}
 
-		_, _, err := connV2.GlobalClustersAPI.DeleteManagedNamespacesWithParams(ctx, managedNamespace).Execute()
+		_, httpResp, err := connV2.GlobalClustersAPI.DeleteManagedNamespacesWithParams(ctx, managedNamespace).Execute()
 
-		if err != nil {
+		if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 			return err
 		}
 	}

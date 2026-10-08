@@ -161,7 +161,10 @@ func (r *pushBasedLogExportRS) Delete(ctx context.Context, req resource.DeleteRe
 
 	connV2 := r.Client.AtlasV2
 	projectID := tfState.ProjectID.ValueString()
-	if _, err := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute(); err != nil {
+	// The API returns 400 PUSH_BASED_LOG_EXPORT_ALREADY_UNCONFIGURED instead of 404 when the
+	// configuration is already gone, so handling a 404 here would be a no-op.
+	_, err := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute()
+	if err != nil {
 		resp.Diagnostics.AddError("Error when deleting push-based log export configuration", err.Error())
 		return
 	}

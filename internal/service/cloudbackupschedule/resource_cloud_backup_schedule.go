@@ -15,6 +15,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/sdkv2config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -493,7 +494,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	if _, _, err := connV2.CloudBackupsAPI.DeleteClusterBackupSchedule(ctx, projectID, clusterName).Execute(); err != nil {
+	_, httpResp, err := connV2.CloudBackupsAPI.DeleteClusterBackupSchedule(ctx, projectID, clusterName).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 

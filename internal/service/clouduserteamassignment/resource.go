@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20250312026/admin"
@@ -155,7 +156,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 	_, httpResp, err := connV2.MongoDBCloudUsersAPI.RemoveOrgTeamUser(ctx, orgID, teamID, userInfo).Execute()
 	if err != nil {
-		if validate.StatusNotFound(httpResp) {
+		if deletenotfound.IsNotFound(ctx, httpResp, err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

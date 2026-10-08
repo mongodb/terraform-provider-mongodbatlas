@@ -13,6 +13,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -153,7 +154,8 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 	projectID := earPrivateEndpointState.ProjectID.ValueString()
 	cloudProvider := earPrivateEndpointState.CloudProvider.ValueString()
 	endpointID := earPrivateEndpointState.ID.ValueString()
-	if _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementAPI.RequestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute(); err != nil {
+	httpResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementAPI.RequestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

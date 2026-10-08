@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20250312026/admin"
@@ -190,8 +191,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
 
-	_, err := conn.FederatedAuthenticationAPI.DeleteRoleMapping(ctx, federationSettingsID, roleMappingID, orgID).Execute()
-	if err != nil {
+	httpResp, err := conn.FederatedAuthenticationAPI.DeleteRoleMapping(ctx, federationSettingsID, roleMappingID, orgID).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf("error deleting federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
 

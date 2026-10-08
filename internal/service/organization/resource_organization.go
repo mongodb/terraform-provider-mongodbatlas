@@ -15,6 +15,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/sdkv2config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -344,7 +345,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
-	if _, err := conn.OrganizationsAPI.DeleteOrg(ctx, orgID).Execute(); err != nil {
+	httpResp, err := conn.OrganizationsAPI.DeleteOrg(ctx, orgID).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf("error deleting Organization: %s", err))
 	}
 	return nil
