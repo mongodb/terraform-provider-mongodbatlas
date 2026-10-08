@@ -9,23 +9,23 @@ This project aims to provide an example of using [MongoDB Atlas Federated Databa
 
 ## Usage
 
-**1\. Set up your MongoDB Atlas credentials.**
-
-You can use environment variables to set up credentials for Atlas as follows:
+**1\. Set up credentials.**
 
 ```bash
 export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
 export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
-... or create a **terraform.tfvars** file with all variable values:
+**2\. Set required variables.**
 
-```terraform
+Create a `terraform.tfvars` file:
+
+```hcl
 project_id              = "<ATLAS_PROJECT_ID>"
 federated_instance_name = "<FEDERATED_INSTANCE_NAME>"
 ```
 
-**2\. Review the Terraform plan.**
+**3\. Review the Terraform plan.**
 
 Run the following command and review the plan you created.
 
@@ -39,10 +39,6 @@ This project currently supports the following deployments:
 - MongoDB Atlas Cloud Provider Access Authorization for Google Cloud
 - MongoDB Atlas Federated Database Instance with Google Cloud provider configuration
 
-**3\. Authorize the Atlas service account.**
-
-Atlas creates a Google Cloud service account for the federated database instance, which should be authorized to allow Atlas to access Google Cloud Storage. Read its email address from the `gcp_service_account` output and grant it access to the buckets you want to query, for example the `roles/storage.objectViewer` role.
-
 **4\. Run the Terraform apply command to apply the plan.**
 
 Now run the plan to provision the resources.
@@ -51,7 +47,11 @@ Now run the plan to provision the resources.
 $ terraform apply
 ```
 
-**5\. Destroy the resources.**
+**5\. Authorize the Atlas service account.**
+
+Atlas creates a Google Cloud service account for the federated database instance, which should be authorized to allow Atlas to access Google Cloud Storage. Read its email address from the `gcp_service_account` output and grant it access to the buckets you want to query, for example the `roles/storage.objectViewer` role.
+
+**6\. Destroy the resources.**
 
 Once you are finished with our testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
 
