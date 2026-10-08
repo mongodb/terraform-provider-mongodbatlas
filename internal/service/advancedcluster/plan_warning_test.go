@@ -113,14 +113,17 @@ func TestSpecChangeWarning_conditions(t *testing.T) {
 
 func TestSpecChangeWarning_autoScalingTransitions(t *testing.T) {
 	for _, specName := range []string{"electable_specs", "analytics_specs"} {
-		for name, tc := range map[string]struct{ before, after any }{
-			"disabled":        {map[string]any{"compute_enabled": false, "disk_gb_enabled": false}, map[string]any{"compute_enabled": false, "disk_gb_enabled": false}},
-			"enable compute":  {map[string]any{"compute_enabled": false, "disk_gb_enabled": false}, map[string]any{"compute_enabled": true, "disk_gb_enabled": false}},
-			"disable compute": {map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, map[string]any{"compute_enabled": false, "disk_gb_enabled": false}},
-			"enable disk while compute stays enabled":  {map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, map[string]any{"compute_enabled": true, "disk_gb_enabled": true}},
-			"disable disk while compute stays enabled": {map[string]any{"compute_enabled": true, "disk_gb_enabled": true}, map[string]any{"compute_enabled": true, "disk_gb_enabled": false}},
-			"unknown flag":     {map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, map[string]any{"compute_enabled": true, "disk_gb_enabled": tftypes.UnknownValue}},
-			"unknown settings": {map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, tftypes.UnknownValue},
+		for name, tc := range map[string]struct {
+			before, after any
+			fields        string
+		}{
+			"disabled":        {map[string]any{"compute_enabled": false, "disk_gb_enabled": false}, map[string]any{"compute_enabled": false, "disk_gb_enabled": false}, ""},
+			"enable compute":  {map[string]any{"compute_enabled": false, "disk_gb_enabled": false}, map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, ""},
+			"disable compute": {map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, map[string]any{"compute_enabled": false, "disk_gb_enabled": false}, ""},
+			"enable disk while compute stays enabled":  {map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, map[string]any{"compute_enabled": true, "disk_gb_enabled": true}, ""},
+			"disable disk while compute stays enabled": {map[string]any{"compute_enabled": true, "disk_gb_enabled": true}, map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, ""},
+			"unknown flag":     {map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, map[string]any{"compute_enabled": true, "disk_gb_enabled": tftypes.UnknownValue}, "instance_size"},
+			"unknown settings": {map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, tftypes.UnknownValue, ""},
 		} {
 			t.Run(specName+"/"+name, func(t *testing.T) {
 				prior := specWarningRegion(specName, nil, "compute_enabled")
@@ -130,7 +133,7 @@ func TestSpecChangeWarning_autoScalingTransitions(t *testing.T) {
 					key = "analytics_auto_scaling"
 				}
 				prior[key], planned[key] = tc.before, tc.after
-				require.Empty(t, runSpecWarningPlan(t, specWarningModel(prior), specWarningModel(planned), specWarningModel(planned)))
+				assertSpecWarning(t, runSpecWarningPlan(t, specWarningModel(prior), specWarningModel(planned), specWarningModel(planned)), tc.fields, 0, specName)
 			})
 		}
 	}
@@ -161,6 +164,14 @@ func TestSpecChangeWarning_topology(t *testing.T) {
 			})
 		}
 	}
+	t.Run("region count change", func(t *testing.T) {
+		// A region is added while the existing region's instance_size changes: index matching is not reliable, so no warning.
+		prior := specWarningModel(specWarningRegion("electable_specs", nil, "compute_enabled"))
+		changed := specWarningRegion("electable_specs", map[string]any{"instance_size": "M20"}, "compute_enabled")
+		added := specWarningRegion("electable_specs", map[string]any{"instance_size": "M20"}, "compute_enabled")
+		added["region_name"] = "US_WEST_2"
+		require.Empty(t, runSpecWarningPlan(t, prior, specWarningModel(changed, added), specWarningModel(changed, added)))
+	})
 }
 
 func TestSpecChangeWarning_nodeTypeIndependence(t *testing.T) {

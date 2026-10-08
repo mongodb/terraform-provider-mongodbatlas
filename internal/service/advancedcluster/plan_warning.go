@@ -18,11 +18,12 @@ func warnIgnoredSpecChanges(ctx context.Context, diags *diag.Diagnostics, config
 	}
 	hardwareFields := []string{"instance_size", "disk_size_gb", "disk_iops"}
 	var ignoredPaths []string
+	planRegions := singleReplicationSpecRegions(ctx, plan.ReplicationSpecs)
 	stateRegions := singleReplicationSpecRegions(ctx, state.ReplicationSpecs)
-	for i, value := range singleReplicationSpecRegions(ctx, plan.ReplicationSpecs) {
-		if i >= len(stateRegions) {
-			continue
-		}
+	if len(planRegions) != len(stateRegions) {
+		return // Regions were added or removed, so matching by index is not reliable.
+	}
+	for i, value := range planRegions {
 		region := TFModelObject[TFRegionConfigsModel](ctx, value.(types.Object))
 		prior := TFModelObject[TFRegionConfigsModel](ctx, stateRegions[i].(types.Object))
 		if region == nil || prior == nil {
@@ -66,18 +67,27 @@ func singleReplicationSpecRegions(ctx context.Context, specs types.List) []attr.
 	return spec.RegionConfigs.Elements()
 }
 
-// unchangedAutoScaling returns enabled flags only when neither flag changes; Atlas applies requested specs when either is toggled.
+// unchangedAutoScaling returns enabled flags only when neither flag is toggled; Atlas applies requested specs when either is toggled.
 func unchangedAutoScaling(state, plan types.Object) (computeEnabled, diskEnabled bool) {
 	if !isKnown(state) || !isKnown(plan) {
 		return false, false
 	}
-	before, after := state.Attributes(), plan.Attributes()
-	for _, field := range []string{"compute_enabled", "disk_gb_enabled"} {
-		if before[field].IsUnknown() || after[field].IsUnknown() || !before[field].Equal(after[field]) {
-			return false, false
-		}
+	compute, computeUnchanged := unchangedAutoScalingFlag(state, plan, "compute_enabled")
+	disk, diskUnchanged := unchangedAutoScalingFlag(state, plan, "disk_gb_enabled")
+	if !computeUnchanged || !diskUnchanged {
+		return false, false
 	}
-	return after["compute_enabled"].(types.Bool).ValueBool(), after["disk_gb_enabled"].(types.Bool).ValueBool()
+	return compute, disk
+}
+
+// unchangedAutoScalingFlag returns whether an auto-scaling flag is enabled and was not toggled. An unknown plan value
+// means the flag was not configured, so the state value is used; a known plan value that differs from state is a toggle.
+func unchangedAutoScalingFlag(state, plan types.Object, field string) (enabled, unchanged bool) {
+	before, after := state.Attributes()[field], plan.Attributes()[field]
+	if before.IsUnknown() || (!after.IsUnknown() && !before.Equal(after)) {
+		return false, false
+	}
+	return before.(types.Bool).ValueBool(), true
 }
 
 func changedSpecPaths(ctx context.Context, config tfsdk.Config, specsPath path.Path, state, plan types.Object, fields ...string) []string {
