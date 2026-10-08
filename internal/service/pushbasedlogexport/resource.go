@@ -13,7 +13,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -162,12 +161,11 @@ func (r *pushBasedLogExportRS) Delete(ctx context.Context, req resource.DeleteRe
 
 	connV2 := r.Client.AtlasV2
 	projectID := tfState.ProjectID.ValueString()
-	httpResp, err := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute()
+	// The API returns 400 PUSH_BASED_LOG_EXPORT_ALREADY_UNCONFIGURED instead of 404 when the
+	// configuration is already gone, so handling a 404 here would be a no-op.
+	_, err := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute()
 	if err != nil {
-		if !deletenotfound.IsNotFound(ctx, httpResp, err) {
-			resp.Diagnostics.AddError("Error when deleting push-based log export configuration", err.Error())
-			return
-		}
+		resp.Diagnostics.AddError("Error when deleting push-based log export configuration", err.Error())
 		return
 	}
 
