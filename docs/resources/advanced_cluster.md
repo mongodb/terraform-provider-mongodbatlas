@@ -1076,6 +1076,8 @@ See the [Example using effective fields with auto-scaling](#example-using-effect
 
 ### Manually Updating Specs with use_effective_fields
 
+For clusters with exactly one `replication_specs` entry both before and after the update, Terraform warns during planning when `use_effective_fields = true` and you change an explicitly configured `instance_size`, `disk_size_gb`, or `disk_iops` in `electable_specs` or `read_only_specs` while compute or disk auto-scaling remains enabled. For `analytics_specs`, the warning applies only to `instance_size` while analytics compute auto-scaling remains enabled. A single warning lists the full paths of all affected attributes across regions and node types. Setting `instance_size = "AUTO"` does not trigger an instance-size warning; changes to explicitly configured disk fields can still trigger a warning. Creation, unchanged values, auto-scaling toggles, and updates involving multiple replication specs do not receive this warning.
+
 When `use_effective_fields = true` and auto-scaling remains enabled, you can update `instance_size`, `disk_size_gb`, or `disk_iops` in your configuration at any time without validation errors. However, Atlas preserves the auto-scaled values and the configured values do not take effect. An update that disables auto-scaling is not subject to this preservation, so to have your configured values take effect, temporarily disable auto-scaling:
 
 1. Set `compute_enabled = false` and `disk_gb_enabled = false` in the [`auto_scaling`](#auto_scaling) block, update `instance_size`, `disk_size_gb`, or `disk_iops` to your desired values, and apply.

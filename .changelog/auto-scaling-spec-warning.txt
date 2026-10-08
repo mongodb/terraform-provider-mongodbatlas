@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_advanced_cluster: Warns during plan when explicitly configured specs change while `use_effective_fields` and auto-scaling remain enabled for a cluster with exactly one replication spec before and after the update, excluding `instance_size = "AUTO"` from instance-size warnings
+```
