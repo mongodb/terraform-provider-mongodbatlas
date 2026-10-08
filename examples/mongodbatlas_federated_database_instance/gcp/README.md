@@ -21,9 +21,10 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 Create a `terraform.tfvars` file:
 
 ```hcl
-project_id              = "<ATLAS_PROJECT_ID>"
-federated_instance_name = "<FEDERATED_INSTANCE_NAME>"
+project_id = "<ATLAS_PROJECT_ID>"
 ```
+
+`federated_instance_name` is optional and defaults to `gcp-federated-instance`.
 
 **3\. Review the Terraform plan.**
 
