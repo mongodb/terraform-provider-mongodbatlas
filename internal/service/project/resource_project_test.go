@@ -1127,7 +1127,7 @@ func TestAccProject_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config:      configWithTags(orgID, projectName, map[string]string{"invalid-tag-value": "test/test"}),
+				Config:      configWithTags(orgID, projectName, map[string]string{"invalid-tag-value": "test?test"}),
 				ExpectError: regexp.MustCompile(`contains invalid characters\W+Allowable characters include`),
 			},
 			{

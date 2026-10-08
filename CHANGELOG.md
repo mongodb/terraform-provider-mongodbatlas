@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * data-source/mongodbatlas_alert_configurations: Adds `notification.webhook_body_template` and `notification.webhook_headers_template` attributes ([#4773](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4773))
 * data-source/mongodbatlas_third_party_integration: Adds `send_sharding_metrics` attribute ([#4768](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4768))
 * data-source/mongodbatlas_third_party_integrations: Adds `send_sharding_metrics` attribute ([#4768](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4768))
+* resource/mongodbatlas_advanced_cluster: Documents that NVMe clusters require either the `PROVISIONED` or `HIGH_PERFORMANCE` `ebs_volume_type` value ([#4776](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4776))
 * resource/mongodbatlas_alert_configuration: Adds `notification.webhook_body_template` and `notification.webhook_headers_template` attributes to customize the JSON body and headers of `WEBHOOK` notifications ([#4773](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4773))
 * resource/mongodbatlas_third_party_integration: Adds `send_sharding_metrics` attribute to the `DATADOG` integration type ([#4768](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4768))
 

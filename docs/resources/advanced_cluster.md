@@ -826,7 +826,7 @@ replication_specs = [
   * The maximum value is the lesser of 500 times `disk_size_gb` and the maximum IOPS for the selected instance size, up to 160000 IOPS.
   
   For Azure (Gen1 only; Azure doesn't support Gen2), `instance_size` must be set to `M40` or greater (not including `Mxx_NVME` tiers), and the region must support Extended IOPS. You can't set this attribute for a multi-cloud cluster.
-* `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Don't set this parameter for GCP or Azure clusters. Valid values are:
+* `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. NVMe clusters require either the `PROVISIONED` or `HIGH_PERFORMANCE` volume type. Valid values are:
   * `STANDARD` volume types use gp3 storage. For Gen2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.
   * `PROVISIONED` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size. Only Gen1 instance sizes support this value.
   * `HIGH_PERFORMANCE` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size. Only Gen2 instance sizes support this value.
@@ -856,7 +856,7 @@ replication_specs = [
   * The maximum value is the lesser of 500 times `disk_size_gb` and the maximum IOPS for the selected instance size, up to 160000 IOPS.
   
   For Azure (Gen1 only; Azure doesn't support Gen2), `instance_size` must be set to `M40` or greater (not including `Mxx_NVME` tiers), and the region must support Extended IOPS. You can't set this attribute for a multi-cloud cluster.
-* `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Don't set this parameter for GCP or Azure clusters. Valid values are:
+* `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. NVMe clusters require either the `PROVISIONED` or `HIGH_PERFORMANCE` volume type. Valid values are:
   * `STANDARD` volume types use gp3 storage. For Gen2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.
   * `PROVISIONED` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size. Only Gen1 instance sizes support this value.
   * `HIGH_PERFORMANCE` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size. Only Gen2 instance sizes support this value.
@@ -885,7 +885,7 @@ replication_specs = [
   * The maximum value is the lesser of 500 times `disk_size_gb` and the maximum IOPS for the selected instance size, up to 160000 IOPS.
   
   For Azure (Gen1 only; Azure doesn't support Gen2), `instance_size` must be set to `M40` or greater (not including `Mxx_NVME` tiers), and the region must support Extended IOPS. You can't set this attribute for a multi-cloud cluster. This parameter defaults to the cluster tier's standard IOPS value.
-* `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Don't set this parameter for GCP or Azure clusters. Valid values are:
+* `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. NVMe clusters require either the `PROVISIONED` or `HIGH_PERFORMANCE` volume type. Valid values are:
   * `STANDARD` volume types use gp3 storage. For Gen2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.
   * `PROVISIONED` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size. Only Gen1 instance sizes support this value.
   * `HIGH_PERFORMANCE` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size. Only Gen2 instance sizes support this value.
