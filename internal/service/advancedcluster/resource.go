@@ -97,14 +97,18 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 
-	if !req.Plan.Raw.IsFullyKnown() {
+	// A fully known plan has no unknowns to resolve, so there is nothing to modify, only to warn about.
+	fullyKnown := req.Plan.Raw.IsFullyKnown()
+	if !fullyKnown {
 		handleModifyPlan(ctx, diags, &state, &plan, schemafunc.UnknownInConfig(req.Config.Raw))
-	}
-	if diags.HasError() {
-		return
+		if diags.HasError() {
+			return
+		}
 	}
 	warnIgnoredSpecChanges(ctx, diags, req.Config, &state, &plan)
-	diags.Append(resp.Plan.Set(ctx, plan)...)
+	if !fullyKnown {
+		diags.Append(resp.Plan.Set(ctx, plan)...)
+	}
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
