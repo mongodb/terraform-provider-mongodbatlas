@@ -64,7 +64,8 @@ data "mongodbatlas_database_user" "test" {
   auth_database_name = "admin"
 }
 ```
-Note: OIDC support is only available starting in [MongoDB 7.0](https://www.mongodb.com/evolved#mdbsevenzero) or later. To learn more, see the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/security-oidc/).
+
+Note: To learn more about OIDC federated authentication, see the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/security-oidc/).
 
 ## Argument Reference
 
