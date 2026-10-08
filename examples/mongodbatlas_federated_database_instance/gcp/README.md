@@ -50,7 +50,7 @@ $ terraform apply
 
 **5\. Authorize the Atlas service account.**
 
-Atlas creates a Google Cloud service account for the federated database instance, which should be authorized to allow Atlas to access Google Cloud Storage. Read its email address from the `gcp_service_account` output and grant it access to the buckets you want to query, for example the `roles/storage.objectViewer` role.
+Atlas creates a Google Cloud service account for the federated database instance, which should be authorized to allow Atlas to access Google Cloud Storage. Read its email address from the `gcp_service_account` output and grant it access to the buckets you want to query. Apply the `roles/storage.viewer` role for read-only access, or add `roles/storage.editor` as well if you also want to write query results to the bucket.
 
 **6\. Destroy the resources.**
 
