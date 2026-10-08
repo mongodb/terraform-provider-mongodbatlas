@@ -79,6 +79,8 @@ func TestSpecChangeWarning_conditions(t *testing.T) {
 				region["auto_scaling"] = nil
 			}
 		},
+		"replacement name":    func(_, planned, _ map[string]any) { planned["name"] = "replacement" },
+		"replacement project": func(_, planned, _ map[string]any) { planned["project_id"] = "444444444444444444444444" },
 	} {
 		t.Run(name, func(t *testing.T) {
 			prior := specWarningModel(specWarningRegion("electable_specs", nil, "compute_enabled"))

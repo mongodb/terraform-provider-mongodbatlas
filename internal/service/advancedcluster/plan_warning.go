@@ -13,7 +13,7 @@ import (
 )
 
 func warnIgnoredSpecChanges(ctx context.Context, diags *diag.Diagnostics, config tfsdk.Config, state, plan *TFModel) {
-	if !plan.UseEffectiveFields.ValueBool() {
+	if !plan.UseEffectiveFields.ValueBool() || !sameClusterIdentity(state, plan) {
 		return
 	}
 	hardwareFields := []string{"instance_size", "disk_size_gb", "disk_iops"}
@@ -52,6 +52,15 @@ func warnIgnoredSpecChanges(ctx context.Context, diags *diag.Diagnostics, config
 			"To apply these changes, disable auto-scaling and apply the desired values, then re-enable auto-scaling in a separate apply. "+
 			"See: https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#manually-updating-specs-with-use_effective_fields",
 			strings.Join(ignoredPaths, "\n- ")))
+}
+
+// A replacement (name or project_id change) creates a new cluster that uses the requested specs, so the warning does not apply.
+func sameClusterIdentity(state, plan *TFModel) bool {
+	return equalWhenKnown(state.ProjectID, plan.ProjectID) && equalWhenKnown(state.Name, plan.Name)
+}
+
+func equalWhenKnown(a, b types.String) bool {
+	return a.IsUnknown() || b.IsUnknown() || a.Equal(b)
 }
 
 func singleReplicationSpecRegions(ctx context.Context, specs types.List) []attr.Value {
