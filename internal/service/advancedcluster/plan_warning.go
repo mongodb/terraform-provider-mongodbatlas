@@ -31,12 +31,12 @@ func warnIgnoredSpecChanges(ctx context.Context, diags *diag.Diagnostics, config
 		regionPath := path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(i)
 		compute, disk := unchangedAutoScaling(prior.AutoScaling, region.AutoScaling)
 		if compute || disk {
-			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, diags, config, regionPath.AtName("electable_specs"), prior.ElectableSpecs, region.ElectableSpecs, hardwareFields...)...)
-			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, diags, config, regionPath.AtName("read_only_specs"), prior.ReadOnlySpecs, region.ReadOnlySpecs, hardwareFields...)...)
+			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, config, regionPath.AtName("electable_specs"), prior.ElectableSpecs, region.ElectableSpecs, hardwareFields...)...)
+			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, config, regionPath.AtName("read_only_specs"), prior.ReadOnlySpecs, region.ReadOnlySpecs, hardwareFields...)...)
 		}
 		analyticsCompute, _ := unchangedAutoScaling(prior.AnalyticsAutoScaling, region.AnalyticsAutoScaling)
 		if analyticsCompute {
-			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, diags, config, regionPath.AtName("analytics_specs"), prior.AnalyticsSpecs, region.AnalyticsSpecs, "instance_size")...)
+			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, config, regionPath.AtName("analytics_specs"), prior.AnalyticsSpecs, region.AnalyticsSpecs, "instance_size")...)
 		}
 	}
 	if diags.HasError() || len(ignoredPaths) == 0 {
@@ -80,13 +80,12 @@ func unchangedAutoScaling(state, plan types.Object) (computeEnabled, diskEnabled
 	return after["compute_enabled"].(types.Bool).ValueBool(), after["disk_gb_enabled"].(types.Bool).ValueBool()
 }
 
-func changedSpecPaths(ctx context.Context, diags *diag.Diagnostics, config tfsdk.Config, specsPath path.Path, state, plan types.Object, fields ...string) []string {
+func changedSpecPaths(ctx context.Context, config tfsdk.Config, specsPath path.Path, state, plan types.Object, fields ...string) []string {
 	if !isKnown(state) || !isKnown(plan) {
 		return nil
 	}
 	var configuredObj types.Object
-	diags.Append(config.GetAttribute(ctx, specsPath, &configuredObj)...)
-	if diags.HasError() || !isKnown(configuredObj) {
+	if d := config.GetAttribute(ctx, specsPath, &configuredObj); d.HasError() || !isKnown(configuredObj) {
 		return nil
 	}
 	before, after, configured := state.Attributes(), plan.Attributes(), configuredObj.Attributes()
