@@ -54,13 +54,9 @@ func warnIgnoredSpecChanges(ctx context.Context, diags *diag.Diagnostics, config
 			strings.Join(ignoredPaths, "\n- ")))
 }
 
-// A replacement (name or project_id change) creates a new cluster that uses the requested specs, so the warning does not apply.
+// A changed or unknown name/project_id requires replacement, which uses the requested specs.
 func sameClusterIdentity(state, plan *TFModel) bool {
-	return equalWhenKnown(state.ProjectID, plan.ProjectID) && equalWhenKnown(state.Name, plan.Name)
-}
-
-func equalWhenKnown(a, b types.String) bool {
-	return a.IsUnknown() || b.IsUnknown() || a.Equal(b)
+	return state.ProjectID.Equal(plan.ProjectID) && state.Name.Equal(plan.Name)
 }
 
 func singleReplicationSpecRegions(ctx context.Context, specs types.List) []attr.Value {
@@ -97,16 +93,27 @@ func changedSpecPaths(ctx context.Context, diags *diag.Diagnostics, config tfsdk
 	if diags.HasError() || !isKnown(configured) {
 		return nil
 	}
-	before, after, configuredAttrs := state.Attributes(), plan.Attributes(), configured.Attributes()
+	changed := IgnoredSpecFields(state, plan, configured, fields...)
+	paths := make([]string, len(changed))
+	for i, field := range changed {
+		paths[i] = specsPath.AtName(field).String()
+	}
+	return paths
+}
+
+// IgnoredSpecFields returns the explicitly configured fields whose value changed and that Atlas ignores while
+// auto-scaling is enabled. Exported so the decision can be unit-tested without the provider protocol.
+func IgnoredSpecFields(before, after, configured types.Object, fields ...string) []string {
+	beforeAttrs, afterAttrs, configuredAttrs := before.Attributes(), after.Attributes(), configured.Attributes()
 	var ignored []string
 	for _, field := range fields {
-		if !isKnown(configuredAttrs[field]) || before[field].IsUnknown() || !isKnown(after[field]) || before[field].Equal(after[field]) {
+		if !isKnown(configuredAttrs[field]) || beforeAttrs[field].IsUnknown() || !isKnown(afterAttrs[field]) || beforeAttrs[field].Equal(afterAttrs[field]) {
 			continue
 		}
-		if field == "instance_size" && after[field].(types.String).ValueString() == "AUTO" {
+		if field == "instance_size" && afterAttrs[field].(types.String).ValueString() == "AUTO" {
 			continue
 		}
-		ignored = append(ignored, specsPath.AtName(field).String())
+		ignored = append(ignored, field)
 	}
 	return ignored
 }

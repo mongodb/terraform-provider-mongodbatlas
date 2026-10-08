@@ -6,10 +6,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -18,56 +20,92 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSpecChangeWarning_fields(t *testing.T) {
-	for _, specName := range []string{"electable_specs", "read_only_specs", "analytics_specs"} {
-		for _, scaling := range []string{"compute_enabled", "disk_gb_enabled"} {
-			for name, tc := range map[string]struct {
-				changes map[string]any
-				fields  string
-			}{
-				"unchanged":     {map[string]any{}, ""},
-				"instance size": {map[string]any{"instance_size": "M20"}, "instance_size"},
-				"disk size":     {map[string]any{"disk_size_gb": float64(30)}, "disk_size_gb"},
-				"disk IOPS":     {map[string]any{"disk_iops": int64(4000)}, "disk_iops"},
-				"all fields": {map[string]any{
-					"instance_size": "M20", "disk_size_gb": float64(30), "disk_iops": int64(4000),
-				}, "instance_size, disk_size_gb, disk_iops"},
-				"AUTO": {map[string]any{"instance_size": "AUTO"}, ""},
-				"AUTO with disk changes": {map[string]any{
-					"instance_size": "AUTO", "disk_size_gb": float64(30), "disk_iops": int64(4000),
-				}, "disk_size_gb, disk_iops"},
-				"unrelated field": {map[string]any{"node_count": int64(5)}, ""},
-			} {
-				t.Run(specName+"/"+scaling+"/"+name, func(t *testing.T) {
-					prior := specWarningRegion(specName, nil, scaling)
-					planned := specWarningRegion(specName, tc.changes, scaling)
-					diagnostics := runSpecWarningPlan(t, specWarningModel(prior), specWarningModel(planned), specWarningModel(planned))
-					fields := tc.fields
-					if specName == "analytics_specs" {
-						fields = ""
-						if scaling == "compute_enabled" && strings.Contains(tc.fields, "instance_size") {
-							fields = "instance_size"
-						}
-					}
-					assertSpecWarning(t, diagnostics, fields, 0, specName)
-				})
-			}
-		}
+func TestSpecChangeWarning_specTypes(t *testing.T) {
+	changes := map[string]any{"instance_size": "M20", "disk_size_gb": float64(30), "disk_iops": int64(4000)}
+	for _, tc := range []struct{ specName, scaling, fields string }{
+		{"electable_specs", "compute_enabled", "instance_size, disk_size_gb, disk_iops"},
+		{"electable_specs", "disk_gb_enabled", "instance_size, disk_size_gb, disk_iops"},
+		{"read_only_specs", "compute_enabled", "instance_size, disk_size_gb, disk_iops"},
+		{"read_only_specs", "disk_gb_enabled", "instance_size, disk_size_gb, disk_iops"},
+		{"analytics_specs", "compute_enabled", "instance_size"},
+		{"analytics_specs", "disk_gb_enabled", ""},
+	} {
+		t.Run(tc.specName+"/"+tc.scaling, func(t *testing.T) {
+			prior := specWarningModel(specWarningRegion(tc.specName, nil, tc.scaling))
+			planned := specWarningModel(specWarningRegion(tc.specName, changes, tc.scaling))
+			assertSpecWarning(t, runSpecWarningPlan(t, prior, planned, planned), tc.fields, 0, tc.specName)
+		})
 	}
 }
 
-func TestSpecChangeWarning_previouslyOmittedDiskFields(t *testing.T) {
-	prior := specWarningRegion("electable_specs", map[string]any{"disk_size_gb": nil, "disk_iops": nil}, "compute_enabled")
-	planned := specWarningRegion("electable_specs", map[string]any{"disk_size_gb": float64(30), "disk_iops": int64(4000)}, "compute_enabled")
-	assertSpecWarning(t, runSpecWarningPlan(t, specWarningModel(prior), specWarningModel(planned), specWarningModel(planned)), "disk_size_gb, disk_iops", 0, "electable_specs")
+func TestSpecChangeWarning_valueChanges(t *testing.T) {
+	for name, tc := range map[string]struct {
+		before, after map[string]any
+		fields        string
+	}{
+		"unchanged":       {nil, nil, ""},
+		"instance size":   {nil, map[string]any{"instance_size": "M20"}, "instance_size"},
+		"disk size":       {nil, map[string]any{"disk_size_gb": float64(30)}, "disk_size_gb"},
+		"disk IOPS":       {nil, map[string]any{"disk_iops": int64(4000)}, "disk_iops"},
+		"AUTO":            {nil, map[string]any{"instance_size": "AUTO"}, ""},
+		"unrelated field": {nil, map[string]any{"node_count": int64(5)}, ""},
+		"AUTO with disk changes": {nil, map[string]any{
+			"instance_size": "AUTO", "disk_size_gb": float64(30), "disk_iops": int64(4000),
+		}, "disk_size_gb, disk_iops"},
+		"previously omitted disk fields": {
+			map[string]any{"disk_size_gb": nil, "disk_iops": nil},
+			map[string]any{"disk_size_gb": float64(30), "disk_iops": int64(4000)},
+			"disk_size_gb, disk_iops"},
+		"removed disk fields": {
+			map[string]any{"disk_size_gb": float64(30), "disk_iops": int64(4000)},
+			map[string]any{"disk_size_gb": nil, "disk_iops": nil},
+			""},
+	} {
+		t.Run(name, func(t *testing.T) {
+			prior := specWarningModel(specWarningRegion("electable_specs", tc.before, "compute_enabled"))
+			planned := specWarningModel(specWarningRegion("electable_specs", tc.after, "compute_enabled"))
+			assertSpecWarning(t, runSpecWarningPlan(t, prior, planned, planned), tc.fields, 0, "electable_specs")
+		})
+	}
+}
+
+func TestIgnoredSpecFields(t *testing.T) {
+	specObj := func(instanceSize, diskSizeGB, diskIOPS attr.Value) types.Object {
+		return types.ObjectValueMust(
+			map[string]attr.Type{"instance_size": types.StringType, "disk_size_gb": types.Int64Type, "disk_iops": types.Int64Type},
+			map[string]attr.Value{"instance_size": instanceSize, "disk_size_gb": diskSizeGB, "disk_iops": diskIOPS},
+		)
+	}
+	str, num := types.StringValue, types.Int64Value
+	unchanged := func() types.Object { return specObj(str("M10"), num(20), num(3000)) }
+	for name, tc := range map[string]struct {
+		configured, before, after types.Object
+		want                      []string
+	}{
+		"instance size changed":    {specObj(str("M20"), num(20), num(3000)), unchanged(), specObj(str("M20"), num(20), num(3000)), []string{"instance_size"}},
+		"all fields changed":       {specObj(str("M20"), num(30), num(4000)), unchanged(), specObj(str("M20"), num(30), num(4000)), []string{"instance_size", "disk_size_gb", "disk_iops"}},
+		"instance size AUTO":       {specObj(str("AUTO"), num(20), num(3000)), unchanged(), specObj(str("AUTO"), num(20), num(3000)), nil},
+		"previously omitted disks": {specObj(str("M10"), num(30), num(4000)), specObj(str("M10"), types.Int64Null(), types.Int64Null()), specObj(str("M10"), num(30), num(4000)), []string{"disk_size_gb", "disk_iops"}},
+		"removed disks":            {specObj(str("M10"), types.Int64Null(), types.Int64Null()), specObj(str("M10"), num(30), num(4000)), specObj(str("M10"), types.Int64Null(), types.Int64Null()), nil},
+		"unconfigured field":       {specObj(str("M10"), types.Int64Null(), num(3000)), unchanged(), specObj(str("M10"), num(30), num(3000)), nil},
+		"unchanged":                {unchanged(), unchanged(), unchanged(), nil},
+		"unknown prior value":      {specObj(str("M20"), num(20), num(3000)), specObj(types.StringUnknown(), num(20), num(3000)), specObj(str("M20"), num(20), num(3000)), nil},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.want, advancedcluster.IgnoredSpecFields(tc.before, tc.after, tc.configured, "instance_size", "disk_size_gb", "disk_iops"))
+		})
+	}
 }
 
 func TestSpecChangeWarning_conditions(t *testing.T) {
 	for name, change := range map[string]func(prior, planned, config map[string]any){
 		"effective fields disabled": func(_, planned, _ map[string]any) { planned["use_effective_fields"] = false },
 		"effective fields unknown":  func(_, planned, _ map[string]any) { planned["use_effective_fields"] = tftypes.UnknownValue },
-		"effective fields omitted":  func(_, planned, _ map[string]any) { delete(planned, "use_effective_fields") },
-		"omitted specs":             func(_, _, config map[string]any) { warningRegion(config)["electable_specs"] = nil },
+		"effective fields omitted": func(_, planned, config map[string]any) {
+			delete(planned, "use_effective_fields")
+			delete(config, "use_effective_fields")
+		},
+		"omitted specs": func(_, _, config map[string]any) { warningRegion(config)["electable_specs"] = nil },
 		"omitted field": func(_, _, config map[string]any) {
 			delete(warningRegion(config)["electable_specs"].(map[string]any), "instance_size")
 		},
@@ -78,15 +116,19 @@ func TestSpecChangeWarning_conditions(t *testing.T) {
 		"new node type": func(prior, _, _ map[string]any) { warningRegion(prior)["electable_specs"] = nil },
 		"new region":    func(_, planned, _ map[string]any) { warningRegion(planned)["region_name"] = "US_WEST_2" },
 		"new provider":  func(_, planned, _ map[string]any) { warningRegion(planned)["provider_name"] = "AZURE" },
-		"unrelated scaling": func(prior, planned, _ map[string]any) {
-			for _, model := range []map[string]any{prior, planned} {
+		"unknown region": func(_, planned, _ map[string]any) {
+			warningRegion(planned)["region_name"] = tftypes.UnknownValue
+		},
+		"unknown provider": func(_, planned, _ map[string]any) {
+			warningRegion(planned)["provider_name"] = tftypes.UnknownValue
+		},
+		"unrelated scaling": func(prior, planned, config map[string]any) {
+			for _, model := range []map[string]any{prior, planned, config} {
 				region := warningRegion(model)
 				region["analytics_auto_scaling"] = region["auto_scaling"]
 				region["auto_scaling"] = nil
 			}
 		},
-		"replacement name":    func(_, planned, _ map[string]any) { planned["name"] = "replacement" },
-		"replacement project": func(_, planned, _ map[string]any) { planned["project_id"] = "444444444444444444444444" },
 	} {
 		t.Run(name, func(t *testing.T) {
 			prior := specWarningModel(specWarningRegion("electable_specs", nil, "compute_enabled"))
@@ -132,6 +174,7 @@ func TestSpecChangeWarning_autoScalingTransitions(t *testing.T) {
 }
 
 func TestSpecChangeWarning_topology(t *testing.T) {
+	// cluster_type is intentionally irrelevant: the warning keys only on the number of replication_specs entries.
 	for _, clusterType := range []string{"REPLICASET", "SHARDED", "GEOSHARDED"} {
 		for _, counts := range [][2]int{{1, 1}, {1, 2}, {2, 1}, {2, 2}} {
 			t.Run(fmt.Sprintf("%s/%d-to-%d", clusterType, counts[0], counts[1]), func(t *testing.T) {
@@ -165,6 +208,28 @@ func TestSpecChangeWarning_topology(t *testing.T) {
 		planned = specWarningModel(second, changed)
 		assertSpecWarning(t, runSpecWarningPlan(t, prior, planned, planned), "instance_size", 1, "electable_specs")
 	})
+}
+
+func TestSpecChangeWarning_nodeTypeIndependence(t *testing.T) {
+	// Electable auto-scaling must not warn for analytics changes: analytics uses analytics_auto_scaling only.
+	region := func(analyticsChanges map[string]any) map[string]any {
+		result := specWarningRegion("analytics_specs", analyticsChanges, "compute_enabled")
+		result["analytics_auto_scaling"] = map[string]any{"compute_enabled": false, "disk_gb_enabled": false}
+		result["electable_specs"] = map[string]any{"instance_size": "M10", "disk_size_gb": float64(20), "disk_iops": int64(3000), "node_count": int64(3)}
+		result["auto_scaling"] = map[string]any{"compute_enabled": true, "disk_gb_enabled": true}
+		return result
+	}
+	prior := specWarningModel(region(nil))
+	for name, changes := range map[string]map[string]any{
+		"instance size": {"instance_size": "M20"},
+		"disk size":     {"disk_size_gb": float64(30)},
+		"disk IOPS":     {"disk_iops": int64(4000)},
+	} {
+		t.Run(name, func(t *testing.T) {
+			planned := specWarningModel(region(changes))
+			require.Empty(t, runSpecWarningPlan(t, prior, planned, planned))
+		})
+	}
 }
 
 func TestSpecChangeWarning_computedPlan(t *testing.T) {
@@ -243,44 +308,68 @@ func TestSpecChangeWarning_providerProtocol(t *testing.T) {
 	prior := specWarningModel(specWarningRegion("electable_specs", nil, "compute_enabled"))
 	prior["cluster_id"] = "333333333333333333333333"
 	changes := map[string]any{"instance_size": "M20", "disk_size_gb": float64(30), "disk_iops": int64(4000)}
-	config := specWarningModel(specWarningRegion("electable_specs", changes, "compute_enabled"))
-	proposed := maps.Clone(config)
-	proposed["cluster_id"] = tftypes.UnknownValue
+	for name, tc := range map[string]struct {
+		value    any
+		identity string
+	}{
+		"update":             {},
+		"changed name":       {identity: "name", value: "replacement"},
+		"changed project":    {identity: "project_id", value: "444444444444444444444444"},
+		"unresolved name":    {identity: "name", value: tftypes.UnknownValue},
+		"unresolved project": {identity: "project_id", value: tftypes.UnknownValue},
+	} {
+		t.Run(name, func(t *testing.T) {
+			config := specWarningModel(specWarningRegion("electable_specs", changes, "compute_enabled"))
+			if tc.identity != "" {
+				config[tc.identity] = tc.value
+			}
+			proposed := maps.Clone(config)
+			proposed["cluster_id"] = tftypes.UnknownValue
 
-	// Exercise framework plan modifiers and resource ModifyPlan through the protocol, without configuring an Atlas client.
-	server, err := acc.TestAccProviderV6Factories["mongodbatlas"]()
-	require.NoError(t, err)
-	response, err := server.PlanResourceChange(ctx, &tfprotov6.PlanResourceChangeRequest{
-		TypeName:         "mongodbatlas_advanced_cluster",
-		PriorState:       clusterDynamic(t, typ, prior),
-		ProposedNewState: clusterDynamic(t, typ, proposed),
-		Config:           clusterDynamic(t, typ, config),
-	})
-	require.NoError(t, err)
-	require.Len(t, response.Diagnostics, 1)
-	warning := response.Diagnostics[0]
-	assert.Equal(t, tfprotov6.DiagnosticSeverityWarning, warning.Severity)
-	assert.Equal(t, "Spec changes are ignored while auto-scaling remains enabled", warning.Summary)
-	assert.True(t, tftypes.NewAttributePath().WithAttributeName("replication_specs").Equal(warning.Attribute))
-	assert.Contains(t, warning.Detail, "\n\n- replication_specs[0].region_configs[0].electable_specs.instance_size\n"+
-		"- replication_specs[0].region_configs[0].electable_specs.disk_size_gb\n"+
-		"- replication_specs[0].region_configs[0].electable_specs.disk_iops\n\n")
+			// Exercise framework plan modifiers and resource ModifyPlan through the protocol, without configuring an Atlas client.
+			server, err := acc.TestAccProviderV6Factories["mongodbatlas"]()
+			require.NoError(t, err)
+			response, err := server.PlanResourceChange(ctx, &tfprotov6.PlanResourceChangeRequest{
+				TypeName:         "mongodbatlas_advanced_cluster",
+				PriorState:       clusterDynamic(t, typ, prior),
+				ProposedNewState: clusterDynamic(t, typ, proposed),
+				Config:           clusterDynamic(t, typ, config),
+			})
+			require.NoError(t, err)
+			if tc.identity != "" {
+				require.Empty(t, response.Diagnostics, "replacement clusters apply the requested specs")
+				require.NotNil(t, response.PlannedState)
+				require.Len(t, response.RequiresReplace, 1)
+				assert.True(t, tftypes.NewAttributePath().WithAttributeName(tc.identity).Equal(response.RequiresReplace[0]))
+				return
+			}
+			require.Empty(t, response.RequiresReplace)
+			require.NotNil(t, response.PlannedState)
+			require.Len(t, response.Diagnostics, 1)
+			warning := response.Diagnostics[0]
+			assert.Equal(t, tfprotov6.DiagnosticSeverityWarning, warning.Severity)
+			assert.Equal(t, "Spec changes are ignored while auto-scaling remains enabled", warning.Summary)
+			assert.True(t, tftypes.NewAttributePath().WithAttributeName("replication_specs").Equal(warning.Attribute))
+			assert.Contains(t, warning.Detail, "\n\n- replication_specs[0].region_configs[0].electable_specs.instance_size\n"+
+				"- replication_specs[0].region_configs[0].electable_specs.disk_size_gb\n"+
+				"- replication_specs[0].region_configs[0].electable_specs.disk_iops\n\n")
 
-	// The warning must preserve the requested changes while existing plan logic restores computed state values.
-	require.NotNil(t, response.PlannedState)
-	planned, err := response.PlannedState.Unmarshal(typ)
-	require.NoError(t, err)
-	specsPath := tftypes.NewAttributePath().WithAttributeName("replication_specs").WithElementKeyInt(0).
-		WithAttributeName("region_configs").WithElementKeyInt(0).WithAttributeName("electable_specs")
-	for field, expected := range changes {
-		value, _, err := tftypes.WalkAttributePath(planned, specsPath.WithAttributeName(field))
-		require.NoError(t, err)
-		actual := value.(tftypes.Value)
-		assert.True(t, actual.Equal(tftypes.NewValue(actual.Type(), expected)), "%s must retain its configured value", field)
+			// Warning preserves requested changes while existing plan logic restores computed state values.
+			planned, err := response.PlannedState.Unmarshal(typ)
+			require.NoError(t, err)
+			specsPath := tftypes.NewAttributePath().WithAttributeName("replication_specs").WithElementKeyInt(0).
+				WithAttributeName("region_configs").WithElementKeyInt(0).WithAttributeName("electable_specs")
+			for field, expected := range changes {
+				value, _, err := tftypes.WalkAttributePath(planned, specsPath.WithAttributeName(field))
+				require.NoError(t, err)
+				actual := value.(tftypes.Value)
+				assert.True(t, actual.Equal(tftypes.NewValue(actual.Type(), expected)), "%s must retain its configured value", field)
+			}
+			clusterID, _, err := tftypes.WalkAttributePath(planned, tftypes.NewAttributePath().WithAttributeName("cluster_id"))
+			require.NoError(t, err)
+			assert.Equal(t, tftypes.NewValue(tftypes.String, prior["cluster_id"]), clusterID)
+		})
 	}
-	clusterID, _, err := tftypes.WalkAttributePath(planned, tftypes.NewAttributePath().WithAttributeName("cluster_id"))
-	require.NoError(t, err)
-	assert.Equal(t, tftypes.NewValue(tftypes.String, prior["cluster_id"]), clusterID)
 }
 
 func specWarningRegion(specName string, changes map[string]any, scaling string) map[string]any {
