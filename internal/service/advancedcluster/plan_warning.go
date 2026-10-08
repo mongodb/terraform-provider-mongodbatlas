@@ -20,27 +20,23 @@ func warnIgnoredSpecChanges(ctx context.Context, diags *diag.Diagnostics, config
 	var ignoredPaths []string
 	stateRegions := singleReplicationSpecRegions(ctx, state.ReplicationSpecs)
 	for i, value := range singleReplicationSpecRegions(ctx, plan.ReplicationSpecs) {
-		region := TFModelObject[TFRegionConfigsModel](ctx, value.(types.Object))
-		if region == nil || !isKnown(region.ProviderName) || !isKnown(region.RegionName) {
+		if i >= len(stateRegions) {
 			continue
 		}
-		for _, stateValue := range stateRegions {
-			prior := TFModelObject[TFRegionConfigsModel](ctx, stateValue.(types.Object))
-			// Match by location so reordered or newly added regions do not produce false warnings.
-			if prior == nil || !prior.ProviderName.Equal(region.ProviderName) || !prior.RegionName.Equal(region.RegionName) {
-				continue
-			}
-			regionPath := path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(i)
-			compute, disk := unchangedAutoScaling(prior.AutoScaling, region.AutoScaling)
-			if compute || disk {
-				ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, diags, config, regionPath.AtName("electable_specs"), prior.ElectableSpecs, region.ElectableSpecs, hardwareFields...)...)
-				ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, diags, config, regionPath.AtName("read_only_specs"), prior.ReadOnlySpecs, region.ReadOnlySpecs, hardwareFields...)...)
-			}
-			analyticsCompute, _ := unchangedAutoScaling(prior.AnalyticsAutoScaling, region.AnalyticsAutoScaling)
-			if analyticsCompute {
-				ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, diags, config, regionPath.AtName("analytics_specs"), prior.AnalyticsSpecs, region.AnalyticsSpecs, "instance_size")...)
-			}
-			break
+		region := TFModelObject[TFRegionConfigsModel](ctx, value.(types.Object))
+		prior := TFModelObject[TFRegionConfigsModel](ctx, stateRegions[i].(types.Object))
+		if region == nil || prior == nil {
+			continue
+		}
+		regionPath := path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(i)
+		compute, disk := unchangedAutoScaling(prior.AutoScaling, region.AutoScaling)
+		if compute || disk {
+			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, diags, config, regionPath.AtName("electable_specs"), prior.ElectableSpecs, region.ElectableSpecs, hardwareFields...)...)
+			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, diags, config, regionPath.AtName("read_only_specs"), prior.ReadOnlySpecs, region.ReadOnlySpecs, hardwareFields...)...)
+		}
+		analyticsCompute, _ := unchangedAutoScaling(prior.AnalyticsAutoScaling, region.AnalyticsAutoScaling)
+		if analyticsCompute {
+			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, diags, config, regionPath.AtName("analytics_specs"), prior.AnalyticsSpecs, region.AnalyticsSpecs, "instance_size")...)
 		}
 	}
 	if diags.HasError() || len(ignoredPaths) == 0 {

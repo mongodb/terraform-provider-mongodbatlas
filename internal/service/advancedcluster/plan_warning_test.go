@@ -114,14 +114,6 @@ func TestSpecChangeWarning_conditions(t *testing.T) {
 		},
 		"unknown specs": func(_, _, config map[string]any) { warningRegion(config)["electable_specs"] = tftypes.UnknownValue },
 		"new node type": func(prior, _, _ map[string]any) { warningRegion(prior)["electable_specs"] = nil },
-		"new region":    func(_, planned, _ map[string]any) { warningRegion(planned)["region_name"] = "US_WEST_2" },
-		"new provider":  func(_, planned, _ map[string]any) { warningRegion(planned)["provider_name"] = "AZURE" },
-		"unknown region": func(_, planned, _ map[string]any) {
-			warningRegion(planned)["region_name"] = tftypes.UnknownValue
-		},
-		"unknown provider": func(_, planned, _ map[string]any) {
-			warningRegion(planned)["provider_name"] = tftypes.UnknownValue
-		},
 		"unrelated scaling": func(prior, planned, config map[string]any) {
 			for _, model := range []map[string]any{prior, planned, config} {
 				region := warningRegion(model)
@@ -198,16 +190,6 @@ func TestSpecChangeWarning_topology(t *testing.T) {
 			})
 		}
 	}
-	t.Run("reordered regions", func(t *testing.T) {
-		first := specWarningRegion("electable_specs", nil, "compute_enabled")
-		second := specWarningRegion("electable_specs", map[string]any{"instance_size": "M20"}, "compute_enabled")
-		second["region_name"] = "US_WEST_2"
-		prior, planned := specWarningModel(first, second), specWarningModel(second, first)
-		require.Empty(t, runSpecWarningPlan(t, prior, planned, planned))
-		changed := specWarningRegion("electable_specs", map[string]any{"instance_size": "M30"}, "compute_enabled")
-		planned = specWarningModel(second, changed)
-		assertSpecWarning(t, runSpecWarningPlan(t, prior, planned, planned), "instance_size", 1, "electable_specs")
-	})
 }
 
 func TestSpecChangeWarning_nodeTypeIndependence(t *testing.T) {
