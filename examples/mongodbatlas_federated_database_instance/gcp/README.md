@@ -1,4 +1,4 @@
-# Example - MongoDB Atlas Federated Database Instance with Google Cloud Storage
+# Example - MongoDB Atlas Federated Database Instance with Google Cloud provider configuration
 
 This project aims to provide an example of using [MongoDB Atlas Federated Database Instance](https://www.mongodb.com/docs/atlas/data-federation/adf-overview/overview/).
 
@@ -37,7 +37,7 @@ This project currently supports the following deployments:
 
 - MongoDB Atlas Cloud Provider Access Setup for Google Cloud
 - MongoDB Atlas Cloud Provider Access Authorization for Google Cloud
-- MongoDB Atlas Federated Database Instance with Google Cloud cloud provider configuration
+- MongoDB Atlas Federated Database Instance with Google Cloud provider configuration
 
 **3\. Authorize the Atlas service account.**
 
