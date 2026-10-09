@@ -154,6 +154,9 @@ func TestAccNetworkLogging(t *testing.T) {
 	acc.SkipInUnitTest(t)
 	acc.PreCheckBasic(t)
 
+	// TEMP (CLOUDP-424367): injected failure to validate the Test Suite summary detects a regression. Revert before merge.
+	t.Fatal("TEMP: unexpected failure injected to validate summary regression detection")
+
 	t.Setenv("TF_LOG", "DEBUG") // Enable debug logging for the test.
 	var logOutput bytes.Buffer
 	log.SetOutput(&logOutput)
