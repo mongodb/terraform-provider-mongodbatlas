@@ -187,7 +187,7 @@ jobs:
       - name: Post summary to Slack
         uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }} # TEMP (CLOUDP-424367): post to test channel; revert before merge.
           webhook-type: incoming-webhook
           errors: true
           payload: |
@@ -207,7 +207,7 @@ jobs:
         if: ${{ failure() }}
         uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }} # TEMP (CLOUDP-424367): post to test channel; revert before merge.
           webhook-type: incoming-webhook
           payload: |
             {
