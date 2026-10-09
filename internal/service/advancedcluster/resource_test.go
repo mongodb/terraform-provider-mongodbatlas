@@ -998,7 +998,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 				Check:  checks,
 			},
 			{
-				// First update after create can be rejected with INVALID_ATTRIBUTE until Atlas refreshes monitoring data (CLOUDP-450627).
+				// First update after create can be rejected with INVALID_ATTRIBUTE until Atlas refreshes monitoring data.
 				PreConfig: acc.PreConfigWait(t),
 				Config:    configBasicReplicaset(t, &basicReplicasetConfig{ProjectID: projectID, ClusterName: clusterName, Extra: fullUpdate, InstanceSize: "M10"}),
 				Check:     checksUpdate,
