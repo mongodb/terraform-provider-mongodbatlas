@@ -80,6 +80,25 @@ func cloudProviderConfig(isDataSource bool) *schema.Schema {
 						},
 					},
 				},
+				"gcp": {
+					Type:     schema.TypeList,
+					MaxItems: maxItems,
+					Optional: optional,
+					Computed: computed,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"role_id": {
+								Type:     schema.TypeString,
+								Required: required,
+								Computed: computed,
+							},
+							"gcp_service_account": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
 			},
 		},
 	}

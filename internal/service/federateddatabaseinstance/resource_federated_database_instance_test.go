@@ -4,18 +4,22 @@ import (
 	"fmt"
 	"maps"
 	"os"
+	"regexp"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 const (
-	resourceName   = "mongodbatlas_federated_database_instance.test"
-	dataSourceName = "data.mongodbatlas_federated_database_instance.test"
+	resourceName         = "mongodbatlas_federated_database_instance.test"
+	dataSourceName       = "data.mongodbatlas_federated_database_instance.test"
+	pluralDataSourceName = "data.mongodbatlas_federated_database_instances.test"
 )
 
 func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
@@ -117,6 +121,7 @@ func TestAccFederatedDatabaseInstance_azureCloudProviderConfig(t *testing.T) {
 
 	extraChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "cloud_provider_config.0.aws.#", "0"),
+		resource.TestCheckResourceAttr(resourceName, "cloud_provider_config.0.gcp.#", "0"),
 		resource.TestCheckResourceAttrSet(resourceName, "cloud_provider_config.0.azure.0.role_id"),
 	}
 
@@ -130,6 +135,7 @@ func TestAccFederatedDatabaseInstance_azureCloudProviderConfig(t *testing.T) {
 				Check: checkAttrs(
 					projectID,
 					name,
+					"azure",
 					map[string]string{
 						"cloud_provider_config.0.azure.0.atlas_app_id":         atlasAzureAppID,
 						"cloud_provider_config.0.azure.0.service_principal_id": servicePrincipalID,
@@ -143,6 +149,69 @@ func TestAccFederatedDatabaseInstance_azureCloudProviderConfig(t *testing.T) {
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccFederatedDatabaseInstance_gcpCloudProviderConfig(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		name      = acc.RandomName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyFederatedDatabaseInstance,
+		Steps: []resource.TestStep{
+			{
+				Config: configGCPCloudProvider(projectID, name),
+				Check: checkAttrs(
+					projectID,
+					name,
+					"gcp",
+					map[string]string{
+						"cloud_provider_config.0.aws.#":   "0",
+						"cloud_provider_config.0.azure.#": "0",
+					},
+					resource.TestCheckResourceAttrSet(resourceName, "cloud_provider_config.0.gcp.0.role_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "cloud_provider_config.0.gcp.0.gcp_service_account"),
+					resource.TestCheckResourceAttrPair(
+						// Both fields must match
+						resourceName, "cloud_provider_config.0.gcp.0.gcp_service_account",
+						"mongodbatlas_cloud_provider_access_setup.gcp_setup", "gcp_config.0.service_account_for_atlas",
+					),
+				),
+				// The execution project is shared by every test in this package, so the plural
+				// data source can also return instances created by other tests. Match by name
+				// rather than assuming the instance is at a given position.
+				ConfigStateChecks: []statecheck.StateCheck{
+					acc.PluralResultCheck(pluralDataSourceName, "name", knownvalue.StringExact(name), map[string]knownvalue.Check{
+						"cloud_provider_config.0.gcp.0.role_id":             knownvalue.NotNull(),
+						"cloud_provider_config.0.gcp.0.gcp_service_account": knownvalue.NotNull(),
+					}),
+				},
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccFederatedDatabaseInstance_gcpMissingRoleID(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configGCPMissingRoleID(),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`The argument "role_id" is required`),
 			},
 		},
 	})
@@ -472,6 +541,48 @@ resource "mongodbatlas_federated_database_instance" "test" {
 	`, name, testS3Bucket)
 }
 
+func configGCPCloudProvider(projectID, name string) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
+  project_id    = %[1]q
+  provider_name = "GCP"
+}
+
+resource "mongodbatlas_federated_database_instance" "test" {
+  project_id = %[1]q
+  name       = %[2]q
+
+  cloud_provider_config {
+    gcp {
+      role_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
+    }
+  }
+}
+
+data "mongodbatlas_federated_database_instance" "test" {
+  project_id = mongodbatlas_federated_database_instance.test.project_id
+  name       = mongodbatlas_federated_database_instance.test.name
+}
+
+data "mongodbatlas_federated_database_instances" "test" {
+  project_id = mongodbatlas_federated_database_instance.test.project_id
+}
+`, projectID, name)
+}
+
+func configGCPMissingRoleID() string {
+	return `
+resource "mongodbatlas_federated_database_instance" "test" {
+  project_id = "000000000000000000000000"
+  name       = "gcp-missing-role-id"
+
+  cloud_provider_config {
+    gcp {}
+  }
+}
+`
+}
+
 func configAzureCloudProvider(projectID, name, atlasAzureAppID, servicePrincipalID, tenantID string) string {
 	azureCloudProviderAccess := acc.ConfigSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID)
 
@@ -517,13 +628,13 @@ data "mongodbatlas_federated_database_instance" "test" {
 `, projectID, name)
 }
 
-func checkAttrs(projectID, name string, extraAttrs map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+func checkAttrs(projectID, name, cloudProvider string, extraAttrs map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	attrsMap := map[string]string{
 		"project_id": projectID,
 		"name":       name,
 
-		"cloud_provider_config.#":         "1",
-		"cloud_provider_config.0.azure.#": "1",
+		"cloud_provider_config.#":                         "1",
+		"cloud_provider_config.0." + cloudProvider + ".#": "1",
 	}
 
 	maps.Copy(attrsMap, extraAttrs)
