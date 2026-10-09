@@ -127,6 +127,9 @@ def fetch_summary(run_id):
 
 def parse_verdict(text):
     m = VERDICT_RE.search(text)
+    # Yellow can mean incomplete evidence, not confirmed infrastructure noise.
+    if m and m.group(1) == "yellow" and "Results incomplete" in text.lstrip().splitlines()[0]:
+        return "incomplete"
     return m.group(1) if m else None
 
 
@@ -262,6 +265,11 @@ def main():
         for r in report_runs
         if r["verdict"] == "unknown"
     ]
+    incomplete_runs = [
+        {"run_number": r["run_number"], "date": r["date"], "url": r["url"]}
+        for r in report_runs
+        if r["verdict"] == "incomplete"
+    ]
 
     report = {
         "month": month_id,
@@ -273,12 +281,14 @@ def main():
             "without_regression": without_regression,
             "no_summary": no_summary,
             "unknown_verdict": unknown,
+            "incomplete": len(incomplete_runs),
             "pct_without_regression": pct,
         },
         "category_totals": category_totals,
         "recurring_tests": recurring,
         "no_summary_runs": no_summary_runs,
         "unknown_verdict_runs": unknown_runs,
+        "incomplete_runs": incomplete_runs,
         "runs": report_runs,
     }
 
@@ -295,7 +305,7 @@ def main():
         f"| **Runs without code regression** (pass or infra noise only) | {without_regression} |",
         f"| **% without regression** | {pct} |",
     ]
-    if no_summary_runs or unknown_runs:
+    if no_summary_runs or unknown_runs or incomplete_runs:
 
         def refs(runs):
             return ", ".join(
@@ -307,6 +317,8 @@ def main():
             exclusions.append(f"no summary available: {refs(no_summary_runs)}")
         if unknown_runs:
             exclusions.append(f"unparseable summary verdict: {refs(unknown_runs)}")
+        if incomplete_runs:
+            exclusions.append(f"incomplete test evidence: {refs(incomplete_runs)}")
         lines.append("")
         lines.append("*Excluded from the percentage: " + "; ".join(exclusions) + ".*")
 

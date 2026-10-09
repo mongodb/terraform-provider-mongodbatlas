@@ -23,17 +23,22 @@ The destination must be new; choose another directory if it exists. The helper n
 
 The helper lists **all pages of the latest jobs**, downloads each completed unsuccessful job once, and writes:
 
-- `run.json`: run number, commit, attempt, every job's status, failed step names, evidence paths, and any log-download errors. Each job that produced a log also carries an `analysis` object (see below).
+- `run.json`: a compact inventory with run number, commit, attempt, every job's status and step outcomes, evidence paths, and any log-download errors. Read it fully before opening detailed evidence so later jobs are not hidden behind earlier diagnostics.
+- `<job_id>.analysis.json`: the job's unclassified failure index, referenced by `analysis_file` in the inventory. Load these files per affected job instead of loading all diagnostics with the inventory.
 - `<job_id>.txt`: strict failure/panic/Actions-error markers and provider/plugin diagnostics, followed by nearby context and the log's tail. Diagnostics can appear far from a FAIL line and can also come from passing negative tests; their presence alone is not a verdict. Line numbers refer to the full log.
 - `<job_id>.log`: complete log for expanding context. Excerpts are search aids, not test boundaries; adjacent output can belong to another parallel test or package.
 
-Each `analysis` object is Python's deterministic, unclassified read of one log:
+Each analysis file is Python's deterministic, unclassified read of one log:
 
-- `failed_tests`: every test with a `--- FAIL` verdict, top-level name only, with its `subtests`, the `fail_line`, and `diagnostics` (the error lines attributed to that test). This is the authoritative failing-test identity and count; do not re-derive it from the raw log.
-- `package_failures`: `FAIL <package>` lines with no test verdict (build/tooling or teardown).
+- `failed_tests`: observed top-level names with a `--- FAIL` verdict, their failing `subtests`, the first `fail_line`, and `diagnostics` (candidate error lines near Go's output-owner markers). Identical names within a job are grouped; this is not an exact package-qualified failure count. Check the log if repeated names or package ownership matter to the verdict.
+- `package_failures`: all `FAIL <package>` markers, including packages already explained by individual failed tests. A marker alone does not establish a separate build/tooling or teardown failure.
 - `panics` / `deadline_panics`: runtime panics versus the Go runner's `panic: test timed out after …`, split by line.
 
-Python attributes each line to the most recent `=== RUN` test, so a passing test's expected error is not attributed to a failed test. It does not classify categories or write the Slack summary; keep classification rules here, rather than adding a second rules engine to Python. Parallel tests can interleave, so treat attribution as a strong hint and expand the full `.log` when it would change a verdict or a category.
+Long diagnostic lists keep their beginning and end with an explicit omission notice; late failures stay visible, but the omitted middle still needs inspection if it could change the verdict.
+
+Python follows `=== RUN`, `=== CONT`, and `=== NAME` markers, clears context on pause/completion, and excludes hints from explicitly passing subtests. Unlabelled stdout from parallel tests can still interleave, so these hints do not prove ownership. Confirm the failed test's own assertion or failing step before assigning a cause; expand the saved log if needed. Python does not classify categories or write the Slack summary; keep classification rules here, rather than adding a second rules engine to Python.
+
+Read the entire job inventory and every affected job's signal index, continuing from the last line when a tool paginates or truncates output. If the investigation budget prevents covering a job or distinct failure, report that coverage as unresolved; do not infer an infrastructure-only verdict from the portion already read.
 
 Derive the run URL from `run.json`, `commit` from the first seven characters of `head_sha`, and environment/authentication from job names:
 
@@ -45,11 +50,13 @@ Derive the run URL from `run.json`, `commit` from the first seven characters of 
 
 Ignore the `trigger-test-summary` job itself. Inspect every remaining unsuccessful or incomplete job in `run.json`, including `timed_out`, `cancelled`, and setup failures. Successful, neutral, and skipped jobs need no log download. A run with no executed tests, unexplained skipped tests, or incomplete jobs cannot establish that all tests passed.
 
-Read each affected job's `analysis` first, then expand the saved log when excerpts do not establish cause or ownership, using `Read` with an offset/limit or `Grep`. Investigate provider inconsistencies, runtime panics, setup failures, and unfamiliar assertions first. Then group the remaining failures by cause. A majority of passing tests or capacity errors does not explain an unrelated failure. The index is a starting point; a novel failure may use different wording.
+For each job expected to run provider tests, use `steps` to check whether its test step actually ran. A successful test job with a skipped or missing test step is not proof of test execution; explain the missing coverage before considering green. Step success establishes that the test command ran, not a count of individual tests.
+
+Read each affected job's `analysis_file` first, then its evidence file. Expand the saved log when excerpts do not establish cause or ownership, using `Read` with an offset/limit or `Grep`. An empty or capped `diagnostics` list is not proof that a regression is absent; inspect omitted evidence before ruling one out. Investigate provider inconsistencies, runtime panics, setup failures, and unfamiliar assertions first. Then group the remaining failures by cause. A majority of passing tests or capacity errors does not explain an unrelated failure. The index is a starting point; a novel failure may use different wording.
 
 Cover every affected job and distinct failure mechanism. For each suspected regression, retain the failed test/package, a short diagnostic, and the supporting job link. Repeated identical noise can share an explanation; reopen logs when the cause or ownership could change the verdict, not to refine a large total.
 
-- **Individual tests:** start from `analysis.failed_tests`. Only a `--- FAIL` verdict establishes an individual failure; its `diagnostics` are already attributed to that test, so do not borrow an expected error from a passing parallel test. `Parent/child` verdicts are already aggregated under the parent. Summarize repeated failures across matrix jobs together when they have the same cause.
+- **Individual tests:** start from `analysis.failed_tests`. Only a `--- FAIL` verdict establishes an individual failure; validate its diagnostic hints against that test's context instead of borrowing an expected error from a passing parallel test. `Parent/child` verdicts are already aggregated under the parent. Summarize repeated failures across matrix jobs together when they have the same cause.
 - **Package/setup failures:** `analysis.package_failures`, a panic, or failed step evidence can establish a failure without an individual FAIL verdict. Never invent test names or add these to the failing-test count. Tests starting (`=== RUN` / `--- PASS`) do not rule out a subsequent panic, deadline, or build/tooling failure; inspect the cause before calling it teardown. Only actual post-test teardown is cleanup. If test failures already explain the package FAIL, do not count the package again.
 - **Cleanup jobs:** a job with a `clean-before` or `clean-after` path segment belongs to category 5 regardless of error text. Summarize the affected cleanup jobs or approximate cleanup items; there is no need to enumerate every stuck project. Never list these utility subtests as provider regressions or in *Failing tests*.
 - **Unavailable evidence:** `log_error`, incomplete jobs, and unexplained failures stay explicitly unresolved. Do not guess their tests or category. Include `• Logs unavailable: <job-name> (<reason>)` (backtick the job name) or an explicit incomplete-job note. A failure with no index markers still requires reading its full log and failed steps.
@@ -78,6 +85,7 @@ These precedence rules capture recurring misclassifications:
 - **Propagation lag is category 4** when a later operation cannot see a resource/identity created earlier by the same test. This covers same-resource 404 / `*_NOT_FOUND`, Atlas cross-resource HTTP 4xx (e.g. `STREAM_PROCESSOR_GENERIC_ERROR` saying “connection X does not exist”), and downstream-cloud IAM saying an Atlas-created identity does not exist. Check the referenced name against the prerequisite and dependency; helpers that fail loudly and Terraform dependency ordering can establish the prerequisite create. A name mismatch or initial lookup/create failure remains category 3. Do not assume every attribute mismatch is eventual consistency.
 - **Cleanup can cause a timeout.** If a leftover resource or overlapping CIDR causes a later wait to expire, classify the execution once as category 5. Explicit evidence of leaked projects exhausting an organization limit also belongs here; a limit error alone does not establish leaked-project ownership.
 - **Cleanup behavior under test can regress.** For `*DeleteOnCreateTimeout*`, `*createTimeoutWithDelete*`, `*deleteOnCreate*`, or `*CleanupOnTimeout*`, a duplicate/still-existing resource created earlier in the same execution is category 1: the provider's delete-on-timeout or its test wait failed. A Step 1 duplicate with no prior create, or a hardcoded name left by another execution, remains category 5. State ambiguity when ownership is unknown.
+- **A delete-on-timeout wait alone is inconclusive.** If one of those tests only reaches a delete deadline, with no same-resource leftover proof, use category 4 but explicitly state that slow Atlas deletion and failed provider cleanup cannot be distinguished. Use low confidence and request manual review; do not hide this case among routine high-confidence timeouts.
 - **Termination-protection delete rejection is category 1** in provider tests: the test config or provider failed to disable it.
 
 Known benign backend mechanisms (the single list for category 3b):
@@ -108,7 +116,7 @@ Examples of the decision boundary:
 | An expected provider-error message belongs to a PASS test; the only FAIL is a state-wait timeout | Yellow. The passing test's diagnostic is not evidence against the failed test. |
 | Almost all jobs pass; one failed job's logs are unavailable | Yellow, results incomplete. The passing majority cannot establish what failed. |
 
-Once each distinct failure cause is explained or explicitly unresolved, produce the summary. Stay within this run; do not investigate fixes or repeat the analysis just to audit totals.
+Once each distinct failure cause is explained or explicitly unresolved, produce the summary. Stay within this run; do not investigate fixes or repeat the analysis just to audit totals. This is an unattended task: continue reading until that completion condition is met, then return the final verdict. A progress report, plan to inspect another job, or offer to continue is not a completed summary. If evidence is inaccessible or the investigation budget runs out, finish with the coverage gaps stated explicitly. Keep red if any category 1 finding is already established; otherwise use yellow “Results incomplete”. Do not wait for user input.
 
 ## 5. Produce output
 
@@ -148,7 +156,7 @@ If this ambiguity recurs, consider updating the skill rules.
 
 #### Template — infrastructure noise only
 
-Use this when every classified failure is category 2–5 or coverage is unresolved. With unresolved coverage, use “Results incomplete” as the header instead of “Infrastructure noise only” and qualify any counts as observed failures. If only evidence is missing, replace the test-count sentence with “Test results could not be verified.”
+Use this only when no category 1 finding is established and every classified failure is category 2–5 or coverage is unresolved. A known regression takes precedence over missing evidence: use the red template and include the coverage gaps. With unresolved coverage and no known regression, use the exact header phrase “Results incomplete” instead of “Infrastructure noise only” and qualify any counts as observed failures. The monthly parser uses that phrase to exclude unverified runs from the regression-free percentage. If only evidence is missing, replace the test-count sentence with “Test results could not be verified.”
 
 ```
 :yellow_circle: *Test Suite #<run_number> — Infrastructure noise only* (`<commit>` on `<env>`, `<auth>`)
@@ -210,7 +218,7 @@ The shape of the second line is therefore always: `<confidence> confidence — <
 
 ## 6. Output limits
 
-Target **2400 characters**, hard cap **2900**. The workflow enforces the limit independently (including the actual on-call tag against Slack's 3000-character block limit) before saving or posting. Empty or oversized output triggers the existing fallback notification. In standalone use, save the draft to a temporary file and measure it with `wc -m` under a UTF-8 locale; do not interpolate generated prose into shell commands.
+Target **2400 characters**, hard cap **2900**. The workflow checks that the verdict icon and heading agree, plus the run number, confidence line, and length (including the actual on-call tag against Slack's 3000-character block limit) before saving or posting. Invalid, empty, or oversized output triggers the existing fallback notification. In standalone use, save the draft to a temporary file and measure it with `wc -m` under a UTF-8 locale; do not interpolate generated prose into shell commands.
 
 Keep the summary brief and focused on the verdict, actionable failures, and evidence gaps. Preserve the `summary.md` artifact and Slack template shapes: the monthly parser consumes their verdict, category labels, regression section, and failing-test line. Detailed accounting and repeated explanations of the rules do not belong in the output.
 

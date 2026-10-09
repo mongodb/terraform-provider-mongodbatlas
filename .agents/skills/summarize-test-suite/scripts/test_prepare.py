@@ -1,6 +1,9 @@
 """Offline checks for evidence completeness; no model or GitHub calls."""
 
+import contextlib
+import io
 import json
+import os
 import runpy
 import subprocess
 import tempfile
@@ -15,7 +18,7 @@ RUN = dict(id=123, run_number=7, run_attempt=2, head_sha="abcdef1234", html_url=
 
 def job(job_id, conclusion: str | None = "failure", name="tests / network", status="completed"):
     return dict(id=job_id, name=name, status=status, conclusion=conclusion,
-                steps=[dict(name="Acceptance Tests", conclusion=conclusion)])
+                steps=[dict(name="Acceptance Tests", status=status, conclusion=conclusion)])
 
 
 class PrepareTests(unittest.TestCase):
@@ -72,10 +75,21 @@ class PrepareTests(unittest.TestCase):
             if entry["id"] in logs:
                 self.assertEqual(Path(entry["log_file"]).read_text(), logs[entry["id"]])
                 self.assertIn("SIGNAL INDEX", Path(entry["evidence_file"]).read_text())
+                analysis = json.loads(Path(entry["analysis_file"]).read_text())
+                self.assertEqual(analysis["package_failures"], [f"package{entry['id']}"])
+                self.assertNotIn("analysis", entry)  # Keep diagnostics out of the job inventory.
             else:
                 self.assertNotIn("log_file", entry)
+                self.assertNotIn("analysis_file", entry)
         self.assertEqual(report["jobs"][5]["status"], "in_progress")
-        self.assertEqual(report["jobs"][0]["failed_steps"], ["Acceptance Tests"])
+        self.assertEqual(report["jobs"][0]["steps"], jobs[0]["steps"])
+
+    def test_successful_job_preserves_whether_tests_ran_or_were_skipped(self):
+        ran, skipped = job(1, "success"), job(2, "success")
+        skipped["steps"][0]["conclusion"] = "skipped"
+        report = self.collect([ran, skipped], {})
+        self.assertEqual(report["jobs"][0]["steps"][0]["conclusion"], "success")
+        self.assertEqual(report["jobs"][1]["steps"][0]["conclusion"], "skipped")
 
     def test_unavailable_logs_are_explicit_and_do_not_hide_other_jobs(self):
         report = self.collect([job(i) for i in range(1, 5)], {
@@ -162,13 +176,56 @@ class PrepareTests(unittest.TestCase):
         self.assertEqual(result["panics"], ["5: panic: nil pointer dereference"])
         self.assertEqual([test["name"] for test in result["failed_tests"]], ["TestB"])
 
+    def test_analysis_follows_parallel_output_markers(self):
+        lines = [
+            "=== RUN   TestRegression", "=== PAUSE TestRegression",
+            "=== RUN   TestExpectedError", "=== PAUSE TestExpectedError",
+            "=== CONT  TestRegression", "Error: Provider produced inconsistent result after apply",
+            "=== CONT  TestExpectedError", "Error: expected rejection",
+            "=== NAME  TestRegression", "Error: unexpected new value",
+            "--- FAIL: TestRegression (1.00s)", "--- PASS: TestExpectedError (1.00s)",
+        ]
+        diagnostics = "\n".join(analyze("\n".join(lines))["failed_tests"][0]["diagnostics"])
+        self.assertIn("Provider produced inconsistent result", diagnostics)
+        self.assertIn("unexpected new value", diagnostics)
+        self.assertNotIn("expected rejection", diagnostics)
+
+    def test_analysis_does_not_attach_diagnostics_outside_active_test(self):
+        for boundary in ("=== PAUSE TestFailure", "=== NAME  ", "--- FAIL: TestFailure (1.00s)",
+                         "FAIL\tgithub.com/example/first\t1.00s", "ok\tgithub.com/example/first\t1.00s"):
+            with self.subTest(boundary=boundary):
+                result = analyze("\n".join([
+                    "=== RUN   TestFailure", boundary, "Error: unrelated package teardown",
+                    "--- FAIL: TestFailure (1.00s)",
+                ]))
+                self.assertNotIn("unrelated package teardown", "\n".join(result["failed_tests"][0]["diagnostics"]))
+
+    def test_analysis_excludes_passing_subtest_diagnostics_from_failed_parent(self):
+        result = analyze("\n".join([
+            "=== RUN   TestParent", "=== RUN   TestParent/expected",
+            "Error: Provider produced inconsistent result: expected rejection",
+            "--- PASS: TestParent/expected (0.01s)", "=== RUN   TestParent/timeout",
+            "Error: context deadline exceeded", "--- FAIL: TestParent/timeout (1.00s)",
+            "--- FAIL: TestParent (1.01s)",
+        ]))
+        failure = result["failed_tests"][0]
+        self.assertEqual(failure["name"], "TestParent")
+        self.assertEqual(failure["subtests"], ["TestParent/timeout"])
+        diagnostics = "\n".join(failure["diagnostics"])
+        self.assertIn("context deadline exceeded", diagnostics)
+        self.assertNotIn("Provider produced inconsistent result", diagnostics)
+
     def test_analysis_caps_diagnostics_and_reports_missing_markers(self):
         lines = ["=== RUN   TestMany"] + [f"Error: failure {i}" for i in range(60)]
+        lines += ["Error: Provider produced inconsistent result after apply"]
         lines += ["--- FAIL: TestMany (0.02s)"]
         result = analyze("\n".join(lines))
         diagnostics = result["failed_tests"][0]["diagnostics"]
         self.assertEqual(len(diagnostics), 41)
-        self.assertIn("more diagnostic lines omitted", diagnostics[-1])
+        self.assertIn("failure 0", diagnostics[0])
+        self.assertIn("22 diagnostic lines omitted", diagnostics[20])
+        self.assertIn("Provider produced inconsistent result", diagnostics[-2])
+        self.assertIn("--- FAIL: TestMany", diagnostics[-1])
         self.assertEqual(analyze("no test markers here"),
                          {"failed_tests": [], "package_failures": [], "panics": [], "deadline_panics": []})
 
@@ -179,6 +236,39 @@ class PrepareTests(unittest.TestCase):
                                "• Timeout: 1 package"), {"api errors": 3, "cleanup": 8, "timeout": 1})
         self.assertEqual(parse("*Other failures*: API errors 3, Cleanup 8, Timeout 1"),
                          {"api errors": 3, "cleanup": 8, "timeout": 1})
+
+    def test_monthly_summary_excludes_incomplete_runs_from_regression_free_percentage(self):
+        monthly = Path(__file__).resolve().parents[2] / "monthly-test-suite-summary/scripts/monthly_summary.py"
+        namespace = runpy.run_path(str(monthly))
+        summaries = [
+            ":red_circle: *Test Suite #1 — CODE REGRESSION DETECTED*",
+            ":yellow_circle: *Test Suite #2 — Infrastructure noise only*",
+            "\n:yellow_circle: *Test Suite #3 — Results incomplete*",
+            ":green_circle: *Test Suite #4 — All tests passed*",
+        ]
+        self.assertEqual([namespace["parse_verdict"](text) for text in summaries],
+                         ["red", "yellow", "incomplete", "green"])
+        # Known regressions remain red even if other jobs have missing evidence.
+        self.assertEqual(namespace["parse_verdict"](summaries[0] + "\nResults incomplete"), "red")
+        runs = [dict(id=i, run_number=i, created_at=f"2026-09-0{i}T00:00:00Z", html_url=f"https://example/{i}")
+                for i in range(1, 5)]
+        self.output.mkdir()
+        previous = Path.cwd()
+        try:
+            os.chdir(self.output)
+            with patch.dict(namespace["main"].__globals__,
+                            list_scheduled_runs=lambda *_: runs, fetch_summary=lambda i: summaries[i - 1]), \
+                    patch("sys.argv", ["monthly_summary.py", "--date", "2026-10-01", "--json-out", "report.json"]), \
+                    contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                namespace["main"]()
+            report = json.loads(Path("report.json").read_text())
+            self.assertEqual(report["totals"]["without_regression"], 2)
+            self.assertEqual(report["totals"]["pct_without_regression"], "66.67%")
+            self.assertEqual(report["totals"]["incomplete"], 1)
+            self.assertEqual(report["incomplete_runs"][0]["run_number"], 3)
+            self.assertIn("incomplete test evidence", Path("monthly-summary-2026-10-01.md").read_text())
+        finally:
+            os.chdir(previous)
 
 
 if __name__ == "__main__":
