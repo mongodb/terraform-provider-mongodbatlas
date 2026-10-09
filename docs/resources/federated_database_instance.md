@@ -254,8 +254,8 @@ resource "mongodbatlas_federated_database_instance" "test" {
 * `storage_stores` - Each object in the array represents a data store. Federated Database uses the storage.databases configuration details to map data in each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [stores](https://www.mongodb.com/docs/atlas/data-federation/config/config-data-stores/). An empty object indicates that the Federated Database Instance has no configured data stores.
   * `storage_stores.#.name` - Name of the data store.
   * `storage_stores.#.provider` - Defines where the data is stored.
-  * `storage_stores.#.region` - Name of the AWS region in which the S3 bucket is hosted.
-  * `storage_stores.#.bucket` - Name of the AWS S3 bucket.
+  * `storage_stores.#.region` - Name of the cloud provider region in which the bucket is hosted.
+  * `storage_stores.#.bucket` - Name of the bucket.
   * `storage_stores.#.prefix` - Prefix the Federated Database Instance applies when searching for files in the S3 bucket.
   * `storage_stores.#.delimiter` - The delimiter that separates `storage_databases.#.collections.#.data_sources.#.path` segments in the data store.
   * `storage_stores.#.include_tags` - Determines whether or not to use S3 tags on the files in the given path as additional partition attributes.
