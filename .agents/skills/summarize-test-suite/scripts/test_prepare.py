@@ -8,12 +8,12 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from prepare import excerpts, prepare
+from prepare import analyze, excerpts, prepare
 
 RUN = dict(id=123, run_number=7, run_attempt=2, head_sha="abcdef1234", html_url="https://example/run/123")
 
 
-def job(job_id, conclusion="failure", name="tests / network", status="completed"):
+def job(job_id, conclusion: str | None = "failure", name="tests / network", status="completed"):
     return dict(id=job_id, name=name, status=status, conclusion=conclusion,
                 steps=[dict(name="Acceptance Tests", conclusion=conclusion)])
 
@@ -130,6 +130,47 @@ class PrepareTests(unittest.TestCase):
         self.assertIn("3: --- PASS: TestExpectedError", result)
         self.assertNotIn("--- FAIL: TestExpectedError", result)
         self.assertNotIn("TestOther50", result)
+
+    def test_analysis_attributes_diagnostics_to_the_failing_test_only(self):
+        lines = [
+            "=== RUN   TestExpectedError",
+            "Error: expected rejection from a passing negative test",
+            "--- PASS: TestExpectedError (0.01s)",
+            "=== RUN   TestRegression",
+            "Error: Provider produced inconsistent result after apply",
+            "    --- FAIL: TestRegression/child (1.00s)",
+            "--- FAIL: TestRegression (1.00s)",
+            "FAIL\tgithub.com/example/pkg\t2.01s",
+        ]
+        result = analyze("\n".join(lines))
+        self.assertEqual([test["name"] for test in result["failed_tests"]], ["TestRegression"])
+        self.assertEqual(result["failed_tests"][0]["subtests"], ["TestRegression/child"])
+        diagnostics = "\n".join(result["failed_tests"][0]["diagnostics"])
+        self.assertIn("Provider produced inconsistent result after apply", diagnostics)
+        self.assertNotIn("expected rejection", diagnostics)
+        self.assertEqual(result["package_failures"], ["github.com/example/pkg"])
+
+    def test_analysis_separates_deadline_and_runtime_panics_and_build_failures(self):
+        lines = [
+            "=== RUN   TestA", "--- PASS: TestA (0.01s)",
+            "panic: test timed out after 5h0m0s",
+            "=== RUN   TestB", "panic: nil pointer dereference", "--- FAIL: TestB (0.02s)",
+            "FAIL\tgithub.com/example/pkg\t1.0s",
+        ]
+        result = analyze("\n".join(lines))
+        self.assertEqual(result["deadline_panics"], ["3: panic: test timed out after 5h0m0s"])
+        self.assertEqual(result["panics"], ["5: panic: nil pointer dereference"])
+        self.assertEqual([test["name"] for test in result["failed_tests"]], ["TestB"])
+
+    def test_analysis_caps_diagnostics_and_reports_missing_markers(self):
+        lines = ["=== RUN   TestMany"] + [f"Error: failure {i}" for i in range(60)]
+        lines += ["--- FAIL: TestMany (0.02s)"]
+        result = analyze("\n".join(lines))
+        diagnostics = result["failed_tests"][0]["diagnostics"]
+        self.assertEqual(len(diagnostics), 41)
+        self.assertIn("more diagnostic lines omitted", diagnostics[-1])
+        self.assertEqual(analyze("no test markers here"),
+                         {"failed_tests": [], "package_failures": [], "panics": [], "deadline_panics": []})
 
     def test_monthly_summary_accepts_test_and_non_test_category_counts(self):
         monthly = Path(__file__).resolve().parents[2] / "monthly-test-suite-summary/scripts/monthly_summary.py"

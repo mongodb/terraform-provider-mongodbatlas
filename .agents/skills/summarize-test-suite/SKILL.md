@@ -23,11 +23,17 @@ The destination must be new; choose another directory if it exists. The helper n
 
 The helper lists **all pages of the latest jobs**, downloads each completed unsuccessful job once, and writes:
 
-- `run.json`: run number, commit, attempt, every job's status, failed step names, evidence paths, and any log-download errors.
+- `run.json`: run number, commit, attempt, every job's status, failed step names, evidence paths, and any log-download errors. Each job that produced a log also carries an `analysis` object (see below).
 - `<job_id>.txt`: strict failure/panic/Actions-error markers and provider/plugin diagnostics, followed by nearby context and the log's tail. Diagnostics can appear far from a FAIL line and can also come from passing negative tests; their presence alone is not a verdict. Line numbers refer to the full log.
 - `<job_id>.log`: complete log for expanding context. Excerpts are search aids, not test boundaries; adjacent output can belong to another parallel test or package.
 
-Python collects evidence only. It does not infer test ownership, classify errors, count logical failures, or write the Slack summary. Keep classification rules here, rather than adding a second rules engine to Python.
+Each `analysis` object is Python's deterministic, unclassified read of one log:
+
+- `failed_tests`: every test with a `--- FAIL` verdict, top-level name only, with its `subtests`, the `fail_line`, and `diagnostics` (the error lines attributed to that test). This is the authoritative failing-test identity and count; do not re-derive it from the raw log.
+- `package_failures`: `FAIL <package>` lines with no test verdict (build/tooling or teardown).
+- `panics` / `deadline_panics`: runtime panics versus the Go runner's `panic: test timed out after …`, split by line.
+
+Python attributes each line to the most recent `=== RUN` test, so a passing test's expected error is not attributed to a failed test. It does not classify categories or write the Slack summary; keep classification rules here, rather than adding a second rules engine to Python. Parallel tests can interleave, so treat attribution as a strong hint and expand the full `.log` when it would change a verdict or a category.
 
 Derive the run URL from `run.json`, `commit` from the first seven characters of `head_sha`, and environment/authentication from job names:
 
@@ -39,12 +45,12 @@ Derive the run URL from `run.json`, `commit` from the first seven characters of 
 
 Ignore the `trigger-test-summary` job itself. Inspect every remaining unsuccessful or incomplete job in `run.json`, including `timed_out`, `cancelled`, and setup failures. Successful, neutral, and skipped jobs need no log download. A run with no executed tests, unexplained skipped tests, or incomplete jobs cannot establish that all tests passed.
 
-Read each affected job's evidence file. Expand the saved log when excerpts do not establish cause or ownership, using `Read` with an offset/limit or `Grep`. Investigate provider inconsistencies, runtime panics, setup failures, and unfamiliar assertions first. Then group the remaining failures by cause. A majority of passing tests or capacity errors does not explain an unrelated failure. The index is a starting point; a novel failure may use different wording.
+Read each affected job's `analysis` first, then expand the saved log when excerpts do not establish cause or ownership, using `Read` with an offset/limit or `Grep`. Investigate provider inconsistencies, runtime panics, setup failures, and unfamiliar assertions first. Then group the remaining failures by cause. A majority of passing tests or capacity errors does not explain an unrelated failure. The index is a starting point; a novel failure may use different wording.
 
 Cover every affected job and distinct failure mechanism. For each suspected regression, retain the failed test/package, a short diagnostic, and the supporting job link. Repeated identical noise can share an explanation; reopen logs when the cause or ownership could change the verdict, not to refine a large total.
 
-- **Individual tests:** only `--- FAIL: TestName` establishes an individual failure. Attribute a diagnostic to that failed test using its context, rather than borrowing an expected error from a passing parallel test. Aggregate `Parent/child` verdicts under `Parent`; avoid counting the parent's own FAIL line again. Summarize repeated failures across matrix jobs together when they have the same cause.
-- **Package/setup failures:** `FAIL\t<package>`, panic, and failed step evidence can establish a failure without an individual FAIL verdict. Never invent test names or add these to the failing-test count. Tests starting (`=== RUN` / `--- PASS`) do not rule out a subsequent panic, deadline, or build/tooling failure; inspect the cause before calling it teardown. Only actual post-test teardown is cleanup. If test failures already explain the package FAIL, do not count the package again.
+- **Individual tests:** start from `analysis.failed_tests`. Only a `--- FAIL` verdict establishes an individual failure; its `diagnostics` are already attributed to that test, so do not borrow an expected error from a passing parallel test. `Parent/child` verdicts are already aggregated under the parent. Summarize repeated failures across matrix jobs together when they have the same cause.
+- **Package/setup failures:** `analysis.package_failures`, a panic, or failed step evidence can establish a failure without an individual FAIL verdict. Never invent test names or add these to the failing-test count. Tests starting (`=== RUN` / `--- PASS`) do not rule out a subsequent panic, deadline, or build/tooling failure; inspect the cause before calling it teardown. Only actual post-test teardown is cleanup. If test failures already explain the package FAIL, do not count the package again.
 - **Cleanup jobs:** a job with a `clean-before` or `clean-after` path segment belongs to category 5 regardless of error text. Summarize the affected cleanup jobs or approximate cleanup items; there is no need to enumerate every stuck project. Never list these utility subtests as provider regressions or in *Failing tests*.
 - **Unavailable evidence:** `log_error`, incomplete jobs, and unexplained failures stay explicitly unresolved. Do not guess their tests or category. Include `• Logs unavailable: <job-name> (<reason>)` (backtick the job name) or an explicit incomplete-job note. A failure with no index markers still requires reading its full log and failed steps.
 
