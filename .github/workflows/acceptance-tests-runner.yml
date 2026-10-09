@@ -269,8 +269,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     env:
-      # TEMP (CLOUDP-424367): force a full run to only config and flex_cluster. Revert before merge.
-      mustTrigger: 'false'
+      mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '' )  }}
     outputs: # ensure resources are sorted alphabetically
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
@@ -284,11 +283,11 @@ jobs:
       cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
       cluster_adaptive: ${{ steps.filter.outputs.cluster_adaptive == 'true' || env.mustTrigger == 'true' }}
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
-      config: 'true' # TEMP (CLOUDP-424367): always run; revert before merge.
+      config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
       encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
       event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
       federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
-      flex_cluster: 'true' # TEMP (CLOUDP-424367): always run; revert before merge.
+      flex_cluster: ${{ steps.filter.outputs.flex_cluster == 'true' || env.mustTrigger == 'true' }}
       generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
       global_cluster_config: ${{ steps.filter.outputs.global_cluster_config == 'true' || env.mustTrigger == 'true' }}
       ldap: ${{ steps.filter.outputs.ldap == 'true' || env.mustTrigger == 'true' }}
@@ -306,7 +305,7 @@ jobs:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
     - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d
       id: filter
-      if: ${{ inputs.test_group == '' && env.mustTrigger == 'disabled' }} # TEMP (CLOUDP-424367): disable change detection so only the forced groups run; revert before merge.
+      if: ${{ inputs.test_group == ''  && env.mustTrigger == 'false' }}
       with:
         filters: |
           advanced_cluster:

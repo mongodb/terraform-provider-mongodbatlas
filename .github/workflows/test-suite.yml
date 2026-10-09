@@ -29,10 +29,6 @@ on:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
         default: false
-      replay_run_ids: # TEMP (CLOUDP-424367): replay historical runs with the new summarize skill; skips all other jobs.
-        description: 'TEMP: comma-separated Test Suite run IDs to replay (no spaces).'
-        type: string
-        required: false
   workflow_call:
     inputs:
       terraform_matrix:
@@ -58,10 +54,6 @@ on:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
         default: false  
-      replay_run_ids: # TEMP (CLOUDP-424367)
-        description: 'TEMP: comma-separated Test Suite run IDs to replay.'
-        type: string
-        required: false
   schedule:
     - cron: "0 0 * * *" # workflow runs every day at midnight UTC
 
@@ -90,14 +82,13 @@ jobs:
           echo "DAY=$(date +'%a')"
           echo "DAY=$(date +'%a')" >> "$GITHUB_OUTPUT"
   clean-before:
-    if: ${{ inputs.replay_run_ids == '' }}
     permissions: {}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 
   tests:
     needs: [clean-before, variables]
-    if: ${{ !cancelled() && inputs.replay_run_ids == '' }}
+    if: ${{ !cancelled() }}
     permissions:
       id-token: write
       contents: read
@@ -120,14 +111,14 @@ jobs:
 
   clean-after:
     needs: tests
-    if: ${{ !cancelled() && inputs.replay_run_ids == '' }}
+    if: ${{ !cancelled() }}
     permissions: {}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 
   trigger-test-summary:
     needs: [tests, variables, clean-after]
-    if: ${{ !cancelled() && inputs.replay_run_ids == '' && needs.variables.outputs.trigger_test_summary == 'true' }}
+    if: ${{ !cancelled() && needs.variables.outputs.trigger_test_summary == 'true' }}
     runs-on: ubuntu-latest
     env:
       TEST_SUITE_EVIDENCE_NAME: test-suite-evidence-${{ github.run_id }}-${{ github.run_attempt }}
@@ -196,7 +187,7 @@ jobs:
       - name: Post summary to Slack
         uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }} # TEMP (CLOUDP-424367): post to test channel; revert before merge.
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           errors: true
           payload: |
@@ -216,7 +207,7 @@ jobs:
         if: ${{ failure() }}
         uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }} # TEMP (CLOUDP-424367): post to test channel; revert before merge.
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
             {
@@ -231,81 +222,3 @@ jobs:
                 }
               ]
             }
-
-  # TEMP (CLOUDP-424367): replay the summarize skill against historical runs so the new
-  # summaries can be compared with the originals. Remove before merge.
-  replay:
-    if: ${{ inputs.replay_run_ids != '' }}
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      id-token: write
-    strategy:
-      fail-fast: false
-      matrix:
-        run_id: ${{ fromJSON(format('[{0}]', inputs.replay_run_ids || '0')) }}
-    env:
-      REPLAY_EVIDENCE: replay-evidence-${{ matrix.run_id }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - name: Prepare evidence
-        timeout-minutes: 10
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 .agents/skills/summarize-test-suite/scripts/prepare.py "${{ matrix.run_id }}" "$RUNNER_TEMP/$REPLAY_EVIDENCE"
-      - name: Summarize test run
-        id: summary
-        timeout-minutes: 15
-        uses: anthropics/claude-code-action@97c53473391bff1901034d4b454b5bac7ab7a029
-        with:
-          anthropic_api_key: ${{ secrets.AI_GATEWAY_API_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: |
-            Follow .agents/skills/summarize-test-suite/SKILL.md using the prepared evidence at ${{ runner.temp }}/${{ env.REPLAY_EVIDENCE }}/run.json.
-            Return the Slack mrkdwn text in the structured output's `summary` field.
-          claude_args: >-
-            --max-turns 60
-            --add-dir "${{ runner.temp }}/${{ env.REPLAY_EVIDENCE }}"
-            --tools Read,Grep
-            --allowedTools Read,Grep
-            --disallowedTools "mcp__*" "Read(/.git/**)"
-            --model "${{ vars.TEST_SUITE_SUMMARY_MODEL || 'claude-opus-5-5' }}"
-            --effort "${{ vars.TEST_SUITE_SUMMARY_EFFORT || 'medium' }}"
-            --json-schema '{"type":"object","properties":{"summary":{"type":"string","minLength":1,"maxLength":2900,"pattern":"^\\s*:(red|yellow|green)_circle: [*]Test Suite #[0-9]+ — "}},"required":["summary"],"additionalProperties":false}'
-        env:
-          ANTHROPIC_BASE_URL: ${{ secrets.AI_GATEWAY_ANTHROPIC_URL }}
-          ANTHROPIC_CUSTOM_HEADERS: "api-key: ${{ secrets.AI_GATEWAY_API_KEY }}"
-          CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS: "1"
-      - name: Save new summary
-        env:
-          SUMMARY: ${{ fromJSON(steps.summary.outputs.structured_output).summary }}
-        run: |
-          printf '%s\n' "$SUMMARY" > "new-${{ matrix.run_id }}.md"
-          printf '%s\n' "$SUMMARY" > "$GITHUB_STEP_SUMMARY"
-      - name: Fetch original summary
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh run download "${{ matrix.run_id }}" -n summary -D "orig-${{ matrix.run_id }}"
-      - name: Append original summary
-        continue-on-error: true
-        run: |
-          {
-            echo ""
-            echo "## Original summary"
-            echo '```'
-            cat "orig-${{ matrix.run_id }}"/summary.md
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload replay summary
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: replay-${{ matrix.run_id }}
-          path: |
-            new-${{ matrix.run_id }}.md
-            orig-${{ matrix.run_id }}/**
-          if-no-files-found: warn
