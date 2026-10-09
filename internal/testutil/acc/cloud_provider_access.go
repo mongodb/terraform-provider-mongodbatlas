@@ -52,6 +52,7 @@ func ConfigAzureStorageResources(prefix, resourceGroupName, storageAccountName, 
 		resource "azurerm_resource_group" "%[1]s_rg" {
 			name     = %[2]q
 			location = "East US 2"
+			%[6]s
 		}
 
 		resource "azurerm_storage_account" "%[1]s_storage" {
@@ -60,6 +61,7 @@ func ConfigAzureStorageResources(prefix, resourceGroupName, storageAccountName, 
 			location                 = azurerm_resource_group.%[1]s_rg.location
 			account_tier             = "Standard"
 			account_replication_type = "LRS"
+			%[6]s
 		}
 
 		resource "azurerm_storage_container" "%[1]s_container" {
@@ -72,5 +74,5 @@ func ConfigAzureStorageResources(prefix, resourceGroupName, storageAccountName, 
 			role_definition_name = "Storage Blob Data Contributor"
 			principal_id         = %[5]q
 		}
-	`, prefix, resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID)
+	`, prefix, resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID, ConfigTags())
 }
