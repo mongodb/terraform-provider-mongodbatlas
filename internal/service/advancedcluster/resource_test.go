@@ -998,8 +998,10 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 				Check:  checks,
 			},
 			{
-				Config: configBasicReplicaset(t, &basicReplicasetConfig{ProjectID: projectID, ClusterName: clusterName, Extra: fullUpdate, InstanceSize: "M10"}),
-				Check:  checksUpdate,
+				// First update after create can be rejected with INVALID_ATTRIBUTE until Atlas refreshes monitoring data (CLOUDP-450627).
+				PreConfig: acc.PreConfigWait(t),
+				Config:    configBasicReplicaset(t, &basicReplicasetConfig{ProjectID: projectID, ClusterName: clusterName, Extra: fullUpdate, InstanceSize: "M10"}),
+				Check:     checksUpdate,
 			},
 			{
 				Config: configBasicReplicaset(t, &basicReplicasetConfig{ProjectID: projectID, ClusterName: clusterName, InstanceSize: "M10"}),
