@@ -88,7 +88,7 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 				})...),
 			},
 			{
-				PreConfig:         acc.PreConfigWaitForShardSizeLimitMetrics(t),
+				PreConfig:         acc.PreConfigWait(t),
 				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2, new(1024)),
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(1024)),
 			},
@@ -98,7 +98,7 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(2048)),
 			},
 			{
-				PreConfig:         acc.PreConfigWaitForShardSizeLimitMetrics(t),
+				PreConfig:         acc.PreConfigWait(t),
 				Config:            configDatabaseEdition(projectID, clusterName, new("INFINITE"), 2, new(1024)),
 				ConfigStateChecks: shardSizeLimitChecks(clusterName, new(1024)),
 			},
@@ -113,7 +113,7 @@ func TestAccClusterAdvancedCluster_infiniteShardSizeLimit(t *testing.T) {
 			},
 			// Adding a limit where none is set triggers the Atlas current-size check, so wait before it.
 			{
-				PreConfig: acc.PreConfigWaitForShardSizeLimitMetrics(t),
+				PreConfig: acc.PreConfigWait(t),
 				Config:    configDatabaseEditionWithComputeAutoScaling(projectID, clusterName, new("INFINITE"), 2, new(1024), true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkDatabaseEdition(new("INFINITE"), "INFINITE"),
@@ -379,7 +379,7 @@ func TestAccClusterAdvancedCluster_infiniteComputeAutoScaling(t *testing.T) {
 			acc.TestStepImportCluster(resourceName),
 			// Adding a limit where none is set triggers the Atlas current-size check, so wait before it.
 			{
-				PreConfig:         acc.PreConfigWaitForShardSizeLimitMetrics(t),
+				PreConfig:         acc.PreConfigWait(t),
 				Config:            configWithStorage,
 				ConfigStateChecks: append(shardSizeLimitChecks(clusterName, new(1024)), computeChecks...),
 			},
@@ -558,14 +558,14 @@ func TestAccClusterAdvancedCluster_infiniteAnalyticsAutoScaling(t *testing.T) {
 			{Config: clusterConfig(nil, "", "", true), ConfigStateChecks: checks(nil, "M30_GEN_2")},
 			acc.TestStepImportCluster(resourceName),
 			{
-				PreConfig:         acc.PreConfigWaitForShardSizeLimitMetrics(t),
+				PreConfig:         acc.PreConfigWait(t),
 				Config:            baseConfig,
 				ConfigStateChecks: checks(new(1024), "M20"),
 			},
 			// Clearing storage must retain planned node counts and zone metadata when omitted from configuration.
 			{Config: partialHardwareConfig, ConfigStateChecks: checks(nil, "M20")},
 			{
-				PreConfig:         acc.PreConfigWaitForShardSizeLimitMetrics(t),
+				PreConfig:         acc.PreConfigWait(t),
 				Config:            baseConfig,
 				ConfigStateChecks: checks(new(1024), "M20"),
 			},
