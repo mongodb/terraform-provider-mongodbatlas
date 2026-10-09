@@ -156,7 +156,7 @@ jobs:
             --disallowedTools "mcp__*" "Read(/.git/**)"
             --model "${{ vars.TEST_SUITE_SUMMARY_MODEL || 'claude-opus-5-5' }}"
             --effort "${{ vars.TEST_SUITE_SUMMARY_EFFORT || 'medium' }}"
-            --json-schema '{"type":"object","properties":{"summary":{"type":"string","minLength":1,"maxLength":2900,"pattern":"^:(red|yellow|green)_circle: [*]Test Suite #[0-9]+ — "}},"required":["summary"],"additionalProperties":false}'
+            --json-schema '{"type":"object","properties":{"summary":{"type":"string","minLength":1,"maxLength":2900,"pattern":"^\\s*:(red|yellow|green)_circle: [*]Test Suite #[0-9]+ — "}},"required":["summary"],"additionalProperties":false}'
         env:
           ANTHROPIC_BASE_URL: ${{ secrets.AI_GATEWAY_ANTHROPIC_URL }}
           ANTHROPIC_CUSTOM_HEADERS: "api-key: ${{ secrets.AI_GATEWAY_API_KEY }}"
@@ -168,12 +168,13 @@ jobs:
           RUN_NUMBER: ${{ github.run_number }}
         run: |
           jq -en --arg summary "$SUMMARY" --arg tag "$ONCALL_TAG" --arg run "$RUN_NUMBER" '
-            ($summary | capture("^:(?<color>red|yellow|green)_circle: [*]Test Suite #(?<run>[0-9]+) — (?<verdict>[^*\\n]+)[*]")) as $header |
+            ($summary | sub("^\\s+"; "")) as $body |
+            ($body | capture("^:(?<color>red|yellow|green)_circle: [*]Test Suite #(?<run>[0-9]+) — (?<verdict>[^*\\n]+)[*]")) as $header |
             ($header.run == $run) and
             ({red: ["CODE REGRESSION DETECTED"],
               yellow: ["Infrastructure noise only", "Results incomplete"],
               green: ["All tests passed"]}[$header.color] | index($header.verdict) != null) and
-            ($summary | split("\n")[1] // "" | test("^(high|medium|low) confidence — ")) and
+            ($body | split("\n")[1] // "" | test("^(high|medium|low) confidence — ")) and
             ($summary | length) <= 2900 and
             ($tag + " " + $summary | length) <= 3000
           ' > /dev/null || { echo "::error::Invalid summary header, run number, confidence line, or Slack length"; exit 1; }
