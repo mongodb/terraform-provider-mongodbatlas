@@ -122,8 +122,8 @@ func TestSpecChangeWarning_autoScalingTransitions(t *testing.T) {
 			"disable compute": {map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, map[string]any{"compute_enabled": false, "disk_gb_enabled": false}, ""},
 			"enable disk while compute stays enabled":  {map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, map[string]any{"compute_enabled": true, "disk_gb_enabled": true}, ""},
 			"disable disk while compute stays enabled": {map[string]any{"compute_enabled": true, "disk_gb_enabled": true}, map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, ""},
-			"unknown flag":     {map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, map[string]any{"compute_enabled": true, "disk_gb_enabled": tftypes.UnknownValue}, "instance_size"},
-			"unknown settings": {map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, tftypes.UnknownValue, ""},
+			"unknown config flag":                      {map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, map[string]any{"compute_enabled": true, "disk_gb_enabled": tftypes.UnknownValue}, ""},
+			"unknown settings":                         {map[string]any{"compute_enabled": true, "disk_gb_enabled": false}, tftypes.UnknownValue, ""},
 		} {
 			t.Run(specName+"/"+name, func(t *testing.T) {
 				prior := specWarningRegion(specName, nil, "compute_enabled")
@@ -137,6 +137,31 @@ func TestSpecChangeWarning_autoScalingTransitions(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestSpecChangeWarning_autoScalingConfigValues(t *testing.T) {
+	// The plan value is unknown both for an omitted flag and for a flag set from an unresolved expression. Only the
+	// omitted case (config null) preserves the state value and warns; an unresolved config value skips the warning.
+	newModels := func(configDisk, plannedDisk any) (map[string]any, map[string]any, map[string]any) {
+		prior := specWarningModel(specWarningRegion("electable_specs", nil, "compute_enabled"))
+		planned := specWarningModel(specWarningRegion("electable_specs", map[string]any{"instance_size": "M20"}, "compute_enabled"))
+		config := specWarningModel(specWarningRegion("electable_specs", map[string]any{"instance_size": "M20"}, "compute_enabled"))
+		warningRegion(planned)["auto_scaling"].(map[string]any)["disk_gb_enabled"] = plannedDisk
+		if configDisk == nil {
+			delete(warningRegion(config)["auto_scaling"].(map[string]any), "disk_gb_enabled")
+		} else {
+			warningRegion(config)["auto_scaling"].(map[string]any)["disk_gb_enabled"] = configDisk
+		}
+		return prior, planned, config
+	}
+	t.Run("omitted flag warns", func(t *testing.T) {
+		prior, planned, config := newModels(nil, tftypes.UnknownValue)
+		assertSpecWarning(t, runSpecWarningPlan(t, prior, planned, config), "instance_size", 0, "electable_specs")
+	})
+	t.Run("unresolved config flag does not warn", func(t *testing.T) {
+		prior, planned, config := newModels(tftypes.UnknownValue, tftypes.UnknownValue)
+		require.Empty(t, runSpecWarningPlan(t, prior, planned, config))
+	})
 }
 
 func TestSpecChangeWarning_topology(t *testing.T) {

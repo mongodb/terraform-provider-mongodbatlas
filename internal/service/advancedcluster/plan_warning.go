@@ -30,12 +30,12 @@ func warnIgnoredSpecChanges(ctx context.Context, diags *diag.Diagnostics, config
 			continue
 		}
 		regionPath := path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(i)
-		compute, disk := unchangedAutoScaling(prior.AutoScaling, region.AutoScaling)
+		compute, disk := unchangedAutoScaling(prior.AutoScaling, region.AutoScaling, configObject(ctx, config, regionPath.AtName("auto_scaling")))
 		if compute || disk {
 			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, config, regionPath.AtName("electable_specs"), prior.ElectableSpecs, region.ElectableSpecs, hardwareFields...)...)
 			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, config, regionPath.AtName("read_only_specs"), prior.ReadOnlySpecs, region.ReadOnlySpecs, hardwareFields...)...)
 		}
-		analyticsCompute, _ := unchangedAutoScaling(prior.AnalyticsAutoScaling, region.AnalyticsAutoScaling)
+		analyticsCompute, _ := unchangedAutoScaling(prior.AnalyticsAutoScaling, region.AnalyticsAutoScaling, configObject(ctx, config, regionPath.AtName("analytics_auto_scaling")))
 		if analyticsCompute {
 			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, config, regionPath.AtName("analytics_specs"), prior.AnalyticsSpecs, region.AnalyticsSpecs, "instance_size")...)
 		}
@@ -68,34 +68,54 @@ func singleReplicationSpecRegions(ctx context.Context, specs types.List) []attr.
 }
 
 // unchangedAutoScaling returns enabled flags only when neither flag is toggled; Atlas applies requested specs when either is toggled.
-func unchangedAutoScaling(state, plan types.Object) (computeEnabled, diskEnabled bool) {
+func unchangedAutoScaling(state, plan, config types.Object) (computeEnabled, diskEnabled bool) {
 	if !isKnown(state) || !isKnown(plan) {
 		return false, false
 	}
-	compute, computeUnchanged := unchangedAutoScalingFlag(state, plan, "compute_enabled")
-	disk, diskUnchanged := unchangedAutoScalingFlag(state, plan, "disk_gb_enabled")
+	compute, computeUnchanged := unchangedAutoScalingFlag(state, plan, config, "compute_enabled")
+	disk, diskUnchanged := unchangedAutoScalingFlag(state, plan, config, "disk_gb_enabled")
 	if !computeUnchanged || !diskUnchanged {
 		return false, false
 	}
 	return compute, disk
 }
 
-// unchangedAutoScalingFlag returns whether an auto-scaling flag is enabled and was not toggled. An unknown plan value
-// means the flag was not configured, so the state value is used; a known plan value that differs from state is a toggle.
-func unchangedAutoScalingFlag(state, plan types.Object, field string) (enabled, unchanged bool) {
+// unchangedAutoScalingFlag returns whether an auto-scaling flag is enabled and was not toggled. A known plan value that
+// differs from state is a toggle. An unknown plan value does not necessarily mean the flag is unconfigured: it can also
+// come from an unresolved expression. It is treated as unchanged (using the state value) only when the flag is omitted
+// from the config; when the config value itself is unknown the toggle cannot be determined, so no warning is emitted.
+func unchangedAutoScalingFlag(state, plan, config types.Object, field string) (enabled, unchanged bool) {
 	before, after := state.Attributes()[field], plan.Attributes()[field]
-	if before.IsUnknown() || (!after.IsUnknown() && !before.Equal(after)) {
+	if before.IsUnknown() {
+		return false, false
+	}
+	if after.IsUnknown() {
+		if isKnown(config) && config.Attributes()[field].IsUnknown() {
+			return false, false
+		}
+		return before.(types.Bool).ValueBool(), true
+	}
+	if !before.Equal(after) {
 		return false, false
 	}
 	return before.(types.Bool).ValueBool(), true
+}
+
+// configObject reads a nested object from the config, returning a null object when it is not present.
+func configObject(ctx context.Context, config tfsdk.Config, p path.Path) types.Object {
+	var obj types.Object
+	if d := config.GetAttribute(ctx, p, &obj); d.HasError() {
+		return types.ObjectNull(nil)
+	}
+	return obj
 }
 
 func changedSpecPaths(ctx context.Context, config tfsdk.Config, specsPath path.Path, state, plan types.Object, fields ...string) []string {
 	if !isKnown(state) || !isKnown(plan) {
 		return nil
 	}
-	var configuredObj types.Object
-	if d := config.GetAttribute(ctx, specsPath, &configuredObj); d.HasError() || !isKnown(configuredObj) {
+	configuredObj := configObject(ctx, config, specsPath)
+	if !isKnown(configuredObj) {
 		return nil
 	}
 	before, after, configured := state.Attributes(), plan.Attributes(), configuredObj.Attributes()
