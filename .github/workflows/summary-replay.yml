@@ -3,12 +3,14 @@ name: 'Summary Replay (TEMP CLOUDP-424367)'
 # TEMP (CLOUDP-424367): replay the summarize skill against historical Test Suite runs
 # without re-running acceptance tests, so the new summaries can be compared with the
 # originals. Remove before merge.
+#
+# Triggered on a change to this file (push uses the branch's version) because a
+# workflow_dispatch run requires the workflow to exist on the default branch.
 on:
   workflow_dispatch:
-    inputs:
-      run_ids:
-        description: 'Comma-separated Test Suite run IDs to replay (no spaces)'
-        default: '37866210452,37709100890,37553383581,37395290269'
+  push:
+    paths:
+      - '.github/workflows/summary-replay.yml'
 
 jobs:
   replay:
@@ -20,7 +22,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        run_id: ${{ fromJSON(format('[{0}]', inputs.run_ids)) }}
+        # Last 4 daily Test Suite runs on master.
+        run_id: [37866210452, 37709100890, 37553383581, 37395290269]
     env:
       EVIDENCE: replay-evidence-${{ matrix.run_id }}
     steps:
