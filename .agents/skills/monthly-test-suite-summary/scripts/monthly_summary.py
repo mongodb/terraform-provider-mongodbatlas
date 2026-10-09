@@ -45,8 +45,8 @@ CACHE_ROOT = os.path.join(tempfile.gettempdir(), "monthly-test-suite-summary")
 # The leading emoji is the daily verdict; first occurrence wins.
 VERDICT_RE = re.compile(r":(red|yellow|green)_circle:")
 
-# Bullet form: "• Cloud capacity: 5 tests (e.g., ...)"
-CATEGORY_BULLET_RE = re.compile(r"^\s*•\s*([A-Za-z /]+?):\s*(\d+)\s+tests?\b")
+# Bullet counts may describe tests, package failures, or cleanup items/jobs.
+CATEGORY_BULLET_RE = re.compile(r"^\s*•\s*([A-Za-z /]+?):\s*(\d+)\s+(?:tests?|failures?|items?|jobs?|packages?)\b")
 # Compressed form: "*Other failures*: Cloud capacity 5, Timeout 12, Cleanup 3"
 CATEGORY_COMPRESSED_LINE_RE = re.compile(r"\*Other failures\*:\s*(.+)$")
 CATEGORY_COMPRESSED_ITEM_RE = re.compile(r"([A-Za-z /]+?)\s+(\d+)(?:,|$)")

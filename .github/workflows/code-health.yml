@@ -55,6 +55,8 @@ jobs:
           make tools
           echo "::add-matcher::.github/actionlint-matcher.json"
           actionlint -color
+      - name: Test summary evidence helper (offline)
+        run: python3 -m unittest discover -s .agents/skills/summarize-test-suite/scripts -p 'test_*.py'
       - name: Run ShellCheck
         uses: bewuethr/shellcheck-action@80bac2daa9fcf95d648200a793d00060857e6dc4
   generate-doc-check:

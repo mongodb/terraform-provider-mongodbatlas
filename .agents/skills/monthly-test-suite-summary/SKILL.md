@@ -52,6 +52,7 @@ Do not include internal ticket IDs or artefact names (same rule as the daily ski
 
 ## Caveats
 
+- **Approximate category totals.** Daily summaries may estimate large failure counts. Treat category totals as trend indicators; regression-day metrics still come from the daily verdicts.
 - **Artifact retention.** The daily `summary` artifact uses the repo's default retention. The skill is designed to run for last month only; older months will surface as "no summary available" runs.
 - **Recurring-test counts are a lower bound.** Daily summaries truncate failing-test lists (first 10 + `, and N more`), so a test failing every day but ranked below the cut-off won't appear in `recurring_tests`.
 - **Verdicts are only as good as the daily classification.** If a daily summary was wrong, this skill inherits the error by design — fix the daily skill's rules instead of overriding numbers here.
