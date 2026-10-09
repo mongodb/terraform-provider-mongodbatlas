@@ -1,66 +1,18 @@
-# MongoDB Atlas Metric Integration with Datadog Example
+# MongoDB Atlas Metric Integration Examples
 
-This example demonstrates how to configure a metric integration to export MongoDB Atlas metrics to Datadog over OTLP. It also shows how to read the integration back with the singular and plural data sources.
+Configure a metric integration to export Atlas metrics to an OTLP-compatible endpoint, using header-based or OAuth 2.0 authentication.
 
-This example is specific to Datadog. To export to another provider, update `provider_type` (`CUSTOM`, `NEW_RELIC`, or `DYNATRACE`), the `endpoint`, and the authentication `headers` to match that provider.
+## Sibling examples
 
-## Prerequisites
+Header-based:
 
-- MongoDB Atlas Service Account with Organization Owner or Project Owner role.
-- An OTLP-compatible endpoint URL and authentication credentials. This example uses Datadog and creates the Datadog API key with the `datadog` provider. For more information on OTLP providers, see: [MongoDB Atlas - OTel Integration](https://www.mongodb.com/docs/atlas/tutorial/otel-integration/) Documentation.
+- [`header/`](header/README.md) — export Atlas metrics to Datadog using header-based authentication (creates the Datadog API key with the `datadog` provider).
 
-## Resources Created
+OAuth 2.0:
 
-This example creates the following resources:
+- [`oauth/client_secret/`](oauth/client_secret/README.md) — export Atlas metrics using a shared client secret.
+- [`oauth/private_key_jwt/`](oauth/private_key_jwt/README.md) — export Atlas metrics using an Atlas-managed private-key JWT signing assertion; register the returned `jwks_uri` with your identity provider.
 
-- MongoDB Atlas Project
-- MongoDB Atlas Metric Integration
-- Datadog API key
+Each example creates a MongoDB Atlas project and the metric integration resource, and reads it back with the singular and plural data sources.
 
-## Usage
-
-**1\. Ensure your MongoDB Atlas and Datadog credentials are set up.**
-
-Set the following environment variables:
-
-```bash
-export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
-export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
-export DD_API_KEY="<DATADOG_API_KEY>"
-export DD_APP_KEY="<DATADOG_APP_KEY>"
-```
-
-Alternatively, follow as in the `variables.tf` file and create a **terraform.tfvars** file with all the variable values:
-
-```hcl
-atlas_org_id        = "your-org-id"
-atlas_client_id     = "your-service-account-client-id"
-atlas_client_secret = "your-service-account-client-secret"
-datadog_api_key     = "your-datadog-api-key"
-datadog_app_key     = "your-datadog-app-key"
-datadog_endpoint    = "https://otlp.datadoghq.com/v1/metrics"
-```
-
-**2\. Review the Terraform plan.**
-
-Execute the following command and confirm the plan's accuracy.
-
-```bash
-terraform plan
-```
-
-**3\. Execute the Terraform apply.**
-
-Execute the plan to provision the resources.
-
-```bash
-terraform apply
-```
-
-**4\. Destroy the resources.**
-
-When you have finished your testing, ensure you destroy the resources to avoid accruing charges in Atlas.
-
-```bash
-terraform destroy
-```
+For product limits and supported providers, see the [resource documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/metric_integration) and [MongoDB Atlas - OTel Integration](https://www.mongodb.com/docs/atlas/tutorial/otel-integration/) Documentation.
