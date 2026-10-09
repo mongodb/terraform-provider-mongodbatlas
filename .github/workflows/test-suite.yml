@@ -268,7 +268,7 @@ jobs:
             Follow .agents/skills/summarize-test-suite/SKILL.md using the prepared evidence at ${{ runner.temp }}/${{ env.REPLAY_EVIDENCE }}/run.json.
             Return the Slack mrkdwn text in the structured output's `summary` field.
           claude_args: >-
-            --max-turns 35
+            --max-turns 60
             --add-dir "${{ runner.temp }}/${{ env.REPLAY_EVIDENCE }}"
             --tools Read,Grep
             --allowedTools Read,Grep
