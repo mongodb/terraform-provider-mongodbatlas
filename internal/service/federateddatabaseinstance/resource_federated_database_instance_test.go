@@ -121,6 +121,7 @@ func TestAccFederatedDatabaseInstance_azureCloudProviderConfig(t *testing.T) {
 
 	extraChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "cloud_provider_config.0.aws.#", "0"),
+		resource.TestCheckResourceAttr(resourceName, "cloud_provider_config.0.gcp.#", "0"),
 		resource.TestCheckResourceAttrSet(resourceName, "cloud_provider_config.0.azure.0.role_id"),
 	}
 
