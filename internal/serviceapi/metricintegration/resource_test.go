@@ -83,8 +83,6 @@ func TestAccMetricIntegration_basic(t *testing.T) {
 	})
 }
 func TestAccMetricIntegration_oauthClientSecret(t *testing.T) {
-	// TODO(CLOUDP-447244): remove this gate before merging to master.
-	acc.SkipTestForCI(t)
 	projectID := acc.ProjectIDExecution(t)
 	var (
 		secret1 = "client-secret-initial"
@@ -140,8 +138,6 @@ func TestAccMetricIntegration_oauthClientSecret(t *testing.T) {
 
 // TestAccMetricIntegration_oauthPrivateKeyJWT covers the PRIVATE_KEY_JWT OAuth path
 func TestAccMetricIntegration_oauthPrivateKeyJWT(t *testing.T) {
-	// TODO(CLOUDP-447244): remove this gate before merging to master.
-	acc.SkipTestForCI(t)
 	projectID := acc.ProjectIDExecution(t)
 	var (
 		scopes1 = []string{}
@@ -192,8 +188,6 @@ func TestAccMetricIntegration_oauthPrivateKeyJWT(t *testing.T) {
 // TestAccMetricIntegration_oauthPrivateKeyJWTRejectsClientSecret verifies the API rejects a
 // client_secret set on a PRIVATE_KEY_JWT integration.
 func TestAccMetricIntegration_oauthPrivateKeyJWTRejectsClientSecret(t *testing.T) {
-	// TODO(CLOUDP-447244): remove this gate before merging to master.
-	acc.SkipTestForCI(t)
 	projectID := acc.ProjectIDExecution(t)
 
 	// Test is serial because the project allows at most 2 metric integrations and tests share it.
@@ -215,8 +209,6 @@ func TestAccMetricIntegration_oauthPrivateKeyJWTRejectsClientSecret(t *testing.T
 // TestAccMetricIntegration_oauthToHeader verifies switching an OAUTH2 integration to HEADER clears
 // the stored oauth configuration.
 func TestAccMetricIntegration_oauthToHeader(t *testing.T) {
-	// TODO(CLOUDP-447244): remove this gate before merging to master.
-	acc.SkipTestForCI(t)
 	projectID := acc.ProjectIDExecution(t)
 	var (
 		endpoint        = os.Getenv("MONGODB_ATLAS_METRIC_INTEGRATION_ENDPOINT")
