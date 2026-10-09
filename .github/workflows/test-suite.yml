@@ -158,7 +158,7 @@ jobs:
             Return the Slack mrkdwn text in the structured output's `summary` field.
           # Grep lets the agent expand evidence without shell or MCP tools.
           claude_args: >-
-            --max-turns 35
+            --max-turns 60
             --add-dir "${{ runner.temp }}/${{ env.TEST_SUITE_EVIDENCE_NAME }}"
             --tools Read,Grep
             --allowedTools Read,Grep
