@@ -223,6 +223,8 @@ on:
 
 env:
   TF_ACC: 1
+  MONGODB_TAG_OWNER: ${{ vars.MONGODB_TAG_OWNER }}
+  MONGODB_TAG_ENV: ${{ vars.MONGODB_TAG_ENV }}
   TF_LOG: ${{ vars.LOG_LEVEL }}
   ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
   # If the name (regex) of the test is set, only that test is run.

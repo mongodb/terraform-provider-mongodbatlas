@@ -335,7 +335,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 func configWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket string) string {
 	stepConfig := configFirstStepS3Bucket(name, testS3Bucket)
 	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
-	return fmt.Sprintf(`
+	return acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
   role = aws_iam_role.test_role.id
@@ -633,7 +633,7 @@ func waitForStatusUpdate() {
 }
 
 func configWithPrivateEndpoint(projectID, name string) string {
-	return fmt.Sprintf(`
+	return acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
 resource "aws_vpc" "test" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true

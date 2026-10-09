@@ -72,7 +72,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 func configBasic(policyName, roleName, projectName, orgID, name, testS3Bucket string) string {
 	stepConfig := configFirstStep(name, testS3Bucket)
 	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
-	return fmt.Sprintf(`
+	return acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
   role = aws_iam_role.test_role.id

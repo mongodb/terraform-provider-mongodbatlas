@@ -1963,6 +1963,7 @@ func configWithPrivateEndpointLink(awsAccessKey, awsSecretKey, projectID, provid
 			region     = "${lower(replace("%[5]s", "_", "-"))}"
 			access_key = "%[1]s"
 			secret_key = "%[2]s"
+			%[10]s
 		}
 
 		resource "mongodbatlas_privatelink_endpoint" "test" {
@@ -1998,7 +1999,7 @@ func configWithPrivateEndpointLink(awsAccessKey, awsSecretKey, projectID, provid
 		  cloud_backup                = true // enable cloud provider snapshots
 		  depends_on                  = ["mongodbatlas_privatelink_endpoint_service.test"]
 		}
-	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, clusterName)
+	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, clusterName, acc.ConfigDefaultTags())
 }
 
 func configAzureWithNetworkPeering(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName, clusterName, atlasCidrBlock, region string) string {
@@ -2148,6 +2149,7 @@ func configAWSWithContainerID(awsAccessKey, awsSecretKey, projectID, clusterName
 			region     = lower(replace("%[6]s", "_", "-"))
 			access_key = "%[1]s"
 			secret_key = "%[2]s"
+			%[9]s
 		}
 
 		resource "mongodbatlas_cluster" "test" {
@@ -2196,7 +2198,7 @@ func configAWSWithContainerID(awsAccessKey, awsSecretKey, projectID, clusterName
 				Side = "Accepter"
 			}
 		}
-	`, awsAccessKey, awsSecretKey, projectID, clusterName, providerName, region, vpcCIDRBlock, awsAccountID)
+	`, awsAccessKey, awsSecretKey, projectID, clusterName, providerName, region, vpcCIDRBlock, awsAccountID, acc.ConfigDefaultTags())
 }
 
 func configGCPWithContainerID(gcpProjectID, gcpRegion, projectID, clusterName, providerName, gcpClusterRegion, gcpPeeringName string) string {

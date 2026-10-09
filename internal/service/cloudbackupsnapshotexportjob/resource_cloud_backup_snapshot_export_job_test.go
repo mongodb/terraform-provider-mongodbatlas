@@ -124,7 +124,7 @@ func readRequired(rs *terraform.ResourceState, resourceName string) (projectID, 
 }
 
 func configBasic(projectID, bucketName, roleName, policyName, clusterNameStr, clusterTerraformStr string) string {
-	return clusterTerraformStr + fmt.Sprintf(`
+	return clusterTerraformStr + acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
     name = %[4]q
     role = aws_iam_role.test_role.id

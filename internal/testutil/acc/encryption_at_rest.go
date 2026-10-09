@@ -131,7 +131,7 @@ func ConfigProjectWithAwsKmsPrivateNetworking(projectName, orgID, awsIAMRoleName
 }
 
 func configAwsRoleAndPolicy(awsIamRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration) string {
-	config := fmt.Sprintf(`
+	config := ConfigAWSProviderWithTags() + fmt.Sprintf(`
 		resource "aws_iam_role" "test_role" {
 			name = %[1]q
 	  
