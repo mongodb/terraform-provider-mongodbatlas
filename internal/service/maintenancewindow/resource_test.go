@@ -62,6 +62,14 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 				Check:  checkBasic(dayOfWeek, hourOfDay, defaultProtectedHours),
 			},
 			{
+				// Update an unrelated attribute while protected_hours stays unchanged in config:
+				// the PATCH must still send protected_hours, otherwise Atlas silently removes them.
+				// State alone may not show the loss, but the following ImportStateVerify re-reads
+				// the window from Atlas and fails if protected hours were dropped.
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDayUpdated, defaultProtectedHours),
+				Check:  checkBasic(dayOfWeek, hourOfDayUpdated, defaultProtectedHours),
+			},
+			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
