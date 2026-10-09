@@ -1,0 +1,3 @@
+```release-note:bug
+provider: Fixes mongodbatlas_maintenance_window removing protected_hours in Atlas when updating any other attribute (e.g. day_of_week, hour_of_day, wave_assignment, auto_defer_once_enabled). The update now always sends the configured protected_hours, and reads report missing protected_hours as drift instead of keeping stale state.
+```
