@@ -154,7 +154,7 @@ jobs:
             --tools Read,Grep
             --allowedTools Read,Grep
             --disallowedTools "mcp__*" "Read(/.git/**)"
-            --model "${{ vars.TEST_SUITE_SUMMARY_MODEL || 'claude-opus-5' }}"
+            --model "${{ vars.TEST_SUITE_SUMMARY_MODEL || 'claude-opus-5-5' }}"
             --json-schema '{"type":"object","properties":{"summary":{"type":"string","minLength":1,"maxLength":2900}},"required":["summary"]}'
         env:
           ANTHROPIC_BASE_URL: ${{ secrets.AI_GATEWAY_ANTHROPIC_URL }}
