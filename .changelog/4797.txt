@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_maintenance_window: Fixes updates to other attributes removing `protected_hours` in Atlas
+```

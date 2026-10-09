@@ -203,10 +203,14 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
+	// Set an empty list when the API returns no protected hours, otherwise the
+	// loss would never show up as drift in plans.
+	protectedHours := make([]map[string]int, 0)
 	if maintenanceWindow.ProtectedHours != nil {
-		if err := d.Set("protected_hours", flattenProtectedHours(maintenanceWindow.GetProtectedHours())); err != nil {
-			return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
-		}
+		protectedHours = flattenProtectedHours(maintenanceWindow.GetProtectedHours())
+	}
+	if err := d.Set("protected_hours", protectedHours); err != nil {
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
 	if err := d.Set("wave_assignment", maintenanceWindow.GetWaveAssignment()); err != nil {
@@ -253,17 +257,18 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.AutoDeferOnceEnabled = new(d.Get("auto_defer_once_enabled").(bool))
 	}
 
-	if oldPAny, newPAny := d.GetChange("protected_hours"); d.HasChange("protected_hours") {
-		oldP := oldPAny.([]any)
-		newP := newPAny.([]any)
-
-		if len(oldP) == 1 && len(newP) == 0 {
+	// Always send protected_hours when present in config: the API treats a PATCH
+	// without protectedHours as removing them, so omitting them on unrelated
+	// updates would silently delete them in Atlas.
+	if protectedHoursConfig := d.Get("protected_hours").([]any); len(protectedHoursConfig) > 0 {
+		params.ProtectedHours = newProtectedHours(d)
+	} else if d.HasChange("protected_hours") {
+		oldPAny, _ := d.GetChange("protected_hours")
+		if len(oldPAny.([]any)) == 1 {
 			params.ProtectedHours = &admin.ProtectedHours{
 				StartHourOfDay: nil,
 				EndHourOfDay:   nil,
 			}
-		} else {
-			params.ProtectedHours = newProtectedHours(d)
 		}
 	}
 
