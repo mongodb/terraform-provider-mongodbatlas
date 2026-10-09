@@ -161,7 +161,9 @@ def prepare(run_id, output):
             if job["status"] != "completed" or job["conclusion"] in ("success", "skipped", "neutral"):
                 continue
             try:
-                log = github(f"jobs/{job['id']}/logs")
+                # gh refuses logs containing terminal escape sequences unless we opt in;
+                # sanitized() strips them afterwards.
+                log = github(f"jobs/{job['id']}/logs", "--allow-escape-sequences")
             except subprocess.CalledProcessError as error:
                 if "403" in error.stderr or "SSO" in error.stderr:
                     raise  # Do not work around an access denial.

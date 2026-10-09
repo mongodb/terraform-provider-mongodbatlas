@@ -44,6 +44,10 @@ class PrepareTests(unittest.TestCase):
             report = json.loads(prepare(123, self.output).read_text())
         downloads = [call.args[0] for call in calls.call_args_list if call.args[0].endswith("/logs")]
         self.assertEqual(len(downloads), len(set(downloads)))
+        for call in calls.call_args_list:
+            if call.args[0].endswith("/logs"):
+                # gh rejects logs with terminal escape sequences unless we opt in.
+                self.assertIn("--allow-escape-sequences", call.args)
         return report
 
     def test_index_keeps_verdicts_and_positions_without_matching_passing_errors(self):
