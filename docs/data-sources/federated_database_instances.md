@@ -62,8 +62,8 @@ In addition to all arguments above, the following attributes are exported:
 * `storage_stores` - Each object in the array represents a data store. Federated Database uses the `storage.databases` configuration details to map data in each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [stores](https://www.mongodb.com/docs/atlas/data-federation/config/config-data-stores/). An empty object indicates that the Federated Database Instance has no configured data stores.
   * `storage_stores.#.name` - Name of the data store.
   * `storage_stores.#.provider` - Defines where the data is stored.
-  * `storage_stores.#.region` - Name of the AWS region in which the S3 bucket is hosted.
-  * `storage_stores.#.bucket` - Name of the AWS S3 bucket.
+  * `storage_stores.#.region` - Name of the cloud provider region in which the bucket is hosted.
+  * `storage_stores.#.bucket` - Name of the bucket.
   * `storage_stores.#.prefix` - Prefix the Federated Database Instance applies when searching for files in the S3 bucket.
   * `storage_stores.#.delimiter` - The delimiter that separates `storage_databases.#.collections.#.data_sources.#.path` segments in the data store.
   * `storage_stores.#.include_tags` - Determines whether or not to use S3 tags on the files in the given path as additional partition attributes.
@@ -99,8 +99,12 @@ In addition to all arguments above, the following attributes are exported:
 * `tenant_id` - Unique identifier of the Azure Active Directory tenant where the service principal resides.
 * `role_id` - Unique identifier of the role that the Federated Database Instance can use to access the data stores.
 
+#### `gcp` - Google Cloud provider of the cloud service where the Federated Database Instance can access Google Cloud Storage.
+* `gcp_service_account` - Email address of the Google Cloud Platform (GCP) service account created by Atlas, which should be authorized to allow Atlas to access Google Cloud Storage.
+* `role_id` - Unique identifier of the role that the Federated Database Instance can use to access the data stores.
+
 ### `data_process_region` - The cloud provider region to which the Federated Instance routes client connections for data processing.
-* `cloud_provider` -  Name of the cloud service provider. Supported providers: `AWS`, `AZURE`.
+* `cloud_provider` -  Name of the cloud service provider. Supported providers: `AWS`, `AZURE`, `GCP`.
 * `region` - Name of the region to which the Federated Instance routes client connections for data processing.
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) Documentation for more information.
