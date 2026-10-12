@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312026/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -183,7 +184,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	connectionID := state.Id.ValueString()
 
 	connV2 := r.Client.AtlasV2
-	if _, err := connV2.StreamsAPI.DeletePrivateLinkConnection(ctx, projectID, connectionID).Execute(); err != nil {
+	httpResp, err := connV2.StreamsAPI.DeletePrivateLinkConnection(ctx, projectID, connectionID).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

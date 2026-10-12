@@ -15,6 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
@@ -325,12 +326,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	providerName := ids["provider_name"]
 
-	resp, err := connV2.PrivateEndpointServicesAPI.DeletePrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
-	if err != nil {
-		if validate.StatusNotFound(resp) {
-			return nil
-		}
-
+	httpResp, err := connV2.PrivateEndpointServicesAPI.DeletePrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsDelete, privateLinkID, err))
 	}
 

@@ -117,6 +117,14 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name: "Transition to DELETED on 404 with other error codes",
+			mockResponses: []response{
+				{state: &updating},
+				{statusCode: sc404, err: errors.New("CLUSTER_NOT_FOUND")},
+			},
+			expectedError: false,
+		},
+		{
 			name: "Successful transition to DELETED with 500 error in between",
 			mockResponses: []response{
 				{state: &updating},

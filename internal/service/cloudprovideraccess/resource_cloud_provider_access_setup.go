@@ -14,6 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -286,8 +287,8 @@ func resourceCloudProviderAccessSetupDelete(ctx context.Context, d *schema.Resou
 		GroupId:       projectID,
 	}
 
-	_, err := conn.CloudProviderAccessAPI.DeauthorizeProviderAccessRoleWithParams(ctx, req).Execute()
-	if err != nil {
+	httpResp, err := conn.CloudProviderAccessAPI.DeauthorizeProviderAccessRoleWithParams(ctx, req).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf(errorDelete, err))
 	}
 

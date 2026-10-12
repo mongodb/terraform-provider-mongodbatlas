@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20250312026/admin"
@@ -232,8 +233,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if shouldDelete {
-		_, err := conn.CloudBackupsAPI.CancelBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
-		if err != nil {
+		httpResp, err := conn.CloudBackupsAPI.CancelBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
+		if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 			return diag.FromErr(fmt.Errorf("error deleting a cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 		}
 	}

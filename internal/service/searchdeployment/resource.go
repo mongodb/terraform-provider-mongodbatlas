@@ -12,6 +12,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -179,7 +180,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	connV2 := r.Client.AtlasV2
 	projectID := state.ProjectID.ValueString()
 	clusterName := state.ClusterName.ValueString()
-	if _, err := connV2.AtlasSearchAPI.DeleteClusterSearchDeployment(ctx, projectID, clusterName).Execute(); err != nil {
+	httpResp, err := connV2.AtlasSearchAPI.DeleteClusterSearchDeployment(ctx, projectID, clusterName).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		diags.AddError("error during search deployment delete", err.Error())
 		return
 	}

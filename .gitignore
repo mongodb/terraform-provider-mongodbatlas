@@ -12,6 +12,7 @@ CLAUDE.md
 *.log
 *.mdc
 __debug_*
+__pycache__/
 *~
 compliance/sbom.json
 compliance/augmented-sbom-v*.json

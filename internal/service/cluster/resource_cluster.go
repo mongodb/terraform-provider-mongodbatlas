@@ -24,6 +24,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -1329,8 +1330,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	_, err := conn.Clusters.Delete(ctx, projectID, clusterName, options)
-	if err != nil {
+	httpResp, err := conn.Clusters.Delete(ctx, projectID, clusterName, options)
+	if err != nil && !deletenotfound.IsNotFoundLegacy(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf(errorClusterDelete, clusterName, err))
 	}
 

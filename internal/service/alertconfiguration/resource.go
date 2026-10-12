@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -526,8 +527,8 @@ func (r *alertConfigurationRS) Delete(ctx context.Context, req resource.DeleteRe
 
 	ids := conversion.DecodeStateID(alertConfigState.ID.ValueString())
 
-	_, err := connV2.AlertConfigurationsAPI.DeleteAlertConfig(ctx, ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID]).Execute()
-	if err != nil {
+	httpResp, err := connV2.AlertConfigurationsAPI.DeleteAlertConfig(ctx, ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID]).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
 	}
 }

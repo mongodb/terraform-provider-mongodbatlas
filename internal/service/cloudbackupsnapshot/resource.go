@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
@@ -269,8 +270,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	groupID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	snapshotID := ids["snapshot_id"]
-	_, err := connV2.CloudBackupsAPI.DeleteClusterBackupSnapshot(ctx, groupID, clusterName, snapshotID).Execute()
-	if err != nil {
+	httpResp, err := connV2.CloudBackupsAPI.DeleteClusterBackupSnapshot(ctx, groupID, clusterName, snapshotID).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf("error deleting a snapshot (%s): %s", snapshotID, err))
 	}
 	return nil

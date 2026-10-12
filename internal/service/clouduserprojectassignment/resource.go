@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -218,7 +219,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 	httpResp, err := connV2.MongoDBCloudUsersAPI.RemoveGroupUser(ctx, projectID, userID).Execute()
 	if err != nil {
-		if validate.StatusNotFound(httpResp) {
+		if deletenotfound.IsNotFound(ctx, httpResp, err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}

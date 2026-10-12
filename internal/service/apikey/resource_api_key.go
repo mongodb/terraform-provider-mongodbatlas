@@ -151,6 +151,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
+	// The API returns 400 API_KEY_NOT_FOUND instead of 404 when the key is already gone,
+	// so handling a 404 here would be a no-op.
 	_, err := connV2.ProgrammaticAPIKeysAPI.DeleteOrgApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error API Key: %s", err))

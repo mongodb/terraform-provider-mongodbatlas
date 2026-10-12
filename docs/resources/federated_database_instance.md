@@ -20,7 +20,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
       data_sources {
           collection = "COLLECTION IN THE CLUSTER"
           database = "DB IN THE CLUSTER"
-          store_name =  "CLUSTER NAME"
+          store_name =  "STORE 1 NAME"
       }
     }
   }
@@ -75,7 +75,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
       data_sources {
           collection = "COLLECTION IN THE CLUSTER"
           database = "DB IN THE CLUSTER"
-          store_name =  "CLUSTER NAME"
+          store_name =  "STORE 1 NAME"
       }
       data_sources {
           store_name = "S3 BUCKET NAME"
@@ -125,7 +125,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
       data_sources {
         collection = "COLLECTION IN THE CLUSTER"
         database   = "DB IN THE CLUSTER"
-        store_name = "CLUSTER NAME"
+        store_name = "STORE NAME"
       }
       data_sources {
         store_name = "AZURE BLOB STORAGE NAME"
@@ -147,6 +147,56 @@ resource "mongodbatlas_federated_database_instance" "test" {
   storage_stores {
     name     = "AZURE BLOB STORAGE NAME"
     provider = "azure"
+  }
+}
+```
+
+## Example of Google Cloud Storage as storage database
+
+```terraform
+resource "mongodbatlas_federated_database_instance" "test" {
+  project_id = "<PROJECT_ID>"
+  name       = "<TENANT_NAME_OF_THE_FEDERATED_DATABASE_INSTANCE>"
+
+  cloud_provider_config {
+    gcp {
+      role_id = "<GCP_ROLE_ID>"
+    }
+  }
+
+  storage_databases {
+    name = "VirtualDatabase0"
+    collections {
+      name = "NAME OF THE COLLECTION"
+      data_sources {
+        collection = "COLLECTION IN THE CLUSTER"
+        database   = "DB IN THE CLUSTER"
+        store_name = "STORE NAME"
+      }
+      data_sources {
+        store_name = "GOOGLE CLOUD STORAGE BUCKET NAME"
+        path       = "GOOGLE CLOUD STORAGE BUCKET PATH"
+      }
+    }
+  }
+
+  storage_stores {
+    name         = "STORE NAME"
+    cluster_name = "CLUSTER NAME"
+    project_id   = "PROJECT ID"
+    provider     = "atlas"
+    read_preference {
+      mode = "secondary"
+    }
+  }
+
+  storage_stores {
+    name      = "GOOGLE CLOUD STORAGE BUCKET NAME"
+    provider  = "gcs"
+    region    = "GOOGLE CLOUD REGION"
+    bucket    = "GOOGLE CLOUD STORAGE BUCKET NAME"
+    prefix    = "GOOGLE CLOUD STORAGE BUCKET PREFIX"
+    delimiter = "/"
   }
 }
 ```
@@ -174,8 +224,10 @@ resource "mongodbatlas_federated_database_instance" "test" {
       * `cloud_provider_config.aws.test_s3_bucket` - (Required) Name of the S3 data bucket that the provided role ID is authorized to access. You must also specify the `role_id`.
     * `cloud_provider_config.azure` - Microsoft Azure provider of the cloud service where the Federated Database Instance can access Blob Storage.
       * `cloud_provider_config.azure.role_id` - (Required) Unique identifier of the role that the Federated Database Instance can use to access the data stores.
+    * `cloud_provider_config.gcp` - Google Cloud provider of the cloud service where the Federated Database Instance can access Google Cloud Storage.
+      * `cloud_provider_config.gcp.role_id` - (Required) Unique identifier of the role that the Federated Database Instance uses to access the data stores.
 * `data_process_region` - (Optional) The cloud provider region to which the Federated Instance routes client connections for data processing.
-  * `data_process_region.cloud_provider` - (Required) Name of the cloud service provider. Supported providers: `AWS`, `AZURE`.
+  * `data_process_region.cloud_provider` - (Required) Name of the cloud service provider. Supported providers: `AWS`, `AZURE`, `GCP`.
   * `data_process_region.region` - (Required) Name of the region to which the Federated Instance routes client connections for data processing. See the [documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createFederatedDatabase) for the available region.
 * `storage_databases` - Configuration details for mapping each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [databases](https://www.mongodb.com/docs/atlas/data-federation/config/config-data-stores/). An empty object indicates that the Federated Database Instance has no mapping configuration for any data store.
   * `storage_databases.#.name` - Name of the database to which the Federated Database Instance maps the data contained in the data store.
@@ -201,8 +253,8 @@ resource "mongodbatlas_federated_database_instance" "test" {
 * `storage_stores` - Each object in the array represents a data store. Federated Database uses the storage.databases configuration details to map data in each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [stores](https://www.mongodb.com/docs/atlas/data-federation/config/config-data-stores/). An empty object indicates that the Federated Database Instance has no configured data stores.
   * `storage_stores.#.name` - Name of the data store.
   * `storage_stores.#.provider` - Defines where the data is stored.
-  * `storage_stores.#.region` - Name of the AWS region in which the S3 bucket is hosted.
-  * `storage_stores.#.bucket` - Name of the AWS S3 bucket.
+  * `storage_stores.#.region` - Name of the cloud provider region in which the bucket is hosted.
+  * `storage_stores.#.bucket` - Name of the bucket.
   * `storage_stores.#.prefix` - Prefix the Federated Database Instance applies when searching for files in the S3 bucket.
   * `storage_stores.#.delimiter` - The delimiter that separates `storage_databases.#.collections.#.data_sources.#.path` segments in the data store.
   * `storage_stores.#.include_tags` - Determines whether or not to use S3 tags on the files in the given path as additional partition attributes.
@@ -248,6 +300,9 @@ In addition to all arguments above, the following attributes are exported:
   * `atlas_app_id` - Unique identifier of the Azure Active Directory application associated with the service principal.
   * `service_principal_id` - Unique identifier of the Azure service principal that the Federated Database instance uses to access Azure Blob Storage.
   * `tenant_id` - Unique identifier of the Azure Active Directory tenant where the service principal resides.
+
+* `cloud_provider_config.gcp` - Google Cloud cloud service configuration.
+  * `gcp_service_account` - Email address of the Google Cloud Platform (GCP) service account created by Atlas, which should be authorized to allow Atlas to access Google Cloud Storage.
 
 ## Import
 

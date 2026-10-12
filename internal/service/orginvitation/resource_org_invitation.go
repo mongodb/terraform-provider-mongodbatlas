@@ -13,6 +13,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -183,8 +184,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return nil
 		}
 	}
-	_, err = connV2.OrganizationsAPI.DeleteOrgInvite(ctx, orgID, invitationID).Execute()
-	if err != nil {
+	httpResp, err := connV2.OrganizationsAPI.DeleteOrgInvite(ctx, orgID, invitationID).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.Errorf("error deleting Organization invitation for user %s: %s", username, err)
 	}
 	d.SetId("")

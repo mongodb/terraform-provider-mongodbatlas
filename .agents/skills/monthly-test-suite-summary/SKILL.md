@@ -38,6 +38,7 @@ Requires `gh` authenticated against `mongodb/terraform-provider-mongodbatlas`. T
    - The month has far fewer runs than days (scheduled runs may have been skipped or the workflow renamed).
    - `no_summary_runs` is non-empty — the summary job failed or the artifact expired. These runs are excluded from the percentage; say so.
    - `unknown_verdict_runs` is non-empty — a summary artifact existed but no verdict emoji was found; suggest a manual look.
+   - `incomplete_runs` is non-empty — the daily summary was yellow "Results incomplete" because evidence was missing, so the run was excluded from the percentage; say so and suggest a manual look at the listed runs.
 2. **Repeat offenders.** `recurring_tests` lists tests named in daily failing lists on ≥2 distinct days (a lower bound — daily summaries cap the list at 10 names plus `, and N more`). For each of the top recurring tests, read the cached daily summaries (`$TMPDIR/monthly-test-suite-summary/<run_id>/summary.md`) for those dates and determine whether it failed with the **same root cause every time** (persistent broken or flaky test — a ticket candidate; say which category, e.g. always `OUT_OF_CAPACITY` vs always a timeout) or **alternating causes** (general infra noise). Keep this to the handful of flagged tests.
 3. **Red days.** For each run with verdict `red` in the JSON report, give one line with the run number, date, linked run URL, and the regression cause from its `regressions` entries. Group repeats (e.g. "3 of 4 red days were the same `config_server_type` regression").
 4. **Category trends.** Summarize `category_totals` in one sentence (e.g. "capacity noise dominated: 340 failures across 22 days").
@@ -52,6 +53,7 @@ Do not include internal ticket IDs or artefact names (same rule as the daily ski
 
 ## Caveats
 
+- **Approximate category totals.** Daily summaries may estimate large failure counts. Treat category totals as trend indicators; regression-day metrics still come from the daily verdicts.
 - **Artifact retention.** The daily `summary` artifact uses the repo's default retention. The skill is designed to run for last month only; older months will surface as "no summary available" runs.
 - **Recurring-test counts are a lower bound.** Daily summaries truncate failing-test lists (first 10 + `, and N more`), so a test failing every day but ranked below the cut-off won't appear in `recurring_tests`.
 - **Verdicts are only as good as the daily classification.** If a daily summary was wrong, this skill inherits the error by design — fix the daily skill's rules instead of overriding numbers here.

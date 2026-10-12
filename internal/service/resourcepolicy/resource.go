@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -164,7 +165,8 @@ func (r *resourcePolicyRS) Delete(ctx context.Context, req resource.DeleteReques
 	resourcePolicyID := resourcePolicyState.ID.ValueString()
 	connV2 := r.Client.AtlasV2
 	resourcePolicyAPI := connV2.ResourcePoliciesAPI
-	if _, err := resourcePolicyAPI.DeleteOrgResourcePolicy(ctx, orgID, resourcePolicyID).Execute(); err != nil {
+	httpResp, err := resourcePolicyAPI.DeleteOrgResourcePolicy(ctx, orgID, resourcePolicyID).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

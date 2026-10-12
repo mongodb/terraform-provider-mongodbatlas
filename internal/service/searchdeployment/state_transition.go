@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -57,7 +56,7 @@ func searchDeploymentRefreshFunc(ctx context.Context, projectID, clusterName str
 			return nil, "", err
 		}
 		if err != nil {
-			if validate.StatusNotFound(resp) && strings.Contains(err.Error(), SearchDeploymentDoesNotExistsError) {
+			if validate.StatusNotFound(resp) {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
 			if validate.StatusServiceUnavailable(resp) || validate.StatusInternalServerError(resp) {

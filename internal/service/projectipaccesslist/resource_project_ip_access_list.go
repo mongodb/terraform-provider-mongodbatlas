@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -173,7 +174,7 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 				return retry.RetryableError(err)
 			}
 
-			if validate.StatusNotFound(httpResponse) {
+			if deletenotfound.IsNotFound(ctx, httpResponse, err) {
 				return nil
 			}
 

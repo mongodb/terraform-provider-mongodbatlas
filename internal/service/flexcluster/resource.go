@@ -16,6 +16,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -282,7 +283,8 @@ func UpdateFlexCluster(ctx context.Context, projectID, clusterName string, flexC
 }
 
 func DeleteFlexCluster(ctx context.Context, projectID, clusterName string, client admin.FlexClustersAPI, timeout time.Duration) error {
-	if _, err := client.DeleteFlexCluster(ctx, projectID, clusterName).Execute(); err != nil {
+	httpResponse, err := client.DeleteFlexCluster(ctx, projectID, clusterName).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResponse, err) {
 		return err
 	}
 

@@ -80,7 +80,7 @@ type rs struct {
 // 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
 // 2. Adding the different UseStateForUnknown is very verbose.
 func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update
+	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() { // Return early unless it is an Update
 		return
 	}
 	var plan, state TFModel
@@ -97,11 +97,18 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 
-	handleModifyPlan(ctx, diags, &state, &plan, schemafunc.UnknownInConfig(req.Config.Raw))
-	if diags.HasError() {
-		return
+	// A fully known plan has no unknowns to resolve, so there is nothing to modify, only to warn about.
+	fullyKnown := req.Plan.Raw.IsFullyKnown()
+	if !fullyKnown {
+		handleModifyPlan(ctx, diags, &state, &plan, schemafunc.UnknownInConfig(req.Config.Raw))
+		if diags.HasError() {
+			return
+		}
 	}
-	diags.Append(resp.Plan.Set(ctx, plan)...)
+	warnIgnoredSpecChanges(ctx, diags, req.Config, &state, &plan)
+	if !fullyKnown {
+		diags.Append(resp.Plan.Set(ctx, plan)...)
+	}
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

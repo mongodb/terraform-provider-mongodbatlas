@@ -1,0 +1,133 @@
+package advancedcluster
+
+import (
+	"context"
+	"fmt"
+	"strings"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+func warnIgnoredSpecChanges(ctx context.Context, diags *diag.Diagnostics, config tfsdk.Config, state, plan *TFModel) {
+	if !plan.UseEffectiveFields.ValueBool() || !sameClusterIdentity(state, plan) {
+		return
+	}
+	hardwareFields := []string{"instance_size", "disk_size_gb", "disk_iops"}
+	var ignoredPaths []string
+	planRegions := singleReplicationSpecRegions(ctx, plan.ReplicationSpecs)
+	stateRegions := singleReplicationSpecRegions(ctx, state.ReplicationSpecs)
+	if len(planRegions) != len(stateRegions) {
+		return // Regions were added or removed, so matching by index is not reliable.
+	}
+	for i, value := range planRegions {
+		region := TFModelObject[TFRegionConfigsModel](ctx, value.(types.Object))
+		prior := TFModelObject[TFRegionConfigsModel](ctx, stateRegions[i].(types.Object))
+		if region == nil || prior == nil {
+			continue
+		}
+		regionPath := path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(i)
+		compute, disk := unchangedAutoScaling(prior.AutoScaling, region.AutoScaling, configObject(ctx, config, regionPath.AtName("auto_scaling")))
+		if compute || disk {
+			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, config, regionPath.AtName("electable_specs"), prior.ElectableSpecs, region.ElectableSpecs, hardwareFields...)...)
+			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, config, regionPath.AtName("read_only_specs"), prior.ReadOnlySpecs, region.ReadOnlySpecs, hardwareFields...)...)
+		}
+		analyticsCompute, _ := unchangedAutoScaling(prior.AnalyticsAutoScaling, region.AnalyticsAutoScaling, configObject(ctx, config, regionPath.AtName("analytics_auto_scaling")))
+		if analyticsCompute {
+			ignoredPaths = append(ignoredPaths, changedSpecPaths(ctx, config, regionPath.AtName("analytics_specs"), prior.AnalyticsSpecs, region.AnalyticsSpecs, "instance_size")...)
+		}
+	}
+	if diags.HasError() || len(ignoredPaths) == 0 {
+		return
+	}
+	diags.AddAttributeWarning(path.Root("replication_specs"),
+		"Spec changes are ignored while use_effective_fields and auto-scaling remain enabled",
+		fmt.Sprintf("With use_effective_fields = true and auto-scaling remaining enabled, Atlas ignores changes to the following attributes, although Terraform stores their new values in state:\n\n- %s\n\n"+
+			"To apply these changes, disable auto-scaling and apply the desired values, then re-enable auto-scaling in a separate apply. "+
+			"See: https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#manually-updating-specs-with-use_effective_fields",
+			strings.Join(ignoredPaths, "\n- ")))
+}
+
+// A changed or unknown name/project_id requires replacement, which uses the requested specs.
+func sameClusterIdentity(state, plan *TFModel) bool {
+	return state.ProjectID.Equal(plan.ProjectID) && state.Name.Equal(plan.Name)
+}
+
+func singleReplicationSpecRegions(ctx context.Context, specs types.List) []attr.Value {
+	if len(specs.Elements()) != 1 {
+		return nil
+	}
+	spec := TFModelObject[TFReplicationSpecsModel](ctx, specs.Elements()[0].(types.Object))
+	if spec == nil {
+		return nil
+	}
+	return spec.RegionConfigs.Elements()
+}
+
+// unchangedAutoScaling returns enabled flags only when neither flag is toggled; Atlas applies requested specs when either is toggled.
+func unchangedAutoScaling(state, plan, config types.Object) (computeEnabled, diskEnabled bool) {
+	if !isKnown(state) || !isKnown(plan) {
+		return false, false
+	}
+	compute, computeUnchanged := unchangedAutoScalingFlag(state, plan, config, "compute_enabled")
+	disk, diskUnchanged := unchangedAutoScalingFlag(state, plan, config, "disk_gb_enabled")
+	if !computeUnchanged || !diskUnchanged {
+		return false, false
+	}
+	return compute, disk
+}
+
+// unchangedAutoScalingFlag returns whether an auto-scaling flag is enabled and was not toggled. A known plan value that
+// differs from state is a toggle. An unknown plan value does not necessarily mean the flag is unconfigured: it can also
+// come from an unresolved expression. It is treated as unchanged (using the state value) only when the flag is omitted
+// from the config; when the config value itself is unknown the toggle cannot be determined, so no warning is emitted.
+func unchangedAutoScalingFlag(state, plan, config types.Object, field string) (enabled, unchanged bool) {
+	before, after := state.Attributes()[field], plan.Attributes()[field]
+	if before.IsUnknown() {
+		return false, false
+	}
+	if after.IsUnknown() {
+		if isKnown(config) && config.Attributes()[field].IsUnknown() {
+			return false, false
+		}
+		return before.(types.Bool).ValueBool(), true
+	}
+	if !before.Equal(after) {
+		return false, false
+	}
+	return before.(types.Bool).ValueBool(), true
+}
+
+// configObject reads a nested object from the config, returning a null object when it is not present.
+func configObject(ctx context.Context, config tfsdk.Config, p path.Path) types.Object {
+	var obj types.Object
+	if d := config.GetAttribute(ctx, p, &obj); d.HasError() {
+		return types.ObjectNull(nil)
+	}
+	return obj
+}
+
+func changedSpecPaths(ctx context.Context, config tfsdk.Config, specsPath path.Path, state, plan types.Object, fields ...string) []string {
+	if !isKnown(state) || !isKnown(plan) {
+		return nil
+	}
+	configuredObj := configObject(ctx, config, specsPath)
+	if !isKnown(configuredObj) {
+		return nil
+	}
+	before, after, configured := state.Attributes(), plan.Attributes(), configuredObj.Attributes()
+	var ignored []string
+	for _, field := range fields {
+		if !isKnown(configured[field]) || before[field].IsUnknown() || !isKnown(after[field]) || before[field].Equal(after[field]) {
+			continue
+		}
+		if field == "instance_size" && after[field].(types.String).ValueString() == "AUTO" {
+			continue
+		}
+		ignored = append(ignored, specsPath.AtName(field).String())
+	}
+	return ignored
+}

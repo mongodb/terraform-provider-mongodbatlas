@@ -12,6 +12,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -166,8 +167,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
-	_, err := connV2.ProjectsAPI.DeleteGroupInvite(ctx, projectID, invitationID).Execute()
-	if err != nil {
+	httpResp, err := connV2.ProjectsAPI.DeleteGroupInvite(ctx, projectID, invitationID).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.FromErr(fmt.Errorf("error deleting Project invitation for user %s: %w", username, err))
 	}
 	return nil

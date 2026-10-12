@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -244,8 +245,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	indexID := ids["index_id"]
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	_, err := connV2.AtlasSearchAPI.DeleteClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
-	if err != nil {
+	httpResp, err := connV2.AtlasSearchAPI.DeleteClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 		return diag.Errorf("error deleting search index (%s): %s", d.Get("name").(string), err)
 	}
 

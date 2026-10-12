@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/concurrency"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
@@ -229,9 +230,9 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			}
 
 			customDBRoleMutex.Lock(projectID)
-			_, err = connV2.CustomDatabaseRolesAPI.DeleteCustomDbRole(ctx, projectID, roleName).Execute()
+			httpResp, err := connV2.CustomDatabaseRolesAPI.DeleteCustomDbRole(ctx, projectID, roleName).Execute()
 			customDBRoleMutex.Unlock(projectID)
-			if err != nil {
+			if err != nil && !deletenotfound.IsNotFound(ctx, httpResp, err) {
 				return nil, "failed", fmt.Errorf("error deleting custom db role (%s): %s", roleName, err)
 			}
 
