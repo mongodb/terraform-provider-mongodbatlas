@@ -64,6 +64,10 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			"auto_copy_settings_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"copy_policy_items_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -428,6 +432,10 @@ func setSchemaFields(d *schema.ResourceData, backupSchedule *admin.DiskBackupSna
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
 	}
 
+	if err := d.Set("auto_copy_settings_enabled", backupSchedule.GetAutoCopySettingsEnabled()); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_copy_settings_enabled", clusterName, err)
+	}
+
 	if err := d.Set("copy_policy_items_enabled", backupSchedule.GetCopyPolicyItemsEnabled()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_policy_items_enabled", clusterName, err)
 	}
@@ -562,6 +570,10 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		req.AutoExportEnabled = new(v.ValueBool())
 	}
 
+	if v := sdkv2config.Bool(d, "auto_copy_settings_enabled"); v.SetOrRemoved() {
+		req.AutoCopySettingsEnabled = new(v.ValueBool())
+	}
+
 	if v := sdkv2config.Bool(d, "copy_policy_items_enabled"); v.SetOrRemoved() {
 		req.CopyPolicyItemsEnabled = new(v.ValueBool())
 	}
@@ -618,7 +630,10 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 // still returns the pre-plan entry; raw config is the apply-time source of truth for delete-on-omit.
 func copySettingsForUpdate(d *schema.ResourceData) ([]any, bool) {
 	if sdkv2config.CollectionEmpty(d, "copy_settings") {
-		return []any{}, true
+		if shouldForceEmptyCopySettings(sdkv2config.Bool(d, "auto_copy_settings_enabled").ValueBool(), true) {
+			return []any{}, true
+		}
+		return nil, false
 	}
 	if d.HasChange("copy_settings") || d.HasChange("copy_settings.#") {
 		_, newVal := d.GetChange("copy_settings")

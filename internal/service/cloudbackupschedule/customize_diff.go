@@ -11,11 +11,12 @@ import (
 )
 
 const (
-	errCopySettingsModes      = "copy_settings entry must set only one of frequencies, copy_policy_items, or last_number_of_snapshots"
-	errCopyPolicyRequiresFlag = "copy_policy_items and last_number_of_snapshots require copy_policy_items_enabled to be true"
-	errFrequenciesWithFlag    = "frequencies cannot be set when copy_policy_items_enabled is true"
-	errDeleteCopyRequiresFlag = "delete_copy_snapshots requires copy_policy_items_enabled to be true"
-	errUpdateCopyRequiresFlag = "update_copy_snapshots requires copy_policy_items_enabled to be true"
+	errCopySettingsModes        = "copy_settings entry must set only one of frequencies, copy_policy_items, or last_number_of_snapshots"
+	errCopyPolicyRequiresFlag   = "copy_policy_items and last_number_of_snapshots require copy_policy_items_enabled to be true"
+	errFrequenciesWithFlag      = "frequencies cannot be set when copy_policy_items_enabled is true"
+	errDeleteCopyRequiresFlag   = "delete_copy_snapshots requires copy_policy_items_enabled to be true"
+	errUpdateCopyRequiresFlag   = "update_copy_snapshots requires copy_policy_items_enabled to be true"
+	errAutoCopyWithCopySettings = "copy_settings cannot be set when auto_copy_settings_enabled is true"
 )
 
 // resourceCustomizeDiff rewrites copy_settings during plan because the list and nested
@@ -29,10 +30,21 @@ func resourceCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ any) err
 		return err
 	}
 	// Optional+Computed would keep last state when HCL omits copy_settings. Force an empty list so delete-on-omit stays.
+	// Skip force-empty when auto_copy_settings_enabled is true so Atlas-managed copies are not overwritten or deleted.
 	if sdkv2config.CollectionEmpty(d, "copy_settings") {
+		if v := sdkv2config.Bool(d, "auto_copy_settings_enabled"); v.Set() && v.ValueBool() {
+			return nil
+		}
 		return d.SetNew("copy_settings", []any{})
 	}
 	return clearFrequenciesWhenCopyPolicyEnabled(d)
+}
+
+// shouldForceEmptyCopySettings reports whether the plan or PATCH must send an empty copy_settings
+// list. Atlas owns the copy region list when auto_copy_settings_enabled is true, so the force-empty
+// delete-on-omit only applies while the flag is off.
+func shouldForceEmptyCopySettings(autoCopyEnabled, rawEmpty bool) bool {
+	return rawEmpty && !autoCopyEnabled
 }
 
 func clearFrequenciesWhenCopyPolicyEnabled(d *schema.ResourceDiff) error {
@@ -68,6 +80,11 @@ func copySettingsWithEmptyFrequencies(copySettings []any) ([]any, bool) {
 }
 
 func validateCopySettingsModes(d *schema.ResourceDiff) error {
+	// Raw config only: a copy_settings block present in prior state but omitted in HCL must not trip this.
+	if sdkv2config.Bool(d, "auto_copy_settings_enabled").ValueBool() && !sdkv2config.CollectionEmpty(d, "copy_settings") {
+		return errors.New(errAutoCopyWithCopySettings)
+	}
+
 	enabled, _ := d.Get("copy_policy_items_enabled").(bool)
 	updateCopy, _ := d.Get("update_copy_snapshots").(bool)
 	deleteCopy, _ := d.Get("delete_copy_snapshots").(bool)
