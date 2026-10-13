@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_maintenance_window: Fixes `protected_hours` with `start_hour_of_day` or `end_hour_of_day` set to `0` being rejected by the API
+```

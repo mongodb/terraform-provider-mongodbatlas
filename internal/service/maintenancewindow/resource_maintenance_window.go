@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -152,9 +151,11 @@ func newProtectedHours(d *schema.ResourceData) *admin.ProtectedHours {
 	if protectedHours, ok := d.Get("protected_hours").([]any); ok && len(protectedHours) > 0 {
 		item := protectedHours[0].(map[string]any)
 
+		// Both fields are Required, so hour 0 (midnight) is a valid value and must be
+		// sent, not treated as unset.
 		return &admin.ProtectedHours{
-			EndHourOfDay:   conversion.IntPtr(item["end_hour_of_day"].(int)),
-			StartHourOfDay: conversion.IntPtr(item["start_hour_of_day"].(int)),
+			EndHourOfDay:   new(item["end_hour_of_day"].(int)),
+			StartHourOfDay: new(item["start_hour_of_day"].(int)),
 		}
 	}
 
