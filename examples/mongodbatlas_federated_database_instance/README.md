@@ -10,5 +10,5 @@ For product documentation, see [Atlas Data Federation](https://www.mongodb.com/d
 
 - [`aws/`](aws/README.md) - maps an S3 bucket and an Atlas cluster as data stores, and creates the IAM role and policy that Atlas assumes.
 - [`azure/`](azure/README.md) - configures the Azure cloud provider role for the instance.
-- [`gcp/`](gcp/README.md) - configures the Google Cloud provider role for the instance.
+- [`gcp/`](gcp/README.md) - creates a Cloud Storage bucket, grants the Atlas service account read access to it, and configures the Google Cloud provider role for the instance.
 - [`private-endpoint/`](private-endpoint/README.md) - an AWS VPC and private endpoint for the instance.
