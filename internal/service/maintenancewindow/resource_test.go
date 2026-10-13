@@ -71,6 +71,41 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSMaintenanceWindow_protectedHoursMidnight(t *testing.T) {
+	var (
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName()
+		dayOfWeek      = 4
+		hourOfDay      = 7
+		midnightHours  = &admin.ProtectedHours{StartHourOfDay: new(12), EndHourOfDay: new(0)}
+		midnightHours2 = &admin.ProtectedHours{StartHourOfDay: new(0), EndHourOfDay: new(18)}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				// end_hour_of_day = 0 (midnight) is valid for the API and must be sent
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay, midnightHours),
+				Check:  checkBasic(dayOfWeek, hourOfDay, midnightHours),
+			},
+			{
+				// start_hour_of_day = 0 is also valid
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay, midnightHours2),
+				Check:  checkBasic(dayOfWeek, hourOfDay, midnightHours2),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccConfigRSMaintenanceWindow_autoDeferActivated(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
