@@ -1,9 +1,5 @@
 ## (Unreleased)
 
-NOTES:
-
-* provider: Signs releases with a new RSA GPG key, replacing the previous DSA key that caused `terraform init` to panic on FIPS 140 builds ([#4804](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4804))
-
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_alert_configuration: Adds `notification.webhook_body_template` and `notification.webhook_headers_template` attributes ([#4773](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4773))
