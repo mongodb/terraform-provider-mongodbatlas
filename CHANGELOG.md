@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.20.0 (October 14, 2026)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_alert_configuration: Adds `notification.webhook_body_template` and `notification.webhook_headers_template` attributes ([#4773](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4773))
