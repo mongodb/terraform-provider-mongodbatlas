@@ -1,0 +1,3 @@
+```release-note:note
+provider: Signs releases with a new RSA GPG key starting with v2.20.0. The previous DSA key caused `terraform init` to panic on FIPS 140 builds.
+```
