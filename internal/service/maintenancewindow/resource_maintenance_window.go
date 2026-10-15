@@ -205,7 +205,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	// Set an empty list when the API returns no protected hours, otherwise a loss
 	// in Atlas would never show up as drift in plans.
-	protectedHours := make([]map[string]int, 0)
+	var protectedHours []map[string]int
 	if maintenanceWindow.ProtectedHours != nil {
 		protectedHours = flattenProtectedHours(maintenanceWindow.GetProtectedHours())
 	}
