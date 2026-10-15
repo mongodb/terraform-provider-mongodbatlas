@@ -208,7 +208,6 @@ func checkDestroy(baseline *rateLimitValues) resource.TestCheckFunc {
 	}
 }
 
-// rateLimitExists checks if a rate limit exists.
 func rateLimitExists(rs *terraform.ResourceState) bool {
 	_, err := getRateLimit(
 		rs.Primary.Attributes["project_id"],

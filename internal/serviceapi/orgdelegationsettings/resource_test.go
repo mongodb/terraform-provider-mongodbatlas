@@ -186,9 +186,8 @@ func updateDelegationSettings(orgID string, settings *admin.OrgDelegationSetting
 	return err
 }
 
-// delegationSettingsUpdateRequest maps the captured settings back to an update request.
-// Fields that were unset are sent as an explicit null so the baseline is fully restored,
-// matching the resource's send_null_as_null_on_update behavior for the token lifetimes.
+// delegationSettingsUpdateRequest restores the captured baseline, sending an explicit
+// null for unset fields to match the resource's send_null_as_null_on_update behavior.
 func delegationSettingsUpdateRequest(settings *admin.OrgDelegationSettingsResponse) *admin.OrgDelegationSettingsUpdateRequest {
 	req := &admin.OrgDelegationSettingsUpdateRequest{
 		DelegatedMcpAccess:          settings.DelegatedMcpAccess,
