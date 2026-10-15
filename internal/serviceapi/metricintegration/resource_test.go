@@ -3,7 +3,6 @@ package metricintegration_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 )
@@ -342,7 +342,7 @@ func checkDestroy(state *terraform.State) error {
 		if err == nil {
 			return fmt.Errorf("metric integration for project_id %s with id %s still exists", projectID, integrationID)
 		}
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if validate.StatusNotFound(resp) {
 			return nil
 		}
 		return fmt.Errorf("checkDestroy, unexpected error for project_id %s with id %s: %w", projectID, integrationID, err)
