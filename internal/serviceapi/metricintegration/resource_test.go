@@ -3,6 +3,7 @@ package metricintegration_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -337,9 +338,14 @@ func checkDestroy(state *terraform.State) error {
 		if projectID == "" || integrationID == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		if _, _, err := acc.ConnV2().MetricIntegrationsAPI.GetGroupMetricIntegration(context.Background(), projectID, integrationID).Execute(); err == nil {
+		_, resp, err := acc.ConnV2().MetricIntegrationsAPI.GetGroupMetricIntegration(context.Background(), projectID, integrationID).Execute()
+		if err == nil {
 			return fmt.Errorf("metric integration for project_id %s with id %s still exists", projectID, integrationID)
 		}
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			return nil
+		}
+		return fmt.Errorf("checkDestroy, unexpected error for project_id %s with id %s: %w", projectID, integrationID, err)
 	}
 	return nil
 }
