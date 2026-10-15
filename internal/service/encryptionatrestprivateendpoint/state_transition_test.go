@@ -85,6 +85,15 @@ func TestDeleteStateTransition(t *testing.T) {
 			},
 			expectedError: false,
 		},
+		"Successful transitioning from pre-delete states to deleted": {
+			mockResponses: []response{
+				{state: conversion.StringPtr(retrystrategy.RetryStrategyInitiatingState)},
+				{state: conversion.StringPtr(retrystrategy.RetryStrategyPendingAcceptanceState)},
+				{state: conversion.StringPtr(retrystrategy.RetryStrategyDeletingState)},
+				{statusCode: admin.PtrInt(http.StatusNotFound), err: errors.New("does not exist")},
+			},
+			expectedError: false,
+		},
 		"Return model without error when transitioning to FAILED state": {
 			mockResponses: []response{
 				{state: conversion.StringPtr(retrystrategy.RetryStrategyDeletingState)},

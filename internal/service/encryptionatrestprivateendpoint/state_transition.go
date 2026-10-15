@@ -34,9 +34,15 @@ func WaitDeleteStateTransition(ctx context.Context, projectID, cloudProvider, en
 }
 
 func WaitDeleteStateTransitionWithMinTimeoutAndTimeout(ctx context.Context, minTimeout, timeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementAPI) (*admin.EARPrivateEndpoint, error) {
+	// A delete request can be observed while the endpoint still reports a pre-delete
+	// state (INITIATING or PENDING_ACCEPTANCE), before Atlas moves it to DELETING.
 	return waitStateTransitionForStates(
 		ctx,
-		[]string{retrystrategy.RetryStrategyDeletingState},
+		[]string{
+			retrystrategy.RetryStrategyInitiatingState,
+			retrystrategy.RetryStrategyPendingAcceptanceState,
+			retrystrategy.RetryStrategyDeletingState,
+		},
 		[]string{retrystrategy.RetryStrategyDeletedState, retrystrategy.RetryStrategyFailedState},
 		minTimeout, timeout, projectID, cloudProvider, endpointID, client)
 }

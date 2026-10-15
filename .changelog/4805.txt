@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_encryption_at_rest_private_endpoint: Fixes delete failing with `unexpected state 'PENDING_ACCEPTANCE'` when the endpoint has not been approved yet
+```
