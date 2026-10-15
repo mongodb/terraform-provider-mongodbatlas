@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -177,8 +178,13 @@ func checkDestroy(s *terraform.State) error {
 			errs = append(errs, fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName))
 			continue
 		}
-		if _, _, err := acc.ConnV2().RemoteMCPConfigurationsAPI.GetGroupMcpSecret(context.Background(), projectID, mcpConfigID, secretID).Execute(); err == nil {
+		_, resp, err := acc.ConnV2().RemoteMCPConfigurationsAPI.GetGroupMcpSecret(context.Background(), projectID, mcpConfigID, secretID).Execute()
+		if err == nil {
 			errs = append(errs, fmt.Errorf("mcp config secret (%s/%s/%s) still exists", projectID, mcpConfigID, secretID))
+			continue
+		}
+		if !validate.StatusNotFound(resp) {
+			errs = append(errs, fmt.Errorf("checkDestroy, could not confirm deletion of mcp config secret (%s/%s/%s): %w", projectID, mcpConfigID, secretID, err))
 		}
 	}
 	return errors.Join(errs...)
