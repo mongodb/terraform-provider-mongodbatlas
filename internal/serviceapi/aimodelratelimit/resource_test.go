@@ -153,8 +153,14 @@ func checkBasic() resource.TestCheckFunc {
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs := s.RootModule().Resources[resourceName]
-		if !rateLimitExists(rs) {
-			return fmt.Errorf("rate limit (%s) does not exist", rs.Primary.ID)
+		_, err := getRateLimit(
+			rs.Primary.Attributes["project_id"],
+			rs.Primary.Attributes["cloud"],
+			rs.Primary.Attributes["geography"],
+			rs.Primary.Attributes["model_group_name"],
+		)
+		if err != nil {
+			return fmt.Errorf("rate limit (%s) does not exist: %w", rs.Primary.ID, err)
 		}
 		return nil
 	}
@@ -206,14 +212,4 @@ func checkDestroy(baseline *rateLimitValues) resource.TestCheckFunc {
 		}
 		return nil
 	}
-}
-
-func rateLimitExists(rs *terraform.ResourceState) bool {
-	_, err := getRateLimit(
-		rs.Primary.Attributes["project_id"],
-		rs.Primary.Attributes["cloud"],
-		rs.Primary.Attributes["geography"],
-		rs.Primary.Attributes["model_group_name"],
-	)
-	return err == nil
 }
