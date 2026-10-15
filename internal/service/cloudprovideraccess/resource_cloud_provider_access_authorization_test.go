@@ -121,7 +121,7 @@ func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
 
 func configAuthorizationAWS(projectID, policyName, roleName, federatedDatabaseInstanceName, testS3Bucket string) string {
 	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
-	return fmt.Sprintf(`
+	return acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
 
 resource "mongodbatlas_federated_database_instance" "test" {
 	project_id         = %[1]q

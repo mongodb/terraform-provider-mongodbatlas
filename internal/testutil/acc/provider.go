@@ -13,6 +13,13 @@ const azapiProviderVersion = "1.15.0"
 const confluentProviderVersion = "2.12.0"
 const googleProviderVersion = "7.0.0"
 
+// Cloud Tag Policy: resources created by acceptance tests must carry
+// mongodb-owner and mongodb-env tags
+const (
+	tagOwnerEnvVar = "MONGODB_TAG_OWNER"
+	tagEnvEnvVar   = "MONGODB_TAG_ENV"
+)
+
 func ExternalProviders(versionAtlasProvider string) map[string]resource.ExternalProvider {
 	return map[string]resource.ExternalProvider{
 		"mongodbatlas": *providerAtlas(versionAtlasProvider),
@@ -152,6 +159,37 @@ func ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID stri
 			tenant_id       = %[4]q
 		}
 	`, subscriptionID, clientID, clientSecret, tenantID)
+}
+
+func ConfigDefaultTags() string {
+	return fmt.Sprintf(`
+		default_tags {
+			tags = {
+				"mongodb-owner" = %[1]q
+				"mongodb-env"   = %[2]q
+			}
+		}
+	`, tagValue(tagOwnerEnvVar), tagValue(tagEnvEnvVar))
+}
+
+func ConfigAWSProviderWithTags() string {
+	return fmt.Sprintf(`
+		provider "aws" {
+			%[1]s
+		}
+	`, ConfigDefaultTags())
+}
+
+// tagValue reads the tag value from envVar. Without TF_ACC, configs are never applied,
+// so a placeholder value is returned instead of failing.
+func tagValue(envVar string) string {
+	if v := os.Getenv(envVar); v != "" {
+		return v
+	}
+	if os.Getenv("TF_ACC") == "" {
+		return "unused"
+	}
+	panic(fmt.Sprintf("%s must be set", envVar))
 }
 
 func ConfigConfluentProvider() string {

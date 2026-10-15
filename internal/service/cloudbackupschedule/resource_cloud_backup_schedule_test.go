@@ -1221,7 +1221,7 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketNam
 			frequency_type   = "monthly"
 		}`
 	}
-	return info.TerraformStr + fmt.Sprintf(`
+	return info.TerraformStr + acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
     resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
         cluster_name             = %[1]s
         project_id               = %[2]q

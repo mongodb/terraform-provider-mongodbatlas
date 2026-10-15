@@ -77,7 +77,7 @@ func checkAttributes(dataFederatedInstance *admin.DataLakeTenant, name string) r
 func configDSWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket string) string {
 	stepConfig := configDSFirstStepS3Bucket(name, testS3Bucket)
 	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
-	return fmt.Sprintf(`
+	return acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
   role = aws_iam_role.test_role.id
