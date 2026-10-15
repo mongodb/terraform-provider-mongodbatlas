@@ -203,10 +203,14 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
+	// Set an empty list when the API returns no protected hours, otherwise a loss
+	// in Atlas would never show up as drift in plans.
+	protectedHours := make([]map[string]int, 0)
 	if maintenanceWindow.ProtectedHours != nil {
-		if err := d.Set("protected_hours", flattenProtectedHours(maintenanceWindow.GetProtectedHours())); err != nil {
-			return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
-		}
+		protectedHours = flattenProtectedHours(maintenanceWindow.GetProtectedHours())
+	}
+	if err := d.Set("protected_hours", protectedHours); err != nil {
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
 	if err := d.Set("wave_assignment", maintenanceWindow.GetWaveAssignment()); err != nil {
