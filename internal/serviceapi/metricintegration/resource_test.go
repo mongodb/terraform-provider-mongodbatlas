@@ -3,7 +3,6 @@ package metricintegration_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 )
@@ -322,15 +322,10 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
 
-		resp, err := acc.GetMetricIntegration(context.Background(), projectID, integrationID)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode == http.StatusOK {
+		if _, _, err := acc.ConnV2().MetricIntegrationsAPI.GetGroupMetricIntegration(context.Background(), projectID, integrationID).Execute(); err == nil {
 			return nil
 		}
-		return fmt.Errorf("metric integration for project_id %s with id %s does not exist, status %d", projectID, integrationID, resp.StatusCode)
+		return fmt.Errorf("metric integration for project_id %s with id %s does not exist", projectID, integrationID)
 	}
 }
 func checkDestroy(state *terraform.State) error {
@@ -343,18 +338,14 @@ func checkDestroy(state *terraform.State) error {
 		if projectID == "" || integrationID == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		resp, err := acc.GetMetricIntegration(context.Background(), projectID, integrationID)
-		if err != nil {
-			return err
-		}
-		resp.Body.Close()
-		if resp.StatusCode == http.StatusNotFound {
-			return nil
-		}
-		if resp.StatusCode == http.StatusOK {
+		_, resp, err := acc.ConnV2().MetricIntegrationsAPI.GetGroupMetricIntegration(context.Background(), projectID, integrationID).Execute()
+		if err == nil {
 			return fmt.Errorf("metric integration for project_id %s with id %s still exists", projectID, integrationID)
 		}
-		return fmt.Errorf("checkDestroy, unexpected status %d for project_id %s with id %s", resp.StatusCode, projectID, integrationID)
+		if validate.StatusNotFound(resp) {
+			return nil
+		}
+		return fmt.Errorf("checkDestroy, unexpected error for project_id %s with id %s: %w", projectID, integrationID, err)
 	}
 	return nil
 }

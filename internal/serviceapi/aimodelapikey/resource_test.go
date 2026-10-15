@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -117,8 +117,8 @@ func checkBasic() resource.TestCheckFunc {
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs := s.RootModule().Resources[resourceName]
-		if !apiKeyExists(rs) {
-			return fmt.Errorf("api key (%s) does not exist", rs.Primary.ID)
+		if _, _, err := acc.ConnV2().AIModelAPIKeysAPI.GetGroupModelKey(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["api_key_id"]).Execute(); err != nil {
+			return fmt.Errorf("api key (%s) does not exist: %w", rs.Primary.ID, err)
 		}
 		return nil
 	}
@@ -129,9 +129,14 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != resourceType {
 			continue
 		}
-		if apiKeyExists(rs) {
+		_, resp, err := acc.ConnV2().AIModelAPIKeysAPI.GetGroupModelKey(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["api_key_id"]).Execute()
+		if err == nil {
 			return fmt.Errorf("api key (%s) still exists", rs.Primary.ID)
 		}
+		if validate.StatusNotFound(resp) {
+			continue
+		}
+		return fmt.Errorf("checkDestroy, could not confirm deletion of api key %s: %w", rs.Primary.ID, err)
 	}
 	return nil
 }
@@ -141,21 +146,4 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		rs := s.RootModule().Resources[resourceName]
 		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["api_key_id"]), nil
 	}
-}
-
-func apiKeyExists(rs *terraform.ResourceState) bool {
-	callParams := config.APICallParams{
-		VersionHeader: "application/vnd.atlas.2025-03-12+json",
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiKeys/{apiKeyId}",
-		PathParams: map[string]string{
-			"projectId": rs.Primary.Attributes["project_id"],
-			"apiKeyId":  rs.Primary.Attributes["api_key_id"],
-		},
-		Method: "GET",
-	}
-	resp, err := acc.MongoDBClient.UntypedAPICall(context.Background(), callParams, nil)
-	if resp != nil {
-		resp.Body.Close()
-	}
-	return err == nil
 }

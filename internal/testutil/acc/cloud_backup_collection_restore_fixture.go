@@ -2,10 +2,7 @@ package acc
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"sync"
 	"sync/atomic"
@@ -14,13 +11,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20250312026/admin"
 )
 
 const (
-	CollectionRestoreAPIVersion          = "application/vnd.atlas.2025-03-12+json"
 	CollectionRestoreSeedDatabase        = "sample_mflix"
 	CollectionRestoreSeedDatabaseRenamed = "sample_mflix_renamed"
 	CollectionRestoreSeedRestaurantsNS   = "sample_restaurants.restaurants"
@@ -206,83 +201,33 @@ func waitForCompletedSnapshot(ctx context.Context, projectID, clusterName, snaps
 	return snapshot, nil
 }
 
-type collectionRestoreJobView struct {
-	ID                string `json:"id"`
-	State             string `json:"state"`
-	TargetClusterName string `json:"targetClusterName"`
-}
-
-type collectionRestoreJobList struct {
-	Results []collectionRestoreJobView `json:"results"`
-}
-
-func collectionRestoreJobCall(projectID, clusterName, jobID string) config.APICallParams {
-	pathParams := map[string]string{
-		"projectId":   projectID,
-		"clusterName": clusterName,
-	}
-	relativePath := "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/collectionRestoreJobs"
-	if jobID != "" {
-		pathParams["jobId"] = jobID
-		relativePath += "/{jobId}"
-	}
-	return config.APICallParams{
-		VersionHeader: CollectionRestoreAPIVersion,
-		RelativePath:  relativePath,
-		PathParams:    pathParams,
-		Method:        http.MethodGet,
-	}
-}
-
-func closeOnAPIErr(resp *http.Response, err error) error {
-	if err != nil && resp != nil && resp.Body != nil {
-		_ = resp.Body.Close()
-	}
-	return err
-}
-
-func readJSONBody(resp *http.Response, dest any) error {
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
+// GetCollectionRestoreJob returns one collection restore job.
+func GetCollectionRestoreJob(ctx context.Context, projectID, clusterName, jobID string) (*admin.ApiAtlasCollectionRestoreJobResponse, error) {
+	job, _, err := ConnV2().CloudBackupsAPI.GetCollectionRestoreJob(ctx, projectID, clusterName, jobID).Execute()
 	if err != nil {
-		return err
-	}
-	return json.Unmarshal(body, dest)
-}
-
-// GetCollectionRestoreJob GETs one job via the untyped client and the resource version header.
-func GetCollectionRestoreJob(ctx context.Context, projectID, clusterName, jobID string) (map[string]any, error) {
-	resp, err := MongoDBClient.UntypedAPICall(ctx, collectionRestoreJobCall(projectID, clusterName, jobID), nil)
-	if err := closeOnAPIErr(resp, err); err != nil {
 		return nil, err
 	}
-	var body map[string]any
-	if err := readJSONBody(resp, &body); err != nil {
-		return nil, err
-	}
-	return body, nil
+	return job, nil
 }
 
 // LatestCollectionRestoreJobID returns the newest job on the source cluster whose target matches destClusterName.
 func LatestCollectionRestoreJobID(ctx context.Context, projectID, clusterName, destClusterName string) (string, error) {
-	resp, err := MongoDBClient.UntypedAPICall(ctx, collectionRestoreJobCall(projectID, clusterName, ""), nil)
-	if err := closeOnAPIErr(resp, err); err != nil {
-		return "", err
-	}
-	var list collectionRestoreJobList
-	if err := readJSONBody(resp, &list); err != nil {
+	list, _, err := ConnV2().CloudBackupsAPI.ListCollectionRestoreJobs(ctx, projectID, clusterName).Execute()
+	if err != nil {
 		return "", err
 	}
 	fallback := ""
-	for _, job := range list.Results {
-		if job.TargetClusterName != destClusterName || job.ID == "" {
+	results := list.GetResults()
+	for i := range results {
+		job := &results[i]
+		if job.GetTargetClusterName() != destClusterName || job.GetId() == "" {
 			continue
 		}
-		switch job.State {
+		switch job.GetState() {
 		case "INITIALIZING", "IN_PROGRESS", "FINALIZING":
-			return job.ID, nil
+			return job.GetId(), nil
 		default:
-			fallback = job.ID
+			fallback = job.GetId()
 		}
 	}
 	if fallback != "" {
@@ -300,15 +245,15 @@ func WaitCollectionRestoreJobState(ctx context.Context, projectID, clusterName, 
 		MinTimeout: 1 * time.Minute,
 		Delay:      30 * time.Second,
 		Refresh: func() (any, string, error) {
-			body, err := GetCollectionRestoreJob(ctx, projectID, clusterName, jobID)
+			job, err := GetCollectionRestoreJob(ctx, projectID, clusterName, jobID)
 			if err != nil {
 				return nil, "", err
 			}
-			state, _ := body["state"].(string)
+			state := job.GetState()
 			if (state == "FAILED" || state == "CANCELED") && state != wantState {
-				return body, state, fmt.Errorf("collection restore job %s ended with state %s", jobID, state)
+				return job, state, fmt.Errorf("collection restore job %s ended with state %s", jobID, state)
 			}
-			return body, state, nil
+			return job, state, nil
 		},
 	}
 	_, err := stateConf.WaitForStateContext(ctx)
