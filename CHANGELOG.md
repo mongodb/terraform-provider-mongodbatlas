@@ -4,6 +4,10 @@ NOTES:
 
 * provider: Signs releases with a new RSA GPG key, replacing the previous DSA key that caused `terraform init` to panic on FIPS 140 builds ([#4809](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4809))
 
+BUG FIXES:
+
+* resource/mongodbatlas_encryption_at_rest_private_endpoint: Fixes delete failing with `unexpected state 'PENDING_ACCEPTANCE'` when the endpoint has not been approved yet ([#4805](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4805))
+
 ## 2.20.0 (October 14, 2026)
 
 ENHANCEMENTS:
