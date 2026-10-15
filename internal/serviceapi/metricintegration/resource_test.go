@@ -3,7 +3,6 @@ package metricintegration_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -322,15 +321,10 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
 
-		resp, err := acc.GetMetricIntegration(context.Background(), projectID, integrationID)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode == http.StatusOK {
+		if _, _, err := acc.ConnV2().MetricIntegrationsAPI.GetGroupMetricIntegration(context.Background(), projectID, integrationID).Execute(); err == nil {
 			return nil
 		}
-		return fmt.Errorf("metric integration for project_id %s with id %s does not exist, status %d", projectID, integrationID, resp.StatusCode)
+		return fmt.Errorf("metric integration for project_id %s with id %s does not exist", projectID, integrationID)
 	}
 }
 func checkDestroy(state *terraform.State) error {
@@ -343,18 +337,9 @@ func checkDestroy(state *terraform.State) error {
 		if projectID == "" || integrationID == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		resp, err := acc.GetMetricIntegration(context.Background(), projectID, integrationID)
-		if err != nil {
-			return err
-		}
-		resp.Body.Close()
-		if resp.StatusCode == http.StatusNotFound {
-			return nil
-		}
-		if resp.StatusCode == http.StatusOK {
+		if _, _, err := acc.ConnV2().MetricIntegrationsAPI.GetGroupMetricIntegration(context.Background(), projectID, integrationID).Execute(); err == nil {
 			return fmt.Errorf("metric integration for project_id %s with id %s still exists", projectID, integrationID)
 		}
-		return fmt.Errorf("checkDestroy, unexpected status %d for project_id %s with id %s", resp.StatusCode, projectID, integrationID)
 	}
 	return nil
 }

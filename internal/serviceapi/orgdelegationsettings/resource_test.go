@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"go.mongodb.org/atlas-sdk/v20250312026/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -181,24 +182,21 @@ type delegationSettings struct {
 	MaximumRefreshTokenLifetime *int64  `json:"maximumRefreshTokenLifetime"`
 }
 
-func getDelegationSettings(orgID string) (*delegationSettings, error) {
-	resp, err := delegationSettingsAPICall(orgID, http.MethodGet, nil)
+func getDelegationSettings(orgID string) (*admin.OrgDelegationSettingsResponse, error) {
+	resp, _, err := acc.ConnV2().OrganizationsAPI.GetOrgDelegationSettings(context.Background(), orgID).Execute()
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status %d fetching delegation settings for org %s", resp.StatusCode, orgID)
-	}
-	var result delegationSettings
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, err
-	}
-	return &result, nil
+	return resp, nil
 }
 
-func updateDelegationSettings(orgID string, settings *delegationSettings) error {
-	body, err := json.Marshal(settings)
+func updateDelegationSettings(orgID string, settings *admin.OrgDelegationSettingsResponse) error {
+	body, err := json.Marshal(delegationSettings{
+		DelegatedMcpAccess:          settings.DelegatedMcpAccess,
+		DelegatedPartnerAccess:      settings.DelegatedPartnerAccess,
+		IdleRefreshTokenLifetime:    settings.IdleRefreshTokenLifetime,
+		MaximumRefreshTokenLifetime: settings.MaximumRefreshTokenLifetime,
+	})
 	if err != nil {
 		return err
 	}

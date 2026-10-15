@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -144,18 +143,8 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 }
 
 func apiKeyExists(rs *terraform.ResourceState) bool {
-	callParams := config.APICallParams{
-		VersionHeader: "application/vnd.atlas.2025-03-12+json",
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiKeys/{apiKeyId}",
-		PathParams: map[string]string{
-			"projectId": rs.Primary.Attributes["project_id"],
-			"apiKeyId":  rs.Primary.Attributes["api_key_id"],
-		},
-		Method: "GET",
-	}
-	resp, err := acc.MongoDBClient.UntypedAPICall(context.Background(), callParams, nil)
-	if resp != nil {
-		resp.Body.Close()
-	}
+	projectID := rs.Primary.Attributes["project_id"]
+	apiKeyID := rs.Primary.Attributes["api_key_id"]
+	_, _, err := acc.ConnV2().AIModelAPIKeysAPI.GetGroupModelKey(context.Background(), projectID, apiKeyID).Execute()
 	return err == nil
 }

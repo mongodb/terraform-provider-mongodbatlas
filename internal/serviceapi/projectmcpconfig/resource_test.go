@@ -167,7 +167,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if projectID == "" || mcpConfigID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetGroupMcpConfig(context.Background(), projectID, mcpConfigID).Execute()
+		_, _, err := acc.ConnV2().RemoteMCPConfigurationsAPI.GetGroupMcpConfig(context.Background(), projectID, mcpConfigID).Execute()
 		if err == nil {
 			return nil
 		}
@@ -186,7 +186,7 @@ func checkDestroy(s *terraform.State) error {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
 
-		if _, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetGroupMcpConfig(context.Background(), projectID, mcpConfigID).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().RemoteMCPConfigurationsAPI.GetGroupMcpConfig(context.Background(), projectID, mcpConfigID).Execute(); err == nil {
 			return fmt.Errorf("mcp config (%s/%s) still exists", projectID, mcpConfigID)
 		}
 	}
