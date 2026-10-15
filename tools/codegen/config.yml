@@ -708,6 +708,8 @@ resources:
         start_asap: # "This flag resets to false after MongoDB Cloud completes maintenance."
           computability:
             computed: true
+        protected_hours: # PATCH keeps the existing protected hours when the field is omitted, so an explicit null is required to clear it when removed from the config.
+          request_body_usage: "send_null_as_null_on_update"
 
   # Singleton resource in org.
   # Create uses PATCH.
