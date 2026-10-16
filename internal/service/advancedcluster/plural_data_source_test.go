@@ -117,7 +117,7 @@ func TestPluralDataSourceEmptyProjectReturnsEmptyList(t *testing.T) {
 	storageConfigCredentials(t)
 	resource.UnitTest(t, resource.TestCase{
 		PreCheck:                 func() { require.NoError(t, unit.MockConfigAdvancedCluster.RunBeforeEach()) },
-		ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, emptyProjectHTTPMock{}),
+		ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, emptyClustersHTTPMock{}),
 		Steps: []resource.TestStep{{
 			Config: pluralDataSourceConfig,
 			ConfigStateChecks: []statecheck.StateCheck{
@@ -127,17 +127,17 @@ func TestPluralDataSourceEmptyProjectReturnsEmptyList(t *testing.T) {
 	})
 }
 
-// emptyProjectHTTPMock returns an empty cluster list for every request.
-type emptyProjectHTTPMock struct{}
+// emptyClustersHTTPMock returns an empty cluster list for every request.
+type emptyClustersHTTPMock struct{}
 
-func (emptyProjectHTTPMock) ModifyHTTPClient(c *http.Client) error {
-	c.Transport = emptyProjectHTTPMock{}
+func (emptyClustersHTTPMock) ModifyHTTPClient(c *http.Client) error {
+	c.Transport = emptyClustersHTTPMock{}
 	return nil
 }
 
-func (emptyProjectHTTPMock) ResetHTTPClient(*http.Client) {}
+func (emptyClustersHTTPMock) ResetHTTPClient(*http.Client) {}
 
-func (emptyProjectHTTPMock) RoundTrip(req *http.Request) (*http.Response, error) {
+func (emptyClustersHTTPMock) RoundTrip(req *http.Request) (*http.Response, error) {
 	return &http.Response{
 		StatusCode: http.StatusOK,
 		Header:     http.Header{"Content-Type": {"application/json"}},
