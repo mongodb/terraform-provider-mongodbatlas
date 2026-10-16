@@ -94,11 +94,11 @@ var (
 
 // logStreamConnectionOnFailure logs the project, workspace, and connection names
 // when a test fails, so the connection can be located in backend logs.
-func logStreamConnectionOnFailure(t *testing.T, projectID, workspaceName, connectionName string) {
+func logStreamConnectionOnFailure(t *testing.T, project, workspaceName, connectionName string) {
 	t.Helper()
 	t.Cleanup(func() {
 		if t.Failed() {
-			t.Logf("stream connection test failed: project_id=%s workspace_name=%s connection_name=%s", projectID, workspaceName, connectionName)
+			t.Logf("stream connection test failed: project=%s workspace_name=%s connection_name=%s", project, workspaceName, connectionName)
 		}
 	})
 }
@@ -242,24 +242,27 @@ func TestAccStreamRSStreamConnection_kafkaOAuthBearer(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		vpcID                   = os.Getenv("AWS_VPC_ID")
-		vpcCIDRBlock            = os.Getenv("AWS_VPC_CIDR_BLOCK")
-		awsAccountID            = os.Getenv("AWS_ACCOUNT_ID")
-		peerRegion              = os.Getenv("AWS_REGION")
-		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
-		providerName            = "AWS"
-		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
+		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName          = acc.RandomProjectName()
+		instanceName         = acc.RandomStreamInstanceName()
+		vpcID                = os.Getenv("AWS_VPC_ID")
+		vpcCIDRBlock         = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID         = os.Getenv("AWS_ACCOUNT_ID")
+		peerRegion           = os.Getenv("AWS_REGION")
+		containerRegion      = conversion.AWSRegionToMongoDBRegion(peerRegion)
+		providerName         = "AWS"
+		projectConfig        = configStreamProjectAWS(orgID, projectName, instanceName)
+		networkPeeringConfig = configNetworkPeeringAWS("mongodbatlas_project.test.id", providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
-	logStreamConnectionOnFailure(t, projectID, instanceName, "kafka-conn-vpc")
+	logStreamConnectionOnFailure(t, projectName, instanceName, "kafka-conn-vpc")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-vpc", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingVPC, true),
+				Config: projectConfig + networkPeeringConfig + configureKafkaInWorkspace("mongodbatlas_network_peering.test.project_id", "mongodbatlas_stream_workspace.test.workspace_name", "kafka-conn-vpc", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingVPC, true),
 				Check:  checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-vpc", "user", "rawpassword", "example.com:9092", "earliest", networkingTypeVPC, true, true),
 			},
 			{
@@ -282,7 +285,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		peerRegion              = os.Getenv("AWS_REGION")
 		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
 		providerName            = "AWS"
-		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
+		networkPeeringConfig    = configNetworkPeeringAWS(fmt.Sprintf("%q", projectID), providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
 	logStreamConnectionOnFailure(t, projectID, instanceName, "kafka-conn-ssl")
 	resource.ParallelTest(t, resource.TestCase{
@@ -337,27 +340,22 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t *testing.T) {
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		vpcID                   = os.Getenv("AWS_VPC_ID")
-		vpcCIDRBlock            = os.Getenv("AWS_VPC_CIDR_BLOCK")
-		awsAccountID            = os.Getenv("AWS_ACCOUNT_ID")
-		peerRegion              = os.Getenv("AWS_REGION")
-		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
-		providerName            = "AWS"
-		networkPeeringConfig    = configNetworkPeeringAWS(
-			projectID,
-			providerName,
-			vpcID,
-			awsAccountID,
-			vpcCIDRBlock,
-			containerRegion,
-			peerRegion,
-		)
-		connectionName = "kafka-conn-public-to-vpc"
+		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName          = acc.RandomProjectName()
+		instanceName         = acc.RandomStreamInstanceName()
+		vpcID                = os.Getenv("AWS_VPC_ID")
+		vpcCIDRBlock         = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID         = os.Getenv("AWS_ACCOUNT_ID")
+		peerRegion           = os.Getenv("AWS_REGION")
+		containerRegion      = conversion.AWSRegionToMongoDBRegion(peerRegion)
+		providerName         = "AWS"
+		projectConfig        = configStreamProjectAWS(orgID, projectName, instanceName)
+		networkPeeringConfig = configNetworkPeeringAWS("mongodbatlas_project.test.id", providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
+		connectionName       = "kafka-conn-public-to-vpc"
 	)
-	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
+	logStreamConnectionOnFailure(t, projectName, instanceName, connectionName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			acc.PreCheckBasic(t)
 			acc.PreCheckPeeringEnvAWS(t)
@@ -367,9 +365,9 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t
 		Steps: []resource.TestStep{
 			{
 				// Create the connection with PUBLIC networking.
-				Config: configureKafka(
-					fmt.Sprintf("%q", projectID),
-					instanceName,
+				Config: projectConfig + configureKafkaInWorkspace(
+					"mongodbatlas_project.test.id",
+					"mongodbatlas_stream_workspace.test.workspace_name",
 					connectionName,
 					getKafkaAuthenticationConfig(
 						"PLAIN",
@@ -403,9 +401,9 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t
 			{
 				// Changing networking from PUBLIC to VPC must replace
 				// the stream connection rather than update it in place.
-				Config: networkPeeringConfig + configureKafka(
+				Config: projectConfig + networkPeeringConfig + configureKafkaInWorkspace(
 					"mongodbatlas_network_peering.test.project_id",
-					instanceName,
+					"mongodbatlas_stream_workspace.test.workspace_name",
 					connectionName,
 					getKafkaAuthenticationConfig(
 						"PLAIN",
@@ -997,6 +995,12 @@ func getKafkaAuthenticationConfig(mechanism, username, password, tokenEndpointUR
 }
 
 func configureKafka(projectRef, workspaceName, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
+	return configureKafkaInWorkspace(projectRef, fmt.Sprintf("%q", workspaceName), connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, useSSL)
+}
+
+// configureKafkaInWorkspace is like configureKafka but takes an HCL expression for
+// workspace_name, so callers can reference a stream workspace resource.
+func configureKafkaInWorkspace(projectRef, workspaceRef, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
 	securityConfig := `
 		security = {
 			protocol = "SASL_PLAINTEXT"
@@ -1012,7 +1016,7 @@ func configureKafka(projectRef, workspaceName, connectionName, authenticationCon
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = %[1]s
-			workspace_name = %[2]q
+			workspace_name = %[2]s
 		 	connection_name = %[3]q
 		 	type = "Kafka"
 		 	%[4]s
@@ -1023,7 +1027,7 @@ func configureKafka(projectRef, workspaceName, connectionName, authenticationCon
 		    %[7]s
 			%[8]s
 		}
-	`, projectRef, workspaceName, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig)
+	`, projectRef, workspaceRef, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig)
 }
 
 // configureKafkaForMigration uses instance_name for compatibility with older provider versions
@@ -1338,10 +1342,33 @@ func CheckDestroyStreamConnection(state *terraform.State) error {
 	return nil
 }
 
-func configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer string) string {
+// configStreamProjectAWS creates a dedicated project and stream workspace for a test that
+// cannot share the execution project, such as a network peering test, because only one
+// network container per region per project is allowed.
+func configStreamProjectAWS(orgID, projectName, workspaceName string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_project" "test" {
+		name   = %[2]q
+		org_id = %[1]q
+	}
+
+	resource "mongodbatlas_stream_workspace" "test" {
+		project_id     = mongodbatlas_project.test.id
+		workspace_name = %[3]q
+		data_process_region = {
+			region         = "VIRGINIA_USA"
+			cloud_provider = "AWS"
+		}
+	}
+`, orgID, projectName, workspaceName)
+}
+
+// configNetworkPeeringAWS creates a network container and peering. projectRef is an HCL
+// expression, so callers can pass a project id literal or a project resource reference.
+func configNetworkPeeringAWS(projectRef, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_network_container" "test" {
-		project_id   		 = %[1]q
+		project_id   		 = %[1]s
 		atlas_cidr_block  	 = "192.168.208.0/21"
 		provider_name		 = %[2]q
 		region_name			 = %[6]q
@@ -1349,14 +1376,14 @@ func configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCI
 
 	resource "mongodbatlas_network_peering" "test" {
 		accepter_region_name	= %[7]q
-		project_id    			= %[1]q
+		project_id    			= %[1]s
 		container_id           	= mongodbatlas_network_container.test.id
 		provider_name           = %[2]q
 		route_table_cidr_block  = %[5]q
 		vpc_id					= %[3]q
 		aws_account_id	        = %[4]q
 	}
-`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer)
+`, projectRef, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer)
 }
 
 // configureAWSCloudProviderAccessRole creates an AWS role that Atlas can assume and
