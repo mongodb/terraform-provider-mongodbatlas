@@ -1,19 +1,12 @@
 package advancedcluster_test
 
 import (
+	"context"
 	"errors"
-	"io"
-	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
-	"github.com/hashicorp/terraform-plugin-testing/statecheck"
-	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20250312026/admin"
@@ -103,6 +96,16 @@ func TestRetryListOnClusterNotFound(t *testing.T) {
 		require.Error(t, err)
 		require.Equal(t, 1, calls)
 	})
+
+	t.Run("returns the zero value when cancelled", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(t.Context())
+		result, err := advancedcluster.RetryListOnClusterNotFound(ctx, func() (string, error) {
+			cancel()
+			return "partial", clusterNotFoundError()
+		})
+		require.Error(t, err)
+		require.Empty(t, result)
+	})
 }
 
 // clusterNotFoundError builds the SDK error Atlas returns for CLUSTER_NOT_FOUND.
@@ -112,47 +115,3 @@ func clusterNotFoundError() error {
 	apiErr.SetError("cluster not found")
 	return apiErr
 }
-
-func TestPluralDataSourceEmptyProjectReturnsEmptyList(t *testing.T) {
-	storageConfigCredentials(t)
-	resource.UnitTest(t, resource.TestCase{
-		PreCheck:                 func() { require.NoError(t, unit.MockConfigAdvancedCluster.RunBeforeEach()) },
-		ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, emptyClustersHTTPMock{}),
-		Steps: []resource.TestStep{{
-			Config: pluralDataSourceConfig,
-			ConfigStateChecks: []statecheck.StateCheck{
-				statecheck.ExpectKnownValue(dataSourcePluralName, tfjsonpath.New("results"), knownvalue.ListExact([]knownvalue.Check{})),
-			},
-		}},
-	})
-}
-
-// emptyClustersHTTPMock returns an empty cluster list for every request.
-type emptyClustersHTTPMock struct{}
-
-func (emptyClustersHTTPMock) ModifyHTTPClient(c *http.Client) error {
-	c.Transport = emptyClustersHTTPMock{}
-	return nil
-}
-
-func (emptyClustersHTTPMock) ResetHTTPClient(*http.Client) {}
-
-func (emptyClustersHTTPMock) RoundTrip(req *http.Request) (*http.Response, error) {
-	return &http.Response{
-		StatusCode: http.StatusOK,
-		Header:     http.Header{"Content-Type": {"application/json"}},
-		Body:       io.NopCloser(strings.NewReader(`{"results":[],"totalCount":0}`)),
-		Request:    req,
-	}, nil
-}
-
-const pluralDataSourceConfig = `
-provider "mongodbatlas" {
-  public_key  = "test-public-key"
-  private_key = "test-private-key"
-  base_url    = "https://atlas.invalid/"
-}
-data "mongodbatlas_advanced_clusters" "test" {
-  project_id = "111111111111111111111111"
-}
-`

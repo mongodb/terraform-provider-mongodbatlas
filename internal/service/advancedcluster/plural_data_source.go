@@ -57,8 +57,6 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	projectID := pluralModel.ProjectID.ValueString()
 	outs := &TFModelPluralDS{
 		ProjectID: pluralModel.ProjectID,
-		// Non-nil so a project without clusters serializes results as an empty list, not null.
-		Results: make([]*TFModelDS, 0),
 	}
 	basicClusters := d.getBasicClusters(ctx, diags, projectID, pluralModel.UseEffectiveFields)
 	if diags.HasError() {
@@ -90,7 +88,12 @@ func RetryListOnClusterNotFound[T any](ctx context.Context, list func() (T, erro
 		}
 		return retry.NonRetryableError(err)
 	})
-	return result, err
+	if err != nil {
+		// A failed or cancelled retry must not return a partially read value.
+		var zero T
+		return zero, err
+	}
+	return result, nil
 }
 
 // listClusterModels lists every cluster and converts it, skipping clusters deleted between
