@@ -1,0 +1,3 @@
+```release-note:bug
+data-source/mongodbatlas_advanced_clusters: Fixes `results` returning `null` instead of the project's clusters, and fails the read instead of returning `null` when the cluster list cannot be retrieved
+```

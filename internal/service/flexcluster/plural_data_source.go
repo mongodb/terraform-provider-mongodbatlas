@@ -44,7 +44,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 		return
 	}
 
-	newFlexClustersModel, diags := NewTFModelDSP(ctx, tfModel.ProjectId.ValueString(), *flexClusters)
+	newFlexClustersModel, diags := NewTFModelDSP(ctx, tfModel.ProjectId.ValueString(), flexClusters)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
