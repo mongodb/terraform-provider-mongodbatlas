@@ -1,0 +1,3 @@
+```release-note:bug
+data-source/mongodbatlas_advanced_clusters: Fixes null `results` by retrying the cluster list when Atlas reports a transient `CLUSTER_NOT_FOUND` and returning an empty collection for a project without clusters
+```
