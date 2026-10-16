@@ -227,7 +227,7 @@ func (p *MongodbatlasProvider) Configure(ctx context.Context, req provider.Confi
 		return
 	}
 	envVars := config.NewEnvVars()
-	c, err := config.GetCredentials(ctx, providerVars, envVars, getAWSCredentials)
+	c, err := config.GetCredentials(ctx, providerVars, envVars, getAWSCredentials, getAtlasCLICredentials)
 	if err != nil {
 		resp.Diagnostics.AddError("Error getting credentials for provider", err.Error())
 		return

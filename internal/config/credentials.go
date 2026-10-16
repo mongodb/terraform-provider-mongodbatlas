@@ -37,8 +37,8 @@ func (c *Credentials) applyGovBaseURL() {
 	}
 }
 
-// GetCredentials follows the order of AWS Secrets Manager, provider vars and env vars.
-func GetCredentials(ctx context.Context, providerVars, envVars *Vars, getAWSCredentials func(context.Context, *AWSVars) (*Credentials, error)) (*Credentials, error) {
+// GetCredentials follows the order of AWS Secrets Manager, provider vars, env vars and AtlasCLI.
+func GetCredentials(ctx context.Context, providerVars, envVars *Vars, getAWSCredentials func(context.Context, *AWSVars) (*Credentials, error), getAtlasCLICredentials func(context.Context) (*Credentials, error)) (*Credentials, error) {
 	var creds *Credentials
 	if awsVars := CoalesceAWSVars(providerVars.GetAWS(), envVars.GetAWS()); awsVars != nil {
 		awsCredentials, err := getAWSCredentials(ctx, awsVars)
@@ -49,10 +49,32 @@ func GetCredentials(ctx context.Context, providerVars, envVars *Vars, getAWSCred
 	} else if c := CoalesceCredentials(providerVars.GetCredentials(), envVars.GetCredentials()); c != nil {
 		creds = c
 	} else {
-		creds = &Credentials{}
+		cliCredentials, err := getAtlasCLICredentials(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if cliCredentials == nil {
+			creds = &Credentials{}
+		} else {
+			// AtlasCLI only provides a token; base_url, realm_base_url and is_mongodbgov_cloud
+			// still come from provider attributes or environment variables.
+			cliCredentials.BaseURL = firstNonEmpty(providerVars.BaseURL, envVars.BaseURL)
+			cliCredentials.RealmBaseURL = firstNonEmpty(providerVars.RealmBaseURL, envVars.RealmBaseURL)
+			cliCredentials.IsMongodbGovCloud = providerVars.IsMongodbGovCloud || envVars.IsMongodbGovCloud
+			creds = cliCredentials
+		}
 	}
 	creds.applyGovBaseURL()
 	return creds, nil
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, v := range values {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
 }
 
 // AWSSecretsManagerIgnoredWarning returns a warning when base_url, realm_base_url or
