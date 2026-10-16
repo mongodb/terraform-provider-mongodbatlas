@@ -7,6 +7,7 @@ NOTES:
 BUG FIXES:
 
 * resource/mongodbatlas_encryption_at_rest_private_endpoint: Fixes delete failing with `unexpected state 'PENDING_ACCEPTANCE'` when the endpoint has not been approved yet ([#4805](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4805))
+* resource/mongodbatlas_maintenance_window: Fixes reads keeping stale `protected_hours` in state when they are missing in Atlas, so the loss now shows up as plan drift and the next apply restores them ([#4811](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4811))
 
 ## 2.20.0 (October 14, 2026)
 
