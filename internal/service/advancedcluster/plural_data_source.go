@@ -5,17 +5,23 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312026/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
+
+// listRetryTimeout bounds how long the cluster list is retried while Atlas reports
+// the transient CLUSTER_NOT_FOUND error described in retryListOnClusterNotFound.
+const listRetryTimeout = 30 * time.Second
 
 var _ datasource.DataSource = &pluralDS{}
 var _ datasource.DataSourceWithConfigure = &pluralDS{}
@@ -53,6 +59,9 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	projectID := pluralModel.ProjectID.ValueString()
 	outs := &TFModelPluralDS{
 		ProjectID: pluralModel.ProjectID,
+		// Start from an empty slice so a project with no clusters serializes `results`
+		// as an empty list instead of null.
+		Results: make([]*TFModelDS, 0),
 	}
 	basicClusters := d.getBasicClusters(ctx, diags, projectID, pluralModel.UseEffectiveFields)
 	if diags.HasError() {
@@ -68,6 +77,31 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	return outs, diags
 }
 
+// retryListOnClusterNotFound retries a cluster list operation while Atlas returns the
+// transient CLUSTER_NOT_FOUND error. The list endpoint can fail the whole request when
+// a cluster is deleted concurrently instead of excluding it, so a single attempt can
+// miss every cluster in the project. Retrying keeps the plural data source from
+// returning an empty result set for a project that does have clusters.
+func retryListOnClusterNotFound[T any](ctx context.Context, list func() (T, error)) (T, error) {
+	var result T
+	err := retry.RetryContext(ctx, listRetryTimeout, func() *retry.RetryError {
+		value, err := list()
+		if err == nil {
+			result = value
+			return nil
+		}
+		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
+			return retry.RetryableError(err)
+		}
+		return retry.NonRetryableError(err)
+	})
+	if err != nil {
+		var zero T
+		return zero, err
+	}
+	return result, nil
+}
+
 // getBasicClusters gets the dedicated and tenant clusters.
 func (d *pluralDS) getBasicClusters(ctx context.Context, diags *diag.Diagnostics, projectID string, useEffectiveFields types.Bool) []*TFModelDS {
 	var results []*TFModelDS
@@ -76,8 +110,10 @@ func (d *pluralDS) getBasicClusters(ctx context.Context, diags *diag.Diagnostics
 		GroupId:                    projectID,
 		UseEffectiveInstanceFields: new(useEffectiveFields.ValueBool()),
 	}
-	list, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.ClusterDescription20240805], *http.Response, error) {
-		return api.ListClustersWithParams(ctx, &params).PageNum(pageNum).Execute()
+	list, err := retryListOnClusterNotFound(ctx, func() ([]admin.ClusterDescription20240805, error) {
+		return dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.ClusterDescription20240805], *http.Response, error) {
+			return api.ListClustersWithParams(ctx, &params).PageNum(pageNum).Execute()
+		})
 	})
 	if err != nil {
 		addListError(diags, projectID, err)
@@ -96,7 +132,9 @@ func (d *pluralDS) getBasicClusters(ctx context.Context, diags *diag.Diagnostics
 
 func (d *pluralDS) getFlexClusters(ctx context.Context, diags *diag.Diagnostics, projectID string, useEffectiveFields types.Bool) []*TFModelDS {
 	var results []*TFModelDS
-	listFlexClusters, err := flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasV2.FlexClustersAPI)
+	listFlexClusters, err := retryListOnClusterNotFound(ctx, func() (*[]admin.FlexClusterDescription20241113, error) {
+		return flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasV2.FlexClustersAPI)
+	})
 	if err != nil {
 		addListError(diags, projectID, err)
 		RemoveClusterNotFoundErrors(diags) // Needed until CLOUDP-366240 is done.
