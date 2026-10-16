@@ -137,11 +137,7 @@ func (d *pluralDS) getBasicClusters(ctx context.Context, diags *diag.Diagnostics
 func (d *pluralDS) getFlexClusters(ctx context.Context, diags *diag.Diagnostics, projectID string, useEffectiveFields types.Bool) []*TFModelDS {
 	return listClusterModels(ctx, diags, projectID, useEffectiveFields,
 		func() ([]admin.FlexClusterDescription20241113, error) {
-			list, err := flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasV2.FlexClustersAPI)
-			if list == nil {
-				return nil, err
-			}
-			return *list, err
+			return flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasV2.FlexClustersAPI)
 		},
 		func(flexClusterResp *admin.FlexClusterDescription20241113) *TFModelDS {
 			return convertFlexClusterToDS(ctx, diags, flexClusterResp)
