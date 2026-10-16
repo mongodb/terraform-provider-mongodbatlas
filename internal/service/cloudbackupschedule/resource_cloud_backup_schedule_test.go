@@ -548,6 +548,103 @@ func TestAccBackupRSCloudBackupSchedule_copyPolicyItems(t *testing.T) {
 	})
 }
 
+func TestAccBackupRSCloudBackupSchedule_autoCopySettings(t *testing.T) {
+	clusterInfo := acc.GetClusterInfo(t, &acc.ClusterRequest{
+		CloudBackup: true,
+		ReplicationSpecs: []acc.ReplicationSpecRequest{
+			{Region: "US_EAST_2", ExtraRegionConfigs: []acc.ReplicationSpecRequest{{Region: "US_WEST_1", Priority: 6, NodeCount: 2}}},
+		},
+		PitEnabled: true,
+	})
+	base := newCopyScheduleConfig(&clusterInfo)
+	autoCopyOn := base.withAutoCopy(new(true))
+	autoCopyDropped := base.withAutoCopy(nil)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: autoCopyOn.HCL(),
+				Check:  autoCopyOn.check(),
+			},
+			// Atlas owns the copy region list, so the Atlas-filled copies must not create a perpetual diff.
+			{
+				Config: autoCopyOn.HCL(),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+			},
+			// Dropping the flag while still omitting copy_settings is the delete-on-omit path.
+			// Do not assert the copy count: the Atlas fill is async and may not have run yet.
+			{
+				Config: autoCopyDropped.HCL(),
+				Check:  autoCopyDropped.check(),
+			},
+		},
+	})
+}
+
+func TestAccBackupRSCloudBackupSchedule_autoCopySettingsValidation(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configCopySettingsPlanOnly(`
+					auto_copy_settings_enabled = true
+					copy_settings {
+						cloud_provider = "AWS"
+						region_name    = "US_EAST_1"
+						zone_id        = "111111111111111111111111"
+						frequencies    = ["DAILY"]
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`copy_settings cannot be set when auto_copy_settings_enabled is true`),
+			},
+			{
+				Config: configCopySettingsPlanOnly(`
+					auto_copy_settings_enabled = true
+					copy_policy_items_enabled  = true
+					copy_settings {
+						cloud_provider = "AWS"
+						region_name    = "US_EAST_1"
+						zone_id        = "111111111111111111111111"
+						copy_policy_items {
+							frequency_type  = "daily"
+							retention_unit  = "days"
+							retention_value = 7
+						}
+					}`),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`copy_settings cannot be set when auto_copy_settings_enabled is true`),
+			},
+			// Flag-only is the supported shape.
+			{
+				Config:             configCopySettingsPlanOnly(`auto_copy_settings_enabled = true`),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+			// Flag off with explicit copy_settings keeps the existing behavior.
+			{
+				Config: configCopySettingsPlanOnly(`
+					auto_copy_settings_enabled = false
+					copy_settings {
+						cloud_provider = "AWS"
+						region_name    = "US_EAST_1"
+						zone_id        = "111111111111111111111111"
+						frequencies    = ["DAILY"]
+					}`),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
@@ -746,6 +843,7 @@ func warnLocalCopyDestRegion(t *testing.T) {
 
 type copyScheduleConfig struct {
 	info            *acc.ClusterInfo
+	autoCopyEnabled *bool
 	regionName      string
 	dailyRetention  int
 	lastN           int
@@ -753,6 +851,7 @@ type copyScheduleConfig struct {
 	updateCopy      bool
 	deleteCopy      bool
 	useFrequencies  bool
+	autoCopy        bool
 }
 
 func newCopyScheduleConfig(info *acc.ClusterInfo) copyScheduleConfig {
@@ -789,6 +888,14 @@ func (c copyScheduleConfig) withFrequencies() copyScheduleConfig {
 	return c
 }
 
+// withAutoCopy switches the schedule to Atlas-managed copies: no copy_settings block and no
+// copy_policy_items_enabled. A nil enabled omits auto_copy_settings_enabled from the HCL.
+func (c copyScheduleConfig) withAutoCopy(enabled *bool) copyScheduleConfig {
+	c.autoCopy = true
+	c.autoCopyEnabled = enabled
+	return c
+}
+
 func (c copyScheduleConfig) HCL() string {
 	enabled := ""
 	sourceDailyRetention := 2
@@ -803,6 +910,22 @@ func (c copyScheduleConfig) HCL() string {
 	deleteFlag := ""
 	if c.deleteCopy {
 		deleteFlag = "delete_copy_snapshots = true"
+	}
+	copySettings := ""
+	if c.autoCopy {
+		enabled = ""
+		if c.autoCopyEnabled != nil {
+			enabled = fmt.Sprintf("auto_copy_settings_enabled = %t", *c.autoCopyEnabled)
+		}
+	} else {
+		copySettings = fmt.Sprintf(`
+			copy_settings {
+				cloud_provider     = "AWS"
+				region_name        = %q
+				zone_id            = %s.replication_specs.*.zone_id[0]
+				should_copy_oplogs = true
+				%s
+			}`, c.regionName, c.info.ResourceName, c.copySettingsInner())
 	}
 
 	return fmt.Sprintf(`
@@ -841,21 +964,14 @@ func (c copyScheduleConfig) HCL() string {
 				frequency_interval = 1
 				retention_unit     = "years"
 				retention_value    = 1
-			}
-			copy_settings {
-				cloud_provider     = "AWS"
-				region_name        = %[8]q
-				zone_id            = %[3]s.replication_specs.*.zone_id[0]
-				should_copy_oplogs = true
-				%[9]s
-			}
+			}%[8]s
 		}
 
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name = mongodbatlas_cloud_backup_schedule.schedule_test.cluster_name
 			project_id   = mongodbatlas_cloud_backup_schedule.schedule_test.project_id
 		}
-	`, c.info.TerraformStr, c.info.ProjectID, c.info.ResourceName, enabled, updateFlag, deleteFlag, sourceDailyRetention, c.regionName, c.copySettingsInner())
+	`, c.info.TerraformStr, c.info.ProjectID, c.info.ResourceName, enabled, updateFlag, deleteFlag, sourceDailyRetention, copySettings)
 }
 
 func (c copyScheduleConfig) copySettingsInner() string {
@@ -883,6 +999,19 @@ func (c copyScheduleConfig) copySettingsInner() string {
 }
 
 func (c copyScheduleConfig) check() resource.TestCheckFunc {
+	if c.autoCopy {
+		expectedFlag := "false"
+		if c.autoCopyEnabled != nil {
+			expectedFlag = strconv.FormatBool(*c.autoCopyEnabled)
+		}
+		attrs := map[string]string{
+			"cluster_name":               c.info.Name,
+			"auto_copy_settings_enabled": expectedFlag,
+		}
+		// Atlas fills and clears the copies asynchronously in the backend, so assert only that
+		// copy_settings exists, never its count.
+		return acc.CheckRSAndDS(resourceName, &dataSourceName, nil, []string{"copy_settings.#"}, attrs, checkExists(resourceName))
+	}
 	attrs := map[string]string{
 		"cluster_name":                        c.info.Name,
 		"copy_policy_items_enabled":           "true",
