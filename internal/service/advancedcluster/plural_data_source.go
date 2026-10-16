@@ -109,7 +109,6 @@ func (d *pluralDS) getBasicClusters(ctx context.Context, diags *diag.Diagnostics
 	})
 	if err != nil {
 		addListError(diags, projectID, err)
-		RemoveClusterNotFoundErrors(diags) // Needed until CLOUDP-366240 is done.
 		return nil
 	}
 	for i := range list {
@@ -129,7 +128,6 @@ func (d *pluralDS) getFlexClusters(ctx context.Context, diags *diag.Diagnostics,
 	})
 	if err != nil {
 		addListError(diags, projectID, err)
-		RemoveClusterNotFoundErrors(diags) // Needed until CLOUDP-366240 is done.
 		return nil
 	}
 	for i := range *listFlexClusters {
