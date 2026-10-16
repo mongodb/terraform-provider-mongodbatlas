@@ -230,7 +230,14 @@ func updateCodeowners(root string) error {
 		if endIdx < beginIdx {
 			return fmt.Errorf("malformed CODEOWNERS block: found %q without a valid %q", beginMarker, endMarker)
 		}
-		content = content[:beginIdx] + codeownersBlockText(docsPaths) + content[endIdx+len(endMarker):]
+		// Trim the newlines after the end marker: the block already ends with
+		// one, and keeping the suffix as is would grow the file on every update.
+		suffix := strings.TrimLeft(content[endIdx+len(endMarker):], "\n")
+		if suffix != "" {
+			content = content[:beginIdx] + codeownersBlockText(docsPaths) + "\n" + suffix
+		} else {
+			content = content[:beginIdx] + codeownersBlockText(docsPaths)
+		}
 	} else {
 		if content != "" && !strings.HasSuffix(content, "\n") {
 			content += "\n"

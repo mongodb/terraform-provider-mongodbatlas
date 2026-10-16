@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -250,6 +251,37 @@ func TestUpdateCodeowners(t *testing.T) {
 		}
 		if got := strings.Count(string(content), beginMarker); got != 1 {
 			t.Errorf("expected exactly one block after update, got %d:\n%s", got, content)
+		}
+	})
+
+	t.Run("is idempotent when content follows the block", func(t *testing.T) {
+		root := fixtureRepo(t)
+		writeFile(t, filepath.Join(root, codeownersPath), "# Maintained by the MongoDB APIx-Integrations team\n* @mongodb/APIx-Integrations\n\n"+codeownersBlockText(mustPaths(t, root))+"\n/some/rule @team\n")
+		if err := updateCodeowners(root); err != nil {
+			t.Fatal(err)
+		}
+		first, err := os.ReadFile(filepath.Join(root, codeownersPath))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := checkCodeowners(root); err != nil {
+			t.Errorf("expected no drift after update, got error: %v", err)
+		}
+		if err := updateCodeowners(root); err != nil {
+			t.Fatal(err)
+		}
+		second, err := os.ReadFile(filepath.Join(root, codeownersPath))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(first, second) {
+			t.Errorf("second update changed the file:\nfirst:\n%s\nsecond:\n%s", first, second)
+		}
+		if !strings.Contains(string(first), "\n/some/rule @team\n") {
+			t.Errorf("trailing content must be preserved, got:\n%s", first)
+		}
+		if strings.Count(string(first), "\n\n\n") > 0 {
+			t.Errorf("update must not accumulate blank lines, got:\n%q", first)
 		}
 	})
 }
