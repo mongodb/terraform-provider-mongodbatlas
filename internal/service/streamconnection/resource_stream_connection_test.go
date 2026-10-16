@@ -1029,6 +1029,10 @@ func configureKafkaInWorkspace(projectRef, workspaceRef, connectionName, authent
 		    }
 		    %[7]s
 			%[8]s
+			# Provisioning can run close to the default 40 minute create timeout.
+			timeouts {
+				create = "60m"
+			}
 		}
 	`, projectRef, workspaceRef, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig)
 }
@@ -1837,6 +1841,10 @@ func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, cluste
 				mongodbatlas_cloud_provider_access_authorization.azure_auth,
 				azurerm_role_assignment.blob_contributor,
 			]
+			# Provisioning this private link connection runs close to the default 40 minute create timeout.
+			timeouts {
+				create = "60m"
+			}
 		}
 	`, projectID, workspaceName, connectionName, clusterName)
 }
