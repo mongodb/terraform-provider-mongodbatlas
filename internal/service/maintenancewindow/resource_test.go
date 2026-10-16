@@ -9,12 +9,15 @@ import (
 	"regexp"
 	"testing"
 
+	ctyjson "github.com/hashicorp/go-cty/cty/json"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	sdkterraform "github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/spf13/cast"
 	"github.com/stretchr/testify/assert"
 	mock "github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20250312026/admin"
 	"go.mongodb.org/atlas-sdk/v20250312026/mockadmin"
 
@@ -501,6 +504,62 @@ func TestResourceReadProtectedHours(t *testing.T) {
 			diags := maintenancewindow.Resource().ReadContext(context.Background(), d, &config.MongoDBClient{AtlasV2: &admin.APIClient{MaintenanceWindowsAPI: apiMock}})
 			assert.False(t, diags.HasError(), "unexpected errors: %v", diags)
 			assert.Equal(t, tc.expectedProtectedHL, d.Get("protected_hours").([]any))
+		})
+	}
+}
+
+// Unit test for the Update behavior: Atlas clears protected hours when a PATCH omits
+// them, so they must be sent whenever they are configured, not only when they change.
+func TestResourceUpdateProtectedHours(t *testing.T) {
+	stateAttrs := map[string]string{
+		"id":                                  "projectID",
+		"project_id":                          "projectID",
+		"day_of_week":                         "4",
+		"hour_of_day":                         "7",
+		"wave_assignment":                     "2",
+		"protected_hours.#":                   "1",
+		"protected_hours.0.start_hour_of_day": "11",
+		"protected_hours.0.end_hour_of_day":   "5",
+	}
+	testCases := map[string]struct {
+		expectedProtectedHours *admin.ProtectedHours
+		config                 string
+	}{
+		"unchanged protected hours are sent when another attribute changes": {
+			config: `{"project_id": "projectID", "day_of_week": 4, "hour_of_day": 7, "wave_assignment": 3,
+				"protected_hours": [{"start_hour_of_day": 11, "end_hour_of_day": 5}]}`,
+			expectedProtectedHours: &admin.ProtectedHours{StartHourOfDay: new(11), EndHourOfDay: new(5)},
+		},
+		"removed protected hours are cleared": {
+			config:                 `{"project_id": "projectID", "day_of_week": 4, "hour_of_day": 7, "wave_assignment": 2}`,
+			expectedProtectedHours: &admin.ProtectedHours{},
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			var sent *admin.GroupMaintenanceWindow
+			apiMock := mockadmin.NewMaintenanceWindowsAPI(t)
+			apiMock.On("UpdateMaintenanceWindow", mock.Anything, "projectID", mock.Anything).
+				Run(func(args mock.Arguments) { sent = args.Get(2).(*admin.GroupMaintenanceWindow) }).
+				Return(admin.UpdateMaintenanceWindowApiRequest{ApiService: apiMock})
+			apiMock.On("UpdateMaintenanceWindowExecute", mock.Anything).Return(&http.Response{StatusCode: http.StatusOK}, nil)
+			apiMock.On("GetMaintenanceWindow", mock.Anything, "projectID").Return(admin.GetMaintenanceWindowApiRequest{ApiService: apiMock})
+			apiMock.On("GetMaintenanceWindowExecute", mock.Anything).Return(&admin.GroupMaintenanceWindow{}, &http.Response{StatusCode: http.StatusOK}, nil)
+			meta := &config.MongoDBClient{AtlasV2: &admin.APIClient{MaintenanceWindowsAPI: apiMock}}
+
+			r := maintenancewindow.Resource()
+			rawConfig, err := ctyjson.Unmarshal([]byte(tc.config), r.CoreConfigSchema().ImpliedType())
+			require.NoError(t, err)
+			state := &sdkterraform.InstanceState{ID: "projectID", Attributes: stateAttrs}
+			diff, err := r.SimpleDiff(context.Background(), state, sdkterraform.NewResourceConfigShimmed(rawConfig, r.CoreConfigSchema()), meta)
+			require.NoError(t, err)
+			diff.RawConfig = rawConfig
+
+			_, diags := r.Apply(context.Background(), state, diff, meta)
+			require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+			require.NotNil(t, sent)
+			assert.Equal(t, tc.expectedProtectedHours, sent.ProtectedHours)
 		})
 	}
 }
