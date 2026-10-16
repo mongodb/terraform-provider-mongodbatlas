@@ -214,6 +214,46 @@ func TestCodeownersBlockAndCheck(t *testing.T) {
 	}
 }
 
+func TestUpdateCodeowners(t *testing.T) {
+	t.Run("appends when the block is missing", func(t *testing.T) {
+		root := fixtureRepo(t)
+		writeFile(t, filepath.Join(root, codeownersPath), "# Maintained by the MongoDB APIx-Integrations team\n* @mongodb/APIx-Integrations\n")
+		if err := updateCodeowners(root); err != nil {
+			t.Fatal(err)
+		}
+		if err := checkCodeowners(root); err != nil {
+			t.Errorf("expected no drift after update, got error: %v", err)
+		}
+		content, err := os.ReadFile(filepath.Join(root, codeownersPath))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.HasPrefix(string(content), "# Maintained by the MongoDB APIx-Integrations team\n* @mongodb/APIx-Integrations\n\n") {
+			t.Errorf("update must preserve existing CODEOWNERS content, got:\n%s", content)
+		}
+	})
+
+	t.Run("replaces an existing outdated block in place", func(t *testing.T) {
+		root := fixtureRepo(t)
+		writeFile(t, filepath.Join(root, codeownersPath), "# Maintained by the MongoDB APIx-Integrations team\n* @mongodb/APIx-Integrations\n\n"+codeownersBlockText(mustPaths(t, root)))
+		drifted := strings.Replace(fixtureConfig, "  mcp_config:\n", "  mcp_config_new:\n    read:\n      path: /api/atlas/v2/mcpConfigsNew\n      method: GET\n  mcp_config:\n", 1)
+		writeFile(t, filepath.Join(root, "tools", "codegen", "config.yml"), drifted)
+		if err := updateCodeowners(root); err != nil {
+			t.Fatal(err)
+		}
+		if err := checkCodeowners(root); err != nil {
+			t.Errorf("expected no drift after update, got error: %v", err)
+		}
+		content, err := os.ReadFile(filepath.Join(root, codeownersPath))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := strings.Count(string(content), beginMarker); got != 1 {
+			t.Errorf("expected exactly one block after update, got %d:\n%s", got, content)
+		}
+	})
+}
+
 func writeFile(t *testing.T, path, content string) {
 	t.Helper()
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
