@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/mongodbatlas_cloud_backup_schedule: Adds `auto_copy_settings_enabled` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_cloud_backup_schedule: Adds `auto_copy_settings_enabled` attribute
+```
