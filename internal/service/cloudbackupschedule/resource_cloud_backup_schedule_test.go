@@ -1000,15 +1000,17 @@ func (c copyScheduleConfig) copySettingsInner() string {
 
 func (c copyScheduleConfig) check() resource.TestCheckFunc {
 	if c.autoCopy {
+		expectedFlag := "false"
+		if c.autoCopyEnabled != nil {
+			expectedFlag = strconv.FormatBool(*c.autoCopyEnabled)
+		}
 		attrs := map[string]string{
 			"cluster_name":               c.info.Name,
-			"auto_copy_settings_enabled": "false",
-			"copy_settings.#":            "0",
+			"auto_copy_settings_enabled": expectedFlag,
 		}
-		if c.autoCopyEnabled != nil {
-			attrs["auto_copy_settings_enabled"] = strconv.FormatBool(*c.autoCopyEnabled)
-		}
-		return acc.CheckRSAndDS(resourceName, &dataSourceName, nil, nil, attrs, checkExists(resourceName))
+		// Atlas fills and clears the copies asynchronously in the backend, so assert only that
+		// copy_settings exists, never its count.
+		return acc.CheckRSAndDS(resourceName, &dataSourceName, nil, []string{"copy_settings.#"}, attrs, checkExists(resourceName))
 	}
 	attrs := map[string]string{
 		"cluster_name":                        c.info.Name,
