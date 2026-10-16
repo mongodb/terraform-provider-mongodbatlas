@@ -61,6 +61,21 @@ Use `defer` to defer the next scheduled maintenance event by one week. This only
   }
 ```
 
+### Wave Assignment
+
+Use `wave_assignment` to assign the project to a maintenance wave. You can set `wave_assignment` with or without a maintenance window.
+
+```terraform
+  resource "mongodbatlas_maintenance_window" "test" {
+    project_id      = "<your-project-id>"
+    wave_assignment = 1
+
+    # Uncomment to also configure the maintenance window schedule.
+    # day_of_week = 3
+    # hour_of_day = 4
+  }
+```
+
 ### Further Examples
 - [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.20.0/examples/mongodbatlas_maintenance_window)
 
@@ -73,7 +88,7 @@ Use `defer` to defer the next scheduled maintenance event by one week. This only
 * `auto_defer_once_enabled` - (Optional) **Recommended** field to enable or disable automatic deferral of all scheduled maintenance for the given project by one week. Achieves the same outcome as `auto_defer`, but by directly setting the value to `true` or `false`, which is idempotent and keeps Terraform state aligned with Atlas. If `auto_defer` is used to toggle the underlying flag, it will also affect the value of this attribute.
 * `auto_defer` - (Optional) Boolean flag to **toggle** automatic deferral on/off. Each change flips the current state (ON → OFF or OFF → ON). Achieves the same outcome as `auto_defer_once_enabled` but through a toggle operation, which can make the current state opaque to Terraform and introduce state drift. **For most use cases, prefer `auto_defer_once_enabled` instead.** <!-- see CLOUDP-375465 for details -->
 * `protected_hours` - (Optional) Defines the time period during which there will be no standard updates to the clusters. See [Protected Hours](#protected-hours).
-* `wave_assignment` - (Optional) Integer that identifies the maintenance wave explicitly assigned to this project. Not editable when the organization's wave assignment mode is `ENV_TAG_MAPPING`. In this case, the system preserves the stored value but does not use it for scheduling; environment tags determine the effective wave instead. Switching back to `MANUAL` restores the `wave_assignment` value as the effective wave. Remove this attribute from your configuration and run `terraform apply` to clear the explicit assignment. See [`mongodbatlas_org_maintenance_settings`](org_maintenance_settings.md#argument-reference) to configure the organization-level wave assignment mode.
+* `wave_assignment` - (Optional) Integer that identifies the maintenance wave explicitly assigned to this project. Valid values are `1` to `3`, inclusive, where `1` is the first maintenance wave. Not editable when the organization's wave assignment mode is `ENV_TAG_MAPPING`. In this case, the system preserves the stored value but does not use it for scheduling; environment tags determine the effective wave instead. Switching back to `MANUAL` restores the `wave_assignment` value as the effective wave. Remove this attribute from your configuration and run `terraform apply` to clear the explicit assignment. See [`mongodbatlas_org_maintenance_settings`](org_maintenance_settings.md#argument-reference) to configure the organization-level wave assignment mode.
 
 ### Protected Hours
 * `start_hour_of_day` - Zero-based integer that represents the beginning hour of the day for the protected hours window.
