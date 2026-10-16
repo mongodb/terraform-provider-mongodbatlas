@@ -127,6 +127,11 @@ func NewSdkV2Provider() *schema.Provider {
 				Optional:    true,
 				Description: "MongoDB Atlas Access Token for Service Account.",
 			},
+			"profile": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "AtlasCLI profile to use when authenticating from a logged-in AtlasCLI session.",
+			},
 		},
 		DataSourcesMap: getDataSourcesMap(),
 		ResourcesMap:   getResourcesMap(),
@@ -301,7 +306,7 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		var diags diag.Diagnostics
 		providerVars := getSDKv2ProviderVars(d)
-		c, err := config.GetCredentials(ctx, providerVars, config.NewEnvVars(), getAWSCredentials)
+		c, err := config.GetCredentials(ctx, providerVars, config.NewEnvVars(), getAWSCredentials, getAtlasCLICredentials)
 		if err != nil {
 			return nil, append(diags, diag.FromErr(fmt.Errorf("error getting credentials for provider: %w", err))...)
 		}
@@ -329,6 +334,7 @@ func getSDKv2ProviderVars(d *schema.ResourceData) *config.Vars {
 		AccessToken:        d.Get("access_token").(string),
 		ClientID:           d.Get("client_id").(string),
 		ClientSecret:       d.Get("client_secret").(string),
+		Profile:            d.Get("profile").(string),
 		PublicKey:          d.Get("public_key").(string),
 		PrivateKey:         d.Get("private_key").(string),
 		BaseURL:            d.Get("base_url").(string),

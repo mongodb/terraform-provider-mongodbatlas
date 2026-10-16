@@ -18,6 +18,7 @@ Credentials can be provided through one of the following sources (in priority or
 1. AWS Secrets Manager (configured through provider attributes or environment variables)
 2. Provider attributes
 3. Environment variables
+4. AtlasCLI (used only when none of the above provide credentials)
 
 The provider selects the first source that has credentials and uses it as the single source of configuration. Sources are not merged; values set in a lower-priority source are ignored once a higher-priority source is selected.
 
@@ -67,6 +68,26 @@ provider "mongodbatlas" {
 ```
 
 ~> **Migrating from PAK to SA:** Update your provider attributes or environment variables to use SA credentials instead of PAK credentials, then run `terraform plan` to verify everything works correctly.
+
+### AtlasCLI
+
+If none of the sources above provide credentials, the provider falls back to a logged-in [Atlas CLI](https://www.mongodb.com/docs/atlas/cli/stable/) session: it runs `atlas auth token` and authenticates with the returned access token.
+
+```shell
+atlas auth login
+```
+
+AtlasCLI supports named profiles, similar to the AWS CLI. The provider uses the CLI's default profile; to select a different one, set the `profile` provider attribute or the `MONGODB_ATLAS_PROFILE` environment variable:
+
+```terraform
+provider "mongodbatlas" {
+  profile = "myprofile"
+}
+```
+
+```shell
+export MONGODB_ATLAS_PROFILE=myprofile
+```
 
 ## AWS Secrets Manager
 
@@ -144,6 +165,7 @@ provider "mongodbatlas" {
 * `client_id` - (Optional) SA Client ID (env: `MONGODB_ATLAS_CLIENT_ID`).
 * `client_secret` - (Optional) SA Client Secret (env: `MONGODB_ATLAS_CLIENT_SECRET`).
 * `access_token` - (Optional) SA Access Token (env: `MONGODB_ATLAS_ACCESS_TOKEN`). Instead of using Client ID and Client Secret, you can generate and use an SA token directly. See [Generate Service Account Token](https://www.mongodb.com/docs/atlas/api/service-accounts/generate-oauth2-token/#std-label-generate-oauth2-token-atlas) for details. Note: tokens have expiration times.
+* `profile` - (Optional) AtlasCLI profile to use when authenticating from a logged-in AtlasCLI session (env: `MONGODB_ATLAS_PROFILE`). See [AtlasCLI](#atlascli) for details.
 * `public_key` - (Optional) PAK Public Key (env: `MONGODB_ATLAS_PUBLIC_API_KEY`).
 * `private_key` - (Optional) PAK Private Key (env: `MONGODB_ATLAS_PRIVATE_API_KEY`).
 * `base_url` - (Optional) MongoDB Atlas Base URL (env: `MONGODB_ATLAS_BASE_URL`). For advanced use cases, you can configure custom API endpoints.

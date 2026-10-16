@@ -109,6 +109,7 @@ type tfModel struct {
 	ClientID             types.String        `tfsdk:"client_id"`
 	ClientSecret         types.String        `tfsdk:"client_secret"`
 	AccessToken          types.String        `tfsdk:"access_token"`
+	Profile              types.String        `tfsdk:"profile"`
 	AssumeRole           []tfAssumeRoleModel `tfsdk:"assume_role"`
 	IsMongodbGovCloud    types.Bool          `tfsdk:"is_mongodbgov_cloud"`
 }
@@ -205,6 +206,10 @@ func (p *MongodbatlasProvider) Schema(ctx context.Context, req provider.SchemaRe
 				Optional:    true,
 				Description: "MongoDB Atlas Access Token for Service Account.",
 			},
+			"profile": schema.StringAttribute{
+				Optional:    true,
+				Description: "AtlasCLI profile to use when authenticating from a logged-in AtlasCLI session.",
+			},
 		},
 	}
 }
@@ -227,7 +232,7 @@ func (p *MongodbatlasProvider) Configure(ctx context.Context, req provider.Confi
 		return
 	}
 	envVars := config.NewEnvVars()
-	c, err := config.GetCredentials(ctx, providerVars, envVars, getAWSCredentials)
+	c, err := config.GetCredentials(ctx, providerVars, envVars, getAWSCredentials, getAtlasCLICredentials)
 	if err != nil {
 		resp.Diagnostics.AddError("Error getting credentials for provider", err.Error())
 		return
@@ -273,6 +278,7 @@ func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *p
 		AccessToken:        data.AccessToken.ValueString(),
 		ClientID:           data.ClientID.ValueString(),
 		ClientSecret:       data.ClientSecret.ValueString(),
+		Profile:            data.Profile.ValueString(),
 		PublicKey:          data.PublicKey.ValueString(),
 		PrivateKey:         data.PrivateKey.ValueString(),
 		BaseURL:            data.BaseURL.ValueString(),

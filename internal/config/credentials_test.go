@@ -479,6 +479,7 @@ func TestGetCredentials(t *testing.T) {
 	testCases := map[string]struct {
 		providerVars *config.Vars
 		envVars      *config.Vars
+		getAtlasCLI  func(context.Context, string) (*config.Credentials, error)
 		want         *config.Credentials
 		wantErr      bool
 	}{
@@ -531,11 +532,52 @@ func TestGetCredentials(t *testing.T) {
 			want:         &config.Credentials{},
 			wantErr:      false,
 		},
+		"AtlasCLI credentials when nothing else provided": {
+			providerVars: &config.Vars{},
+			envVars:      &config.Vars{},
+			getAtlasCLI: func(context.Context, string) (*config.Credentials, error) {
+				return &config.Credentials{AccessToken: "token"}, nil
+			},
+			want: &config.Credentials{
+				AccessToken: "token",
+			},
+			wantErr: false,
+		},
+		"Provider vars take priority over AtlasCLI": {
+			providerVars: &config.Vars{
+				PublicKey: "provider-public",
+			},
+			envVars: &config.Vars{},
+			getAtlasCLI: func(context.Context, string) (*config.Credentials, error) {
+				return &config.Credentials{AccessToken: "token"}, nil
+			},
+			want: &config.Credentials{
+				PublicKey: "provider-public",
+			},
+			wantErr: false,
+		},
+		"AtlasCLI credentials are not merged with provider base_url": {
+			providerVars: &config.Vars{
+				BaseURL: "https://cloud-dev.mongodb.com/",
+			},
+			envVars: &config.Vars{},
+			getAtlasCLI: func(context.Context, string) (*config.Credentials, error) {
+				return &config.Credentials{AccessToken: "token"}, nil
+			},
+			want: &config.Credentials{
+				AccessToken: "token",
+			},
+			wantErr: false,
+		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			got, err := config.GetCredentials(t.Context(), tc.providerVars, tc.envVars, mockGetAWSCredentials)
+			getAtlasCLI := tc.getAtlasCLI
+			if getAtlasCLI == nil {
+				getAtlasCLI = func(context.Context, string) (*config.Credentials, error) { return nil, nil }
+			}
+			got, err := config.GetCredentials(t.Context(), tc.providerVars, tc.envVars, mockGetAWSCredentials, getAtlasCLI)
 			if tc.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -544,6 +586,23 @@ func TestGetCredentials(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetCredentials_AtlasCLIProfile(t *testing.T) {
+	getAWS := func(context.Context, *config.AWSVars) (*config.Credentials, error) { return nil, nil }
+	var gotProfile string
+	getAtlasCLI := func(_ context.Context, profile string) (*config.Credentials, error) {
+		gotProfile = profile
+		return &config.Credentials{AccessToken: "token"}, nil
+	}
+
+	_, err := config.GetCredentials(t.Context(), &config.Vars{Profile: "provider"}, &config.Vars{Profile: "env"}, getAWS, getAtlasCLI)
+	require.NoError(t, err)
+	assert.Equal(t, "provider", gotProfile)
+
+	_, err = config.GetCredentials(t.Context(), &config.Vars{}, &config.Vars{Profile: "env"}, getAWS, getAtlasCLI)
+	require.NoError(t, err)
+	assert.Equal(t, "env", gotProfile)
 }
 
 func TestGetCredentials_GovResolution(t *testing.T) {
@@ -596,7 +655,7 @@ func TestGetCredentials_GovResolution(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			got, err := config.GetCredentials(t.Context(), tc.providerVars, &config.Vars{}, tc.getAWS)
+			got, err := config.GetCredentials(t.Context(), tc.providerVars, &config.Vars{}, tc.getAWS, func(context.Context, string) (*config.Credentials, error) { return nil, nil })
 			require.NoError(t, err)
 			assert.Equal(t, tc.wantBaseURL, got.BaseURL)
 		})

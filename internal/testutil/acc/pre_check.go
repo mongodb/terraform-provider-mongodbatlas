@@ -2,6 +2,7 @@ package acc
 
 import (
 	"os"
+	"os/exec"
 	"strings"
 	"testing"
 	"time"
@@ -303,6 +304,17 @@ func PreCheckSTSAssumeRole(tb testing.TB) {
 		if os.Getenv(envVar) == "" {
 			tb.Fatalf("`%s` must be set for acceptance testing with STS Assume Role.", envVar)
 		}
+	}
+}
+
+func PreCheckAtlasCLI(tb testing.TB) {
+	tb.Helper()
+	path, err := exec.LookPath("atlas")
+	if err != nil {
+		tb.Fatal("`atlas` CLI must be installed for acceptance testing with AtlasCLI authentication")
+	}
+	if err := exec.CommandContext(tb.Context(), path, "auth", "whoami").Run(); err != nil {
+		tb.Fatal("`atlas auth whoami` must succeed; run `atlas auth login` for acceptance testing with AtlasCLI authentication")
 	}
 }
 

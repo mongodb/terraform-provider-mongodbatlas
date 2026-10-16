@@ -85,6 +85,38 @@ func TestAccAccessToken_basic(t *testing.T) {
 	})
 }
 
+func TestAccAtlasCLI_basic(t *testing.T) {
+	acc.SkipIfNonAtlasCLICredentials(t, "skipping as this test is for AtlasCLI credentials only")
+	var (
+		resourceName = "mongodbatlas_project.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckAtlasCLI(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyProject,
+		Steps: []resource.TestStep{
+			{
+				Config: configProject(orgID, projectName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_count", "0"),
+					resource.TestCheckResourceAttr(resourceName, "teams.#", "0"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       acc.ImportStateProjectIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"with_default_alerts_settings"},
+			},
+		},
+	})
+}
+
 func configProject(orgID, projectName string) string {
 	// Use project in TPF and organization in SDKv2 so both providers are tested.
 	return fmt.Sprintf(`

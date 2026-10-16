@@ -37,8 +37,8 @@ func (c *Credentials) applyGovBaseURL() {
 	}
 }
 
-// GetCredentials follows the order of AWS Secrets Manager, provider vars and env vars.
-func GetCredentials(ctx context.Context, providerVars, envVars *Vars, getAWSCredentials func(context.Context, *AWSVars) (*Credentials, error)) (*Credentials, error) {
+// GetCredentials follows the order of AWS Secrets Manager, provider vars, env vars and AtlasCLI.
+func GetCredentials(ctx context.Context, providerVars, envVars *Vars, getAWSCredentials func(context.Context, *AWSVars) (*Credentials, error), getAtlasCLICredentials func(context.Context, string) (*Credentials, error)) (*Credentials, error) {
 	var creds *Credentials
 	if awsVars := CoalesceAWSVars(providerVars.GetAWS(), envVars.GetAWS()); awsVars != nil {
 		awsCredentials, err := getAWSCredentials(ctx, awsVars)
@@ -49,10 +49,27 @@ func GetCredentials(ctx context.Context, providerVars, envVars *Vars, getAWSCred
 	} else if c := CoalesceCredentials(providerVars.GetCredentials(), envVars.GetCredentials()); c != nil {
 		creds = c
 	} else {
-		creds = &Credentials{}
+		cliCredentials, err := getAtlasCLICredentials(ctx, firstNonEmpty(providerVars.Profile, envVars.Profile))
+		if err != nil {
+			return nil, err
+		}
+		if cliCredentials != nil {
+			creds = cliCredentials
+		} else {
+			creds = &Credentials{}
+		}
 	}
 	creds.applyGovBaseURL()
 	return creds, nil
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, v := range values {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
 }
 
 // AWSSecretsManagerIgnoredWarning returns a warning when base_url, realm_base_url or
@@ -186,6 +203,7 @@ type Vars struct {
 	AWSAccessKeyID     string
 	AWSSecretAccessKey string
 	AWSSessionToken    string
+	Profile            string
 	IsMongodbGovCloud  bool
 }
 
@@ -205,6 +223,7 @@ func NewEnvVars() *Vars {
 		AWSSecretAccessKey: getEnv("AWS_SECRET_ACCESS_KEY", "TF_VAR_AWS_SECRET_ACCESS_KEY"),
 		AWSSessionToken:    getEnv("AWS_SESSION_TOKEN", "TF_VAR_AWS_SESSION_TOKEN"),
 		AWSEndpoint:        getEnv("STS_ENDPOINT", "TF_VAR_STS_ENDPOINT"),
+		Profile:            getEnv("MONGODB_ATLAS_PROFILE", "MCLI_PROFILE"),
 	}
 }
 
