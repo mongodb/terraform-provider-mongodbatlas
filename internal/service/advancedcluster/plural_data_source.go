@@ -19,7 +19,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
-// listRetryTimeout bounds the retry of a cluster list that fails with CLUSTER_NOT_FOUND.
+// listRetryTimeout is the total time budget for retrying a cluster list on CLUSTER_NOT_FOUND.
 const listRetryTimeout = 30 * time.Second
 
 var _ datasource.DataSource = &pluralDS{}
