@@ -63,13 +63,22 @@ Use `defer` to defer the next scheduled maintenance event by one week. This only
 
 ### Wave Assignment
 
-Use `wave_assignment` to assign the project to a maintenance wave. Valid values are `1` to `3`, where `1` is the first maintenance wave. You can set `wave_assignment` with or without a maintenance window. To assign a wave without configuring a maintenance window, omit `day_of_week` and `hour_of_day`.
+Use `wave_assignment` to assign the project to a maintenance wave. You can set `wave_assignment` with or without a maintenance window.
 
 ```terraform
   resource "mongodbatlas_maintenance_window" "test" {
     project_id      = "<your-project-id>"
     day_of_week     = 3
     hour_of_day     = 4
+    wave_assignment = 1
+  }
+```
+
+To assign a wave without configuring a maintenance window, omit `day_of_week` and `hour_of_day`.
+
+```terraform
+  resource "mongodbatlas_maintenance_window" "test" {
+    project_id      = "<your-project-id>"
     wave_assignment = 1
   }
 ```
