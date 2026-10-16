@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -41,6 +42,22 @@ resources:
       list:
         path: /api/atlas/v2/groups/{groupId}/noDocs
         method: GET
+  project_ip_access_list:
+    datasources:
+      list:
+        path: /api/atlas/v2/groups/{groupId}/accessList
+        method: GET
+  privatelink_endpoint_service_data_federation_online_archive:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
+      method: GET
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
+        method: GET
 `
 
 // fixtureRepo creates a temp repo layout with a config.yml and some docs files:
@@ -61,6 +78,8 @@ func fixtureRepo(t *testing.T) string {
 	write("docs/data-sources/log_integrations.md", "log integrations ds")
 	write("docs/resources/mcp_config.md", "mcp config")
 	write("docs/resources/legacy_resource.md", "legacy")
+	write("docs/resources/project_ip_access_list.md", "handwritten resource")
+	write("docs/resources/privatelink_endpoint_service_data_federation_online_archive.md", "handwritten docs")
 	return root
 }
 
@@ -73,8 +92,12 @@ func TestAutogenDocsPaths(t *testing.T) {
 	want := []string{
 		"docs/data-sources/log_integration.md",
 		"docs/data-sources/log_integrations.md",
+		"docs/data-sources/no_docs_resource_with_dss.md",
+		"docs/data-sources/project_ip_access_lists.md",
 		"docs/resources/log_integration.md",
 		"docs/resources/mcp_config.md",
+		"docs/resources/no_docs_resource.md",
+		"docs/resources/no_docs_resource_with_ds.md",
 	}
 	if len(got) != len(want) {
 		t.Fatalf("got %v, want %v", got, want)
@@ -83,6 +106,51 @@ func TestAutogenDocsPaths(t *testing.T) {
 		if got[i] != want[i] {
 			t.Errorf("got[%d] = %q, want %q", i, got[i], want[i])
 		}
+	}
+}
+
+func TestDeletedDocsKeepClassification(t *testing.T) {
+	root := fixtureRepo(t)
+	before := mustPaths(t, root)
+	if err := os.Remove(filepath.Join(root, "docs", "resources", "log_integration.md")); err != nil {
+		t.Fatal(err)
+	}
+	if got := mustPaths(t, root); strings.Join(got, "\n") != strings.Join(before, "\n") {
+		t.Fatalf("deleting a doc changed classification: got %v, want %v", got, before)
+	}
+}
+
+func TestEmptyConfigRejected(t *testing.T) {
+	root := fixtureRepo(t)
+	writeFile(t, filepath.Join(root, configPath), "resources: {}\n")
+	if _, err := autogenDocsPaths(root); err == nil {
+		t.Fatal("expected empty configuration to fail instead of silently dropping exclusions")
+	}
+}
+
+func TestBaseRevisionKeepsRemovedResources(t *testing.T) {
+	root := fixtureRepo(t)
+	git := func(args ...string) {
+		t.Helper()
+		cmd := exec.CommandContext(t.Context(), "git", append([]string{"-C", root}, args...)...) //nolint:gosec // Arguments are fixed by this test and root is its temporary fixture.
+		if output, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("git %v failed: %v\n%s", args, err, output)
+		}
+	}
+	git("init")
+	git("add", configPath)
+	git("-c", "user.name=Test", "-c", "user.email=test@example.com", "-c", "commit.gpgsign=false", "commit", "-m", "Base configuration")
+	before := mustPaths(t, root)
+	writeFile(t, filepath.Join(root, configPath), strings.Replace(fixtureConfig, "  mcp_config:\n    read:\n      path: /api/atlas/v2/groups/{groupId}/mcpConfigs\n      method: POST\n", "", 1))
+	if err := os.Remove(filepath.Join(root, "docs", "resources", "mcp_config.md")); err != nil {
+		t.Fatal(err)
+	}
+	got, err := autogenDocsPathsAtRef(root, "HEAD")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Join(got, "\n") != strings.Join(before, "\n") {
+		t.Fatalf("base revision lost removed docs: got %v, want %v", got, before)
 	}
 }
 
@@ -108,8 +176,15 @@ func TestWriteFilters(t *testing.T) {
 			t.Errorf("filters output missing %q, got:\n%s", want, text)
 		}
 	}
-	if strings.Contains(text, "legacy_resource") {
-		t.Errorf("filters output must not exclude legacy docs, got:\n%s", text)
+	for _, path := range []string{"docs/resources/legacy_resource.md", "docs/resources/project_ip_access_list.md", "docs/data-sources/project_ip_access_list.md"} {
+		if strings.Contains(text, "!"+path) {
+			t.Errorf("filters must not exclude handwritten docs %s", path)
+		}
+	}
+	for path := range handwrittenDocs {
+		if strings.Contains(text, "!"+path) {
+			t.Errorf("filters must not exclude handwritten docs %s", path)
+		}
 	}
 }
 
@@ -131,10 +206,9 @@ func TestCodeownersBlockAndCheck(t *testing.T) {
 		t.Errorf("expected no drift, got error: %v", err)
 	}
 
-	// Simulate a new autogen resource with docs: check must detect drift.
+	// A config change must detect drift before documentation is generated.
 	newConfig := strings.Replace(fixtureConfig, "  mcp_config:\n", "  mcp_config_new:\n    read:\n      path: /api/atlas/v2/mcpConfigsNew\n      method: GET\n  mcp_config:\n", 1)
 	writeFile(t, filepath.Join(root, "tools", "codegen", "config.yml"), newConfig)
-	writeFile(t, filepath.Join(root, "docs", "resources", "mcp_config_new.md"), "new autogen doc")
 	if err := checkCodeowners(root); err == nil {
 		t.Error("expected drift error after new autogenerated doc")
 	}
