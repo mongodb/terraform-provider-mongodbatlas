@@ -68,18 +68,11 @@ Use `wave_assignment` to assign the project to a maintenance wave. You can set `
 ```terraform
   resource "mongodbatlas_maintenance_window" "test" {
     project_id      = "<your-project-id>"
-    day_of_week     = 3
-    hour_of_day     = 4
     wave_assignment = 1
-  }
-```
 
-To assign a wave without configuring a maintenance window, omit `day_of_week` and `hour_of_day`.
-
-```terraform
-  resource "mongodbatlas_maintenance_window" "test" {
-    project_id      = "<your-project-id>"
-    wave_assignment = 1
+    # Uncomment to also configure the maintenance window schedule.
+    # day_of_week = 3
+    # hour_of_day = 4
   }
 ```
 
