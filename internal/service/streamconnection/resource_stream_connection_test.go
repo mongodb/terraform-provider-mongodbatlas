@@ -240,6 +240,7 @@ func TestAccStreamRSStreamConnection_kafkaOAuthBearer(t *testing.T) {
 	resource.ParallelTest(t, *testCase)
 }
 
+// Dedicated project: only one network container per region is allowed and the shared project already has one.
 func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 	var (
 		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -276,18 +277,22 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 	})
 }
 
+// Dedicated project: only one network container per region is allowed and the shared project already has one.
 func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		vpcID                   = os.Getenv("AWS_VPC_ID")
-		vpcCIDRBlock            = os.Getenv("AWS_VPC_CIDR_BLOCK")
-		awsAccountID            = os.Getenv("AWS_ACCOUNT_ID")
-		peerRegion              = os.Getenv("AWS_REGION")
-		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
-		providerName            = "AWS"
-		networkPeeringConfig    = configNetworkPeeringAWS(fmt.Sprintf("%q", projectID), providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
+		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName          = acc.RandomProjectName()
+		instanceName         = acc.RandomStreamInstanceName()
+		vpcID                = os.Getenv("AWS_VPC_ID")
+		vpcCIDRBlock         = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID         = os.Getenv("AWS_ACCOUNT_ID")
+		peerRegion           = os.Getenv("AWS_REGION")
+		containerRegion      = conversion.AWSRegionToMongoDBRegion(peerRegion)
+		providerName         = "AWS"
+		projectConfig        = configStreamProjectAWS(orgID, projectName, instanceName)
+		networkPeeringConfig = configNetworkPeeringAWS("mongodbatlas_project.test.id", providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
-	logStreamConnectionOnFailure(t, projectID, instanceName, "kafka-conn-ssl")
+	logStreamConnectionOnFailure(t, projectName, instanceName, "kafka-conn-ssl")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			acc.PreCheckBasic(t)
@@ -297,14 +302,14 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf("%s\n%s", configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingPublic, true), dataSourceConfig),
+				Config: fmt.Sprintf("%s\n%s", projectConfig+configureKafkaInWorkspace("mongodbatlas_project.test.id", "mongodbatlas_stream_workspace.test.workspace_name", "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingPublic, true), dataSourceConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-ssl", "user", "rawpassword", "example.com:9092", "earliest", networkingTypePublic, true, true),
 					checkKafkaAttributesAcceptance(dataSourceName, instanceName, "kafka-conn-ssl", "user", "rawpassword", "example.com:9092", "earliest", networkingTypePublic, true, false),
 				),
 			},
 			{
-				Config: networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingVPC, true),
+				Config: projectConfig + networkPeeringConfig + configureKafkaInWorkspace("mongodbatlas_network_peering.test.project_id", "mongodbatlas_stream_workspace.test.workspace_name", "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingVPC, true),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectResourceAction(
@@ -338,6 +343,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 	})
 }
 
+// Dedicated project: only one network container per region is allowed and the shared project already has one.
 func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t *testing.T) {
 	var (
 		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
