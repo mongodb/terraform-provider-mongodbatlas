@@ -273,6 +273,7 @@ jobs:
     outputs: # ensure resources are sorted alphabetically
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
+      atlascli: ${{ steps.filter.outputs.atlascli == 'true' || env.mustTrigger == 'true' }}
       authentication: ${{ steps.filter.outputs.authentication == 'true' || env.mustTrigger == 'true' }}
       autogen_fast: ${{ steps.filter.outputs.autogen_fast == 'true' || env.mustTrigger == 'true' }}
       autogen_slow: ${{ steps.filter.outputs.autogen_slow == 'true' || env.mustTrigger == 'true' }}
@@ -314,6 +315,9 @@ jobs:
             - 'internal/config/*.go'
             - 'internal/provider/*.go'
           authentication:
+            - 'internal/config/*.go'
+            - 'internal/provider/*.go'
+          atlascli:
             - 'internal/config/*.go'
             - 'internal/provider/*.go'
           service_account_jwt:
@@ -620,6 +624,70 @@ jobs:
           MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
           MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}        
         run: make access-token-revoke token="${{ steps.create-token.outputs.access_token }}"
+
+  atlascli:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.atlascli == 'true' || inputs.test_group == 'atlascli' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - *checkout
+      - *setup-go
+      - *setup-tf
+      - name: Install AtlasCLI
+        env:
+          ATLAS_CLI_VERSION: '1.59.2'
+        shell: bash
+        run: |
+          curl -fsSL -o /tmp/atlascli.tar.gz "https://github.com/mongodb/mongodb-atlas-cli/releases/download/v${ATLAS_CLI_VERSION}/mongodb-atlas-cli_${ATLAS_CLI_VERSION}_linux_x86_64.tar.gz"
+          tar -xzf /tmp/atlascli.tar.gz -C /tmp
+          sudo install -m 0755 "/tmp/mongodb-atlas-cli_${ATLAS_CLI_VERSION}_linux_x86_64/bin/atlas" /usr/local/bin/atlas
+          atlas --version
+      - name: Configure AtlasCLI (service account profile)
+        shell: bash
+        env:
+          MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
+          MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
+          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
+        run: |
+          mkdir -p "$HOME/.config/atlascli"
+          cat > "$HOME/.config/atlascli/config.toml" <<EOF
+          version = 2
+
+          [default]
+          auth_type = 'service_account'
+          client_id = '${MONGODB_ATLAS_CLIENT_ID}'
+          client_secret = '${MONGODB_ATLAS_CLIENT_SECRET}'
+          org_id = '${MONGODB_ATLAS_ORG_ID}'
+          ops_manager_url = '${MONGODB_ATLAS_BASE_URL}'
+          output = 'plaintext'
+          service = 'cloud'
+          EOF
+          atlas auth whoami
+      - name: Mint AtlasCLI access token
+        # TODO: Remove once AtlasCLI mints an access token for service account profiles directly in `atlas auth token`.
+        # `atlas auth token` only returns a persisted token, so run an authenticated command first to mint and persist it.
+        shell: bash
+        run: |
+          atlas orgs list || true
+          atlas auth token > /dev/null
+      - name: Acceptance Tests (AtlasCLI)
+        shell: bash
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ""
+          MONGODB_ATLAS_PRIVATE_KEY: ""
+          MONGODB_ATLAS_CLIENT_ID: ""
+          MONGODB_ATLAS_CLIENT_SECRET: ""
+          MONGODB_ATLAS_ACCESS_TOKEN: ""
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
+          ACCTEST_REGEX_RUN: '^TestAccAtlasCLI_basic$'
+          ACCTEST_PACKAGES: ./internal/provider
+        run: make testacc
+      - name: Revoke AtlasCLI access token
+        if: always()
+        shell: bash
+        run: atlas auth logout --force
 
   # Always runs using Service Account credentials (explicitly set in step env)
   service_account_jwt:

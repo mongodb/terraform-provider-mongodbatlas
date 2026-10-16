@@ -65,6 +65,29 @@ func SkipInAccessToken(tb testing.TB, description string) {
 	}
 }
 
+// nonAtlasCLICredentialEnvVars are the environment variables that configure non-AtlasCLI
+// credentials, including the aliases read by config.NewEnvVars and AWS Secrets Manager.
+var nonAtlasCLICredentialEnvVars = []string{
+	"MONGODB_ATLAS_PUBLIC_KEY", "MONGODB_ATLAS_PRIVATE_KEY",
+	"MONGODB_ATLAS_PUBLIC_API_KEY", "MONGODB_ATLAS_PRIVATE_API_KEY",
+	"MCLI_PUBLIC_API_KEY", "MCLI_PRIVATE_API_KEY",
+	"MONGODB_ATLAS_CLIENT_ID", "MONGODB_ATLAS_CLIENT_SECRET",
+	"MONGODB_ATLAS_ACCESS_TOKEN",
+	"ASSUME_ROLE_ARN", "TF_VAR_ASSUME_ROLE_ARN",
+}
+
+// SkipIfNonAtlasCLICredentials skips the test when any supported non-AtlasCLI credential
+// source is configured (PAK, Service Account, access token, or AWS Secrets Manager), so that
+// the AtlasCLI fallback is the only authentication path exercised.
+func SkipIfNonAtlasCLICredentials(tb testing.TB, description string) {
+	tb.Helper()
+	for _, envVar := range nonAtlasCLICredentialEnvVars {
+		if os.Getenv(envVar) != "" {
+			tb.Skipf("%s: %s is set", description, envVar)
+		}
+	}
+}
+
 // SkipIfNotSA skips the test if Service Account credentials are not configured.
 func SkipIfNotSA(tb testing.TB) {
 	tb.Helper()

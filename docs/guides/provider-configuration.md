@@ -18,6 +18,7 @@ Credentials can be provided through one of the following sources (in priority or
 1. AWS Secrets Manager (configured through provider attributes or environment variables)
 2. Provider attributes
 3. Environment variables
+4. AtlasCLI (used only when none of the above provide credentials)
 
 The provider selects the first source that has credentials and uses it as the single source of configuration. Sources are not merged; values set in a lower-priority source are ignored once a higher-priority source is selected.
 
@@ -67,6 +68,20 @@ provider "mongodbatlas" {
 ```
 
 ~> **Migrating from PAK to SA:** Update your provider attributes or environment variables to use SA credentials instead of PAK credentials, then run `terraform plan` to verify everything works correctly.
+
+### AtlasCLI
+
+If none of the sources above provide credentials, the provider falls back to a logged-in [Atlas CLI](https://www.mongodb.com/docs/atlas/cli/stable/) session: it runs `atlas auth token` and authenticates with the returned access token.
+
+```shell
+atlas auth login
+```
+
+AtlasCLI supports named profiles, similar to the AWS CLI. The provider uses the CLI's default profile; to select a different one, set the `MONGODB_ATLAS_PROFILE` environment variable. The variable is inherited by the provider process and forwarded to the AtlasCLI:
+
+```shell
+export MONGODB_ATLAS_PROFILE=myprofile
+```
 
 ## AWS Secrets Manager
 
