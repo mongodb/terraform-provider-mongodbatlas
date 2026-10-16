@@ -92,6 +92,17 @@ var (
 	pluralDataSourceName = "data.mongodbatlas_stream_connections.test"
 )
 
+// logStreamConnectionOnFailure logs the project, workspace, and connection names
+// when a test fails, so the connection can be located in backend logs.
+func logStreamConnectionOnFailure(t *testing.T, projectID, workspaceName, connectionName string) {
+	t.Helper()
+	t.Cleanup(func() {
+		if t.Failed() {
+			t.Logf("stream connection test failed: project_id=%s workspace_name=%s connection_name=%s", projectID, workspaceName, connectionName)
+		}
+	})
+}
+
 func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 	testCase := testCaseKafkaPlaintext(t)
 	resource.ParallelTest(t, *testCase)
@@ -103,6 +114,7 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = "kafka-conn-plaintext"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -150,6 +162,7 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = "kafka-conn-plaintext-mig"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -192,6 +205,7 @@ func TestAccStreamRSStreamConnection_kafkaOAuthBearer(t *testing.T) {
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = "kafka-conn-oauthbearer"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 
 	testCase := &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -237,6 +251,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 		providerName            = "AWS"
 		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, "kafka-conn-vpc")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAWS(t) },
@@ -269,6 +284,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		providerName            = "AWS"
 		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, "kafka-conn-ssl")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			acc.PreCheckBasic(t)
@@ -339,6 +355,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t
 		)
 		connectionName = "kafka-conn-public-to-vpc"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -431,6 +448,7 @@ func testCaseCluster(t *testing.T) *resource.TestCase {
 		_, instanceName        = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName         = "conn-cluster"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -460,6 +478,7 @@ func testCaseClusterMigration(t *testing.T) *resource.TestCase {
 		_, instanceName        = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName         = "conn-cluster-mig"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -488,6 +507,7 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 		instanceName = acc.RandomStreamInstanceName() // The execution stream instance use sample stream, so we need to create this in a different instance
 		sampleName   = "sample_stream_solar"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, sampleName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -524,6 +544,7 @@ func TestAccStreamStreamConnection_https(t *testing.T) {
 		}`
 		emptyHeaders string
 	)
+	logStreamConnectionOnFailure(t, projectID, workspaceName, "ConnectionNameHttps")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -581,6 +602,7 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 			}
 		}`, networkingTypePrivatelink)
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, "kafka-conn-privatelink")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -611,6 +633,7 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 		awsIAMRoleName          = acc.RandomIAMRole()
 		connectionName          = acc.RandomName()
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
@@ -641,6 +664,7 @@ func TestAccStreamRSStreamConnection_AWSLambdaPrivateLink(t *testing.T) {
 		awsIAMRoleName = acc.RandomIAMRole()
 		region         = "us-east-1"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
@@ -666,6 +690,7 @@ func TestAccStreamRSStreamConnection_GCPPubSub(t *testing.T) {
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = acc.RandomName()
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -694,6 +719,7 @@ func TestAccStreamRSStreamConnection_GCPPubSubPrivateLink(t *testing.T) {
 		connectionName = acc.RandomName()
 		region         = "us-east4"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -719,6 +745,7 @@ func TestAccStreamRSStreamConnection_instanceName(t *testing.T) {
 		connectionName          = acc.RandomName()
 	)
 
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -752,6 +779,7 @@ func TestAccStreamRSStreamConnection_conflictingFields(t *testing.T) {
 		connectionName          = "conflict-test"
 	)
 
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -773,6 +801,7 @@ func TestAccStreamRSStreamConnection_SchemaRegistry(t *testing.T) {
 		username                = "user"
 		password                = "password"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -840,6 +869,7 @@ func TestAccStreamRSStreamConnection_SchemaRegistrySASLInherit(t *testing.T) {
 		connectionName          = acc.RandomName()
 		schemaRegistryURLs      = []string{"https://httpbin.org/anything/schema-registry"}
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -904,6 +934,7 @@ func TestAccStreamRSStreamConnection_kafkaIAM(t *testing.T) {
 		roleARN             = os.Getenv("AWS_ROLE_ARN")
 		bootstrapServersEnv = os.Getenv("MONGODB_ATLAS_STREAM_KAFKA_MSK_BOOTSTRAP_SERVERS")
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			acc.PreCheckBasic(t)
@@ -1593,6 +1624,7 @@ func TestAccStreamRSStreamConnection_AzureBlobStorage(t *testing.T) {
 		storageAccountName      = "tfacctest" + acctest.RandString(10)
 		storageContainerName    = acc.RandomBucketName()
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			acc.PreCheckAzureEnvWithServicePrincipal(t)
@@ -1633,6 +1665,7 @@ func TestAccStreamRSStreamConnection_AzureBlobStoragePrivateLink(t *testing.T) {
 		storageAccountName   = "tfacctest" + acctest.RandString(10)
 		storageContainerName = acc.RandomBucketName()
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			acc.PreCheckAzureEnvWithServicePrincipal(t)
