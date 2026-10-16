@@ -1,19 +1,22 @@
 package advancedcluster_test
 
 import (
-	"fmt"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/atlas-sdk/v20250312026/admin"
 )
 
 func TestRemoveClusterNotFoundErrors(t *testing.T) {
@@ -76,24 +79,71 @@ func TestRemoveClusterNotFoundErrors(t *testing.T) {
 	}
 }
 
-// Regression test: a transient CLUSTER_NOT_FOUND from the cluster list must be retried.
-func TestPluralDataSourceRetriesTransientClusterNotFound(t *testing.T) {
+func TestRetryListOnClusterNotFound(t *testing.T) {
+	t.Run("retries transient CLUSTER_NOT_FOUND", func(t *testing.T) {
+		calls := 0
+		result, err := advancedcluster.RetryListOnClusterNotFound(t.Context(), func() (string, error) {
+			calls++
+			if calls < 3 {
+				return "", clusterNotFoundError()
+			}
+			return "clusters", nil
+		})
+		require.NoError(t, err)
+		require.Equal(t, "clusters", result)
+		require.Equal(t, 3, calls)
+	})
+
+	t.Run("does not retry other errors", func(t *testing.T) {
+		calls := 0
+		_, err := advancedcluster.RetryListOnClusterNotFound(t.Context(), func() (string, error) {
+			calls++
+			return "", errors.New("unexpected error")
+		})
+		require.Error(t, err)
+		require.Equal(t, 1, calls)
+	})
+}
+
+// clusterNotFoundError builds the SDK error Atlas returns for CLUSTER_NOT_FOUND.
+func clusterNotFoundError() error {
+	apiErr := &admin.GenericOpenAPIError{}
+	apiErr.SetModel(admin.ApiError{ErrorCode: "CLUSTER_NOT_FOUND"})
+	apiErr.SetError("cluster not found")
+	return apiErr
+}
+
+func TestPluralDataSourceEmptyProjectReturnsEmptyList(t *testing.T) {
 	storageConfigCredentials(t)
-	mock := &pluralDataSourceHTTPMock{listFailures: 2}
 	resource.UnitTest(t, resource.TestCase{
 		PreCheck:                 func() { require.NoError(t, unit.MockConfigAdvancedCluster.RunBeforeEach()) },
-		ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, mock),
-		Steps: []resource.TestStep{
-			{
-				Config: pluralDataSourceConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.#", "1"),
-					resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.name", "example"),
-				),
+		ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, emptyProjectHTTPMock{}),
+		Steps: []resource.TestStep{{
+			Config: pluralDataSourceConfig,
+			ConfigStateChecks: []statecheck.StateCheck{
+				statecheck.ExpectKnownValue(dataSourcePluralName, tfjsonpath.New("results"), knownvalue.ListExact([]knownvalue.Check{})),
 			},
-		},
+		}},
 	})
-	require.Greater(t, mock.listCalls, mock.listFailures, "the cluster list should be retried after the transient error")
+}
+
+// emptyProjectHTTPMock returns an empty cluster list for every request.
+type emptyProjectHTTPMock struct{}
+
+func (emptyProjectHTTPMock) ModifyHTTPClient(c *http.Client) error {
+	c.Transport = emptyProjectHTTPMock{}
+	return nil
+}
+
+func (emptyProjectHTTPMock) ResetHTTPClient(*http.Client) {}
+
+func (emptyProjectHTTPMock) RoundTrip(req *http.Request) (*http.Response, error) {
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Header:     http.Header{"Content-Type": {"application/json"}},
+		Body:       io.NopCloser(strings.NewReader(`{"results":[],"totalCount":0}`)),
+		Request:    req,
+	}, nil
 }
 
 const pluralDataSourceConfig = `
@@ -102,68 +152,7 @@ provider "mongodbatlas" {
   private_key = "test-private-key"
   base_url    = "https://atlas.invalid/"
 }
-
 data "mongodbatlas_advanced_clusters" "test" {
   project_id = "111111111111111111111111"
 }
 `
-
-const pluralDataSourceClusterResponse = `{
-  "id": "333333333333333333333333", "groupId": "111111111111111111111111", "name": "example",
-  "clusterType": "REPLICASET", "databaseEdition": "INFINITE", "stateName": "IDLE",
-  "mongoDBMajorVersion": "8.0", "mongoDBVersion": "8.0.5", "versionReleaseSystem": "LTS",
-  "rootCertType": "ISRGROOTX1", "encryptionAtRestProvider": "NONE", "replicaSetScalingStrategy": "SEQUENTIAL",
-  "replicationSpecs": [{
-    "id": "444444444444444444444444", "zoneId": "555555555555555555555555", "zoneName": "Zone 1",
-    "regionConfigs": [{
-      "providerName": "AWS", "regionName": "US_EAST_1", "priority": 7,
-      "electableSpecs": {"instanceSize": "M10", "nodeCount": 2, "diskSizeGB": 10, "diskIOPS": 3000, "ebsVolumeType": "STANDARD"},
-      "autoScaling": {"compute": {"enabled": true, "maxInstanceSize": "M20", "minInstanceSize": "M10", "scaleDownEnabled": false}, "diskGB": {"enabled": false}}
-    }]
-  }]
-}`
-
-// pluralDataSourceHTTPMock fails the first listFailures cluster list calls with
-// CLUSTER_NOT_FOUND before serving one cluster.
-type pluralDataSourceHTTPMock struct {
-	mu           sync.Mutex
-	listFailures int
-	listCalls    int
-}
-
-func (m *pluralDataSourceHTTPMock) ModifyHTTPClient(client *http.Client) error {
-	client.Transport = m
-	return nil
-}
-
-func (m *pluralDataSourceHTTPMock) ResetHTTPClient(*http.Client) {}
-
-func (m *pluralDataSourceHTTPMock) RoundTrip(req *http.Request) (*http.Response, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	const groupPath = "/api/atlas/v2/groups/111111111111111111111111"
-	status := http.StatusOK
-	body := "{}"
-	switch {
-	case req.Method == http.MethodGet && req.URL.Path == groupPath+"/clusters":
-		m.listCalls++
-		if m.listCalls <= m.listFailures {
-			status, body = http.StatusNotFound, `{"errorCode":"CLUSTER_NOT_FOUND","error":404}`
-		} else {
-			body = `{"results":[` + pluralDataSourceClusterResponse + `],"totalCount":1}`
-		}
-	case req.Method == http.MethodGet && req.URL.Path == groupPath+"/containers":
-		body = `{"results":[{"id":"222222222222222222222222","providerName":"AWS","regionName":"US_EAST_1"}],"totalCount":1}`
-	case req.Method == http.MethodGet && req.URL.Path == groupPath+"/clusters/example/processArgs":
-	case req.Method == http.MethodGet && req.URL.Path == groupPath+"/flexClusters":
-		body = `{"results":[],"totalCount":0}`
-	default:
-		return nil, fmt.Errorf("unexpected mocked Atlas request: %s %s", req.Method, req.URL.Path)
-	}
-	return &http.Response{
-		StatusCode: status,
-		Header:     http.Header{"Content-Type": {"application/json"}},
-		Body:       io.NopCloser(strings.NewReader(body)),
-		Request:    req,
-	}, nil
-}

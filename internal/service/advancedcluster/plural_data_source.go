@@ -75,15 +75,15 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	return outs, diags
 }
 
-// retryListOnClusterNotFound retries a cluster list while Atlas returns the transient
+// RetryListOnClusterNotFound retries a cluster list while Atlas returns the transient
 // CLUSTER_NOT_FOUND error, which the list endpoint can return for the whole request when a
 // cluster is deleted concurrently.
-func retryListOnClusterNotFound[T any](ctx context.Context, list func() (T, error)) (T, error) {
+func RetryListOnClusterNotFound[T any](ctx context.Context, list func() (T, error)) (T, error) {
 	var result T
 	err := retry.RetryContext(ctx, listRetryTimeout, func() *retry.RetryError {
-		value, err := list()
+		var err error
+		result, err = list()
 		if err == nil {
-			result = value
 			return nil
 		}
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
@@ -91,11 +91,7 @@ func retryListOnClusterNotFound[T any](ctx context.Context, list func() (T, erro
 		}
 		return retry.NonRetryableError(err)
 	})
-	if err != nil {
-		var zero T
-		return zero, err
-	}
-	return result, nil
+	return result, err
 }
 
 // getBasicClusters gets the dedicated and tenant clusters.
@@ -106,7 +102,7 @@ func (d *pluralDS) getBasicClusters(ctx context.Context, diags *diag.Diagnostics
 		GroupId:                    projectID,
 		UseEffectiveInstanceFields: new(useEffectiveFields.ValueBool()),
 	}
-	list, err := retryListOnClusterNotFound(ctx, func() ([]admin.ClusterDescription20240805, error) {
+	list, err := RetryListOnClusterNotFound(ctx, func() ([]admin.ClusterDescription20240805, error) {
 		return dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.ClusterDescription20240805], *http.Response, error) {
 			return api.ListClustersWithParams(ctx, &params).PageNum(pageNum).Execute()
 		})
@@ -128,7 +124,7 @@ func (d *pluralDS) getBasicClusters(ctx context.Context, diags *diag.Diagnostics
 
 func (d *pluralDS) getFlexClusters(ctx context.Context, diags *diag.Diagnostics, projectID string, useEffectiveFields types.Bool) []*TFModelDS {
 	var results []*TFModelDS
-	listFlexClusters, err := retryListOnClusterNotFound(ctx, func() (*[]admin.FlexClusterDescription20241113, error) {
+	listFlexClusters, err := RetryListOnClusterNotFound(ctx, func() (*[]admin.FlexClusterDescription20241113, error) {
 		return flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasV2.FlexClustersAPI)
 	})
 	if err != nil {
