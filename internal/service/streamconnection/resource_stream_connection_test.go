@@ -240,11 +240,10 @@ func TestAccStreamRSStreamConnection_kafkaOAuthBearer(t *testing.T) {
 	resource.ParallelTest(t, *testCase)
 }
 
-// Dedicated project: only one network container per region is allowed and the shared project already has one.
 func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 	var (
 		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName          = acc.RandomProjectName()
+		projectName          = acc.RandomProjectName() // Dedicated project: one network container per region per project.
 		instanceName         = acc.RandomStreamInstanceName()
 		vpcID                = os.Getenv("AWS_VPC_ID")
 		vpcCIDRBlock         = os.Getenv("AWS_VPC_CIDR_BLOCK")
@@ -277,11 +276,10 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 	})
 }
 
-// Dedicated project: only one network container per region is allowed and the shared project already has one.
 func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 	var (
 		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName          = acc.RandomProjectName()
+		projectName          = acc.RandomProjectName() // Dedicated project: one network container per region per project.
 		instanceName         = acc.RandomStreamInstanceName()
 		vpcID                = os.Getenv("AWS_VPC_ID")
 		vpcCIDRBlock         = os.Getenv("AWS_VPC_CIDR_BLOCK")
@@ -343,11 +341,10 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 	})
 }
 
-// Dedicated project: only one network container per region is allowed and the shared project already has one.
 func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t *testing.T) {
 	var (
 		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName          = acc.RandomProjectName()
+		projectName          = acc.RandomProjectName() // Dedicated project: one network container per region per project.
 		instanceName         = acc.RandomStreamInstanceName()
 		vpcID                = os.Getenv("AWS_VPC_ID")
 		vpcCIDRBlock         = os.Getenv("AWS_VPC_CIDR_BLOCK")
