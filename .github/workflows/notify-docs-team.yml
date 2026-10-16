@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       files: ${{ steps.changes.outputs.files }}
+      exclusions: ${{ steps.exclusions.outcome == 'success' && 'true' || 'false' }}
     permissions:
       pull-requests: read
     steps:
@@ -69,4 +70,8 @@ jobs:
         with:
           header: pr-title-slack-doc
           append: true
-          message: "APIx bot: a message has been sent to Docs Slack channel"
+          # When exclusions could not be generated, say so in the sticky
+          # comment: the ::warning:: annotation above is only visible in the
+          # Actions run, and the PR author is the one who can fix it.
+          message: >-
+            APIx bot: a message has been sent to Docs Slack channel${{ needs.check.outputs.exclusions == 'true' && '.' || ', but docs exclusions could not be generated, so all docs and changelog changes were notified. Check the "Generate docs exclusions" step in the Notify Docs team workflow run.' }}
