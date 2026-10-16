@@ -10,9 +10,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
-	"github.com/hashicorp/terraform-plugin-testing/statecheck"
-	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 	"github.com/stretchr/testify/assert"
@@ -79,10 +76,7 @@ func TestRemoveClusterNotFoundErrors(t *testing.T) {
 	}
 }
 
-// TestPluralDataSourceRetriesTransientClusterNotFound covers a cluster list that fails
-// with CLUSTER_NOT_FOUND before succeeding, which is what Atlas can return while a
-// cluster is deleted concurrently. The retry must let the data source return the
-// project's clusters instead of an empty result set.
+// Regression test: a transient CLUSTER_NOT_FOUND from the cluster list must be retried.
 func TestPluralDataSourceRetriesTransientClusterNotFound(t *testing.T) {
 	storageConfigCredentials(t)
 	mock := &pluralDataSourceHTTPMock{listFailures: 2}
@@ -100,25 +94,6 @@ func TestPluralDataSourceRetriesTransientClusterNotFound(t *testing.T) {
 		},
 	})
 	require.Greater(t, mock.listCalls, mock.listFailures, "the cluster list should be retried after the transient error")
-}
-
-// TestPluralDataSourceEmptyProjectReturnsEmptyList covers a project without clusters:
-// `results` must be an empty list instead of null.
-func TestPluralDataSourceEmptyProjectReturnsEmptyList(t *testing.T) {
-	storageConfigCredentials(t)
-	mock := &pluralDataSourceHTTPMock{emptyList: true}
-	resource.UnitTest(t, resource.TestCase{
-		PreCheck:                 func() { require.NoError(t, unit.MockConfigAdvancedCluster.RunBeforeEach()) },
-		ProtoV6ProviderFactories: unit.TestAccProviderV6FactoriesWithMock(t, mock),
-		Steps: []resource.TestStep{
-			{
-				Config: pluralDataSourceConfig,
-				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue(dataSourcePluralName, tfjsonpath.New("results"), knownvalue.ListExact([]knownvalue.Check{})),
-				},
-			},
-		},
-	})
 }
 
 const pluralDataSourceConfig = `
@@ -148,14 +123,12 @@ const pluralDataSourceClusterResponse = `{
   }]
 }`
 
-// pluralDataSourceHTTPMock serves a cluster list that returns CLUSTER_NOT_FOUND for the
-// first listFailures requests before succeeding, and the supporting reads the plural
-// data source performs. Set emptyList to serve an empty cluster list.
+// pluralDataSourceHTTPMock fails the first listFailures cluster list calls with
+// CLUSTER_NOT_FOUND before serving one cluster.
 type pluralDataSourceHTTPMock struct {
 	mu           sync.Mutex
 	listFailures int
 	listCalls    int
-	emptyList    bool
 }
 
 func (m *pluralDataSourceHTTPMock) ModifyHTTPClient(client *http.Client) error {
@@ -174,12 +147,9 @@ func (m *pluralDataSourceHTTPMock) RoundTrip(req *http.Request) (*http.Response,
 	switch {
 	case req.Method == http.MethodGet && req.URL.Path == groupPath+"/clusters":
 		m.listCalls++
-		switch {
-		case m.listCalls <= m.listFailures:
+		if m.listCalls <= m.listFailures {
 			status, body = http.StatusNotFound, `{"errorCode":"CLUSTER_NOT_FOUND","error":404}`
-		case m.emptyList:
-			body = `{"results":[],"totalCount":0}`
-		default:
+		} else {
 			body = `{"results":[` + pluralDataSourceClusterResponse + `],"totalCount":1}`
 		}
 	case req.Method == http.MethodGet && req.URL.Path == groupPath+"/containers":

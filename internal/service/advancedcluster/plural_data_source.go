@@ -19,8 +19,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
-// listRetryTimeout bounds how long the cluster list is retried while Atlas reports
-// the transient CLUSTER_NOT_FOUND error described in retryListOnClusterNotFound.
+// listRetryTimeout bounds the retry of a cluster list that fails with CLUSTER_NOT_FOUND.
 const listRetryTimeout = 30 * time.Second
 
 var _ datasource.DataSource = &pluralDS{}
@@ -59,8 +58,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	projectID := pluralModel.ProjectID.ValueString()
 	outs := &TFModelPluralDS{
 		ProjectID: pluralModel.ProjectID,
-		// Start from an empty slice so a project with no clusters serializes `results`
-		// as an empty list instead of null.
+		// Non-nil so a project without clusters serializes results as an empty list, not null.
 		Results: make([]*TFModelDS, 0),
 	}
 	basicClusters := d.getBasicClusters(ctx, diags, projectID, pluralModel.UseEffectiveFields)
@@ -77,11 +75,9 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	return outs, diags
 }
 
-// retryListOnClusterNotFound retries a cluster list operation while Atlas returns the
-// transient CLUSTER_NOT_FOUND error. The list endpoint can fail the whole request when
-// a cluster is deleted concurrently instead of excluding it, so a single attempt can
-// miss every cluster in the project. Retrying keeps the plural data source from
-// returning an empty result set for a project that does have clusters.
+// retryListOnClusterNotFound retries a cluster list while Atlas returns the transient
+// CLUSTER_NOT_FOUND error, which the list endpoint can return for the whole request when a
+// cluster is deleted concurrently.
 func retryListOnClusterNotFound[T any](ctx context.Context, list func() (T, error)) (T, error) {
 	var result T
 	err := retry.RetryContext(ctx, listRetryTimeout, func() *retry.RetryError {
