@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_maintenance_window: Fixes reads keeping stale `protected_hours` in state when they are missing in Atlas, so the loss now shows up as plan drift and the next apply restores them
+```
