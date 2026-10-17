@@ -258,17 +258,14 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.AutoDeferOnceEnabled = new(d.Get("auto_defer_once_enabled").(bool))
 	}
 
-	if oldPAny, newPAny := d.GetChange("protected_hours"); d.HasChange("protected_hours") {
-		oldP := oldPAny.([]any)
-		newP := newPAny.([]any)
-
-		if len(oldP) == 1 && len(newP) == 0 {
-			params.ProtectedHours = &admin.ProtectedHours{
-				StartHourOfDay: nil,
-				EndHourOfDay:   nil,
-			}
-		} else {
-			params.ProtectedHours = newProtectedHours(d)
+	// Always send the configured protected_hours, even when unchanged: the API clears
+	// them when a PATCH omits the field.
+	if protectedHours := newProtectedHours(d); protectedHours != nil {
+		params.ProtectedHours = protectedHours
+	} else if d.HasChange("protected_hours") {
+		params.ProtectedHours = &admin.ProtectedHours{
+			StartHourOfDay: nil,
+			EndHourOfDay:   nil,
 		}
 	}
 
