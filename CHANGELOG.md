@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.20.1 (October 19, 2026)
+
 NOTES:
 
 * provider: Signs releases with a new RSA GPG key, replacing the previous DSA key that caused `terraform init` to panic on FIPS 140 builds ([#4809](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4809))
