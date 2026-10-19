@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.41.2 (October 19, 2026)
+
 ## 1.41.1 (October 01, 2025)
 
 BUG FIXES:
