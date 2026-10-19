@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312026/admin"
+	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 )
 
 const (

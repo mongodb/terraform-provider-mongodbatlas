@@ -15,8 +15,8 @@ import (
 	"github.com/spf13/cast"
 	"github.com/stretchr/testify/assert"
 	mock "github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20250312026/admin"
-	"go.mongodb.org/atlas-sdk/v20250312026/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312027/admin"
+	"go.mongodb.org/atlas-sdk/v20250312027/mockadmin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/maintenancewindow"
