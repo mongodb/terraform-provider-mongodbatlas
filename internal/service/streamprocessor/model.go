@@ -50,14 +50,14 @@ func equalOptionalComputedString(plan, state types.String) bool {
 	return plan.IsUnknown() || plan.Equal(state)
 }
 
-func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessor, diag.Diagnostics) {
+func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessorRequest, diag.Diagnostics) {
 	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
 	if diags != nil {
 		return nil, diags
 	}
-	streamProcessor := &admin.StreamsProcessor{
-		Name:     plan.ProcessorName.ValueStringPointer(),
-		Pipeline: &pipeline,
+	streamProcessor := &admin.StreamsProcessorRequest{
+		Name:     plan.ProcessorName.ValueString(),
+		Pipeline: pipeline,
 	}
 
 	if !plan.FailoverEnabled.IsNull() && !plan.FailoverEnabled.IsUnknown() {
