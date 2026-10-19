@@ -905,8 +905,10 @@ type copyScheduleConfig struct {
 	autoCopy        bool
 }
 
+// newCopyScheduleConfig returns a copy-policy-items schedule with a valid daily retention.
+// Atlas rejects a zero/null retention value, so a base config applied as-is must carry one.
 func newCopyScheduleConfig(info *acc.ClusterInfo) copyScheduleConfig {
-	return copyScheduleConfig{info: info, regionName: "US_EAST_1"}
+	return copyScheduleConfig{info: info, regionName: "US_EAST_1", dailyRetention: 7}
 }
 
 func (c copyScheduleConfig) withDaily(days int) copyScheduleConfig {
@@ -939,8 +941,10 @@ func (c copyScheduleConfig) withFrequencies() copyScheduleConfig {
 	return c
 }
 
-// withAutoCopy switches the schedule to Atlas-managed copies: no copy_settings block and no
-// copy_policy_items_enabled. A nil enabled omits auto_copy_settings_enabled from the HCL.
+// withAutoCopy switches the schedule to Atlas-managed copies: no copy_settings block.
+// copy_policy_items_enabled stays in the HCL when the base uses copy-policy items, because
+// Atlas cannot disable copy-policy items once enabled. A nil enabled omits
+// auto_copy_settings_enabled from the HCL.
 func (c copyScheduleConfig) withAutoCopy(enabled *bool) copyScheduleConfig {
 	c.autoCopy = true
 	c.autoCopyEnabled = enabled
@@ -948,10 +952,10 @@ func (c copyScheduleConfig) withAutoCopy(enabled *bool) copyScheduleConfig {
 }
 
 func (c copyScheduleConfig) HCL() string {
-	enabled := ""
+	copyFlags := ""
 	sourceDailyRetention := 2
 	if !c.useFrequencies {
-		enabled = "copy_policy_items_enabled = true"
+		copyFlags = "copy_policy_items_enabled = true"
 		sourceDailyRetention = 7
 	}
 	updateFlag := ""
@@ -964,9 +968,15 @@ func (c copyScheduleConfig) HCL() string {
 	}
 	copySettings := ""
 	if c.autoCopy {
-		enabled = ""
+		// Keep copy_policy_items_enabled in the HCL: Atlas cannot disable copy-policy items once
+		// enabled, so dropping it makes the apply fail with INVALID_BACKUP_POLICY.
 		if c.autoCopyEnabled != nil {
-			enabled = fmt.Sprintf("auto_copy_settings_enabled = %t", *c.autoCopyEnabled)
+			autoLine := fmt.Sprintf("auto_copy_settings_enabled = %t", *c.autoCopyEnabled)
+			if copyFlags == "" {
+				copyFlags = autoLine
+			} else {
+				copyFlags += "\n\t\t\t" + autoLine
+			}
 		}
 	} else {
 		copySettings = fmt.Sprintf(`
@@ -1022,7 +1032,7 @@ func (c copyScheduleConfig) HCL() string {
 			cluster_name = mongodbatlas_cloud_backup_schedule.schedule_test.cluster_name
 			project_id   = mongodbatlas_cloud_backup_schedule.schedule_test.project_id
 		}
-	`, c.info.TerraformStr, c.info.ProjectID, c.info.ResourceName, enabled, updateFlag, deleteFlag, sourceDailyRetention, copySettings)
+	`, c.info.TerraformStr, c.info.ProjectID, c.info.ResourceName, copyFlags, updateFlag, deleteFlag, sourceDailyRetention, copySettings)
 }
 
 func (c copyScheduleConfig) copySettingsInner() string {
@@ -1114,7 +1124,7 @@ func configNoPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
 			project_id       = %[2]q
-		}	
+		}
 	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
@@ -1158,7 +1168,7 @@ func configDefault(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule202
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
 			project_id       = %[2]q
-		 }	
+		 }
 	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
@@ -1315,7 +1325,7 @@ func configNewPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedul
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
 			project_id       = %[2]q
-		 }	
+		 }
 	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays(), strYearly)
 }
 
@@ -1335,7 +1345,7 @@ func configAzure(info *acc.ClusterInfo, policy *admin.BackupComplianceOnDemandPo
 		data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
 			project_id       = %[2]q
-		}	
+		}
 	`, info.TerraformNameRef, info.ProjectID, policy.GetFrequencyInterval(), policy.GetRetentionUnit(), policy.GetRetentionValue())
 }
 
@@ -1414,7 +1424,7 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketNam
             frequency_interval = 1 #accepted values = 1, 2, 4, 6, 8, 12 -> every n hours
             retention_unit     = "days"
             retention_value    = 4
-        }		
+        }
         policy_item_daily {
             frequency_interval = 1
             retention_unit     = "days"
@@ -1426,11 +1436,11 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketNam
             retention_value    = 4
         }
         policy_item_monthly {
-            frequency_interval = 5        # accepted values = 1 to 28 -> 1 to 28 every nth day of the month  
+            frequency_interval = 5        # accepted values = 1 to 28 -> 1 to 28 every nth day of the month
         	                              # accepted values = 40 -> every last day of the month
             retention_unit     = "months"
             retention_value    = 4
-        }  		
+        }
 
         %[7]s
     }
