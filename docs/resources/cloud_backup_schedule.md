@@ -231,13 +231,13 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 ## Automatic copy settings
 
-Set `auto_copy_settings_enabled = true` to let Atlas manage the snapshot copy regions for the cluster. In this mode, omit `copy_settings`. Atlas copies to one region per secondary and adds or removes copies when you add or remove cluster regions.
+Set `auto_copy_settings_enabled = true` to let Atlas manage the snapshot copy settings for the cluster. In this mode, omit `copy_settings`. Atlas copies snapshots to each secondary region and updates the snapshot copy policy when secondary regions are added or removed.
 
-Copies can appear after the apply completes, and there is no operation to wait on. A plan that omits `copy_settings` while the flag is `true` keeps the Atlas-managed copies instead of deleting them.
+Copies of the new automatic policy can appear after the apply completes, and there is no operation to wait on. A plan that omits `copy_settings` while `auto_copy_settings_enabled` is `true` keeps the Atlas-managed copies instead of deleting them.
 
-Setting both `auto_copy_settings_enabled = true` and `copy_settings` fails at plan time, because a static region list would fight the Atlas-managed list.
+Setting both `auto_copy_settings_enabled = true` and a `copy_settings` block in the configuration fails at plan time, because a static copy policy would fight the Atlas-managed one. The plan-time check reads the configuration only, so `copy_settings` entries left in state never trigger it.
 
-Dropping `auto_copy_settings_enabled` or setting it to `false` while still omitting `copy_settings` deletes the Atlas-managed copies.
+When `copy_settings` is omitted, removing `auto_copy_settings_enabled` or setting `auto_copy_settings_enabled = false` removes the Atlas-managed copy configuration and deletes the copies it created.
 
 ## Argument Reference
 
@@ -259,7 +259,9 @@ Dropping `auto_copy_settings_enabled` or setting it to `false` while still omitt
 * `auto_export_enabled` - (Optional) Flag that indicates whether MongoDB Cloud automatically exports Cloud Backup Snapshots to the Export Bucket. Value can be one of the following:
 	* true - Enables automatic export of cloud backup snapshots to the Export Bucket.
  	* false - Disables automatic export of cloud backup snapshots to the Export Bucket. (default)
-* `auto_copy_settings_enabled` - (Optional) Flag that indicates whether Atlas manages the snapshot copy regions for the cluster. When `true`, omit `copy_settings`: Atlas copies to one region per secondary and adds or removes copies as cluster regions change. Setting both `auto_copy_settings_enabled = true` and `copy_settings` fails at plan time. Dropping the flag deletes the Atlas-managed copies. See [Automatic copy settings](#automatic-copy-settings).
+* `auto_copy_settings_enabled` - (Optional) Flag that indicates whether Atlas manages the snapshot copy settings for the cluster. Value can be one of the following:
+	* true - Enables Atlas-managed snapshot copy settings for the cluster. Atlas copies snapshots to each secondary region and updates the snapshot copy policy when secondary regions are added or removed. Must omit `copy_settings`; setting both `auto_copy_settings_enabled = true` and `copy_settings` causes a plan-time error.
+  * false - Removes the Atlas-managed snapshot copy policy and deletes the snapshot copies it created. See [Automatic copy settings](#automatic-copy-settings).
 * `use_org_and_group_names_in_export_prefix` - Specify true to use organization and project names instead of organization and project UUIDs in the path for the metadata files that Atlas uploads to your bucket after it finishes exporting the snapshots. To learn more about the metadata files that Atlas uploads, see [Export Cloud Backup Snapshot](https://www.mongodb.com/docs/atlas/backup/cloud-backup/export/#std-label-cloud-provider-snapshot-export).
 * `copy_settings` - List that contains a document for each copy setting item in the desired backup policy. See [below](#copy_settings)
 * `export` - (Optional) Policy for automatically exporting Cloud Backup Snapshots. See [below](#export)

@@ -566,6 +566,12 @@ func TestAccBackupRSCloudBackupSchedule_autoCopySettings(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: base.HCL(),
+				Check:  base.check(),
+			},
+			// Migration to Atlas-managed copies: the PATCH omits copySettings and the apply read
+			// writes whatever Atlas returns, so the plan marks copy_settings computed on this step.
+			{
 				Config: autoCopyOn.HCL(),
 				Check:  autoCopyOn.check(),
 			},
@@ -583,6 +589,51 @@ func TestAccBackupRSCloudBackupSchedule_autoCopySettings(t *testing.T) {
 			{
 				Config: autoCopyDropped.HCL(),
 				Check:  autoCopyDropped.check(),
+			},
+		},
+	})
+}
+
+func TestAccBackupRSCloudBackupSchedule_autoCopySettingsMigration(t *testing.T) {
+	clusterInfo := acc.GetClusterInfo(t, &acc.ClusterRequest{
+		CloudBackup: true,
+		ReplicationSpecs: []acc.ReplicationSpecRequest{
+			{Region: "US_EAST_2", ExtraRegionConfigs: []acc.ReplicationSpecRequest{{Region: "US_WEST_1", Priority: 6, NodeCount: 2}}},
+		},
+		PitEnabled: true,
+	})
+	base := newCopyScheduleConfig(&clusterInfo)
+	autoCopyOn := base.withAutoCopy(new(true))
+	autoCopyOff := base.withAutoCopy(new(false))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: base.HCL(),
+				Check:  base.check(),
+			},
+			// Manual copy-policy-items schedule switches to Atlas-managed copies with
+			// copy_settings omitted.
+			{
+				Config: autoCopyOn.HCL(),
+				Check:  autoCopyOn.check(),
+			},
+			{
+				Config: autoCopyOn.HCL(),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+			},
+			// Setting the flag back to false while still omitting copy_settings follows the
+			// delete-on-omit path.
+			{
+				Config: autoCopyOff.HCL(),
+				Check:  autoCopyOff.check(),
 			},
 		},
 	})

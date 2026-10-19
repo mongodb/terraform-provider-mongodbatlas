@@ -32,7 +32,15 @@ func resourceCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ any) err
 	// Optional+Computed would keep last state when HCL omits copy_settings. Force an empty list so delete-on-omit stays.
 	// Skip force-empty when auto_copy_settings_enabled is true so Atlas-managed copies are not overwritten or deleted.
 	if sdkv2config.CollectionEmpty(d, "copy_settings") {
-		if v := sdkv2config.Bool(d, "auto_copy_settings_enabled"); v.Set() && v.ValueBool() {
+		v := sdkv2config.Bool(d, "auto_copy_settings_enabled")
+		if !shouldForceEmptyCopySettings(v.Set() && v.ValueBool(), true) {
+			// Atlas owns the copy region list. Keep the last GET so an unchanged config still plans
+			// empty, but mark computed on the apply that flips the flag on: the PATCH omits
+			// copySettings and the read then writes whatever Atlas returns, which a known planned
+			// value from the removed manual entries cannot predict.
+			if v.HasChange() {
+				return d.SetNewComputed("copy_settings")
+			}
 			return nil
 		}
 		return d.SetNew("copy_settings", []any{})
@@ -93,6 +101,15 @@ func validateCopySettingsModes(d *schema.ResourceDiff) error {
 	}
 	if deleteCopy && !enabled {
 		return errors.New(errDeleteCopyRequiresFlag)
+	}
+
+	// With the flag on, the raw config cannot carry copy_settings entries (the check above rejects
+	// them), so anything d.Get returns here is Atlas-written state. Skip entry validation so those
+	// Atlas-written modes do not fail a plan that omits the list, for example the migration from a
+	// manual copy_settings config to auto copy settings.
+	autoCopy := sdkv2config.Bool(d, "auto_copy_settings_enabled")
+	if autoCopy.Set() && autoCopy.ValueBool() && sdkv2config.CollectionEmpty(d, "copy_settings") {
+		return nil
 	}
 
 	copySettings, _ := d.Get("copy_settings").([]any)

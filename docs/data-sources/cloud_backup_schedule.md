@@ -94,7 +94,9 @@ In addition to all arguments above, the following attributes are exported:
 * `auto_export_enabled` - Flag that indicates whether MongoDB Cloud automatically exports Cloud Backup Snapshots to the Export Bucket. Value can be one of the following:
   * true - Enables automatic export of cloud backup snapshots to the Export Bucket.
   * false - Disables automatic export of cloud backup snapshots to the Export Bucket. (default)
-* `auto_copy_settings_enabled` - Flag that indicates whether Atlas manages the snapshot copy regions for the cluster.
+* `auto_copy_settings_enabled` - Flag that indicates whether Atlas manages the snapshot copy settings for the cluster. Value can be one of the following:
+  * true - Enables Atlas-managed snapshot copy settings: the schedule carries Atlas-managed copies instead of explicit `copy_settings`.
+  * false - The schedule uses explicit `copy_settings`. Removing the flag or setting it to `false` on the resource deletes the Atlas-managed copies. See [Automatic copy settings](../resources/cloud_backup_schedule.md#automatic-copy-settings).
 * `use_org_and_group_names_in_export_prefix` - Specify true to use organization and project names instead of organization and project UUIDs in the path for the metadata files that Atlas uploads to your bucket after it finishes exporting the snapshots. To learn more about the metadata files that Atlas uploads, see [Export Cloud Backup Snapshot](https://www.mongodb.com/docs/atlas/backup/cloud-backup/export/#std-label-cloud-provider-snapshot-export).
 * `copy_settings` - List that contains a document for each copy setting item in the desired backup policy. See [below](#copy_settings)
 * `export` - Policy for automatically exporting Cloud Backup Snapshots. See [below](#export)
