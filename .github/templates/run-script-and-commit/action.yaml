@@ -24,30 +24,36 @@ inputs:
   passphrase:
     description: "Passphrase for the GPG key."
     required: true
-  repo-path:
-    description: "Path to the repository."
+  go-mod-path:
+    description: "Path to go.mod file. If the file exists, Go will be set up."
+    default: "go.mod"
+    required: false
+  branch:
+    description: "Branch to checkout."
     default: ""
     required: false
-
 runs:
   using: "composite"
   steps:
     - name: Checkout repository
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       with:
         fetch-depth: 0
+        fetch-tags: true
         token: ${{ inputs.apix_bot_pat }}
+        ref: ${{ inputs.branch }}
 
     - name: Set up Go
-      uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+      if: ${{ hashFiles(inputs.go-mod-path) != '' }}
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
       with:
-        go-version-file: ${{ format('{0}go.mod', inputs.repo-path) }}
+        go-version-file: ${{ inputs.go-mod-path }}
     - name: Run specified script
       shell: bash
       run: ${{ inputs.script_call }}
 
     - name: Import GPG key
-      uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec
+      uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd
       with:
         gpg_private_key: ${{ inputs.gpg_private_key }}
         passphrase: ${{ inputs.passphrase }}
