@@ -630,7 +630,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 // still returns the pre-plan entry; raw config is the apply-time source of truth for delete-on-omit.
 func copySettingsForUpdate(d *schema.ResourceData) ([]any, bool) {
 	if sdkv2config.CollectionEmpty(d, "copy_settings") {
-		if shouldForceEmptyCopySettings(sdkv2config.Bool(d, "auto_copy_settings_enabled").ValueBool(), true) {
+		if shouldForceEmptyCopySettings(sdkv2config.Bool(d, "auto_copy_settings_enabled").ValueBool()) {
 			return []any{}, true
 		}
 		return nil, false

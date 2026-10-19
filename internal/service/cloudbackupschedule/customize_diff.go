@@ -33,7 +33,7 @@ func resourceCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ any) err
 	// Skip force-empty when auto_copy_settings_enabled is true so Atlas-managed copies are not overwritten or deleted.
 	if sdkv2config.CollectionEmpty(d, "copy_settings") {
 		v := sdkv2config.Bool(d, "auto_copy_settings_enabled")
-		if !shouldForceEmptyCopySettings(v.Set() && v.ValueBool(), true) {
+		if !shouldForceEmptyCopySettings(v.Set() && v.ValueBool()) {
 			// Atlas owns the copy region list. Keep the last GET so an unchanged config still plans
 			// empty, but mark computed on the apply that flips the flag on: the PATCH omits
 			// copySettings and the read then writes whatever Atlas returns, which a known planned
@@ -51,8 +51,8 @@ func resourceCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ any) err
 // shouldForceEmptyCopySettings reports whether the plan or PATCH must send an empty copy_settings
 // list. Atlas owns the copy region list when auto_copy_settings_enabled is true, so the force-empty
 // delete-on-omit only applies while the flag is off.
-func shouldForceEmptyCopySettings(autoCopyEnabled, rawEmpty bool) bool {
-	return rawEmpty && !autoCopyEnabled
+func shouldForceEmptyCopySettings(autoCopyEnabled bool) bool {
+	return !autoCopyEnabled
 }
 
 func clearFrequenciesWhenCopyPolicyEnabled(d *schema.ResourceDiff) error {
