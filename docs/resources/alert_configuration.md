@@ -152,7 +152,7 @@ resource "mongodbatlas_alert_configuration" "test" {
 ```
 
 ### Further Examples
-- [Alert Configuration](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.20.0/examples/mongodbatlas_alert_configuration)
+- [Alert Configuration](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.20.1/examples/mongodbatlas_alert_configuration)
 
 
 ## Argument Reference
