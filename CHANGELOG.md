@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* data-source/mongodbatlas_advanced_clusters: Fixes `results` returning `null` instead of the project's clusters, and fails the read instead of returning `null` when the cluster list cannot be retrieved ([#4817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4817))
+
 ## 2.20.1 (October 19, 2026)
 
 NOTES:
