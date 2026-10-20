@@ -242,6 +242,26 @@ func configWithAutoDeferEnabled(orgID, projectName string, dayOfWeek, hourOfDay 
 		}`, orgID, projectName, dayOfWeek, hourOfDay)
 }
 
+// preCheckWaveAssignmentModeManual fails before any resource is created when the organization's
+// effective wave assignment mode is not MANUAL, since Atlas rejects waveAssignment with HTTP 400
+// otherwise. The mode is organization-wide mutable state: TestAccOrgMaintenanceSettings_basic sets
+// it to ENV_TAG_MAPPING while it runs, which is why the config CI job is serialized against the job
+// running that test. This check catches the mode being left non-MANUAL or changed from outside the
+// test suite, and reports it here rather than as an API error partway through the test.
+func preCheckWaveAssignmentModeManual(tb testing.TB) {
+	tb.Helper()
+	acc.PreCheckBasic(tb)
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	settings, _, err := acc.ConnV2().OrganizationsAPI.GetOrgMaintenanceSettings(context.Background(), orgID).Execute()
+	if err != nil {
+		tb.Fatalf("failed to read the maintenance settings of organization %s: %s", orgID, err)
+	}
+	// Atlas omits the field when maintenance sequencing is disabled, where the effective mode is MANUAL.
+	if mode, ok := settings.GetEffectiveWaveAssignmentModeOk(); ok && *mode != "MANUAL" {
+		tb.Fatalf("the effective wave assignment mode of organization %s is %s, but these tests require MANUAL", orgID, *mode)
+	}
+}
+
 func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -251,7 +271,7 @@ func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { preCheckWaveAssignmentModeManual(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -409,7 +429,7 @@ func TestAccConfigRSMaintenanceWindow_waveAssignmentMidnight(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { preCheckWaveAssignmentModeManual(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
