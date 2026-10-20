@@ -1,5 +1,10 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_cloud_backup_schedule: Adds `auto_copy_settings_enabled` attribute ([#4818](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4818))
+* resource/mongodbatlas_cloud_backup_schedule: Adds `auto_copy_settings_enabled` attribute ([#4818](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4818))
+
 BUG FIXES:
 
 * data-source/mongodbatlas_advanced_clusters: Fixes `results` returning `null` instead of the project's clusters, and fails the read instead of returning `null` when the cluster list cannot be retrieved ([#4817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4817))
