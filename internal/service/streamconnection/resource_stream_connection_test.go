@@ -997,6 +997,20 @@ func getKafkaAuthenticationConfig(mechanism, username, password, tokenEndpointUR
 		}`, mechanism, method, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions)
 }
 
+// streamConnectionCreateTimeout returns the create timeout block for a stream connection. The timeouts
+// attribute is only supported from provider version 2.7.0, and migration tests can create the resource
+// with an older released version.
+func streamConnectionCreateTimeout() string {
+	if !mig.IsProviderVersionAtLeast("2.7.0") {
+		return ""
+	}
+	return `
+			# Provisioning can run close to the default 40 minute create timeout.
+			timeouts = {
+				create = "60m"
+			}`
+}
+
 func configureKafka(projectRef, workspaceName, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
 	return configureKafkaInWorkspace(projectRef, fmt.Sprintf("%q", workspaceName), connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, useSSL)
 }
@@ -1064,12 +1078,9 @@ func configureKafkaMigration(projectRef, instanceName, connectionName, authentic
 		    }
 		    %[7]s
 			%[8]s
-			# Provisioning can run close to the default 40 minute create timeout.
-			timeouts = {
-				create = "60m"
-			}
+			%[9]s
 		}
-	`, projectRef, instanceName, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig)
+	`, projectRef, instanceName, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig, streamConnectionCreateTimeout())
 }
 
 func configureSampleStream(projectID, workspaceName, sampleName string) string {
@@ -1258,12 +1269,9 @@ func configureClusterMigration(projectID, instanceName, connectionName, clusterN
 				role = "atlasAdmin"
 				type = "BUILT_IN"
 			}
-			# Provisioning can run close to the default 40 minute create timeout.
-			timeouts = {
-				create = "60m"
-			}
+			%[5]s
 		}
-	`, projectID, instanceName, connectionName, clusterName)
+	`, projectID, instanceName, connectionName, clusterName, streamConnectionCreateTimeout())
 }
 
 func configureHTTPS(projectID, workspaceName, url, headers string) string {
