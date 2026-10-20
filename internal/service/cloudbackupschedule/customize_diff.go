@@ -11,11 +11,12 @@ import (
 )
 
 const (
-	errCopySettingsModes      = "copy_settings entry must set only one of frequencies, copy_policy_items, or last_number_of_snapshots"
-	errCopyPolicyRequiresFlag = "copy_policy_items and last_number_of_snapshots require copy_policy_items_enabled to be true"
-	errFrequenciesWithFlag    = "frequencies cannot be set when copy_policy_items_enabled is true"
-	errDeleteCopyRequiresFlag = "delete_copy_snapshots requires copy_policy_items_enabled to be true"
-	errUpdateCopyRequiresFlag = "update_copy_snapshots requires copy_policy_items_enabled to be true"
+	errCopySettingsModes        = "copy_settings entry must set only one of frequencies, copy_policy_items, or last_number_of_snapshots"
+	errCopyPolicyRequiresFlag   = "copy_policy_items and last_number_of_snapshots require copy_policy_items_enabled to be true"
+	errFrequenciesWithFlag      = "frequencies cannot be set when copy_policy_items_enabled is true"
+	errDeleteCopyRequiresFlag   = "delete_copy_snapshots requires copy_policy_items_enabled to be true"
+	errUpdateCopyRequiresFlag   = "update_copy_snapshots requires copy_policy_items_enabled to be true"
+	errAutoCopyWithCopySettings = "copy_settings cannot be set when auto_copy_settings_enabled is true"
 )
 
 // resourceCustomizeDiff rewrites copy_settings during plan because the list and nested
@@ -29,10 +30,29 @@ func resourceCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ any) err
 		return err
 	}
 	// Optional+Computed would keep last state when HCL omits copy_settings. Force an empty list so delete-on-omit stays.
+	// Skip force-empty when auto_copy_settings_enabled is true so Atlas-managed copies are not overwritten or deleted.
 	if sdkv2config.CollectionEmpty(d, "copy_settings") {
+		v := sdkv2config.Bool(d, "auto_copy_settings_enabled")
+		if !shouldForceEmptyCopySettings(v.Set() && v.ValueBool()) {
+			// Atlas owns the copy region list. Keep the last GET so an unchanged config still plans
+			// empty, but mark computed on the apply that flips the flag on: the PATCH omits
+			// copySettings and the read then writes whatever Atlas returns, which a known planned
+			// value from the removed manual entries cannot predict.
+			if v.HasChange() {
+				return d.SetNewComputed("copy_settings")
+			}
+			return nil
+		}
 		return d.SetNew("copy_settings", []any{})
 	}
 	return clearFrequenciesWhenCopyPolicyEnabled(d)
+}
+
+// shouldForceEmptyCopySettings reports whether the plan or PATCH must send an empty copy_settings
+// list. Atlas owns the copy region list when auto_copy_settings_enabled is true, so the force-empty
+// delete-on-omit only applies while the flag is off.
+func shouldForceEmptyCopySettings(autoCopyEnabled bool) bool {
+	return !autoCopyEnabled
 }
 
 func clearFrequenciesWhenCopyPolicyEnabled(d *schema.ResourceDiff) error {
@@ -68,6 +88,11 @@ func copySettingsWithEmptyFrequencies(copySettings []any) ([]any, bool) {
 }
 
 func validateCopySettingsModes(d *schema.ResourceDiff) error {
+	// Raw config only: a copy_settings block present in prior state but omitted in HCL must not trip this.
+	if sdkv2config.Bool(d, "auto_copy_settings_enabled").ValueBool() && !sdkv2config.CollectionEmpty(d, "copy_settings") {
+		return errors.New(errAutoCopyWithCopySettings)
+	}
+
 	enabled, _ := d.Get("copy_policy_items_enabled").(bool)
 	updateCopy, _ := d.Get("update_copy_snapshots").(bool)
 	deleteCopy, _ := d.Get("delete_copy_snapshots").(bool)
@@ -76,6 +101,15 @@ func validateCopySettingsModes(d *schema.ResourceDiff) error {
 	}
 	if deleteCopy && !enabled {
 		return errors.New(errDeleteCopyRequiresFlag)
+	}
+
+	// With the flag on, the raw config cannot carry copy_settings entries (the check above rejects
+	// them), so anything d.Get returns here is Atlas-written state. Skip entry validation so those
+	// Atlas-written modes do not fail a plan that omits the list, for example the migration from a
+	// manual copy_settings config to auto copy settings.
+	autoCopy := sdkv2config.Bool(d, "auto_copy_settings_enabled")
+	if autoCopy.Set() && autoCopy.ValueBool() && sdkv2config.CollectionEmpty(d, "copy_settings") {
+		return nil
 	}
 
 	copySettings, _ := d.Get("copy_settings").([]any)
