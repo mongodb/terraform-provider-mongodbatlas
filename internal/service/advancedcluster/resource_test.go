@@ -924,9 +924,8 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
-		checksMap              = map[string]string{
-			"state_name": "IDLE",
-		}
+		// state_name is not checked: it is a volatile attribute (see plan_modifier.go) that a fresh GET can read
+		// as UPDATING while Atlas is still settling.
 		checksSet = []string{
 			"replication_specs.0.container_id.AWS:US_EAST_1",
 			"mongo_db_major_version",
@@ -935,9 +934,8 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		tagsLabelsMap  = map[string]string{"key": "env", "value": "test"}
 		tagsCheck      = checkKeyValueBlocks(false, "tags", tagsLabelsMap)
 		labelsCheck    = checkKeyValueBlocks(false, "labels", tagsLabelsMap)
-		checks         = checkAggr(checksSet, checksMap, timeoutCheck)
+		checks         = checkAggr(checksSet, nil, timeoutCheck)
 		afterUpdateMap = map[string]string{
-			"state_name":                   "IDLE",
 			"backup_enabled":               "true",
 			"bi_connector_config.enabled":  "true",
 			"pit_enabled":                  "true",
@@ -1015,8 +1013,9 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 8)
-		checksMap              = map[string]string{
-			"state_name": "IDLE",
+		// state_name is not checked: it is a volatile attribute (see plan_modifier.go), and the data source or a
+		// no-op update reads it with a fresh GET that can catch Atlas still reporting UPDATING.
+		checksMap = map[string]string{
 			"project_id": projectID,
 			"name":       clusterName,
 			"replication_specs.0.region_configs.0.electable_specs.instance_size": "M30",
@@ -1131,18 +1130,19 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 	})
 }
 
+// waitOnClusterDeleteDone waits until the cluster created with a very short create timeout and
+// delete_on_create_timeout = true is gone. The cluster can already be deleted by the time this runs,
+// which is the expected outcome, so a missing cluster is not an error.
 func waitOnClusterDeleteDone(t *testing.T, projectID, clusterName string) {
 	t.Helper()
 	diags := &diag.Diagnostics{}
-	clusterResp, _ := advancedcluster.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false, false)
-	require.NotNil(t, clusterResp)
 	_ = advancedcluster.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedcluster.ClusterWaitParams{
 		ProjectID:   projectID,
 		ClusterName: clusterName,
 		Timeout:     60 * time.Minute,
 		IsDelete:    true,
 	}, "waiting for cluster to be deleted after cleanup in create timeout", diags)
-	require.False(t, diags.HasError())
+	require.False(t, diags.HasError(), "unexpected diagnostics while waiting for cluster %s to be deleted: %v", clusterName, diags)
 	time.Sleep(2 * time.Minute) // Decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name".
 }
 

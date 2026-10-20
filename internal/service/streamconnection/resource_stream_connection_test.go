@@ -1064,6 +1064,10 @@ func configureKafkaMigration(projectRef, instanceName, connectionName, authentic
 		    }
 		    %[7]s
 			%[8]s
+			# Provisioning can run close to the default 40 minute create timeout.
+			timeouts = {
+				create = "60m"
+			}
 		}
 	`, projectRef, instanceName, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig)
 }
@@ -1233,6 +1237,10 @@ func configureCluster(projectID, workspaceName, connectionName, clusterName stri
 				role = "atlasAdmin"
 				type = "BUILT_IN"
 			}
+			# Provisioning can run close to the default 40 minute create timeout.
+			timeouts = {
+				create = "60m"
+			}
 		}
 	`, projectID, workspaceName, connectionName, clusterName)
 }
@@ -1249,6 +1257,10 @@ func configureClusterMigration(projectID, instanceName, connectionName, clusterN
 			db_role_to_execute = {
 				role = "atlasAdmin"
 				type = "BUILT_IN"
+			}
+			# Provisioning can run close to the default 40 minute create timeout.
+			timeouts = {
+				create = "60m"
 			}
 		}
 	`, projectID, instanceName, connectionName, clusterName)
