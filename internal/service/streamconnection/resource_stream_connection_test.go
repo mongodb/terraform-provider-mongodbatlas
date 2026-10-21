@@ -1043,12 +1043,9 @@ func configureKafkaInWorkspace(projectRef, workspaceRef, connectionName, authent
 		    }
 		    %[7]s
 			%[8]s
-			# Provisioning can run close to the default 40 minute create timeout.
-			timeouts = {
-				create = "60m"
-			}
+			%[9]s
 		}
-	`, projectRef, workspaceRef, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig)
+	`, projectRef, workspaceRef, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig, streamConnectionCreateTimeout())
 }
 
 // configureKafkaForMigration uses instance_name for compatibility with older provider versions
@@ -1248,12 +1245,9 @@ func configureCluster(projectID, workspaceName, connectionName, clusterName stri
 				role = "atlasAdmin"
 				type = "BUILT_IN"
 			}
-			# Provisioning can run close to the default 40 minute create timeout.
-			timeouts = {
-				create = "60m"
-			}
+			%[5]s
 		}
-	`, projectID, workspaceName, connectionName, clusterName)
+	`, projectID, workspaceName, connectionName, clusterName, streamConnectionCreateTimeout())
 }
 
 // configureClusterMigration uses instance_name for compatibility with older provider versions
@@ -1861,12 +1855,9 @@ func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, cluste
 				mongodbatlas_cloud_provider_access_authorization.azure_auth,
 				azurerm_role_assignment.blob_contributor,
 			]
-			# Provisioning this private link connection runs close to the default 40 minute create timeout.
-			timeouts = {
-				create = "60m"
-			}
+			%[5]s
 		}
-	`, projectID, workspaceName, connectionName, clusterName)
+	`, projectID, workspaceName, connectionName, clusterName, streamConnectionCreateTimeout())
 }
 
 func checkAzureBlobStoragePrivateLinkAttributes(resourceName, workspaceName, connectionName, servicePrincipalID, storageAccountName string) resource.TestCheckFunc {
