@@ -879,9 +879,7 @@ jobs:
 
   config:
     needs: [ change-detection, get-provider-version ]
-    # Avoids concurrent execution with the jobs that change organization-level settings: the maintenance window
-    # wave tests require the organization's effective wave assignment mode to be MANUAL, while
-    # TestAccOrgMaintenanceSettings_basic in autogen_fast sets it to ENV_TAG_MAPPING while it runs.
+    # Avoids concurrent execution with autogen_fast, which sets the organization's wave assignment mode to ENV_TAG_MAPPING while the maintenance window wave tests require MANUAL
     concurrency:
       group: ${{ github.repository }}-resource-policy-concurrency
     if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' }}

@@ -242,12 +242,8 @@ func configWithAutoDeferEnabled(orgID, projectName string, dayOfWeek, hourOfDay 
 		}`, orgID, projectName, dayOfWeek, hourOfDay)
 }
 
-// preCheckWaveAssignmentModeManual fails before any resource is created when the organization's
-// effective wave assignment mode is not MANUAL, since Atlas rejects waveAssignment with HTTP 400
-// otherwise. The mode is organization-wide mutable state: TestAccOrgMaintenanceSettings_basic sets
-// it to ENV_TAG_MAPPING while it runs, which is why the config CI job is serialized against the job
-// running that test. This check catches the mode being left non-MANUAL or changed from outside the
-// test suite, and reports it here rather than as an API error partway through the test.
+// preCheckWaveAssignmentModeManual fails when the organization's effective wave assignment mode is
+// not MANUAL, because Atlas rejects waveAssignment with HTTP 400 in that case.
 func preCheckWaveAssignmentModeManual(tb testing.TB) {
 	tb.Helper()
 	acc.PreCheckBasic(tb)
@@ -256,7 +252,7 @@ func preCheckWaveAssignmentModeManual(tb testing.TB) {
 	if err != nil {
 		tb.Fatalf("failed to read the maintenance settings of organization %s: %s", orgID, err)
 	}
-	// Atlas omits the field when maintenance sequencing is disabled, where the effective mode is MANUAL.
+	// Omitted when maintenance sequencing is disabled, where the effective mode is MANUAL.
 	if mode, ok := settings.GetEffectiveWaveAssignmentModeOk(); ok && *mode != "MANUAL" {
 		tb.Fatalf("the effective wave assignment mode of organization %s is %s, but these tests require MANUAL", orgID, *mode)
 	}
