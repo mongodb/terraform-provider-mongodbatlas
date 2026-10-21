@@ -925,7 +925,7 @@ components:
           writeOnly: true
         name:
           description: A name for the new API key that will be created.
-          maxLength: 250
+          maxLength: 50
           minLength: 1
           type: string
       required:
@@ -1004,7 +1004,7 @@ components:
       properties:
         name:
           description: A new name for the API key.
-          maxLength: 250
+          maxLength: 50
           minLength: 1
           type: string
       required:
@@ -1279,6 +1279,7 @@ components:
             - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRED
             - ACTIVE_LEGACY_TLS_CONNECTIONS
             - WEBHOOK_TEMPLATE_RENDER_FAILED
+            - ENCRYPTION_AT_REST_CONFIG_UPDATE_STALLED
             - MONGOTUNE_ALERT
             - CLUSTER_INSTANCE_STOP_START
             - CLUSTER_INSTANCE_RESYNC_REQUESTED
@@ -1365,6 +1366,7 @@ components:
             - HOST_SECURITY_CHECKUP_NOT_MET
             - ALERT_HOST_SSH_SESSION_STARTED
             - PROFILER_CONFIGURED_TOO_WIDELY
+            - PROACTIVE_REMEDIATION_NEEDED
         groupId:
           description: Unique 24-hexadecimal digit string that identifies the project that owns this alert.
           example: 32b6e34b3d91647abb20e7b8
@@ -3529,7 +3531,7 @@ components:
           format: date-time
           type: string
         adaptiveCapacity:
-          description: Governs adaptive capacity behavior of Azure nodes in single-cloud Azure clusters or multi-cloud clusters that include Azure nodes. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; Azure clusters use adaptive capacity by default when the feature is enabled at the group level. Setting this field for single-cloud AWS or GCP clusters is a no-op.
+          description: Governs adaptive capacity behavior of nodes in clusters on providers that support fallback hardware, including those providers' nodes in multi-cloud clusters. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; clusters use adaptive capacity by default on a provider that supports it.
           enum:
             - ENABLED
             - DISABLED
@@ -3538,11 +3540,15 @@ components:
         advancedConfiguration:
           $ref: "#/components/schemas/ApiAtlasClusterAdvancedConfigurationView"
         backupEnabled:
-          default: false
-          description: Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.
+          description: |-
+            Flag that indicates whether Atlas backs up the cluster.
+
+            On Atlas Core clusters, dedicated clusters use [Cloud Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/) and Flex clusters use [Flex Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/). Default value is `false`. For clusters that use local [NVMe SSDs](https://www.mongodb.com/docs/atlas/manage-clusters/#nvme-storage) for storage, you can't disable backup, so you must set `backupEnabled` to `true`.
+
+            On Atlas Infinite clusters, the `backupEnabled` flag controls Additional Backup Retention, not whether backups run. To retain snapshots beyond the 24-hour window, set `backupEnabled` to `true`. For Atlas Infinite clusters, continuous cloud backups are enabled by default, always run, and include a 24-hour window in which you can restore to any point in time. Atlas then applies your snapshot retention policies. To keep only the included window under an Atlas-managed retention policy that you can't edit, set `backupEnabled` to `false`. A cluster covered by a Data Protection policy has this flag set to `true` regardless of the requested value. Default value is `true`.
           externalDocs:
             description: Cloud Backups
-            url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
+            url: https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/
           type: boolean
         biConnector:
           $ref: "#/components/schemas/BiConnector"
@@ -3709,10 +3715,13 @@ components:
           description: Flag that indicates whether the cluster is paused.
           type: boolean
         pitEnabled:
-          description: Flag that indicates whether the cluster uses continuous cloud backups.
+          description: |-
+            Flag that indicates whether the cluster uses continuous cloud backups.
+
+            For Atlas Infinite clusters, continuous cloud backups always run. Omit this field or set it to `true`. Setting it to `false` returns an invalid attribute error.
           externalDocs:
             description: Continuous Cloud Backups
-            url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
+            url: https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/
           type: boolean
         redactClientLogData:
           description: |-
@@ -3867,6 +3876,110 @@ components:
           readOnly: true
           type: string
       readOnly: true
+      type: object
+    AutoEmbeddingConfiguredInferenceScope:
+      description: Configured cloud and geographic dimensions. Both values are AUTO when Atlas selects the scope.
+      properties:
+        cloud:
+          description: Configured cloud provider scope.
+          enum:
+            - AUTO
+            - ANY
+            - AWS
+          type: string
+        geography:
+          description: Configured geographic scope.
+          enum:
+            - AUTO
+            - ANY
+            - EU
+            - US
+          type: string
+      required:
+        - cloud
+        - geography
+      type: object
+    AutoEmbeddingEffectiveInferenceScope:
+      description: Cloud and geographic dimensions that Atlas applies to this cluster.
+      properties:
+        cloud:
+          description: Effective cloud provider scope.
+          enum:
+            - ANY
+            - AWS
+          readOnly: true
+          type: string
+        geography:
+          description: Effective geographic scope.
+          enum:
+            - ANY
+            - EU
+            - US
+          readOnly: true
+          type: string
+      readOnly: true
+      required:
+        - cloud
+        - geography
+      type: object
+    AutoEmbeddingInferenceScopeResponse:
+      description: Configured and effective inference scope for Auto-Embedding indexes on one cluster.
+      properties:
+        configured:
+          $ref: "#/components/schemas/AutoEmbeddingConfiguredInferenceScope"
+        effective:
+          $ref: "#/components/schemas/AutoEmbeddingEffectiveInferenceScope"
+        mutable:
+          description: Flag that indicates whether the inference scope can be configured.
+          readOnly: true
+          type: boolean
+        reason:
+          description: Reason code that explains why the inference scope cannot be configured.
+          enum:
+            - UNSUPPORTED_QUERY_TIER
+            - UNSUPPORTED_CLUSTER_TYPE
+          nullable: true
+          readOnly: true
+          type: string
+        source:
+          description: Source from which Atlas derived the effective inference scope.
+          enum:
+            - DEFAULT
+            - CONFIGURED
+          readOnly: true
+          type: string
+      required:
+        - configured
+        - effective
+        - mutable
+        - source
+      type: object
+    AutoEmbeddingInferenceScopeUpdateRequest:
+      properties:
+        configured:
+          $ref: "#/components/schemas/AutoEmbeddingInferenceScopeUpdateRequestConfigured"
+      type: object
+    AutoEmbeddingInferenceScopeUpdateRequestConfigured:
+      description: Cloud and geographic dimensions to configure atomically.
+      properties:
+        cloud:
+          description: Cloud provider scope.
+          enum:
+            - AUTO
+            - ANY
+            - AWS
+          type: string
+        geography:
+          description: Geographic scope.
+          enum:
+            - AUTO
+            - ANY
+            - EU
+            - US
+          type: string
+      required:
+        - cloud
+        - geography
       type: object
     AutoExportPolicyView:
       description: Policy for automatically exporting Cloud Backup Snapshots.
@@ -5044,6 +5157,7 @@ components:
         - EUROPE_WEST1
         - US_EAST4
         - US_WEST1
+        - ASIA_SOUTH1
     BasicDBObject:
       additionalProperties:
         type: object
@@ -7121,7 +7235,7 @@ components:
           format: date-time
           type: string
         adaptiveCapacity:
-          description: Governs adaptive capacity behavior of Azure nodes in single-cloud Azure clusters or multi-cloud clusters that include Azure nodes. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; Azure clusters use adaptive capacity by default when the feature is enabled at the group level. Setting this field for single-cloud AWS or GCP clusters is a no-op.
+          description: Governs adaptive capacity behavior of nodes in clusters on providers that support fallback hardware, including those providers' nodes in multi-cloud clusters. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; clusters use adaptive capacity by default on a provider that supports it.
           enum:
             - ENABLED
             - DISABLED
@@ -7130,11 +7244,15 @@ components:
         advancedConfiguration:
           $ref: "#/components/schemas/ApiAtlasClusterAdvancedConfigurationView"
         backupEnabled:
-          default: false
-          description: Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.
+          description: |-
+            Flag that indicates whether Atlas backs up the cluster.
+
+            On Atlas Core clusters, dedicated clusters use [Cloud Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/) and Flex clusters use [Flex Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/). Default value is `false`. For clusters that use local [NVMe SSDs](https://www.mongodb.com/docs/atlas/manage-clusters/#nvme-storage) for storage, you can't disable backup, so you must set `backupEnabled` to `true`.
+
+            On Atlas Infinite clusters, the `backupEnabled` flag controls Additional Backup Retention, not whether backups run. To retain snapshots beyond the 24-hour window, set `backupEnabled` to `true`. For Atlas Infinite clusters, continuous cloud backups are enabled by default, always run, and include a 24-hour window in which you can restore to any point in time. Atlas then applies your snapshot retention policies. To keep only the included window under an Atlas-managed retention policy that you can't edit, set `backupEnabled` to `false`. A cluster covered by a Data Protection policy has this flag set to `true` regardless of the requested value. Default value is `true`.
           externalDocs:
             description: Cloud Backups
-            url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
+            url: https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/
           type: boolean
         biConnector:
           $ref: "#/components/schemas/BiConnector"
@@ -7301,10 +7419,13 @@ components:
           description: Flag that indicates whether the cluster is paused.
           type: boolean
         pitEnabled:
-          description: Flag that indicates whether the cluster uses continuous cloud backups.
+          description: |-
+            Flag that indicates whether the cluster uses continuous cloud backups.
+
+            For Atlas Infinite clusters, continuous cloud backups always run. Omit this field or set it to `true`. Setting it to `false` returns an invalid attribute error.
           externalDocs:
             description: Continuous Cloud Backups
-            url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
+            url: https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/
           type: boolean
         redactClientLogData:
           description: |-
@@ -8654,6 +8775,7 @@ components:
               - AI Model APIs
               - Automated Embedding
               - Native Reranking
+              - Agent Engine
               - Flex Consulting
               - Support
               - Credits
@@ -12546,6 +12668,8 @@ components:
         - ACTIVE_LEGACY_TLS_CONNECTIONS
         - NO_ACTIVE_LEGACY_TLS_CONNECTIONS
         - WEBHOOK_TEMPLATE_RENDER_FAILED
+        - ENCRYPTION_AT_REST_CONFIG_UPDATE_NO_LONGER_STALLED
+        - ENCRYPTION_AT_REST_CONFIG_UPDATE_STALLED
         - INTEGRATION_CONFIGURED
         - INTEGRATION_REMOVED
         - ATTEMPT_KILLOP_AUDIT
@@ -12849,6 +12973,8 @@ components:
         - STREAM_TENANT_OPERATIONAL_LOGS
         - STREAM_TENANT_AUDIT_LOGS
         - STREAM_TENANT_AUDIT_LOGS_DELETED
+        - STREAM_WORKSPACE_PRIVATE_ENDPOINT_CREATED
+        - STREAM_WORKSPACE_PRIVATE_ENDPOINT_DELETED
         - QUEUED_ADMIN_ACTION_CREATED
         - QUEUED_ADMIN_ACTION_COMPLETED
         - QUEUED_ADMIN_ACTION_CANCELLED
@@ -12901,6 +13027,7 @@ components:
         - VOLUME_IMPAIRED_RESOLVED
         - SQL_INTERFACE_ENABLED
         - SQL_INTERFACE_DISABLED
+        - AUTO_EMBEDDING_INFERENCE_SCOPE_UPDATED
         - CLUSTER_OVERLOAD_PROTECTION_SIMULATION_REQUESTED
         - CLUSTER_OVERLOAD_PROTECTION_SIMULATION_STARTED
         - CLUSTER_OVERLOAD_PROTECTION_SIMULATION_FAILED_TO_START
@@ -13042,6 +13169,10 @@ components:
         - TENANT_RESTORE_REQUESTED_AUDIT
         - TENANT_RESTORE_COMPLETED_AUDIT
         - TENANT_SNAPSHOT_DOWNLOAD_REQUESTED_AUDIT
+        - M0_BACKUP_SUBSCRIPTION_ENABLED
+        - M0_BACKUP_SUBSCRIPTION_CANCELLED
+        - M0_BACKUP_SUBSCRIPTION_PAUSED
+        - M0_BACKUP_SUBSCRIPTION_RESUMED
         - JOINED_GROUP
         - REMOVED_FROM_GROUP
         - INVITED_TO_GROUP
@@ -13081,6 +13212,7 @@ components:
         - AI_MODELS_APIS_RATE_LIMIT_UPDATED
         - AI_MODELS_APIS_RATE_LIMIT_RESET
         - AI_MODELS_APIS_RATE_LIMIT_ADMIN_OVERRIDE
+        - PROACTIVE_REMEDIATION_NEEDED
     EventTypeForOrg:
       type: string
       enum:
@@ -13246,6 +13378,7 @@ components:
         - SHADOW_CLUSTER_ORG_OPT_IN
         - SHADOW_CLUSTER_ORG_OPT_OUT
         - ATLAS_MAINTENANCE_FLEET_ACTIVE_WAVE_CLOSED_BY_ADMIN
+        - ATLAS_MAINTENANCE_FLEET_ACTIVE_WAVE_AUTO_CLOSED
         - MAINTENANCE_WAVE_ASSIGNMENT_ADDED
         - MAINTENANCE_WAVE_ASSIGNMENT_MODIFIED
         - MAINTENANCE_WAVE_ASSIGNMENT_REMOVED
@@ -15803,7 +15936,6 @@ components:
         withoutInitialSecret:
           default: false
           description: "If true, creates the Service Account without generating an initial secret. `secretExpiresAfterHours` must not be set when this is true. Defaults to false, which preserves existing behavior: a secret is generated and returned in the response. Use the `CreateGroupServiceAccountSecret` endpoint to add a secret later."
-          nullable: true
           type: boolean
       required:
         - description
@@ -15898,6 +16030,9 @@ components:
           type: boolean
         isClusterAiAssistantEnabled:
           description: Flag that indicates whether the AI Cluster Assistant is enabled for the specified project.
+          type: boolean
+        isClusterAiQuickStartEnabled:
+          description: Flag that indicates whether to enable Cluster AI Quick Start for the specified project.
           type: boolean
         isCollectDatabaseSpecificsStatisticsEnabled:
           description: Flag that indicates whether to collect database-specific metrics for the specified project.
@@ -19213,6 +19348,138 @@ components:
               - endMinute
               - startHour
               - startMinute
+    OperationError:
+      description: Details about a failed operation.
+      properties:
+        code:
+          description: Machine-readable error code.
+          type: string
+        details:
+          additionalProperties:
+            description: Additional error details.
+            type: object
+          description: Additional error details.
+          nullable: true
+          type: object
+        message:
+          description: Human-readable error message.
+          type: string
+        retryStrategy:
+          description: Recommended strategy for retrying the operation.
+          enum:
+            - IMMEDIATE
+            - BACKOFF
+            - NONE
+          nullable: true
+          type: string
+        retryable:
+          description: Flag that indicates whether the operation can be retried.
+          type: boolean
+      readOnly: true
+      required:
+        - code
+        - message
+        - retryable
+      type: object
+    OperationProgress:
+      description: Progress made by an active operation.
+      properties:
+        completed:
+          description: Number of completed units.
+          format: int32
+          type: integer
+        total:
+          description: Total number of units.
+          format: int32
+          type: integer
+        unit:
+          description: Unit measured by completed and total.
+          type: string
+      readOnly: true
+      type: object
+    OperationResponse:
+      description: Status of a long-running operation.
+      properties:
+        createdAt:
+          description: Creation time in ISO 8601 timestamp format in UTC.
+          format: date-time
+          readOnly: true
+          type: string
+        customMethod:
+          description: Name of a custom operation. Required for CUSTOM operations.
+          nullable: true
+          readOnly: true
+          type: string
+        error:
+          $ref: "#/components/schemas/OperationError"
+        estimatedCompletionTime:
+          description: Estimated completion time in ISO 8601 timestamp format in UTC.
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
+        expiresAt:
+          description: Expiration time in ISO 8601 timestamp format in UTC.
+          format: date-time
+          readOnly: true
+          type: string
+        operationId:
+          description: Unique identifier of the operation.
+          readOnly: true
+          type: string
+        operationType:
+          description: Type of mutation performed by the operation.
+          enum:
+            - CREATE
+            - UPDATE
+            - DELETE
+            - CUSTOM
+          readOnly: true
+          type: string
+        progress:
+          $ref: "#/components/schemas/OperationProgress"
+        resultHref:
+          description: URI of the affected resource. Required when status is SUCCEEDED.
+          format: uri
+          nullable: true
+          readOnly: true
+          type: string
+        retryAfterSeconds:
+          description: Recommended polling delay. Required while the operation is active.
+          format: int32
+          minimum: 1
+          nullable: true
+          readOnly: true
+          type: integer
+        status:
+          description: State of the operation.
+          enum:
+            - PENDING
+            - IN_PROGRESS
+            - SUCCEEDED
+            - FAILED
+            - CANCELED
+            - SUPERSEDED
+          readOnly: true
+          type: string
+        statusMessage:
+          description: Human-readable operation status.
+          nullable: true
+          readOnly: true
+          type: string
+        updatedAt:
+          description: Last update time in ISO 8601 timestamp format in UTC.
+          format: date-time
+          readOnly: true
+          type: string
+      required:
+        - createdAt
+        - expiresAt
+        - operationId
+        - operationType
+        - status
+        - updatedAt
+      type: object
     OrgAssociatedInvoiceResponse:
       description: Response containing associated invoices for an organization.
       properties:
@@ -19720,7 +19987,6 @@ components:
         withoutInitialSecret:
           default: false
           description: "If true, creates the Service Account without generating an initial secret. `secretExpiresAfterHours` must not be set when this is true. Defaults to false, which preserves existing behavior: a secret is generated and returned in the response. Use the `CreateOrgServiceAccountSecret` endpoint to add a secret later."
-          nullable: true
           type: boolean
       required:
         - description
@@ -21891,6 +22157,33 @@ components:
       required:
         - results
       type: object
+    PaginatedOperationResponse:
+      description: Paginated Auto-Embedding inference scope operations.
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        results:
+          description: List of returned documents that MongoDB Cloud provides when completing this request.
+          items:
+            $ref: "#/components/schemas/OperationResponse"
+          readOnly: true
+          type: array
+        totalCount:
+          description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+      required:
+        - results
+      type: object
     PaginatedOrgGroupView:
       properties:
         links:
@@ -22858,6 +23151,35 @@ components:
           $ref: "#/components/schemas/Principal"
       readOnly: true
       type: object
+    PrivateEndpointConnectionStringCreateRequest:
+      description: Private endpoint connection string to create for one cluster.
+      properties:
+        name:
+          description: Human-readable label of at most 64 characters that identifies this private endpoint connection string. You can change this label without changing the connection string.
+          example: reporting-vpc
+          maxLength: 64
+          minLength: 1
+          type: string
+        optimizedModeEnabled:
+          default: false
+          description: Flag that indicates whether this private endpoint connection string uses the optimized load-balanced mode. This mode requires a sharded cluster and a private endpoint selection that satisfies the optimized connection string requirements.
+          type: boolean
+        privateEndpointIds:
+          description: Set of private endpoints that this connection string covers. MongoDB Cloud stores this set as a snapshot of your selection and never adds newly created private endpoints to it. The set accepts at most one private endpoint per cloud provider region, and can include private endpoints that the cluster does not use yet. Order is not significant and MongoDB Cloud rejects duplicate values.
+          items:
+            description: "Unique string of at most 512 characters that identifies one private endpoint. The format depends on the cloud provider: for Amazon Web Services, this value is a private endpoint ID; for Azure, this value is a resource ID; for Google Cloud, this value is either the forwarding rule name of a port mapped Private Service Connect endpoint or the endpoint group name of a legacy Private Service Connect endpoint group."
+            maxLength: 512
+            type: string
+          maxItems: 50
+          minItems: 1
+          type: array
+          uniqueItems: true
+          x-xgen-array-semantic: set
+      required:
+        - name
+        - privateEndpointIds
+      title: Private Endpoint Connection String Create Request
+      type: object
     PrivateEndpointConnectionStringResponse:
       description: Private endpoint connection string for one cluster.
       properties:
@@ -22907,10 +23229,6 @@ components:
           type: array
           uniqueItems: true
           x-xgen-array-semantic: set
-        selectiveMongosEnabled:
-          default: false
-          description: Flag that indicates whether this private endpoint connection string routes clients to a subset of the `mongos` processes of the cluster.
-          type: boolean
         slug:
           description: Short generated pin of at most 64 characters, unique per project. Present only when `managementType` is `SELF_MANAGED`. A self-managed connection string embeds this value in its DNS names, and its replica set horizon name is `cs-` plus this value.
           example: ztevkhxb
@@ -22942,6 +23260,28 @@ components:
         - privateEndpointIds
         - status
       title: Private Endpoint Connection String
+      type: object
+    PrivateEndpointConnectionStringUpdateRequest:
+      description: Private endpoint connection string fields to update for one cluster. Only `name` and `privateEndpointIds` can change; a request that carries any other field, including the connection method property `optimizedModeEnabled`, is rejected with a 400 naming the offending fields.
+      properties:
+        name:
+          description: Human-readable label of at most 64 characters that identifies this private endpoint connection string. You can change this label without changing the connection string.
+          example: reporting-vpc
+          maxLength: 64
+          minLength: 1
+          type: string
+        privateEndpointIds:
+          description: Set of private endpoints that this connection string covers. MongoDB Cloud replaces the stored snapshot with this set and never adds newly created private endpoints to it. The set accepts at most one private endpoint per cloud provider region, and can include private endpoints that the cluster does not use yet. Order is not significant and MongoDB Cloud rejects duplicate values.
+          items:
+            description: "Unique string of at most 512 characters that identifies one private endpoint. The format depends on the cloud provider: for Amazon Web Services, this value is a private endpoint ID; for Azure, this value is a resource ID; for Google Cloud, this value is either the forwarding rule name of a port mapped Private Service Connect endpoint or the endpoint group name of a legacy Private Service Connect endpoint group."
+            maxLength: 512
+            type: string
+          maxItems: 50
+          minItems: 1
+          type: array
+          uniqueItems: true
+          x-xgen-array-semantic: set
+      title: Private Endpoint Connection String Update Request
       type: object
     PrivateEndpointHostname:
       description: Set of Private endpoint and hostnames.
@@ -23366,8 +23706,12 @@ components:
     QueryStatsSummary:
       description: A summary of execution statistics for a given query shape.
       properties:
+        avgTimeToResponseMicros:
+          description: "Average time in microseconds from the beginning of query processing to the first server response, per execution of queries with the given query shape. Calculated as `totalTimeToResponseMicros` divided by `execCount` over the requested time range. As a duration it can be longer or shorter than `avgWorkingMillis` (reported in milliseconds, so convert before comparing): longer when executions spent time blocked on locks or flow control rather than working, shorter when they kept working after the first batch to return later `getMore` batches."
+          format: double
+          type: number
         avgWorkingMillis:
-          description: Average total time in milliseconds spent running queries with the given query shape. If the query resulted in `getMore` commands, this metric includes the time spent processing the `getMore` requests. This metric does not include time spent waiting for the client.
+          description: Average active execution time in milliseconds per execution of queries with the given query shape, calculated as `totalWorkingMillis` divided by `execCount` over the requested time range. Excludes intentional pauses such as time waiting on locks or flow control.
           format: double
           type: number
         bytesRead:
@@ -23481,11 +23825,11 @@ components:
           description: Indicates whether this query shape represents a system-initiated query.
           type: boolean
         totalTimeToResponseMicros:
-          description: Time in microseconds spent from the beginning of query processing to the first server response.
+          description: Total time in microseconds from the beginning of query processing to the first server response, summed across executions of queries with the given query shape. Includes time spent waiting on locks or flow control. Stops at the first batch of results, so time spent serving later `getMore` batches is not counted.
           format: double
           type: number
         totalWorkingMillis:
-          description: Total time in milliseconds spent running queries with the given query shape. If the query resulted in `getMore` commands, this metric includes the time spent processing the `getMore` requests. This metric does not include time spent waiting for the client.
+          description: Total time in milliseconds that queries with the given query shape spent actively executing, summed across executions, including time spent processing `getMore` requests. Excludes intentional pauses such as time waiting on locks or flow control, and time spent waiting for the client.
           format: double
           type: number
       type: object
@@ -25046,14 +25390,15 @@ components:
             - SP2
           nullable: true
           type: string
+          x-xgen-server-computed-when-client-omitted: true
         minTier:
           description: |-
             Tier floor for autoscaling (scale-down limit).
 
             - **Omitted:**
-              - On `CREATE`: falls back to the workspace default tier (there is no current bound to preserve).
+              - On `CREATE`: defaults to the lower of the processor `tier` and the workspace default tier (there is no current bound to preserve).
               - On `MODIFY` or `:startWith`: the current bound is preserved.
-            - **`null`** on `CREATE`, `MODIFY`, or `:startWith`: resets the bound to the workspace default tier.
+            - **`null`** on `CREATE`, `MODIFY`, or `:startWith`: resets the bound to the lower of the processor `tier` and the workspace default tier.
             - **A tier value** on `CREATE`, `MODIFY`, or `:startWith`: sets the bound to that tier.
           enum:
             - SP50
@@ -25063,6 +25408,7 @@ components:
             - SP2
           nullable: true
           type: string
+          x-xgen-server-computed-when-client-omitted: true
       type: object
     StreamsConnection:
       description: Settings that define a connection to an external data store.
@@ -25560,14 +25906,13 @@ components:
             $ref: "#/components/schemas/Document"
           type: array
         tier:
-          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          description: Baseline processing tier requested by the user.
           enum:
             - SP50
             - SP30
             - SP10
             - SP5
             - SP2
-          title: Stream Workspace Tier
           type: string
       type: object
     StreamsModifyStreamProcessorOptions:
@@ -25736,7 +26081,7 @@ components:
           readOnly: true
           type: string
         effectiveTier:
-          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          description: Tier the stream processor is currently running on. The server sets this value from `tier` on create and on every start or restart, may move it within [`minTier`, `maxTier`] while autoscaling is enabled, and restores it to `tier` when autoscaling is disabled. Patching `tier` does not change it directly; the new tier takes effect at the next start or restart.
           enum:
             - SP50
             - SP30
@@ -25744,7 +26089,6 @@ components:
             - SP5
             - SP2
           readOnly: true
-          title: Stream Workspace Tier
           type: string
         failoverEnabled:
           description: Flag that enables or disables failover for the stream processor.
@@ -25772,15 +26116,47 @@ components:
             $ref: "#/components/schemas/Document"
           type: array
         tier:
-          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          description: Baseline tier of the stream processor. The processor starts or restarts on this tier; `effectiveTier` reports the tier it is currently running.
           enum:
             - SP50
             - SP30
             - SP10
             - SP5
             - SP2
-          title: Stream Workspace Tier
           type: string
+      type: object
+    StreamsProcessorRequest:
+      description: Details to create a stream processor.
+      properties:
+        failoverEnabled:
+          description: Flag that enables or disables failover for the stream processor.
+          type: boolean
+        name:
+          description: Human-readable name of the stream processor.
+          type: string
+        options:
+          $ref: "#/components/schemas/StreamsOptions"
+        pipeline:
+          description: Stream aggregation pipeline you want to apply to your streaming data.
+          externalDocs:
+            description: Supported Aggregation Pipeline Stages
+            url: https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation
+          items:
+            $ref: "#/components/schemas/Document"
+          minItems: 1
+          type: array
+        tier:
+          description: Baseline processing tier requested by the user.
+          enum:
+            - SP50
+            - SP30
+            - SP10
+            - SP5
+            - SP2
+          type: string
+      required:
+        - name
+        - pipeline
       type: object
     StreamsProcessorStatus:
       description: Desired status change to apply to a tenant's stream processors.
@@ -25825,7 +26201,7 @@ components:
           readOnly: true
           type: string
         effectiveTier:
-          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          description: Tier the stream processor is currently running on. The server sets this value from `tier` on create and on every start or restart, may move it within [`minTier`, `maxTier`] while autoscaling is enabled, and restores it to `tier` when autoscaling is disabled. Patching `tier` does not change it directly; the new tier takes effect at the next start or restart.
           enum:
             - SP50
             - SP30
@@ -25833,7 +26209,6 @@ components:
             - SP5
             - SP2
           readOnly: true
-          title: Stream Workspace Tier
           type: string
         eligibleForFailover:
           description: Flag that indicates whether the stream processor is eligible for failover.
@@ -25885,14 +26260,13 @@ components:
           readOnly: true
           type: object
         tier:
-          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          description: Baseline tier of the stream processor. The processor starts or restarts on this tier; `effectiveTier` reports the tier it is currently running.
           enum:
             - SP50
             - SP30
             - SP10
             - SP5
             - SP2
-          title: Stream Workspace Tier
           type: string
       required:
         - _id
@@ -26007,14 +26381,13 @@ components:
           format: date-time
           type: string
         tier:
-          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          description: Baseline processing tier requested by the user.
           enum:
             - SP50
             - SP30
             - SP10
             - SP5
             - SP2
-          title: Stream Workspace Tier
           type: string
       type: object
     StreamsTenant:
@@ -26749,6 +27122,7 @@ components:
               - AI Model APIs
               - Automated Embedding
               - Native Reranking
+              - Agent Engine
               - Flex Consulting
               - Support
               - Credits
@@ -27647,7 +28021,7 @@ info:
   termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
   title: MongoDB Atlas Administration API
   version: "2.0"
-  x-xgen-sha: d7a00f00333b964140d2cb4417e7d209287f8046
+  x-xgen-sha: 81f1516d6d9496a761b446fedea35b97a65b5bc4
 openapi: 3.0.1
 paths:
   /api/atlas/v2:
@@ -32315,6 +32689,8 @@ paths:
       x-rolesRequirements:
         - Project Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/deleteGroupCluster
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: deleteCluster
     get:
       description: |-
@@ -32740,6 +33116,304 @@ paths:
         - Project Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/updateGroupClusterAdaptiveSettings
       x-xgen-operation-id-override: updateClusterAdaptiveSettings
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/autoEmbeddingInference:
+    get:
+      description: Returns the configured and effective inference scope for Auto-Embedding indexes on the specified cluster.
+      operationId: getGroupClusterAutoEmbeddingInference
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Name of the cluster for which to return the inference scope.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/AutoEmbeddingInferenceScopeResponse"
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return the Auto-Embedding Inference Scope for One Cluster
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Read Only
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getGroupClusterAutoEmbeddingInference
+      x-xgen-method-verb-override:
+        customMethod: false
+        verb: get
+      x-xgen-operation-id-override: getAutoEmbeddingInference
+    patch:
+      description: Updates the explicit inference scope for Auto-Embedding indexes on the specified cluster.
+      operationId: updateGroupClusterAutoEmbeddingInference
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Name of the cluster for which to update the inference scope.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/AutoEmbeddingInferenceScopeUpdateRequest"
+            x-xgen-preview:
+              public: "true"
+            x-xgen-version: preview
+        description: Auto-Embedding inference scope update.
+        required: true
+      responses:
+        "202":
+          content:
+            application/vnd.atlas.preview+json:
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: Accepted
+          headers:
+            Location:
+              description: URI of the Operation resource to poll.
+              required: true
+              schema:
+                description: URI of the Operation resource to poll.
+                format: uri
+                type: string
+              style: simple
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Update the Auto-Embedding Inference Scope for One Cluster
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Search Index Editor
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/updateGroupClusterAutoEmbeddingInference
+      x-xgen-long-running-operation:
+        legacy: false
+      x-xgen-method-verb-override:
+        customMethod: false
+        verb: update
+      x-xgen-operation-id-override: updateAutoEmbeddingInference
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/autoEmbeddingInference/operations:
+    get:
+      description: Returns tracked Auto-Embedding inference scope operations for one cluster.
+      operationId: listGroupClusterAutoEmbeddingInferenceOperations
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/includeCount"
+        - $ref: "#/components/parameters/pageNum"
+        - $ref: "#/components/parameters/pretty"
+        - description: Name of the cluster for which to return operations.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedOperationResponse"
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return Auto-Embedding Inference Scope Operations for One Cluster
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Read Only
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/listGroupClusterAutoEmbeddingInferenceOperations
+      x-xgen-method-verb-override:
+        customMethod: false
+        verb: list
+      x-xgen-operation-id-override: listAutoEmbeddingOperations
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/autoEmbeddingInference/operations/{operationId}:
+    get:
+      description: Returns one tracked Auto-Embedding inference scope operation.
+      operationId: getGroupClusterAutoEmbeddingInferenceOperation
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Name of the cluster for which to return an operation.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+        - description: Unique identifier of the operation.
+          in: path
+          name: operationId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/OperationResponse"
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return One Auto-Embedding Inference Scope Operation
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Read Only
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getGroupClusterAutoEmbeddingInferenceOperation
+      x-xgen-method-verb-override:
+        customMethod: false
+        verb: get
+      x-xgen-operation-id-override: getAutoEmbeddingOperation
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/autoEmbeddingInference:reset:
+    post:
+      description: Resets the explicit inference scope so that Atlas manages the Auto-Embedding scope.
+      operationId: resetGroupClusterAutoEmbeddingInference
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Name of the cluster for which to reset the inference scope.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+      responses:
+        "202":
+          content:
+            application/vnd.atlas.preview+json:
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: Accepted
+          headers:
+            Location:
+              description: URI of the Operation resource to poll.
+              required: true
+              schema:
+                description: URI of the Operation resource to poll.
+                format: uri
+                type: string
+              style: simple
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Reset the Auto-Embedding Inference Scope for One Cluster
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Search Index Editor
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/resetGroupClusterAutoEmbeddingInference
+      x-xgen-long-running-operation:
+        legacy: false
+      x-xgen-method-verb-override:
+        customMethod: true
+        verb: reset
+      x-xgen-operation-id-override: resetAutoEmbeddingInference
   /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/autoScalingConfiguration:
     get:
       deprecated: true
@@ -35589,7 +36263,10 @@ paths:
       x-xgen-changelog:
         2025-05-08: Corrects an issue where the endpoint would allow a rolling index build to be initiated while there was already an index build in progress. The endpoint now returns 400 if an index build is already in progress.
         2026-04-06: Corrects an issue where index creation was throwing a 500 error instead of a 409 error when there was an existing index with the same name.
+        2026-09-29: Indexes created with a collation and no explicit name now receive a default name with a collation-derived suffix, so that indexes over the same keys with different collations do not conflict.
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rolling-Index/operation/createGroupClusterIndexRollingIndex
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-method-verb-override:
         customMethod: false
         verb: createRollingIndex
@@ -36286,6 +36963,8 @@ paths:
       x-rolesRequirements:
         - Project Cluster Manager
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Overload-Protection-Simulation/operation/deleteGroupClusterOverloadSimulation
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: deleteClusterOverloadSimulation
     get:
       description: Returns the overload protection simulation for one cluster.
@@ -36597,6 +37276,65 @@ paths:
         - Project Read Only
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/listGroupClusterPrivateEndpointConnectionStrings
       x-xgen-operation-id-override: listEndpointConnectionStrings
+    post:
+      description: Creates one private endpoint connection string for the specified cluster. The new record is returned with `status = PENDING`; MongoDB Cloud publishes the DNS records asynchronously, so poll the record until it reports `AVAILABLE` before connecting with it.
+      operationId: createGroupClusterPrivateEndpointConnectionString
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Human-readable label that identifies the cluster.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/PrivateEndpointConnectionStringCreateRequest"
+            x-xgen-preview:
+              name: private-endpoint-connection-strings
+            x-xgen-version: preview
+        description: Private endpoint connection string to create.
+        required: true
+      responses:
+        "201":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PrivateEndpointConnectionStringResponse"
+              x-xgen-preview:
+                name: private-endpoint-connection-strings
+              x-xgen-version: preview
+          description: Created
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Create One Private Endpoint Connection String for One Cluster
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Owner
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createGroupClusterPrivateEndpointConnectionString
+      x-xgen-operation-id-override: createEndpointConnectionString
   /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/privateEndpointConnectionStrings/{connectionStringId}:
     delete:
       description: Deletes one private endpoint connection string from the specified cluster.
@@ -36700,6 +37438,74 @@ paths:
         - Project Read Only
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getGroupClusterPrivateEndpointConnectionString
       x-xgen-operation-id-override: getEndpointConnectionString
+    patch:
+      description: Updates one private endpoint connection string. Accepted while the record reports `PENDING`, `AVAILABLE`, or `FAILED`, and returns it with `status = PENDING` while MongoDB Cloud publishes the new DNS records. Only `name` and `privateEndpointIds` can change, and each one you omit keeps its current value. An imported record cannot be updated, and a request that carries a connection method property, a published field, or a lifecycle field is rejected.
+      operationId: updateGroupClusterPrivateEndpointConnectionString
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Human-readable label that identifies the cluster.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            type: string
+        - description: Unique 24-hexadecimal digit string that identifies this private endpoint connection string.
+          in: path
+          name: connectionStringId
+          required: true
+          schema:
+            pattern: ^([a-f0-9]{24})$
+            type: string
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/PrivateEndpointConnectionStringUpdateRequest"
+            x-xgen-preview:
+              name: private-endpoint-connection-strings
+            x-xgen-version: preview
+        description: Private endpoint connection string fields to update.
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PrivateEndpointConnectionStringResponse"
+              x-xgen-preview:
+                name: private-endpoint-connection-strings
+              x-xgen-version: preview
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "405":
+          $ref: "#/components/responses/methodNotAllowed"
+        "409":
+          $ref: "#/components/responses/conflict"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Update One Private Endpoint Connection String for One Cluster
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Owner
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/updateGroupClusterPrivateEndpointConnectionString
+      x-xgen-operation-id-override: updateEndpointConnectionString
   /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs:
     get:
       description: Returns the advanced configuration details for one cluster in the specified project. Clusters contain a group of hosts that maintain the same data set. Advanced configuration details include the read/write concern, index and oplog limits, and other database settings. This feature isn't available for `M0` free clusters, `M2` and `M5` shared-tier clusters, flex clusters, or serverless clusters.
@@ -37003,6 +37809,7 @@ paths:
                 - DOCS_EXAMINED
                 - DOCS_RETURNED
                 - TOTAL_TIME_TO_RESPONSE
+                - AVG_TIME_TO_RESPONSE
                 - BYTES_READ
                 - CPU_TIME
                 - KEYS_EXAMINED_RETURNED
@@ -37019,7 +37826,7 @@ paths:
                 - KEYS_INSERTED
                 - KEYS_DELETED
               type: string
-            maxItems: 22
+            maxItems: 23
             type: array
             uniqueItems: true
           style: form
@@ -38685,7 +39492,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SqlInterfaceStatusResponse"
               x-xgen-preview:
-                name: sql-interface
+                public: "true"
               x-xgen-version: preview
           description: SQL Interface status successfully retrieved.
           headers:
@@ -38731,7 +39538,7 @@ paths:
             schema:
               $ref: "#/components/schemas/SqlInterfaceStatusUpdateRequest"
             x-xgen-preview:
-              name: sql-interface
+              public: "true"
             x-xgen-version: preview
         description: Desired SQL Interface status for the cluster.
         required: true
@@ -38742,7 +39549,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SqlInterfaceStatusResponse"
               x-xgen-preview:
-                name: sql-interface
+                public: "true"
               x-xgen-version: preview
           description: SQL Interface status successfully updated.
           headers:
@@ -39703,6 +40510,8 @@ paths:
         - Project Database Access Admin
         - Project Stream Processing Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Custom-Database-Roles/operation/createGroupCustomDbRoleRole
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: createCustomDbRole
   /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}:
     delete:
@@ -41275,6 +42084,8 @@ paths:
       x-rolesRequirements:
         - Project Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Encryption-at-Rest-using-Customer-Key-Management/operation/createGroupEncryptionAtRestPrivateEndpoint
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: createRestPrivateEndpoint
   /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}:
     delete:
@@ -42242,6 +43053,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/MeasurementsIndexes"
               x-xgen-version: 2023-01-01
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/MeasurementsIndexes"
+              x-xgen-preview:
+                name: search-tiered-storage-metrics
+              x-xgen-version: preview
           description: OK
           headers:
             RateLimit-Limit:
@@ -42311,6 +43128,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/MeasurementsIndexes"
               x-xgen-version: 2023-01-01
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/MeasurementsIndexes"
+              x-xgen-preview:
+                name: search-tiered-storage-metrics
+              x-xgen-version: preview
           description: OK
           headers:
             RateLimit-Limit:
@@ -43448,6 +44271,8 @@ paths:
       x-rolesRequirements:
         - Organization Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Migration-Service/operation/cutoverGroupLiveMigration
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-method-verb-override:
         customMethod: true
       x-xgen-operation-id-override: cutoverMigration
@@ -45075,6 +45900,8 @@ paths:
       x-rolesRequirements:
         - Project Network Access Manager
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Network-Peering/operation/deleteGroupPeer
+      x-xgen-long-running-operation:
+        legacy: true
     get:
       description: Returns details about one specified network peering connection in the specified project.
       operationId: getGroupPeer
@@ -47005,7 +47832,7 @@ paths:
                 - OPLOG_MASTER_TIME
                 - OPLOG_RATE_GB_PER_HOUR
                 - OPLOG_SLAVE_LAG_MASTER_TIME
-                - OPLOG_REPLICATION_LAG
+                - OPLOG_REPLICATION_LAG_TIME
                 - PROCESS_CPU_CHILDREN_KERNEL
                 - PROCESS_CPU_CHILDREN_USER
                 - PROCESS_CPU_KERNEL
@@ -49134,6 +49961,8 @@ paths:
       x-xgen-changelog:
         2023-09-11: The MongoDB Atlas Streams Processing API is now exposed as part of private preview, but is subject to change until GA.
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamWorkspace
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-method-verb-override:
         customMethod: false
         verb: deleteWorkspace
@@ -49491,6 +50320,8 @@ paths:
         - Organization Stream Processing Admin
         - Project Stream Processing Manager
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamConnection
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: deleteStreamConnection
     get:
       description: Returns the details of one stream connection within the specified stream workspace.
@@ -49918,7 +50749,7 @@ paths:
         content:
           application/vnd.atlas.2024-05-30+json:
             schema:
-              $ref: "#/components/schemas/StreamsProcessor"
+              $ref: "#/components/schemas/StreamsProcessorRequest"
         description: Details to create an Atlas Streams Processor.
         required: true
       responses:
@@ -50629,6 +51460,8 @@ paths:
       x-xgen-changelog:
         2024-10-02: The MongoDB Atlas Streams Processing Private Link API is now exposed as part of private preview, but is subject to change until GA.
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamPrivateLinkConnection
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: deletePrivateLinkConnection
     get:
       description: Returns the details of one Private Link connection within the project.
@@ -50816,6 +51649,8 @@ paths:
         - Organization Stream Processing Admin
         - Project Stream Processing Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamVpcPeeringConnection
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: deleteVpcPeeringConnection
   /api/atlas/v2/groups/{groupId}/streams/vpcPeeringConnections/{id}:accept:
     post:
@@ -50865,6 +51700,8 @@ paths:
         - Organization Stream Processing Admin
         - Project Stream Processing Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/acceptGroupStreamVpcPeeringConnection
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: acceptVpcPeeringConnection
   /api/atlas/v2/groups/{groupId}/streams/vpcPeeringConnections/{id}:reject:
     post:
@@ -50907,6 +51744,8 @@ paths:
         - Organization Stream Processing Admin
         - Project Stream Processing Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/rejectGroupStreamVpcPeeringConnection
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: rejectVpcPeeringConnection
   /api/atlas/v2/groups/{groupId}/streams:withSampleConnections:
     post:
@@ -50971,11 +51810,16 @@ paths:
       responses:
         "200":
           content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedStreamsWorkspacePrivateEndpointResponse"
+              x-xgen-version: 2025-03-12
             application/vnd.atlas.preview+json:
               schema:
                 $ref: "#/components/schemas/PaginatedStreamsWorkspacePrivateEndpointResponse"
+              x-sunset: 2026-11-12
               x-xgen-preview:
-                name: streams-workspace-private-endpoint
+                public: "true"
               x-xgen-version: preview
           description: OK
           headers:
@@ -51012,20 +51856,28 @@ paths:
         - $ref: "#/components/parameters/pretty"
       requestBody:
         content:
+          application/vnd.atlas.2025-03-12+json:
+            schema:
+              $ref: "#/components/schemas/StreamsWorkspacePrivateEndpointRequest"
+            x-xgen-version: 2025-03-12
           application/vnd.atlas.preview+json:
             schema:
               $ref: "#/components/schemas/StreamsWorkspacePrivateEndpointRequest"
+            x-sunset: 2026-11-12
             x-xgen-preview:
-              name: streams-workspace-private-endpoint
+              public: "true"
             x-xgen-version: preview
         description: Customer VPC endpoint to register for Atlas Stream Processing.
         required: true
       responses:
         "202":
           content:
+            application/vnd.atlas.2025-03-12+json:
+              x-xgen-version: 2025-03-12
             application/vnd.atlas.preview+json:
+              x-sunset: 2026-11-12
               x-xgen-preview:
-                name: streams-workspace-private-endpoint
+                public: "true"
               x-xgen-version: preview
           description: Accepted
           headers:
@@ -51061,8 +51913,60 @@ paths:
         - Organization Stream Processing Admin
         - Project Stream Processing Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createGroupStreamsWorkspacePrivateEndpoint
+      x-xgen-long-running-operation:
+        legacy: false
       x-xgen-operation-id-override: createWorkspacePrivateEndpoint
   /api/atlas/v2/groups/{groupId}/streamsWorkspacePrivateEndpoints/{endpointId}:
+    delete:
+      description: Removes one private endpoint registered for Atlas Stream Processing in the specified project.
+      operationId: deleteGroupStreamsWorkspacePrivateEndpoint
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+        - description: Unique identifier of the customer's VPC endpoint.
+          in: path
+          name: endpointId
+          required: true
+          schema:
+            example: vpce-0abc123def4567890
+            pattern: ^vpce-[a-z0-9]{17}$
+            type: string
+      responses:
+        "204":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              x-xgen-version: 2025-03-12
+            application/vnd.atlas.preview+json:
+              x-sunset: 2026-11-12
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: No Content
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Remove One Workspace Private Endpoint for Atlas Stream Processing
+      tags:
+        - Streams
+      x-rolesRequirements:
+        - Organization Stream Processing Admin
+        - Project Stream Processing Owner
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamsWorkspacePrivateEndpoint
+      x-xgen-operation-id-override: deleteWorkspacePrivateEndpoint
     get:
       description: Returns one private endpoint registered for Atlas Stream Processing in the specified project.
       operationId: getGroupStreamsWorkspacePrivateEndpoint
@@ -51080,11 +51984,16 @@ paths:
       responses:
         "200":
           content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/StreamsWorkspacePrivateEndpointResponse"
+              x-xgen-version: 2025-03-12
             application/vnd.atlas.preview+json:
               schema:
                 $ref: "#/components/schemas/StreamsWorkspacePrivateEndpointResponse"
+              x-sunset: 2026-11-12
               x-xgen-preview:
-                name: streams-workspace-private-endpoint
+                public: "true"
               x-xgen-version: preview
           description: OK
           headers:
@@ -51442,6 +52351,8 @@ paths:
       x-rolesRequirements:
         - Project Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/LDAP-Configuration/operation/updateGroupUserSecurity
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: updateUserSecurity
   /api/atlas/v2/groups/{groupId}/userSecurity/customerX509:
     delete:
@@ -51482,6 +52393,8 @@ paths:
       x-rolesRequirements:
         - Project Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/X.509-Authentication/operation/disableGroupUserSecurityCustomerX509
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-method-verb-override:
         customMethod: "True"
         verb: disable
@@ -51523,6 +52436,8 @@ paths:
       x-rolesRequirements:
         - Project Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/LDAP-Configuration/operation/deleteGroupUserSecurityLdapUserToDnMapping
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: deleteLdapUserMapping
   /api/atlas/v2/groups/{groupId}/userSecurity/ldap/verify:
     post:
@@ -53209,6 +54124,8 @@ paths:
       x-rolesRequirements:
         - Organization Billing Viewer
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Invoices/operation/createOrgBillingCostExplorerUsageProcess
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-method-verb-override:
         customMethod: false
         verb: createProcess
@@ -54839,13 +55756,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/OrganizationMaintenanceSettingsResponse"
               x-xgen-version: 2025-03-12
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/OrganizationMaintenanceSettingsResponse"
-              x-sunset: 2026-10-12
-              x-xgen-preview:
-                name: organization-maintenance
-              x-xgen-version: preview
           description: OK
           headers:
             RateLimit-Limit:
@@ -54883,13 +55793,6 @@ paths:
             schema:
               $ref: "#/components/schemas/OrganizationMaintenanceSettingsUpdateRequest"
             x-xgen-version: 2025-03-12
-          application/vnd.atlas.preview+json:
-            schema:
-              $ref: "#/components/schemas/OrganizationMaintenanceSettingsUpdateRequest"
-            x-sunset: 2026-10-12
-            x-xgen-preview:
-              name: organization-maintenance
-            x-xgen-version: preview
         description: Maintenance settings to update for the specified organization.
         required: true
       responses:
@@ -54899,13 +55802,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/OrganizationMaintenanceSettingsResponse"
               x-xgen-version: 2025-03-12
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/OrganizationMaintenanceSettingsResponse"
-              x-sunset: 2026-10-12
-              x-xgen-preview:
-                name: organization-maintenance
-              x-xgen-version: preview
           description: OK
           headers:
             RateLimit-Limit:
@@ -54945,13 +55841,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/OrganizationMaintenanceSettingsResponse"
               x-xgen-version: 2025-03-12
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/OrganizationMaintenanceSettingsResponse"
-              x-sunset: 2026-10-12
-              x-xgen-preview:
-                name: organization-maintenance
-              x-xgen-version: preview
           description: OK
           headers:
             RateLimit-Limit:
