@@ -924,8 +924,8 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
-		// state_name is not checked: it is a volatile attribute (see plan_modifier.go) that a fresh GET can read
-		// as UPDATING while Atlas is still settling.
+		// state_name is not checked: it is volatile (see plan_modifier.go) and Atlas can report IDLE between the
+		// plans a create runs as, so a read right after the apply can legitimately get UPDATING (CLOUDP-465244).
 		checksSet = []string{
 			"replication_specs.0.container_id.AWS:US_EAST_1",
 			"mongo_db_major_version",
@@ -1013,8 +1013,9 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 8)
-		// state_name is not checked: it is a volatile attribute (see plan_modifier.go), and the data source or a
-		// no-op update reads it with a fresh GET that can catch Atlas still reporting UPDATING.
+		// state_name is not checked: it is volatile (see plan_modifier.go) and Atlas can report IDLE between the
+		// plans a create runs as, so the data source read right after the apply can legitimately get UPDATING
+		// (CLOUDP-465244).
 		checksMap = map[string]string{
 			"project_id": projectID,
 			"name":       clusterName,
@@ -3025,6 +3026,8 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 		"connection_strings.standard_srv",
 		"create_date",
 		"mongo_db_version",
+		// state_name is presence-checked only. Its value can't be asserted: Atlas can report IDLE between the
+		// plans a create runs as (CLOUDP-465244).
 		"state_name",
 		"version_release_system",
 	}
@@ -3040,6 +3043,7 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 		"create_date",
 		"id",
 		"mongo_db_version",
+		// state_name is presence-checked only, its value can't be asserted (CLOUDP-465244).
 		"state_name",
 		"version_release_system",
 		"provider_settings.provider_name",
