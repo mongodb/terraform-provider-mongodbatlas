@@ -997,6 +997,20 @@ func getKafkaAuthenticationConfig(mechanism, username, password, tokenEndpointUR
 		}`, mechanism, method, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions)
 }
 
+// streamConnectionCreateTimeout returns the create timeout block for a stream connection. The timeouts
+// attribute only exists from provider 2.7.0, so it is omitted when migration tests run against an older
+// released provider.
+func streamConnectionCreateTimeout() string {
+	if mig.IsProviderVersionLowerThan("2.7.0") {
+		return ""
+	}
+	return `
+			# Provisioning can run close to the default 40 minute create timeout.
+			timeouts = {
+				create = "60m"
+			}`
+}
+
 func configureKafka(projectRef, workspaceName, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
 	return configureKafkaInWorkspace(projectRef, fmt.Sprintf("%q", workspaceName), connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, useSSL)
 }
@@ -1029,12 +1043,9 @@ func configureKafkaInWorkspace(projectRef, workspaceRef, connectionName, authent
 		    }
 		    %[7]s
 			%[8]s
-			# Provisioning can run close to the default 40 minute create timeout.
-			timeouts = {
-				create = "60m"
-			}
+			%[9]s
 		}
-	`, projectRef, workspaceRef, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig)
+	`, projectRef, workspaceRef, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig, streamConnectionCreateTimeout())
 }
 
 // configureKafkaForMigration uses instance_name for compatibility with older provider versions
@@ -1064,8 +1075,9 @@ func configureKafkaMigration(projectRef, instanceName, connectionName, authentic
 		    }
 		    %[7]s
 			%[8]s
+			%[9]s
 		}
-	`, projectRef, instanceName, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig)
+	`, projectRef, instanceName, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig, streamConnectionCreateTimeout())
 }
 
 func configureSampleStream(projectID, workspaceName, sampleName string) string {
@@ -1233,8 +1245,9 @@ func configureCluster(projectID, workspaceName, connectionName, clusterName stri
 				role = "atlasAdmin"
 				type = "BUILT_IN"
 			}
+			%[5]s
 		}
-	`, projectID, workspaceName, connectionName, clusterName)
+	`, projectID, workspaceName, connectionName, clusterName, streamConnectionCreateTimeout())
 }
 
 // configureClusterMigration uses instance_name for compatibility with older provider versions
@@ -1250,8 +1263,9 @@ func configureClusterMigration(projectID, instanceName, connectionName, clusterN
 				role = "atlasAdmin"
 				type = "BUILT_IN"
 			}
+			%[5]s
 		}
-	`, projectID, instanceName, connectionName, clusterName)
+	`, projectID, instanceName, connectionName, clusterName, streamConnectionCreateTimeout())
 }
 
 func configureHTTPS(projectID, workspaceName, url, headers string) string {
@@ -1841,12 +1855,9 @@ func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, cluste
 				mongodbatlas_cloud_provider_access_authorization.azure_auth,
 				azurerm_role_assignment.blob_contributor,
 			]
-			# Provisioning this private link connection runs close to the default 40 minute create timeout.
-			timeouts = {
-				create = "60m"
-			}
+			%[5]s
 		}
-	`, projectID, workspaceName, connectionName, clusterName)
+	`, projectID, workspaceName, connectionName, clusterName, streamConnectionCreateTimeout())
 }
 
 func checkAzureBlobStoragePrivateLinkAttributes(resourceName, workspaceName, connectionName, servicePrincipalID, storageAccountName string) resource.TestCheckFunc {
