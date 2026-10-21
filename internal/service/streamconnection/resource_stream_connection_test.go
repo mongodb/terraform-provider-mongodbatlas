@@ -998,10 +998,10 @@ func getKafkaAuthenticationConfig(mechanism, username, password, tokenEndpointUR
 }
 
 // streamConnectionCreateTimeout returns the create timeout block for a stream connection. The timeouts
-// attribute is only supported from provider version 2.7.0, and migration tests can create the resource
-// with an older released version.
+// attribute only exists from provider 2.7.0, so it is omitted when migration tests run against an older
+// released provider.
 func streamConnectionCreateTimeout() string {
-	if !mig.IsProviderVersionAtLeast("2.7.0") {
+	if mig.IsProviderVersionLowerThan("2.7.0") {
 		return ""
 	}
 	return `
