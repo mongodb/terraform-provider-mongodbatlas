@@ -3021,7 +3021,7 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 		"connection_strings.standard_srv",
 		"create_date",
 		"mongo_db_version",
-		// state_name is presence-checked only, can change until CLOUDP-465244 is done.
+		// state_name is presence-checked only, will be changed to check the value in CLOUDP-465250.
 		"state_name",
 		"version_release_system",
 	}
@@ -3037,7 +3037,7 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 		"create_date",
 		"id",
 		"mongo_db_version",
-		// state_name is presence-checked only, can change until CLOUDP-465244 is done.
+		// state_name is presence-checked only, will be changed to check the value in CLOUDP-465250.
 		"state_name",
 		"version_release_system",
 		"provider_settings.provider_name",
