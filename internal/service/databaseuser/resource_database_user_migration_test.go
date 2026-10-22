@@ -37,6 +37,30 @@ func TestMigConfigRSDatabaseUser_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
 				),
 			},
+			// Step 2 accepts a non-empty plan: the known migration diff (e.g. optional
+			// strings the API returns as "" while the manual resource kept null).
+			// Step 3 applies and asserts identity (encoded id) and values survived.
+			// Step 4 asserts convergence: empty plan from then on. If this step fails,
+			// the diff is perpetual (every plan), which is a parity gap, not an
+			// accepted migration diff.
+			{
+				Config:             configTPF,
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				Config: configTPF,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "id", conversion.EncodeStateID(map[string]string{
+						"project_id":         projectID,
+						"username":           username,
+						"auth_database_name": "admin",
+					})),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
+				),
+			},
 			mig.TestStepCheckEmptyPlan(configTPF),
 		},
 	})
