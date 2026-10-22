@@ -110,6 +110,14 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 		"username":           model.Username.ValueString(),
 		"auth_database_name": model.AuthDatabaseName.ValueString(),
 	})
+	// Optional-string shape parity: the API returns "" for unset optional strings while
+	// the manual resource keeps them null in state; drop them so state stays null
+	// (inverse of the past migration's SDKv2 normalization, which set "" instead).
+	if model.Description.IsNull() {
+		if val, exists := obj["description"]; exists && val == "" {
+			delete(obj, "description")
+		}
+	}
 	body, err := json.Marshal(obj)
 	if err != nil {
 		return result
