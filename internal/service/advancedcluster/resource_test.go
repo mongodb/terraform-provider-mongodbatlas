@@ -3279,9 +3279,9 @@ func checkUseAwsTimeBasedSnapshotCopy(value bool) resource.TestCheckFunc {
 	)
 }
 
-func TestAccAdvancedCluster_gen2StandardDiskIops(t *testing.T) {
+func TestAccAdvancedCluster_gen2StandardDiskIopsCrossCloud(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 5)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 9)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -3300,15 +3300,15 @@ func TestAccAdvancedCluster_gen2StandardDiskIops(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 3400, "STANDARD", true)},
 			},
 			{
-				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 1000, true, true),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 1000, true, false),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 0, true, true),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 0, true, false),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", -1, true, true),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", -1, true, false),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 		},
