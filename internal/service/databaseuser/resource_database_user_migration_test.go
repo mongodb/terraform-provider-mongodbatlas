@@ -44,12 +44,14 @@ func TestMigConfigRSDatabaseUser_Basic(t *testing.T) {
 			// the diff is perpetual (every plan), which is a parity gap, not an
 			// accepted migration diff.
 			{
-				Config:             configTPF,
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: true,
+				Config:                   configTPF,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				PlanOnly:                 true,
+				ExpectNonEmptyPlan:       true,
 			},
 			{
-				Config: configTPF,
+				Config:                   configTPF,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "id", conversion.EncodeStateID(map[string]string{
 						"project_id":         projectID,
