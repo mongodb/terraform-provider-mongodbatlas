@@ -16,6 +16,10 @@ func TestMigConfigRSDatabaseUser_Basic(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomName()
 		config    = acc.ConfigDatabaseUserBasic(projectID, username, "atlasAdmin", "First Key", "First value")
+		// Step 2 config: nested collections as assignments instead of blocks, the syntax
+		// the autogen implementation requires (accepted breaking change: customers rewrite
+		// their configs; values stay the same so the plan must remain empty).
+		configTPF = acc.ConfigDatabaseUserBasicTPF(projectID, username, "atlasAdmin", "First Key", "First value")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -33,7 +37,7 @@ func TestMigConfigRSDatabaseUser_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(config),
+			mig.TestStepCheckEmptyPlan(configTPF),
 		},
 	})
 }
