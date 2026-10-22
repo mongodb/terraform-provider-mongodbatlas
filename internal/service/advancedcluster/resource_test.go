@@ -3292,12 +3292,12 @@ func TestAccAdvancedCluster_gen2StandardDiskIopsCrossCloud(t *testing.T) {
 			{
 				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 3200, true, true),
 				Check:             checkGen2("M30_GEN_2", 3200, "STANDARD", true, true, true),
-				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 3200, "STANDARD", true)},
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, "M30_GEN_2", 3200, "STANDARD", true)},
 			},
 			{
 				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 3400, true, true),
 				Check:             checkGen2("M30_GEN_2", 3400, "STANDARD", true, true, true),
-				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 3400, "STANDARD", true)},
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, "M30_GEN_2", 3400, "STANDARD", true)},
 			},
 			{
 				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 1000, true, false),
@@ -3328,12 +3328,12 @@ func TestAccAdvancedCluster_gen2HighPerformanceDiskIops(t *testing.T) {
 			{
 				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 3200, false, false),
 				Check:             checkGen2("M30_GEN_2", 3200, "HIGH_PERFORMANCE", false, false, false),
-				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 3200, "HIGH_PERFORMANCE", false)},
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, "M30_GEN_2", 3200, "HIGH_PERFORMANCE", false)},
 			},
 			{
 				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 3400, false, false),
 				Check:             checkGen2("M30_GEN_2", 3400, "HIGH_PERFORMANCE", false, false, false),
-				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 3400, "HIGH_PERFORMANCE", false)},
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, "M30_GEN_2", 3400, "HIGH_PERFORMANCE", false)},
 			},
 			{
 				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 1, false, false),
@@ -3364,12 +3364,12 @@ func TestAccAdvancedCluster_gen1ProvisionedDiskIops(t *testing.T) {
 			{
 				Config:            configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1000, false, false),
 				Check:             checkGen2("M30", 1000, "PROVISIONED", false, false, false),
-				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 1000, "PROVISIONED", false)},
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, "M30", 1000, "PROVISIONED", false)},
 			},
 			{
 				Config:            configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1500, false, false),
 				Check:             checkGen2("M30", 1500, "PROVISIONED", false, false, false),
-				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 1500, "PROVISIONED", false)},
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, "M30", 1500, "PROVISIONED", false)},
 			},
 			{
 				Config:      configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1, false, false),
@@ -3510,12 +3510,14 @@ func checkGen2(instanceSize string, diskIops int, ebsVolumeType string, allSpecT
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func pluralCheckGen2(clusterName string, diskIops int, ebsVolumeType string, withGCP bool) statecheck.StateCheck {
+func pluralCheckGen2(clusterName, instanceSize string, diskIops int, ebsVolumeType string, withGCP bool) statecheck.StateCheck {
 	attrs := map[string]knownvalue.Check{
+		"replication_specs.0.region_configs.0.electable_specs.instance_size":   knownvalue.StringExact(instanceSize),
 		"replication_specs.0.region_configs.0.electable_specs.disk_iops":       knownvalue.Int64Exact(int64(diskIops)),
 		"replication_specs.0.region_configs.0.electable_specs.ebs_volume_type": knownvalue.StringExact(ebsVolumeType),
 	}
 	if withGCP {
+		attrs["replication_specs.0.region_configs.1.electable_specs.instance_size"] = knownvalue.StringExact(instanceSize)
 		attrs["replication_specs.0.region_configs.1.electable_specs.disk_iops"] = knownvalue.Int64Exact(int64(diskIops))
 	}
 	return acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(clusterName), attrs)
