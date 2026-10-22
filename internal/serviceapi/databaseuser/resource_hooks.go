@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,6 +41,7 @@ type TFExpandedModel struct {
 
 var _ autogen.ResourceSchemaHook = (*rs)(nil)
 var _ autogen.PostReadAPICallHook = (*rs)(nil)
+var _ autogen.PostCreateAPICallHook = (*rs)(nil)
 
 func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schema.Schema {
 	if passwordAttr, ok := baseSchema.Attributes["password"].(schema.StringAttribute); ok {
@@ -77,6 +79,14 @@ func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schem
 			baseSchema.Attributes[name] = attr
 		}
 	}
+	// Crafted id: kept for migrated state (manual-era state carries the encoded id) and for
+	// tooling that references .id; populated by the read/create hooks below.
+	baseSchema.Attributes["id"] = schema.StringAttribute{
+		Computed: true,
+		PlanModifiers: []planmodifier.String{
+			stringplanmodifier.UseStateForUnknown(),
+		},
+	}
 	return baseSchema
 }
 
@@ -99,6 +109,35 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 		"project_id":         model.ProjectId.ValueString(),
 		"username":           model.Username.ValueString(),
 		"auth_database_name": model.AuthDatabaseName.ValueString(),
+	})
+	body, err := json.Marshal(obj)
+	if err != nil {
+		return result
+	}
+	result.Body = body
+	return result
+}
+
+// PostCreateAPICall injects the crafted id after create: the database users POST response
+// carries no id field, but groupId/username/databaseName are present in the response body.
+func (r *rs) PostCreateAPICall(result autogen.APICallResult) autogen.APICallResult {
+	if result.Err != nil || len(result.Body) == 0 {
+		return result
+	}
+	var obj map[string]any
+	if err := autogen.Decode(result.Body, &obj); err != nil {
+		return result
+	}
+	groupID, _ := obj["groupId"].(string)
+	username, _ := obj["username"].(string)
+	databaseName, _ := obj["databaseName"].(string)
+	if groupID == "" || username == "" || databaseName == "" {
+		return result
+	}
+	obj["id"] = conversion.EncodeStateID(map[string]string{
+		"project_id":         groupID,
+		"username":           username,
+		"auth_database_name": databaseName,
 	})
 	body, err := json.Marshal(obj)
 	if err != nil {
