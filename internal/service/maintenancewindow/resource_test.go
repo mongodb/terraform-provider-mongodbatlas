@@ -248,7 +248,7 @@ func preCheckWaveAssignmentModeManual(tb testing.TB) {
 	tb.Helper()
 	acc.PreCheckBasic(tb)
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	settings, _, err := acc.ConnV2().OrganizationsAPI.GetOrgMaintenanceSettings(context.Background(), orgID).Execute()
+	settings, _, err := acc.ConnV2().OrganizationsAPI.GetOrgMaintenanceSettings(tb.Context(), orgID).Execute()
 	if err != nil {
 		tb.Fatalf("failed to read the maintenance settings of organization %s: %s", orgID, err)
 	}
