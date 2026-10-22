@@ -655,7 +655,7 @@ resources:
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
 
-  database_user_api:
+  database_user:
     read:
       path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
       method: GET
@@ -670,6 +670,7 @@ resources:
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
+      expanded_model: true # adds the crafted `id` and the write-only password fields (provider-only attributes)
       ignores: ["links"]
       aliases:
         groupId: projectId # standard project_id alias for /groups/{groupId}/ resources
