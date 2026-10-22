@@ -3465,7 +3465,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 // controls whether analytics_specs and read_only_specs are also checked. checkDiskThroughput
 // additionally verifies disk_throughput is populated and matches the effective specs (only
 // returned for Gen2 STANDARD/gp3). withGCP additionally verifies disk_iops for the GCP region config
-// (ebs_volume_type and disk_throughput are AWS-only). instance_size is verified for every region config.
+// (ebs_volume_type is AWS-only; disk_throughput is also checked when checkDiskThroughput). instance_size is verified for every region config.
 func checkGen2(instanceSize string, diskIops int, ebsVolumeType string, allSpecTypes, checkDiskThroughput, withGCP bool) resource.TestCheckFunc {
 	diskIopsStr := strconv.Itoa(diskIops)
 	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
@@ -3498,6 +3498,13 @@ func checkGen2(instanceSize string, diskIops int, ebsVolumeType string, allSpecT
 				resource.TestCheckResourceAttr(resourceName, gcpBase+"disk_iops", diskIopsStr),
 				resource.TestCheckResourceAttr(dataSourceName, gcpBase+"disk_iops", diskIopsStr),
 			)
+			if checkDiskThroughput {
+				gcpEffectiveBase := "replication_specs.0.region_configs.1.effective_" + specsAttr + "."
+				checks = append(checks,
+					resource.TestCheckResourceAttrWith(dataSourceName, gcpBase+"disk_throughput", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttrPair(dataSourceName, gcpBase+"disk_throughput", dataSourceName, gcpEffectiveBase+"disk_throughput"),
+				)
+			}
 		}
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
