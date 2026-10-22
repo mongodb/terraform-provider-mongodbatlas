@@ -672,12 +672,24 @@ resources:
     schema:
       ignores: ["links"]
       aliases:
-        username: dbUser # alias is only added to illustrate full aliasing support (username is both a path param and present in request body)
+        groupId: projectId # standard project_id alias for /groups/{groupId}/ resources
+        databaseName: authDatabaseName # manual parity: mongodbatlas_database_user exposes auth_database_name
       overrides:
         password:
           sensitive: true
         description:
           request_body_usage: "send_null_as_null_on_update"
+        labels:
+          # Manual parity: manual resource uses a Set of {key,value} objects (SetNestedBlock),
+          # not the default tags/labels-as-map convention. type: set keeps the nested object
+          # shape and skips tagsAndLabelsAsMapTypeTransformation.
+          type: set
+        roles:
+          # Manual parity: manual resource uses SetNestedBlock for roles.
+          type: set
+        scopes:
+          # Manual parity: manual resource uses SetNestedBlock for scopes.
+          type: set
 
   # Singleton resource in project.
   # Create uses PATCH.

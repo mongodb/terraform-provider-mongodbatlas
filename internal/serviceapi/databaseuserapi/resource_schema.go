@@ -18,7 +18,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Human-readable label that indicates whether the new database user authenticates with the Amazon Web Services (AWS) Identity and Access Management (IAM) credentials associated with the user or the user's role.",
 			},
-			"database_name": schema.StringAttribute{
+			"auth_database_name": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "The database against which the database user authenticates. Database users must provide both a username and authentication database to log into MongoDB. If the user authenticates with AWS IAM, x.509, LDAP, or OIDC Workload this value should be `$external`. If the user authenticates with SCRAM-SHA or OIDC Workforce, this value should be `admin`.",
@@ -31,15 +31,26 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Description of this database user.",
 			},
-			"group_id": schema.StringAttribute{
+			"project_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 			},
-			"labels": schema.MapAttribute{
+			"labels": schema.SetNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that contains the key-value pairs for tagging and categorizing the MongoDB database user. The labels that you define do not appear in the console.",
-				CustomType:          customtypes.NewMapType[types.String](ctx),
-				ElementType:         types.StringType,
+				CustomType:          customtypes.NewNestedSetType[TFLabelsModel](ctx),
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"key": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "Key applied to tag and categorize this component.",
+						},
+						"value": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "Value set to the Key applied to tag and categorize this component.",
+						},
+					},
+				},
 			},
 			"ldap_auth_type": schema.StringAttribute{
 				Computed:            true,
@@ -56,10 +67,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Alphanumeric string that authenticates this database user against the database specified in `databaseName`. To authenticate with SCRAM-SHA, you must specify this parameter. This parameter doesn't appear in this response.",
 				Sensitive:           true,
 			},
-			"roles": schema.ListNestedAttribute{
+			"roles": schema.SetNestedAttribute{
 				Required:            true,
 				MarkdownDescription: "List that provides the pairings of one role with one applicable database.",
-				CustomType:          customtypes.NewNestedListType[TFRolesModel](ctx),
+				CustomType:          customtypes.NewNestedSetType[TFRolesModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"collection_name": schema.StringAttribute{
@@ -77,10 +88,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
-			"scopes": schema.ListNestedAttribute{
+			"scopes": schema.SetNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces in the project.",
-				CustomType:          customtypes.NewNestedListType[TFScopesModel](ctx),
+				CustomType:          customtypes.NewNestedSetType[TFScopesModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -94,7 +105,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
-			"db_user": schema.StringAttribute{
+			"username": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Human-readable label that represents the user that authenticates to MongoDB. The format of this label depends on the method of authentication:\n\n| Authentication Method | Parameter Needed | Parameter Value | username Format |\n|---|---|---|---|\n| AWS IAM | `awsIAMType` | `ROLE` | <abbr title=\"Amazon Resource Name\">ARN</abbr> |\n| AWS IAM | `awsIAMType` | `USER` | <abbr title=\"Amazon Resource Name\">ARN</abbr> |\n| x.509 | `x509Type` | `CUSTOMER` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| x.509 | `x509Type` | `MANAGED` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| LDAP | `ldapAuthType` | `USER` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| LDAP | `ldapAuthType` | `GROUP` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| OIDC Workforce | `oidcAuthType` | `IDP_GROUP` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name |\n| OIDC Workload | `oidcAuthType` | `USER` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |\n| SCRAM-SHA | `awsIAMType`, `x509Type`, `ldapAuthType`, `oidcAuthType` | `NONE` | Alphanumeric string |\n",
 			},
@@ -108,19 +119,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	AwsIAMType      types.String                               `tfsdk:"aws_iam_type"`
-	DatabaseName    types.String                               `tfsdk:"database_name"`
-	DeleteAfterDate types.String                               `tfsdk:"delete_after_date"`
-	Description     types.String                               `tfsdk:"description" autogen:"sendnullasnullonupdate"`
-	GroupId         types.String                               `tfsdk:"group_id"`
-	Labels          customtypes.MapValue[types.String]         `tfsdk:"labels" autogen:"listasmap,sendnullasemptyonupdate"`
-	LdapAuthType    types.String                               `tfsdk:"ldap_auth_type"`
-	OidcAuthType    types.String                               `tfsdk:"oidc_auth_type"`
-	Password        types.String                               `tfsdk:"password" autogen:"sensitive"`
-	Roles           customtypes.NestedListValue[TFRolesModel]  `tfsdk:"roles"`
-	Scopes          customtypes.NestedListValue[TFScopesModel] `tfsdk:"scopes"`
-	DbUser          types.String                               `tfsdk:"db_user" apiname:"username"`
-	X509Type        types.String                               `tfsdk:"x509_type"`
+	AwsIAMType       types.String                              `tfsdk:"aws_iam_type"`
+	AuthDatabaseName types.String                              `tfsdk:"auth_database_name" apiname:"databaseName"`
+	DeleteAfterDate  types.String                              `tfsdk:"delete_after_date"`
+	Description      types.String                              `tfsdk:"description" autogen:"sendnullasnullonupdate"`
+	ProjectId        types.String                              `tfsdk:"project_id" apiname:"groupId"`
+	Labels           customtypes.NestedSetValue[TFLabelsModel] `tfsdk:"labels"`
+	LdapAuthType     types.String                              `tfsdk:"ldap_auth_type"`
+	OidcAuthType     types.String                              `tfsdk:"oidc_auth_type"`
+	Password         types.String                              `tfsdk:"password" autogen:"sensitive"`
+	Roles            customtypes.NestedSetValue[TFRolesModel]  `tfsdk:"roles"`
+	Scopes           customtypes.NestedSetValue[TFScopesModel] `tfsdk:"scopes"`
+	Username         types.String                              `tfsdk:"username"`
+	X509Type         types.String                              `tfsdk:"x509_type"`
+}
+type TFLabelsModel struct {
+	Key   types.String `tfsdk:"key"`
+	Value types.String `tfsdk:"value"`
 }
 type TFRolesModel struct {
 	CollectionName types.String `tfsdk:"collection_name"`

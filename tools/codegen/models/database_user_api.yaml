@@ -1,5 +1,5 @@
 schema:
-    description: Creates one database user in the specified project. This MongoDB Cloud supports a maximum of 100 database users per project. If you require more than 100 database users on a project, contact Support.
+    description: Creates one database user in the specified project. This MongoDB Cloud supports a default limit of 100 and a maximum of 900 database users per project. If you require more than 900 database users on a project, contact Support.
     attributes:
         - string:
             default: NONE
@@ -17,8 +17,8 @@ schema:
             default: admin
           description: The database against which the database user authenticates. Database users must provide both a username and authentication database to log into MongoDB. If the user authenticates with AWS IAM, x.509, LDAP, or OIDC Workload this value should be `$external`. If the user authenticates with SCRAM-SHA or OIDC Workforce, this value should be `admin`.
           computed_optional_required: computed_optional
-          tf_schema_name: database_name
-          tf_model_name: DatabaseName
+          tf_schema_name: auth_database_name
+          tf_model_name: AuthDatabaseName
           api_name: databaseName
           req_body_usage: all_request_bodies
           sensitive: false
@@ -53,32 +53,55 @@ schema:
 
             **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
           computed_optional_required: required
-          tf_schema_name: group_id
-          tf_model_name: GroupId
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
           api_name: groupId
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-        - map:
-            element_type: 4
+        - set_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Key applied to tag and categorize this component.
+                      computed_optional_required: optional
+                      tf_schema_name: key
+                      tf_model_name: Key
+                      api_name: key
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Value set to the Key applied to tag and categorize this component.
+                      computed_optional_required: optional
+                      tf_schema_name: value
+                      tf_model_name: Value
+                      api_name: value
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
           description: List that contains the key-value pairs for tagging and categorizing the MongoDB database user. The labels that you define do not appear in the console.
           custom_type:
-            model: customtypes.MapValue[types.String]
-            schema: customtypes.NewMapType[types.String](ctx)
+            name: Labels
+            model: customtypes.NestedSetValue[TFLabelsModel]
+            schema: customtypes.NewNestedSetType[TFLabelsModel](ctx)
             packages:
                 - customtypes
           computed_optional_required: optional
           tf_schema_name: labels
           tf_model_name: Labels
           api_name: labels
-          req_body_usage: send_null_as_empty_on_update
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-          list_type_as_map: true
         - string:
             default: NONE
           description: Part of the Lightweight Directory Access Protocol (LDAP) record that the database uses to authenticate this database user on the LDAP host.
@@ -114,7 +137,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-        - list_nested:
+        - set_nested:
             nested_object:
                 attributes:
                     - string: {}
@@ -153,8 +176,8 @@ schema:
           description: List that provides the pairings of one role with one applicable database.
           custom_type:
             name: Roles
-            model: customtypes.NestedListValue[TFRolesModel]
-            schema: customtypes.NewNestedListType[TFRolesModel](ctx)
+            model: customtypes.NestedSetValue[TFRolesModel]
+            schema: customtypes.NewNestedSetType[TFRolesModel](ctx)
             packages:
                 - customtypes
           computed_optional_required: required
@@ -166,7 +189,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-        - list_nested:
+        - set_nested:
             nested_object:
                 attributes:
                     - string: {}
@@ -194,8 +217,8 @@ schema:
           description: List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces in the project.
           custom_type:
             name: Scopes
-            model: customtypes.NestedListValue[TFScopesModel]
-            schema: customtypes.NewNestedListType[TFScopesModel](ctx)
+            model: customtypes.NestedSetValue[TFScopesModel]
+            schema: customtypes.NewNestedSetType[TFScopesModel](ctx)
             packages:
                 - customtypes
           computed_optional_required: optional
@@ -223,8 +246,8 @@ schema:
             | OIDC Workload | `oidcAuthType` | `USER` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |
             | SCRAM-SHA | `awsIAMType`, `x509Type`, `ldapAuthType`, `oidcAuthType` | `NONE` | Alphanumeric string |
           computed_optional_required: required
-          tf_schema_name: db_user
-          tf_model_name: DbUser
+          tf_schema_name: username
+          tf_model_name: Username
           api_name: username
           req_body_usage: all_request_bodies
           sensitive: false
@@ -252,16 +275,16 @@ schema:
 operations:
     delete:
         http_method: DELETE
-        path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{dbUser}
+        path: /api/atlas/v2/groups/{projectId}/databaseUsers/{authDatabaseName}/{username}
     create:
         http_method: POST
-        path: /api/atlas/v2/groups/{groupId}/databaseUsers
+        path: /api/atlas/v2/groups/{projectId}/databaseUsers
     read:
         http_method: GET
-        path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{dbUser}
+        path: /api/atlas/v2/groups/{projectId}/databaseUsers/{authDatabaseName}/{username}
     update:
         http_method: PATCH
-        path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{dbUser}
+        path: /api/atlas/v2/groups/{projectId}/databaseUsers/{authDatabaseName}/{username}
     version_header: application/vnd.atlas.2023-01-01+json
 name: database_user_api
 packageName: databaseuserapi
