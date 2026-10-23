@@ -32,10 +32,7 @@ resource "mongodbatlas_database_user" "db-user" {
   password           = var.atlas_dbpassword
   auth_database_name = "admin"
   project_id         = mongodbatlas_project.aws_atlas.id
-  roles {
-    role_name     = "readWrite"
-    database_name = "admin"
-  }
+  roles = [{ role_name = "readWrite", database_name = "admin" }]
   depends_on = [mongodbatlas_project.aws_atlas]
 }
 
