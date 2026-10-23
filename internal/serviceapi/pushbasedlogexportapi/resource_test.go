@@ -138,7 +138,7 @@ func pushBasedLogExportConfig(useBucket2, usePrefixPath bool, prefixPath string)
 func awsIAMroleAuthAndS3Config(firstBucketName, secondBucketName string) string {
 	firstBucketResourceName := "arn:aws:s3:::" + firstBucketName
 	secondBucketResourceName := "arn:aws:s3:::" + secondBucketName
-	return fmt.Sprintf(`
+	return acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
 		// Create IAM role & policy to authorize with Atlas
 resource "aws_iam_role_policy" "test_policy" {
   name = local.aws_iam_role_policy_name
