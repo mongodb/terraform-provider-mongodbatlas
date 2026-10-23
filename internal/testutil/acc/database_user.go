@@ -194,10 +194,7 @@ func ConfigDataBaseUserWithOIDCAuthType(projectID, username, authType, databaseN
 		oidc_auth_type     = %[3]q
 		auth_database_name = %[4]q
 
-		roles {
-			role_name     = %[5]q
-			database_name = "admin"
-		}
+		roles = [{ role_name = %[5]q, database_name = "admin" }]
 	}
 `, projectID, username, authType, databaseName, roleName)
 }
