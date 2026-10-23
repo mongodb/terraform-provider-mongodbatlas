@@ -68,7 +68,7 @@ func TestAccDatabaseUser_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserBasic(projectID, username, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
+				Config: acc.ConfigDatabaseUserBasicTPF(projectID, username, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
 				Check: checkAttrs(
 					projectID,
 					username,
@@ -85,7 +85,7 @@ func TestAccDatabaseUser_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserBasic(projectID, username, "read", "Second Key", "Second value") + dataSourceSingular,
+				Config: acc.ConfigDatabaseUserBasicTPF(projectID, username, "read", "Second Key", "Second value") + dataSourceSingular,
 				Check: checkAttrs(
 					projectID,
 					username,
@@ -119,7 +119,7 @@ func TestAccDatabaseUser_withX509TypeCustomer(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
+				Config: acc.ConfigDatabaseUserWithX509TypeTPF(projectID, username, x509Type, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
 				Check: checkAttrs(
 					projectID,
 					username,
@@ -150,7 +150,7 @@ func TestAccDatabaseUser_withX509TypeManaged(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
+				Config: acc.ConfigDatabaseUserWithX509TypeTPF(projectID, username, x509Type, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
 				Check: checkAttrs(
 					projectID,
 					username,
@@ -178,7 +178,7 @@ func TestAccDatabaseUser_withAWSIAMType(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithAWSIAMType(projectID, username, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
+				Config: acc.ConfigDatabaseUserWithAWSIAMTypeTPF(projectID, username, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
 				Check: checkAttrs(
 					projectID,
 					username,
@@ -207,7 +207,7 @@ func TestAccDatabaseUser_withLabelsAndDescription(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceSingular + acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", description1, nil),
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithLabelsTPF(projectID, username, "atlasAdmin", description1, nil),
 				Check: checkAttrs(
 					projectID,
 					username,
@@ -219,7 +219,7 @@ func TestAccDatabaseUser_withLabelsAndDescription(t *testing.T) {
 				),
 			},
 			{
-				Config: dataSourceSingular + acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", description2,
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithLabelsTPF(projectID, username, "atlasAdmin", description2,
 					[]admin.ComponentLabel{
 						{
 							Key:   conversion.StringPtr("key 1"),
@@ -246,7 +246,7 @@ func TestAccDatabaseUser_withLabelsAndDescription(t *testing.T) {
 				),
 			},
 			{
-				Config: dataSourceSingular + acc.ConfigDatabaseUserWithLabels(projectID, username, "read", "",
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithLabelsTPF(projectID, username, "read", "",
 					[]admin.ComponentLabel{
 						{
 							Key:   conversion.StringPtr("key 4"),
@@ -271,7 +271,7 @@ func TestAccDatabaseUser_withLabelsAndDescription(t *testing.T) {
 				),
 			},
 			{
-				Config: dataSourceSingular + acc.ConfigDatabaseUserWithLabels(projectID, username, "read", "", nil),
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithLabelsTPF(projectID, username, "read", "", nil),
 				Check: checkAttrs(
 					projectID,
 					username,
@@ -300,7 +300,7 @@ func TestAccDatabaseUser_withRoles(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceSingular + acc.ConfigDatabaseUserWithRoles(projectID, username, password,
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithRolesTPF(projectID, username, password,
 					[]*admin.DatabaseUserRole{
 						{
 							RoleName:       "read",
@@ -330,7 +330,7 @@ func TestAccDatabaseUser_withRoles(t *testing.T) {
 				),
 			},
 			{
-				Config: dataSourceSingular + acc.ConfigDatabaseUserWithRoles(projectID, username, password,
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithRolesTPF(projectID, username, password,
 					[]*admin.DatabaseUserRole{
 						{
 							RoleName:     "read",
@@ -368,7 +368,7 @@ func TestAccDatabaseUser_withScopes(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceSingular + acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin",
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithScopesTPF(projectID, username, password, "atlasAdmin",
 					[]*admin.UserScope{
 						{
 							Name: userScopeName,
@@ -394,7 +394,7 @@ func TestAccDatabaseUser_withScopes(t *testing.T) {
 				),
 			},
 			{
-				Config: dataSourceSingular + acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin",
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithScopesTPF(projectID, username, password, "atlasAdmin",
 					[]*admin.UserScope{
 						{
 							Name: userScopeName,
@@ -414,7 +414,7 @@ func TestAccDatabaseUser_withScopes(t *testing.T) {
 				),
 			},
 			{
-				Config: dataSourceSingular + acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin", nil),
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithScopesTPF(projectID, username, password, "atlasAdmin", nil),
 				Check: checkAttrs(
 					projectID,
 					username,
@@ -440,7 +440,7 @@ func TestAccDatabaseUser_withLDAPAuthType(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithLDAPAuthType(projectID, username, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
+				Config: acc.ConfigDatabaseUserWithLDAPAuthTypeTPF(projectID, username, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
 				Check: checkAttrs(
 					projectID,
 					username,
@@ -552,7 +552,7 @@ func TestAccDatabaseUser_withPasswordWriteOnly(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserPasswordWo(projectID, username),
+				Config: acc.ConfigDatabaseUserPasswordWoTPF(projectID, username),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -563,7 +563,7 @@ func TestAccDatabaseUser_withPasswordWriteOnly(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserPasswordWoVersionUpdate(projectID, username),
+				Config: acc.ConfigDatabaseUserPasswordWoVersionUpdateTPF(projectID, username),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "password_wo_version", "2"),
 					resource.TestCheckNoResourceAttr(resourceName, "password_wo"),
@@ -589,14 +589,14 @@ func TestAccDatabaseUser_migrateToPasswordWriteOnly(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserBasic(projectID, username, "atlasAdmin", "key", "value"),
+				Config: acc.ConfigDatabaseUserBasicTPF(projectID, username, "atlasAdmin", "key", "value"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckNoResourceAttr(resourceName, "password_wo_version"),
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserPasswordWo(projectID, username),
+				Config: acc.ConfigDatabaseUserPasswordWoTPF(projectID, username),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "password_wo_version", "1"),
 					resource.TestCheckNoResourceAttr(resourceName, "password_wo"),
@@ -680,10 +680,7 @@ func configDatabaseUserPasswordAndPasswordWo(projectID, username string) string 
 			password_wo_version = 1
 			auth_database_name  = "admin"
 
-			roles {
-				role_name     = "atlasAdmin"
-				database_name = "admin"
-			}
+			roles = [{ role_name = "atlasAdmin", database_name = "admin" }]
 		}
 	`, projectID, username)
 }
@@ -696,10 +693,7 @@ func configDatabaseUserPasswordWoOnly(projectID, username string) string {
 			password_wo        = "test-acc-password-wo"
 			auth_database_name = "admin"
 
-			roles {
-				role_name     = "atlasAdmin"
-				database_name = "admin"
-			}
+			roles = [{ role_name = "atlasAdmin", database_name = "admin" }]
 		}
 	`, projectID, username)
 }
@@ -712,10 +706,7 @@ func configDatabaseUserPasswordWoVersionOnly(projectID, username string) string 
 			password_wo_version = 1
 			auth_database_name  = "admin"
 
-			roles {
-				role_name     = "atlasAdmin"
-				database_name = "admin"
-			}
+			roles = [{ role_name = "atlasAdmin", database_name = "admin" }]
 		}
 	`, projectID, username)
 }

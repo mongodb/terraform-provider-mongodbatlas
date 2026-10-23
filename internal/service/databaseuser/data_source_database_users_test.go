@@ -46,15 +46,8 @@ func configDSPlural(projectID, username, roleName string) string {
 			password           = "test-acc-password"
 			auth_database_name = "admin"
 
-			roles {
-				role_name     = %[3]q
-				database_name = "admin"
-			}
-
-			labels {
-				key   = "key 1"
-				value = "value 1"
-			}
+			roles  = [{ role_name = %[3]q, database_name = "admin" }]
+			labels = [{ key = "key 1", value = "value 1" }]
 		}
 
 		resource "mongodbatlas_database_user" "db_user_1" {
@@ -63,20 +56,8 @@ func configDSPlural(projectID, username, roleName string) string {
 			password           = "test-acc-password-1"
 			auth_database_name = "admin"
 
-			roles {
-				role_name     = %[3]q
-				database_name = "admin"
-			}
-
-			labels {
-				key   = "key 1"
-				value = "value 1"
-			}
-
-			labels {
-				key   = "key 2"
-				value = "value 2"
-			}
+			roles  = [{ role_name = %[3]q, database_name = "admin" }]
+			labels = [{ key = "key 1", value = "value 1" }, { key = "key 2", value = "value 2" }]
 		}
 
 		data "mongodbatlas_database_users" "test" {
