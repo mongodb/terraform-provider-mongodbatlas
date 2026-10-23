@@ -11,6 +11,33 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
+func TestMigConfigRSDatabaseUser_Basic(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
+		config    = acc.ConfigDatabaseUserBasic(projectID, username, "atlasAdmin", "First Key", "First value")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() { mig.PreCheckBasic(t) },
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            config,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
+				),
+			},
+			mig.TestStepCheckEmptyPlan(config),
+		},
+	})
+}
+
 func TestMigConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
