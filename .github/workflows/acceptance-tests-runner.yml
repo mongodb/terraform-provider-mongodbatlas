@@ -698,7 +698,6 @@ jobs:
             ./internal/serviceapi/maintenancewindowapi
             ./internal/serviceapi/orgdelegationsettings
             ./internal/serviceapi/orglogintegration
-            ./internal/serviceapi/orgmaintenancesettings
             ./internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/projectsettingsapi
@@ -879,6 +878,9 @@ jobs:
 
   config:
     needs: [ change-detection, get-provider-version ]
+    # Avoids concurrent execution with org_maintenance_settings, which changes organization-level settings these tests depend on
+    concurrency:
+      group: ${{ github.repository }}-org-maintenance-settings-concurrency
     if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' }}
     runs-on: ubuntu-latest
     permissions: {}
@@ -917,6 +919,26 @@ jobs:
             ./internal/service/team
             ./internal/service/teamprojectassignment
             ./internal/service/thirdpartyintegration
+        run: make testacc
+
+  org_maintenance_settings:
+    needs: [ change-detection, get-provider-version ]
+    # Avoids concurrent execution with config, whose wave tests require the organization wave assignment mode this test changes
+    concurrency:
+      group: ${{ github.repository }}-org-maintenance-settings-concurrency
+    if: ${{ needs.change-detection.outputs.autogen_fast == 'true' || inputs.test_group == 'autogen' || inputs.test_group == 'autogen_fast' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - *checkout
+      - *setup-go
+      - *setup-tf
+      - name: Enable internal autogen resources
+        run: make tools enable-internal-autogen
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_PACKAGES: ./internal/serviceapi/orgmaintenancesettings
         run: make testacc
 
   config_sa_mig:
