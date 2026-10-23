@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-const AwsProviderVersion = "5.1.0"
+const AwsProviderVersion = "6.23.0"
 const azurermProviderVersion = "4.60.0"
 const azapiProviderVersion = "1.15.0"
 const confluentProviderVersion = "2.12.0"
