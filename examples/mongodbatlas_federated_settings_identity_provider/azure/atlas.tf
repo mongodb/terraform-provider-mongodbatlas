@@ -62,8 +62,5 @@ resource "mongodbatlas_database_user" "oidc" {
   oidc_auth_type     = "USER"
   auth_database_name = "$external" # required when using OIDC USER authentication
 
-  roles {
-    role_name     = "atlasAdmin"
-    database_name = "admin"
-  }
+  roles = [{ role_name = "atlasAdmin", database_name = "admin" }]
 }

@@ -5,19 +5,13 @@ resource "mongodbatlas_database_user" "user1" {
   project_id         = mongodbatlas_project.project1.id
   auth_database_name = "admin"
 
-  roles {
-    role_name     = "readWrite"
-    database_name = var.database_name[0]
-  }
-  labels {
-    key   = "Name"
-    value = "DB User1"
-  }
+  roles  = [{ role_name = "readWrite", database_name = var.database_name[0] }]
+  labels = [{ key = "Name", value = "DB User1" }]
 
-  scopes {
+  scopes = [{
     name = mongodbatlas_advanced_cluster.cluster.name
     type = "CLUSTER"
-  }
+  }]
 }
 output "user1" {
   value = mongodbatlas_database_user.user1.username
@@ -29,19 +23,13 @@ resource "mongodbatlas_database_user" "user2" {
   project_id         = mongodbatlas_project.project1.id
   auth_database_name = "admin"
 
-  roles {
-    role_name     = "readWrite"
-    database_name = var.database_name[1]
-  }
-  labels {
-    key   = "Name"
-    value = "DB User2"
-  }
+  roles  = [{ role_name = "readWrite", database_name = var.database_name[1] }]
+  labels = [{ key = "Name", value = "DB User2" }]
 
-  scopes {
+  scopes = [{
     name = var.data_federation_name
     type = "DATA_LAKE"
-  }
+  }]
 }
 output "user2" {
   value = mongodbatlas_database_user.user2.username

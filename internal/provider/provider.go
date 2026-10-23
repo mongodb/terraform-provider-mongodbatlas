@@ -61,6 +61,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabasecollection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusteradaptivesettings"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusteroverloadsimulation"
+	autogendatabaseuser "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/mcpconfig"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/mcpconfigsecret"
@@ -401,7 +402,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		orglogintegration.Resource,
 		orgmaintenancesettings.Resource,
 		encryptionatrest.Resource,
-		databaseuser.Resource,
+		autogendatabaseuser.Resource, // spike pilot: autogen implementation replaces the manual resource; manual package kept for its data sources
 		alertconfiguration.Resource,
 		projectipaccesslist.Resource,
 		searchdeployment.Resource,
