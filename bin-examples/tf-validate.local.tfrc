@@ -1,0 +1,6 @@
+provider_installation {
+  dev_overrides {
+    "mongodb/mongodbatlas" = "/Users/oriol.abadal/.local/share/agentrr/worktrees/terraform-provider-mongodbatlas/spike-transition-manual-to-autogen/bin-examples"
+  }
+  direct {}
+}

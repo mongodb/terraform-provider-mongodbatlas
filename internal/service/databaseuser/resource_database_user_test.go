@@ -674,7 +674,8 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		return fmt.Sprintf("%s/%s/%s", ids["project_id"], ids["username"], ids["auth_database_name"]), nil
+		// Autogen import order: project_id/auth_database_name/username (path param order).
+		return fmt.Sprintf("%s/%s/%s", ids["project_id"], ids["auth_database_name"], ids["username"]), nil
 	}
 }
 
