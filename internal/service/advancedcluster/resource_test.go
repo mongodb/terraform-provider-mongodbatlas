@@ -3277,9 +3277,9 @@ func checkUseAwsTimeBasedSnapshotCopy(value bool) resource.TestCheckFunc {
 	)
 }
 
-func TestAccAdvancedCluster_gen2StandardDiskIops(t *testing.T) {
+func TestAccAdvancedCluster_gen2StandardDiskIopsCrossCloud(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 5)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 9)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -3288,25 +3288,25 @@ func TestAccAdvancedCluster_gen2StandardDiskIops(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 3200, true),
-				Check:             checkGen2(3200, "STANDARD", true, true),
-				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 3200, "STANDARD")},
+				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 3200, true, true),
+				Check:             checkGen2("M30_GEN_2", 3200, "STANDARD", true, true, true),
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, "M30_GEN_2", 3200, "STANDARD", true)},
 			},
 			{
-				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 3400, true),
-				Check:             checkGen2(3400, "STANDARD", true, true),
-				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 3400, "STANDARD")},
+				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 3400, true, true),
+				Check:             checkGen2("M30_GEN_2", 3400, "STANDARD", true, true, true),
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, "M30_GEN_2", 3400, "STANDARD", true)},
 			},
 			{
-				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 1000, true),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 1000, true, false),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 0, true),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 0, true, false),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", -1, true),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", -1, true, false),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 		},
@@ -3324,25 +3324,25 @@ func TestAccAdvancedCluster_gen2HighPerformanceDiskIops(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 3200, false),
-				Check:             checkGen2(3200, "HIGH_PERFORMANCE", false, false),
-				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 3200, "HIGH_PERFORMANCE")},
+				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 3200, false, false),
+				Check:             checkGen2("M30_GEN_2", 3200, "HIGH_PERFORMANCE", false, false, false),
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, "M30_GEN_2", 3200, "HIGH_PERFORMANCE", false)},
 			},
 			{
-				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 3400, false),
-				Check:             checkGen2(3400, "HIGH_PERFORMANCE", false, false),
-				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 3400, "HIGH_PERFORMANCE")},
+				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 3400, false, false),
+				Check:             checkGen2("M30_GEN_2", 3400, "HIGH_PERFORMANCE", false, false, false),
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, "M30_GEN_2", 3400, "HIGH_PERFORMANCE", false)},
 			},
 			{
-				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 1, false),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 1, false, false),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 0, false),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 0, false, false),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", -1, false),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", -1, false, false),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 		},
@@ -3360,25 +3360,25 @@ func TestAccAdvancedCluster_gen1ProvisionedDiskIops(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:            configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1000, false),
-				Check:             checkGen2(1000, "PROVISIONED", false, false),
-				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 1000, "PROVISIONED")},
+				Config:            configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1000, false, false),
+				Check:             checkGen2("M30", 1000, "PROVISIONED", false, false, false),
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, "M30", 1000, "PROVISIONED", false)},
 			},
 			{
-				Config:            configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1500, false),
-				Check:             checkGen2(1500, "PROVISIONED", false, false),
-				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 1500, "PROVISIONED")},
+				Config:            configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1500, false, false),
+				Check:             checkGen2("M30", 1500, "PROVISIONED", false, false, false),
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, "M30", 1500, "PROVISIONED", false)},
 			},
 			{
-				Config:      configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1, false),
+				Config:      configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1, false, false),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 0, false),
+				Config:      configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 0, false, false),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", -1, false),
+				Config:      configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", -1, false, false),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 		},
@@ -3386,8 +3386,9 @@ func TestAccAdvancedCluster_gen1ProvisionedDiskIops(t *testing.T) {
 }
 
 // configGen2 builds a replicaset cluster config with electable_specs and, when allSpecTypes is true,
-// also analytics_specs and read_only_specs (node_count=1 each).
-func configGen2(projectID, clusterName, region, instanceSize, ebsVolumeType string, diskIops int, allSpecTypes bool) string {
+// also analytics_specs and read_only_specs (node_count=1 each). When withGCP is true, a GCP region config
+// (WESTERN_EUROPE) with the same instance size and disk_iops is added; ebs_volume_type is AWS-only.
+func configGen2(projectID, clusterName, region, instanceSize, ebsVolumeType string, diskIops int, allSpecTypes, withGCP bool) string {
 	extraSpecs := ""
 	if allSpecTypes {
 		extraSpecs = fmt.Sprintf(`
@@ -3403,6 +3404,34 @@ func configGen2(projectID, clusterName, region, instanceSize, ebsVolumeType stri
             disk_iops       = %[2]d
             ebs_volume_type = %[3]q
           }`, instanceSize, diskIops, ebsVolumeType)
+	}
+	gcpRegionConfig := ""
+	if withGCP {
+		gcpExtraSpecs := ""
+		if allSpecTypes {
+			gcpExtraSpecs = fmt.Sprintf(`
+          analytics_specs = {
+            instance_size = %[1]q
+            node_count    = 1
+            disk_iops     = %[2]d
+          }
+          read_only_specs = {
+            instance_size = %[1]q
+            node_count    = 1
+            disk_iops     = %[2]d
+          }`, instanceSize, diskIops)
+		}
+		gcpRegionConfig = fmt.Sprintf(`,
+        {
+          region_name   = "WESTERN_EUROPE"
+          priority      = 6
+          provider_name = "GCP"
+          electable_specs = {
+            instance_size = %[1]q
+            node_count    = 2
+            disk_iops     = %[2]d
+          }%[3]s
+        }`, instanceSize, diskIops, gcpExtraSpecs)
 	}
 	return fmt.Sprintf(`
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -3422,19 +3451,20 @@ resource "mongodbatlas_advanced_cluster" "test" {
             disk_iops       = %[5]d
             ebs_volume_type = %[6]q
           }%[7]s
-        }
+        }%[8]s
       ]
     }
   ]
 }
-`, projectID, clusterName, region, instanceSize, diskIops, ebsVolumeType, extraSpecs) + dataSourcesConfig
+`, projectID, clusterName, region, instanceSize, diskIops, ebsVolumeType, extraSpecs, gcpRegionConfig) + dataSourcesConfig
 }
 
 // checkGen2 verifies disk_iops and ebs_volume_type in resource and data source. allSpecTypes
 // controls whether analytics_specs and read_only_specs are also checked. checkDiskThroughput
 // additionally verifies disk_throughput is populated and matches the effective specs (only
-// returned for Gen2 STANDARD/gp3).
-func checkGen2(diskIops int, ebsVolumeType string, allSpecTypes, checkDiskThroughput bool) resource.TestCheckFunc {
+// returned for Gen2 STANDARD/gp3). withGCP additionally verifies disk_iops for the GCP region config
+// (ebs_volume_type is AWS-only; disk_throughput is also checked when checkDiskThroughput). instance_size is verified for every region config.
+func checkGen2(instanceSize string, diskIops int, ebsVolumeType string, allSpecTypes, checkDiskThroughput, withGCP bool) resource.TestCheckFunc {
 	diskIopsStr := strconv.Itoa(diskIops)
 	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
 	specsAttrs := []string{"electable_specs"}
@@ -3444,6 +3474,8 @@ func checkGen2(diskIops int, ebsVolumeType string, allSpecTypes, checkDiskThroug
 	for _, specsAttr := range specsAttrs {
 		base := "replication_specs.0.region_configs.0." + specsAttr + "."
 		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, base+"instance_size", instanceSize),
+			resource.TestCheckResourceAttr(dataSourceName, base+"instance_size", instanceSize),
 			resource.TestCheckResourceAttr(resourceName, base+"disk_iops", diskIopsStr),
 			resource.TestCheckResourceAttr(dataSourceName, base+"disk_iops", diskIopsStr),
 			resource.TestCheckResourceAttr(resourceName, base+"ebs_volume_type", ebsVolumeType),
@@ -3456,18 +3488,35 @@ func checkGen2(diskIops int, ebsVolumeType string, allSpecTypes, checkDiskThroug
 				resource.TestCheckResourceAttrPair(dataSourceName, base+"disk_throughput", dataSourceName, effectiveBase+"disk_throughput"),
 			)
 		}
+		if withGCP {
+			gcpBase := "replication_specs.0.region_configs.1." + specsAttr + "."
+			checks = append(checks,
+				resource.TestCheckResourceAttr(resourceName, gcpBase+"instance_size", instanceSize),
+				resource.TestCheckResourceAttr(dataSourceName, gcpBase+"instance_size", instanceSize),
+				resource.TestCheckResourceAttr(resourceName, gcpBase+"disk_iops", diskIopsStr),
+				resource.TestCheckResourceAttr(dataSourceName, gcpBase+"disk_iops", diskIopsStr),
+			)
+			if checkDiskThroughput {
+				gcpEffectiveBase := "replication_specs.0.region_configs.1.effective_" + specsAttr + "."
+				checks = append(checks,
+					resource.TestCheckResourceAttrWith(dataSourceName, gcpBase+"disk_throughput", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttrPair(dataSourceName, gcpBase+"disk_throughput", dataSourceName, gcpEffectiveBase+"disk_throughput"),
+				)
+			}
+		}
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func pluralCheckGen2(clusterName string, diskIops int, ebsVolumeType string) statecheck.StateCheck {
-	return acc.PluralResultCheck(
-		dataSourcePluralName,
-		"name",
-		knownvalue.StringExact(clusterName),
-		map[string]knownvalue.Check{
-			"replication_specs.0.region_configs.0.electable_specs.disk_iops":       knownvalue.Int64Exact(int64(diskIops)),
-			"replication_specs.0.region_configs.0.electable_specs.ebs_volume_type": knownvalue.StringExact(ebsVolumeType),
-		},
-	)
+func pluralCheckGen2(clusterName, instanceSize string, diskIops int, ebsVolumeType string, withGCP bool) statecheck.StateCheck {
+	attrs := map[string]knownvalue.Check{
+		"replication_specs.0.region_configs.0.electable_specs.instance_size":   knownvalue.StringExact(instanceSize),
+		"replication_specs.0.region_configs.0.electable_specs.disk_iops":       knownvalue.Int64Exact(int64(diskIops)),
+		"replication_specs.0.region_configs.0.electable_specs.ebs_volume_type": knownvalue.StringExact(ebsVolumeType),
+	}
+	if withGCP {
+		attrs["replication_specs.0.region_configs.1.electable_specs.instance_size"] = knownvalue.StringExact(instanceSize)
+		attrs["replication_specs.0.region_configs.1.electable_specs.disk_iops"] = knownvalue.Int64Exact(int64(diskIops))
+	}
+	return acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(clusterName), attrs)
 }
