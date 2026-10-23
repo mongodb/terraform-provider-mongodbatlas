@@ -1,0 +1,26 @@
+name: 'Tag policy permission check'
+
+on:
+  workflow_dispatch: {} # temporary: validates s3:TagResource for the Terraform CI test user
+  pull_request: {} # temporary: runs on the throwaway PR that hosts this check
+
+permissions:
+  contents: read
+
+jobs:
+  create-bucket-with-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+      - name: Create a bucket with tags in the create request
+        run: |
+          bucket="mongodb-atlas-tf-tag-perm-check-${GITHUB_RUN_ID}"
+          trap 'aws s3api delete-bucket --bucket "$bucket" --region eu-west-1 || true' EXIT
+          aws sts get-caller-identity
+          aws s3api create-bucket --bucket "$bucket" --region eu-west-1 \
+            --create-bucket-configuration "LocationConstraint=eu-west-1,Tags=[{Key=mongodb-owner,Value=api-experience-integrations-team@mongodb.com},{Key=mongodb-env,Value=dev}]"
+          aws s3api get-bucket-tagging --bucket "$bucket" --region eu-west-1
