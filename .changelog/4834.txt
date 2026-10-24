@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_online_archive: Supports cluster names with hyphens when importing the resource
+```
