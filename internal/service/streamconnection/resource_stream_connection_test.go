@@ -1917,12 +1917,12 @@ func TestAccStreamRSStreamConnection_dataCatalogDatabricks(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, clientSecret, 1),
-				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, clientID),
+				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, map[string]string{"databricks.authentication.client_id": clientID}),
 			},
 			{
 				// update: rotate the write-only client secret by bumping its version; the value is never persisted to state
 				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, "rotated-databricks-client-secret", 2),
-				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, clientID),
+				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, map[string]string{"databricks.authentication.client_id": clientID}),
 			},
 			{
 				ResourceName:      resourceName,
@@ -1956,7 +1956,11 @@ func TestAccStreamRSStreamConnection_dataCatalogSnowflake(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, catalogURL, account, user, role, privateKey, 1),
-				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "SNOWFLAKE_HORIZON", catalogURL, account),
+				Check: checkDataCatalogAttributes(resourceName, instanceName, connectionName, "SNOWFLAKE_HORIZON", catalogURL, map[string]string{
+					"snowflake.authentication.account": account,
+					"snowflake.authentication.user":    user,
+					"snowflake.authentication.role":    role,
+				}),
 			},
 			{
 				ResourceName:      resourceName,
@@ -2014,7 +2018,12 @@ func configureDataCatalogSnowflake(projectID, workspaceName, connectionName, cat
 	`, projectID, workspaceName, connectionName, catalogURL, account, user, role, privateKey, privateKeyWoVersion)
 }
 
-func checkDataCatalogAttributes(resourceName, workspaceName, connectionName, catalogProvider, catalogURL, nonSecretValue string) resource.TestCheckFunc {
+// checkDataCatalogAttributes verifies the resource and data source state for a Data Catalog
+// connection. providerAuthChecks maps every non-secret attribute the API returns, e.g.
+// {"databricks.authentication.client_id": "..."} or all of
+// {"snowflake.authentication.account": "...", "...user": "...", "...role": "..."}; the
+// write-only secret values are never checked because the API does not return them.
+func checkDataCatalogAttributes(resourceName, workspaceName, connectionName, catalogProvider, catalogURL string, providerAuthChecks map[string]string) resource.TestCheckFunc {
 	setChecks := []string{"project_id"}
 	mapChecks := map[string]string{
 		"workspace_name":   workspaceName,
@@ -2023,11 +2032,8 @@ func checkDataCatalogAttributes(resourceName, workspaceName, connectionName, cat
 		"catalog_provider": catalogProvider,
 		"catalog_url":      catalogURL,
 	}
-	switch catalogProvider {
-	case "DATABRICKS_UNITY":
-		mapChecks["databricks.authentication.client_id"] = nonSecretValue
-	case "SNOWFLAKE_HORIZON":
-		mapChecks["snowflake.authentication.account"] = nonSecretValue
+	for attr, value := range providerAuthChecks {
+		mapChecks[attr] = value
 	}
 	extra := []resource.TestCheckFunc{checkStreamConnectionExists()}
 	return acc.CheckRSAndDS(resourceName, conversion.StringPtr(dataSourceName), nil, setChecks, mapChecks, extra...)
