@@ -60,6 +60,8 @@ type sdkToTFModelTestCase struct {
 	providedInstanceName             string
 	providedAuthConfig               *types.Object
 	providedSchemaRegistryAuthConfig *types.Object
+	providedDatabricksConfig         *types.Object
+	providedSnowflakeConfig          *types.Object
 	expectedTFModel                  *streamconnection.TFStreamConnectionModel
 	name                             string
 }
@@ -108,6 +110,8 @@ func sdkToTFModelBasicTestCases(t *testing.T) []sdkToTFModelTestCase {
 				Headers:                      types.MapNull(types.StringType),
 				SchemaRegistryURLs:           types.ListNull(types.StringType),
 				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 			},
 		},
 		{
@@ -143,6 +147,8 @@ func sdkToTFModelBasicTestCases(t *testing.T) []sdkToTFModelTestCase {
 				Headers:                      types.MapNull(types.StringType),
 				SchemaRegistryURLs:           types.ListNull(types.StringType),
 				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 			},
 		},
 		{
@@ -181,6 +187,8 @@ func sdkToTFModelBasicTestCases(t *testing.T) []sdkToTFModelTestCase {
 				Headers:                      types.MapNull(types.StringType),
 				SchemaRegistryURLs:           types.ListNull(types.StringType),
 				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 			},
 		},
 		{
@@ -223,6 +231,8 @@ func sdkToTFModelBasicTestCases(t *testing.T) []sdkToTFModelTestCase {
 				Headers:                      types.MapNull(types.StringType),
 				SchemaRegistryURLs:           types.ListNull(types.StringType),
 				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 			},
 		},
 		{
@@ -250,6 +260,8 @@ func sdkToTFModelBasicTestCases(t *testing.T) []sdkToTFModelTestCase {
 				Headers:                      types.MapNull(types.StringType),
 				SchemaRegistryURLs:           types.ListNull(types.StringType),
 				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 			},
 		},
 		{
@@ -288,6 +300,8 @@ func sdkToTFModelBasicTestCases(t *testing.T) []sdkToTFModelTestCase {
 				Headers:                      types.MapNull(types.StringType),
 				SchemaRegistryURLs:           types.ListNull(types.StringType),
 				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 			},
 		},
 		{
@@ -314,6 +328,8 @@ func sdkToTFModelBasicTestCases(t *testing.T) []sdkToTFModelTestCase {
 				Headers:                      types.MapNull(types.StringType),
 				SchemaRegistryURLs:           types.ListNull(types.StringType),
 				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 			},
 		},
 	}
@@ -347,6 +363,8 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 				Headers:                      types.MapNull(types.StringType),
 				SchemaRegistryURLs:           types.ListNull(types.StringType),
 				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 			},
 		},
 		{
@@ -380,6 +398,8 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 				Headers:                      types.MapNull(types.StringType),
 				SchemaRegistryURLs:           types.ListNull(types.StringType),
 				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 			},
 		},
 		{
@@ -407,6 +427,8 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 				Headers:                      types.MapNull(types.StringType),
 				SchemaRegistryURLs:           types.ListNull(types.StringType),
 				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 			},
 		},
 		{
@@ -440,6 +462,8 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 				Headers:                      types.MapNull(types.StringType),
 				SchemaRegistryURLs:           types.ListNull(types.StringType),
 				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 			},
 		},
 		{
@@ -472,6 +496,8 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 				Headers:                      types.MapNull(types.StringType),
 				SchemaRegistryURLs:           types.ListNull(types.StringType),
 				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 			},
 		},
 		{
@@ -512,15 +538,99 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 					types.StringValue("https://schemaregistry2.com"),
 				}),
 				SchemaRegistryAuthentication: tfSchemaRegistryAuthObjectNoPassword(t, "USER_INFO", "schemaUser"),
+				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
+			},
+		},
+		{
+			name: "DataCatalog Databricks Unity connection type SDK response",
+			SDKResp: &admin.StreamsConnection{
+				Name:            new(connectionName),
+				Type:            new("DataCatalog"),
+				CatalogProvider: new("DATABRICKS_UNITY"),
+				CatalogUrl:      new("https://dbc-123.cloud.databricks.com"),
+				Databricks: &admin.StreamsDatabricksConnectionConfig{
+					Authentication: admin.StreamsDatabricksAuthentication{
+						ClientId: "databricks-client-id",
+					},
+				},
+			},
+			providedProjID:           dummyProjectID,
+			providedInstanceName:     instanceName,
+			providedDatabricksConfig: ptrToObject(tfDatabricksObject(t, "databricks-client-id", "databricks-secret")),
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:                    types.StringValue(dummyProjectID),
+				WorkspaceName:                types.StringValue(instanceName),
+				ConnectionName:               types.StringValue(connectionName),
+				Type:                         types.StringValue("DataCatalog"),
+				Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:                       types.MapNull(types.StringType),
+				Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+				Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
+				Headers:                      types.MapNull(types.StringType),
+				SchemaRegistryURLs:           types.ListNull(types.StringType),
+				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				CatalogProvider:              types.StringValue("DATABRICKS_UNITY"),
+				CatalogURL:                   types.StringValue("https://dbc-123.cloud.databricks.com"),
+				Databricks:                   tfDatabricksObject(t, "databricks-client-id", "databricks-secret"),
+				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
+			},
+		},
+		{
+			name: "DataCatalog Snowflake Horizon connection type SDK response",
+			SDKResp: &admin.StreamsConnection{
+				Name:            new(connectionName),
+				Type:            new("DataCatalog"),
+				CatalogProvider: new("SNOWFLAKE_HORIZON"),
+				CatalogUrl:      new("https://myorg-myaccount.snowflakecomputing.com"),
+				Snowflake: &admin.StreamsSnowflakeConnectionConfig{
+					Authentication: admin.StreamsSnowflakeAuthentication{
+						Account: "myorg-myaccount",
+						User:    "svc-user",
+						Role:    "ADMIN",
+					},
+				},
+			},
+			providedProjID:          dummyProjectID,
+			providedInstanceName:    instanceName,
+			providedSnowflakeConfig: ptrToObject(tfSnowflakeObject(t, "myorg-myaccount", "svc-user", "ADMIN", "snowflake-private-key")),
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:                    types.StringValue(dummyProjectID),
+				WorkspaceName:                types.StringValue(instanceName),
+				ConnectionName:               types.StringValue(connectionName),
+				Type:                         types.StringValue("DataCatalog"),
+				Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:                       types.MapNull(types.StringType),
+				Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+				Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
+				Headers:                      types.MapNull(types.StringType),
+				SchemaRegistryURLs:           types.ListNull(types.StringType),
+				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				CatalogProvider:              types.StringValue("SNOWFLAKE_HORIZON"),
+				CatalogURL:                   types.StringValue("https://myorg-myaccount.snowflakecomputing.com"),
+				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+				Snowflake:                    tfSnowflakeObject(t, "myorg-myaccount", "svc-user", "ADMIN", "snowflake-private-key"),
 			},
 		},
 	}
 }
 
+func ptrToObject(o types.Object) *types.Object {
+	return &o
+}
+
 func TestStreamConnectionSDKToTFModel(t *testing.T) {
 	for _, tc := range sdkToTFModelTestCases(t) {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := streamconnection.NewTFStreamConnection(t.Context(), tc.providedProjID, "", tc.providedInstanceName, tc.providedAuthConfig, tc.providedSchemaRegistryAuthConfig, tc.SDKResp, nil)
+			resultModel, diags := streamconnection.NewTFStreamConnection(t.Context(), tc.providedProjID, "", tc.providedInstanceName, tc.providedAuthConfig, tc.providedSchemaRegistryAuthConfig, tc.providedDatabricksConfig, tc.providedSnowflakeConfig, tc.SDKResp, nil)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -570,6 +680,8 @@ func TestNewTFStreamConnectionCustomTimeoutsOverrideDefault(t *testing.T) {
 		instanceName, // workspaceName
 		nil,          // currAuthConfig
 		nil,          // currSchemaRegistryAuthConfig
+		nil,          // currDatabricksConfig
+		nil,          // currSnowflakeConfig
 		apiResp,
 		&userConfiguredTimeouts,
 	)
@@ -698,6 +810,8 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						Headers:                      types.MapNull(types.StringType),
 						SchemaRegistryURLs:           types.ListNull(types.StringType),
 						SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+						Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+						Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 					},
 					{
 						ID:                           types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
@@ -717,6 +831,8 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						Headers:                      types.MapNull(types.StringType),
 						SchemaRegistryURLs:           types.ListNull(types.StringType),
 						SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+						Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+						Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 					},
 					{
 						ID:                           types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, sampleConnectionName)),
@@ -736,6 +852,8 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						Headers:                      types.MapNull(types.StringType),
 						SchemaRegistryURLs:           types.ListNull(types.StringType),
 						SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+						Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+						Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 					},
 					{
 						ID:                           types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, awslambdaConnectionName)),
@@ -755,6 +873,8 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						Headers:                      types.MapNull(types.StringType),
 						SchemaRegistryURLs:           types.ListNull(types.StringType),
 						SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+						Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+						Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 					},
 					{
 						ID:                           types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
@@ -775,6 +895,8 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						URL:                          types.StringValue(httpsURL),
 						SchemaRegistryURLs:           types.ListNull(types.StringType),
 						SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+						Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+						Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 					},
 					{
 						ID:                     types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
@@ -798,6 +920,8 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							types.StringValue("https://schemaregistry2.com"),
 						}),
 						SchemaRegistryAuthentication: tfSchemaRegistryAuthObjectNoPassword(t, "USER_INFO", "schemaUser"),
+						Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
+						Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 					},
 				},
 			},
@@ -1118,6 +1242,56 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "DataCatalog Databricks Unity type TF state",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:       types.StringValue(dummyProjectID),
+				WorkspaceName:   types.StringValue(instanceName),
+				ConnectionName:  types.StringValue(connectionName),
+				Type:            types.StringValue("DataCatalog"),
+				CatalogProvider: types.StringValue("DATABRICKS_UNITY"),
+				CatalogURL:      types.StringValue("https://dbc-123.cloud.databricks.com"),
+				Databricks:      tfDatabricksObject(t, "databricks-client-id", "databricks-secret"),
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name:            new(connectionName),
+				Type:            new("DataCatalog"),
+				CatalogProvider: new("DATABRICKS_UNITY"),
+				CatalogUrl:      new("https://dbc-123.cloud.databricks.com"),
+				Databricks: &admin.StreamsDatabricksConnectionConfig{
+					Authentication: admin.StreamsDatabricksAuthentication{
+						ClientId:     "databricks-client-id",
+						ClientSecret: "databricks-secret",
+					},
+				},
+			},
+		},
+		{
+			name: "DataCatalog Snowflake Horizon type TF state",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:       types.StringValue(dummyProjectID),
+				WorkspaceName:   types.StringValue(instanceName),
+				ConnectionName:  types.StringValue(connectionName),
+				Type:            types.StringValue("DataCatalog"),
+				CatalogProvider: types.StringValue("SNOWFLAKE_HORIZON"),
+				CatalogURL:      types.StringValue("https://myorg-myaccount.snowflakecomputing.com"),
+				Snowflake:       tfSnowflakeObject(t, "myorg-myaccount", "svc-user", "ADMIN", "snowflake-private-key"),
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name:            new(connectionName),
+				Type:            new("DataCatalog"),
+				CatalogProvider: new("SNOWFLAKE_HORIZON"),
+				CatalogUrl:      new("https://myorg-myaccount.snowflakecomputing.com"),
+				Snowflake: &admin.StreamsSnowflakeConnectionConfig{
+					Authentication: admin.StreamsSnowflakeAuthentication{
+						Account:    "myorg-myaccount",
+						User:       "svc-user",
+						Role:       "ADMIN",
+						PrivateKey: "snowflake-private-key",
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -1131,6 +1305,38 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 			}
 		})
 	}
+}
+
+func tfDatabricksObject(t *testing.T, clientID, clientSecret string) types.Object {
+	t.Helper()
+	authModel := streamconnection.TFDatabricksAuthenticationModel{
+		ClientID:     types.StringValue(clientID),
+		ClientSecret: types.StringValue(clientSecret),
+	}
+	authObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.DatabricksAuthenticationObjectType.AttrTypes, authModel)
+	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+	databricksObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.DatabricksObjectType.AttrTypes, streamconnection.TFDatabricksModel{
+		Authentication: authObject,
+	})
+	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+	return databricksObject
+}
+
+func tfSnowflakeObject(t *testing.T, account, user, role, privateKey string) types.Object {
+	t.Helper()
+	authModel := streamconnection.TFSnowflakeAuthenticationModel{
+		Account:    types.StringValue(account),
+		User:       types.StringValue(user),
+		Role:       types.StringValue(role),
+		PrivateKey: types.StringValue(privateKey),
+	}
+	authObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.SnowflakeAuthenticationObjectType.AttrTypes, authModel)
+	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+	snowflakeObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.SnowflakeObjectType.AttrTypes, streamconnection.TFSnowflakeModel{
+		Authentication: authObject,
+	})
+	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+	return snowflakeObject
 }
 
 func tfAuthenticationObject(t *testing.T, mechanism, username, password string) types.Object {
@@ -1345,7 +1551,7 @@ func TestStreamConnectionKafkaIAMAuth(t *testing.T) {
 			Aws:       &admin.StreamsAWSConnectionConfig{RoleArn: new(roleArn)},
 		},
 	}
-	result, diags := streamconnection.NewTFStreamConnection(t.Context(), dummyProjectID, "", instanceName, &authConfig, nil, sdkResp, nil)
+	result, diags := streamconnection.NewTFStreamConnection(t.Context(), dummyProjectID, "", instanceName, &authConfig, nil, nil, nil, sdkResp, nil)
 	require.False(t, diags.HasError(), "unexpected diags: %v", diags)
 	awsModel := &streamconnection.TFAWSModel{}
 	authModel := &streamconnection.TFConnectionAuthenticationModel{}
@@ -1387,7 +1593,7 @@ func TestStreamConnectionKafkaAuthAWSTypedNull(t *testing.T) {
 	}
 
 	// create/update path (currAuthConfig provided)
-	resultWithCfg, diags := streamconnection.NewTFStreamConnection(t.Context(), dummyProjectID, "", instanceName, &authConfig, nil, sdkResp, nil)
+	resultWithCfg, diags := streamconnection.NewTFStreamConnection(t.Context(), dummyProjectID, "", instanceName, &authConfig, nil, nil, nil, sdkResp, nil)
 	require.False(t, diags.HasError(), "unexpected diags (with config): %v", diags)
 	assertAWSTypedNull(t, resultWithCfg.Authentication)
 

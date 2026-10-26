@@ -185,6 +185,40 @@ resource "mongodbatlas_stream_connection" "example-schema-registry-user-info" {
   }
 }
 
+resource "mongodbatlas_stream_connection" "example-data-catalog-databricks" {
+  project_id      = var.project_id
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "IcebergCatalogDatabricksConnection"
+  type            = "DataCatalog"
+
+  catalog_provider = "DATABRICKS_UNITY"
+  catalog_url      = "https://dbc-123e123e-a1b2.cloud.databricks.com"
+  databricks = {
+    authentication = {
+      client_id     = var.databricks_client_id
+      client_secret = var.databricks_client_secret
+    }
+  }
+}
+
+resource "mongodbatlas_stream_connection" "example-data-catalog-snowflake" {
+  project_id      = var.project_id
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "IcebergCatalogSnowflakeConnection"
+  type            = "DataCatalog"
+
+  catalog_provider = "SNOWFLAKE_HORIZON"
+  catalog_url      = "https://myorg-myaccount.snowflakecomputing.com"
+  snowflake = {
+    authentication = {
+      account     = "myorg-myaccount"
+      user        = var.snowflake_user
+      role        = "ADMIN"
+      private_key = var.snowflake_private_key
+    }
+  }
+}
+
 resource "mongodbatlas_stream_connection" "example-schema-registry-sasl-inherit" {
   project_id               = var.project_id
   workspace_name           = mongodbatlas_stream_instance.example.instance_name

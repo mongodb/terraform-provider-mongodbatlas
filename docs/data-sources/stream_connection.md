@@ -37,7 +37,7 @@ data "mongodbatlas_stream_connection" "example" {
 
 ## Attributes Reference
 
-* `type` - Type of connection. Can be `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
+* `type` - Type of connection. Can be `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `DataCatalog`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -79,6 +79,12 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
 * `schema_registry_provider` - The Schema Registry provider. Must be set to `CONFLUENT`.
 * `schema_registry_urls` - List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
 * `schema_registry_authentication` - Authentication configuration for Schema Registry. See [Schema Registry Authentication](#schema-registry-authentication).
+
+If `type` is of value `DataCatalog` the following additional attributes are defined:
+* `catalog_provider` - Catalog system the connection points at. Can be `DATABRICKS_UNITY` or `SNOWFLAKE_HORIZON`. Cannot be changed after creation.
+* `catalog_url` - Base HTTPS URL of the catalog on the provider's domain.
+* `databricks` - Databricks settings for the connection. Only set when `catalog_provider` is `DATABRICKS_UNITY`. See [Databricks](#databricks).
+* `snowflake` - Snowflake settings for the connection. Only set when `catalog_provider` is `SNOWFLAKE_HORIZON`. See [Snowflake](#snowflake).
 
 ### Authentication
 
@@ -130,6 +136,22 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
   * `SASL_INHERIT` - Inherits the authentication configuration from Kafka for the Confluent Schema Registry.
 * `username` - Username for the Schema Registry. Required when `type` is `USER_INFO`.
 * `password` - Password for the Schema Registry. Required when `type` is `USER_INFO`.
+
+### Databricks
+* `authentication` - Credentials of the Databricks service principal used to authenticate to the Databricks Unity Catalog. See [Databricks Authentication](#databricks-authentication).
+
+### Databricks Authentication
+* `client_id` - OAuth client ID of the Databricks service principal.
+* `client_secret` - OAuth client secret of the Databricks service principal. Never returned by the API.
+
+### Snowflake
+* `authentication` - Credentials of the Snowflake service user used to authenticate to the Snowflake Horizon catalog. See [Snowflake Authentication](#snowflake-authentication).
+
+### Snowflake Authentication
+* `account` - Snowflake account identifier.
+* `user` - Snowflake service user.
+* `role` - Snowflake role the service user assumes.
+* `private_key` - Private key of the service user's key pair. Never returned by the API.
 
 To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getstreamconnection) Documentation.
 The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_processor/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.

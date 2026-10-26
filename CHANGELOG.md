@@ -2,6 +2,9 @@
 
 ENHANCEMENTS:
 
+* resource/mongodbatlas_stream_connection: Adds `DataCatalog` connection type for Iceberg Data Catalog connections with `catalog_provider` (`DATABRICKS_UNITY` or `SNOWFLAKE_HORIZON`), `catalog_url`, `databricks` and `snowflake` configuration
+* data-source/mongodbatlas_stream_connection: Adds `DataCatalog` connection type support
+* data-source/mongodbatlas_stream_connections: Adds `DataCatalog` connection type support
 * data-source/mongodbatlas_cloud_backup_schedule: Adds `auto_copy_settings_enabled` attribute ([#4818](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4818))
 * resource/mongodbatlas_cloud_backup_schedule: Adds `auto_copy_settings_enabled` attribute ([#4818](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4818))
 

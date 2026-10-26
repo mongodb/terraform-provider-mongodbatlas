@@ -1900,3 +1900,131 @@ func streamConnectionsAttributeChecksMigration(resourceName string, pageNum, ite
 	commonTests := streamConnectionsAttributeChecks(resourceName, pageNum, itemsPerPage)
 	return resource.ComposeAggregateTestCheckFunc(commonTests, resource.TestCheckResourceAttrSet(resourceName, "instance_name"))
 }
+
+func TestAccStreamRSStreamConnection_dataCatalogDatabricks(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = acc.RandomName()
+		catalogURL              = "https://dbc-123e123e-a1b2.cloud.databricks.com"
+		clientID                = "databricks-client-id"
+		clientSecret            = "databricks-client-secret"
+	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, clientSecret),
+				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, clientID),
+			},
+			{
+				// update: rotate the write-only client secret; the API never returns it, so it is preserved from the configuration
+				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, "rotated-databricks-client-secret"),
+				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, clientID),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"databricks.authentication.client_secret",
+				},
+			},
+		},
+	})
+}
+
+func TestAccStreamRSStreamConnection_dataCatalogSnowflake(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = acc.RandomName()
+		catalogURL              = "https://myorg-myaccount.snowflakecomputing.com"
+		account                 = "myorg-myaccount"
+		user                    = "svc-user"
+		role                    = "ADMIN"
+		privateKey              = "snowflake-private-key"
+	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, catalogURL, account, user, role, privateKey),
+				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "SNOWFLAKE_HORIZON", catalogURL, account),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"snowflake.authentication.private_key",
+				},
+			},
+		},
+	})
+}
+
+func configureDataCatalogDatabricks(projectID, workspaceName, connectionName, catalogURL, clientID, clientSecret string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_connection" "test" {
+			project_id = %[1]q
+			workspace_name = %[2]q
+			connection_name = %[3]q
+			type = "DataCatalog"
+			catalog_provider = "DATABRICKS_UNITY"
+			catalog_url = %[4]q
+			databricks = {
+				authentication = {
+					client_id = %[5]q
+					client_secret = %[6]q
+				}
+			}
+		}
+	`, projectID, workspaceName, connectionName, catalogURL, clientID, clientSecret)
+}
+
+func configureDataCatalogSnowflake(projectID, workspaceName, connectionName, catalogURL, account, user, role, privateKey string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_connection" "test" {
+			project_id = %[1]q
+			workspace_name = %[2]q
+			connection_name = %[3]q
+			type = "DataCatalog"
+			catalog_provider = "SNOWFLAKE_HORIZON"
+			catalog_url = %[4]q
+			snowflake = {
+				authentication = {
+					account = %[5]q
+					user = %[6]q
+					role = %[7]q
+					private_key = %[8]q
+				}
+			}
+		}
+	`, projectID, workspaceName, connectionName, catalogURL, account, user, role, privateKey)
+}
+
+func checkDataCatalogAttributes(resourceName, workspaceName, connectionName, catalogProvider, catalogURL, nonSecretValue string) resource.TestCheckFunc {
+	setChecks := []string{"project_id"}
+	mapChecks := map[string]string{
+		"workspace_name":   workspaceName,
+		"connection_name":  connectionName,
+		"type":             "DataCatalog",
+		"catalog_provider": catalogProvider,
+		"catalog_url":      catalogURL,
+	}
+	switch catalogProvider {
+	case "DATABRICKS_UNITY":
+		mapChecks["databricks.authentication.client_id"] = nonSecretValue
+	case "SNOWFLAKE_HORIZON":
+		mapChecks["snowflake.authentication.account"] = nonSecretValue
+	}
+	extra := []resource.TestCheckFunc{checkStreamConnectionExists()}
+	return acc.CheckRSAndDS(resourceName, conversion.StringPtr(dataSourceName), nil, setChecks, mapChecks, extra...)
+}

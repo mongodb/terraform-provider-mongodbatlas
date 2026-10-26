@@ -314,6 +314,48 @@ resource "mongodbatlas_stream_connection" "example_schema_registry_sasl" {
 }
 ```
 
+### Example Iceberg Data Catalog Connection (Databricks Unity)
+
+```terraform
+resource "mongodbatlas_stream_connection" "example_data_catalog_databricks" {
+  project_id      = var.project_id
+  workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+  connection_name = "IcebergCatalogDatabricks"
+  type            = "DataCatalog"
+
+  catalog_provider = "DATABRICKS_UNITY"
+  catalog_url      = "https://dbc-123e123e-a1b2.cloud.databricks.com"
+  databricks = {
+    authentication = {
+      client_id     = var.databricks_client_id
+      client_secret = var.databricks_client_secret
+    }
+  }
+}
+```
+
+### Example Iceberg Data Catalog Connection (Snowflake Horizon)
+
+```terraform
+resource "mongodbatlas_stream_connection" "example_data_catalog_snowflake" {
+  project_id      = var.project_id
+  workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+  connection_name = "IcebergCatalogSnowflake"
+  type            = "DataCatalog"
+
+  catalog_provider = "SNOWFLAKE_HORIZON"
+  catalog_url      = "https://myorg-myaccount.snowflakecomputing.com"
+  snowflake = {
+    authentication = {
+      account    = "myorg-myaccount"
+      user        = var.snowflake_user
+      role        = "ADMIN"
+      private_key = var.snowflake_private_key
+    }
+  }
+}
+```
+
 ### Example Usage with Stream Processor
 
 When using a stream connection with a stream processor, the connection must be fully provisioned before the processor can be created. The provider automatically waits for connections to be ready after creation or updates. The example below shows a typical pattern:
@@ -372,7 +414,7 @@ resource "mongodbatlas_stream_processor" "example" {
 * `workspace_name` - (Optional) Label that identifies the stream processing workspace.
 * `instance_name` - (Optional, Deprecated) Label that identifies the stream processing workspace. Use `workspace_name` instead; this attribute will be removed in a future major version.
 * `connection_name` - (Required) Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - (Required) Type of connection. Can be `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
+* `type` - (Required) Type of connection. Can be `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `DataCatalog`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -414,6 +456,12 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
 * `schema_registry_provider` - The Schema Registry provider. Must be set to `CONFLUENT`.
 * `schema_registry_urls` - List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
 * `schema_registry_authentication` - Authentication configuration for Schema Registry. See [Schema Registry Authentication](#schema-registry-authentication).
+
+If `type` is of value `DataCatalog` the following additional arguments are defined:
+* `catalog_provider` - (Required) Catalog system the connection points at. Can be `DATABRICKS_UNITY` or `SNOWFLAKE_HORIZON`. Cannot be changed after creation.
+* `catalog_url` - (Required) Base HTTPS URL of the catalog. Must be on the provider's domain: `*.cloud.databricks.com` or `*.azuredatabricks.net` for Databricks Unity, and `*.snowflakecomputing.com` for Snowflake Horizon. The URL must not contain a path, query, or fragment.
+* `databricks` - (Required when `catalog_provider` is `DATABRICKS_UNITY`) Databricks settings for the connection. Conflicts with `snowflake`. See [Databricks](#databricks).
+* `snowflake` - (Required when `catalog_provider` is `SNOWFLAKE_HORIZON`) Snowflake settings for the connection. Conflicts with `databricks`. See [Snowflake](#snowflake).
 
 ### Authentication
 
@@ -465,6 +513,22 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
   * `SASL_INHERIT` - Inherits the authentication configuration from Kafka for the Confluent Schema Registry.
 * `username` - Username for the Schema Registry. Required when `type` is `USER_INFO`.
 * `password` - Password for the Schema Registry. Required when `type` is `USER_INFO`.
+
+### Databricks
+* `authentication` - (Required) Credentials of the Databricks service principal used to authenticate to the Databricks Unity Catalog. See [Databricks Authentication](#databricks-authentication).
+
+### Databricks Authentication
+* `client_id` - (Required) OAuth client ID of the Databricks service principal.
+* `client_secret` - (Required, Sensitive) OAuth client secret of the Databricks service principal. Never returned by the API; the stored secret is kept if omitted or left blank on update.
+
+### Snowflake
+* `authentication` - (Required) Credentials of the Snowflake service user used to authenticate to the Snowflake Horizon catalog. See [Snowflake Authentication](#snowflake-authentication).
+
+### Snowflake Authentication
+* `account` - (Required) Snowflake account identifier.
+* `user` - (Required) Snowflake service user.
+* `role` - (Required) Snowflake role the service user assumes.
+* `private_key` - (Required, Sensitive) Private key of the service user's key pair. Never returned by the API; the stored key is kept if omitted or left blank on update.
 
 ### Timeouts
 

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -207,6 +208,66 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"service_account_id": schema.StringAttribute{
 						Required: true,
+					},
+				},
+			},
+
+			// DataCatalog (Iceberg) type specific
+			"catalog_provider": schema.StringAttribute{
+				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.OneOf("DATABRICKS_UNITY", "SNOWFLAKE_HORIZON"),
+				},
+			},
+			"catalog_url": schema.StringAttribute{
+				Optional: true,
+			},
+			"databricks": schema.SingleNestedAttribute{
+				Optional: true,
+				Validators: []validator.Object{
+					objectvalidator.ConflictsWith(path.MatchRoot("snowflake")),
+				},
+				Attributes: map[string]schema.Attribute{
+					"authentication": schema.SingleNestedAttribute{
+						Required: true,
+						Attributes: map[string]schema.Attribute{
+							"client_id": schema.StringAttribute{
+								Required: true,
+							},
+							"client_secret": schema.StringAttribute{
+								Required:  true,
+								Sensitive: true,
+							},
+						},
+					},
+				},
+			},
+			"snowflake": schema.SingleNestedAttribute{
+				Optional: true,
+				Validators: []validator.Object{
+					objectvalidator.ConflictsWith(path.MatchRoot("databricks")),
+				},
+				Attributes: map[string]schema.Attribute{
+					"authentication": schema.SingleNestedAttribute{
+						Required: true,
+						Attributes: map[string]schema.Attribute{
+							"account": schema.StringAttribute{
+								Required: true,
+							},
+							"user": schema.StringAttribute{
+								Required: true,
+							},
+							"role": schema.StringAttribute{
+								Required: true,
+							},
+							"private_key": schema.StringAttribute{
+								Required:  true,
+								Sensitive: true,
+							},
+						},
 					},
 				},
 			},
