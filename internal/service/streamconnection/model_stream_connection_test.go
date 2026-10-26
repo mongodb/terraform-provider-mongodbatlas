@@ -557,7 +557,7 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 			},
 			providedProjID:           dummyProjectID,
 			providedInstanceName:     instanceName,
-			providedDatabricksConfig: ptrToObject(tfDatabricksObject(t, "databricks-client-id", "databricks-secret")),
+			providedDatabricksConfig: ptrToObject(tfDatabricksObject(t, "databricks-client-id", "databricks-secret", 1)),
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:                    types.StringValue(dummyProjectID),
 				WorkspaceName:                types.StringValue(instanceName),
@@ -576,7 +576,7 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 				CatalogProvider:              types.StringValue("DATABRICKS_UNITY"),
 				CatalogURL:                   types.StringValue("https://dbc-123.cloud.databricks.com"),
-				Databricks:                   tfDatabricksObject(t, "databricks-client-id", "databricks-secret"),
+				Databricks:                   tfDatabricksStateObject(t, "databricks-client-id", 1),
 				Snowflake:                    types.ObjectNull(streamconnection.SnowflakeObjectType.AttrTypes),
 			},
 		},
@@ -597,7 +597,7 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 			},
 			providedProjID:          dummyProjectID,
 			providedInstanceName:    instanceName,
-			providedSnowflakeConfig: ptrToObject(tfSnowflakeObject(t, "myorg-myaccount", "svc-user", "ADMIN", "snowflake-private-key")),
+			providedSnowflakeConfig: ptrToObject(tfSnowflakeObject(t, "myorg-myaccount", "svc-user", "ADMIN", "snowflake-private-key", 1)),
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:                    types.StringValue(dummyProjectID),
 				WorkspaceName:                types.StringValue(instanceName),
@@ -617,7 +617,7 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 				CatalogProvider:              types.StringValue("SNOWFLAKE_HORIZON"),
 				CatalogURL:                   types.StringValue("https://myorg-myaccount.snowflakecomputing.com"),
 				Databricks:                   types.ObjectNull(streamconnection.DatabricksObjectType.AttrTypes),
-				Snowflake:                    tfSnowflakeObject(t, "myorg-myaccount", "svc-user", "ADMIN", "snowflake-private-key"),
+				Snowflake:                    tfSnowflakeStateObject(t, "myorg-myaccount", "svc-user", "ADMIN", 1),
 			},
 		},
 	}
@@ -1251,7 +1251,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				Type:            types.StringValue("DataCatalog"),
 				CatalogProvider: types.StringValue("DATABRICKS_UNITY"),
 				CatalogURL:      types.StringValue("https://dbc-123.cloud.databricks.com"),
-				Databricks:      tfDatabricksObject(t, "databricks-client-id", "databricks-secret"),
+				Databricks:      tfDatabricksObject(t, "databricks-client-id", "databricks-secret", 1),
 			},
 			expectedSDKReq: &admin.StreamsConnection{
 				Name:            new(connectionName),
@@ -1275,7 +1275,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				Type:            types.StringValue("DataCatalog"),
 				CatalogProvider: types.StringValue("SNOWFLAKE_HORIZON"),
 				CatalogURL:      types.StringValue("https://myorg-myaccount.snowflakecomputing.com"),
-				Snowflake:       tfSnowflakeObject(t, "myorg-myaccount", "svc-user", "ADMIN", "snowflake-private-key"),
+				Snowflake:       tfSnowflakeObject(t, "myorg-myaccount", "svc-user", "ADMIN", "snowflake-private-key", 1),
 			},
 			expectedSDKReq: &admin.StreamsConnection{
 				Name:            new(connectionName),
@@ -1307,11 +1307,12 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 	}
 }
 
-func tfDatabricksObject(t *testing.T, clientID, clientSecret string) types.Object {
+func tfDatabricksObject(t *testing.T, clientID, clientSecret string, clientSecretWoVersion int64) types.Object {
 	t.Helper()
 	authModel := streamconnection.TFDatabricksAuthenticationModel{
-		ClientID:     types.StringValue(clientID),
-		ClientSecret: types.StringValue(clientSecret),
+		ClientID:              types.StringValue(clientID),
+		ClientSecretWo:        types.StringValue(clientSecret),
+		ClientSecretWoVersion: types.Int64Value(clientSecretWoVersion),
 	}
 	authObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.DatabricksAuthenticationObjectType.AttrTypes, authModel)
 	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
@@ -1322,13 +1323,50 @@ func tfDatabricksObject(t *testing.T, clientID, clientSecret string) types.Objec
 	return databricksObject
 }
 
-func tfSnowflakeObject(t *testing.T, account, user, role, privateKey string) types.Object {
+// tfDatabricksStateObject builds the databricks object as it appears in state: the
+// write-only client secret is never persisted, only its rotation-trigger version.
+func tfDatabricksStateObject(t *testing.T, clientID string, clientSecretWoVersion int64) types.Object {
+	t.Helper()
+	authModel := streamconnection.TFDatabricksAuthenticationModel{
+		ClientID:              types.StringValue(clientID),
+		ClientSecretWoVersion: types.Int64Value(clientSecretWoVersion),
+	}
+	authObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.DatabricksAuthenticationObjectType.AttrTypes, authModel)
+	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+	databricksObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.DatabricksObjectType.AttrTypes, streamconnection.TFDatabricksModel{
+		Authentication: authObject,
+	})
+	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+	return databricksObject
+}
+
+func tfSnowflakeObject(t *testing.T, account, user, role, privateKey string, privateKeyWoVersion int64) types.Object {
 	t.Helper()
 	authModel := streamconnection.TFSnowflakeAuthenticationModel{
-		Account:    types.StringValue(account),
-		User:       types.StringValue(user),
-		Role:       types.StringValue(role),
-		PrivateKey: types.StringValue(privateKey),
+		Account:             types.StringValue(account),
+		User:                types.StringValue(user),
+		Role:                types.StringValue(role),
+		PrivateKeyWo:        types.StringValue(privateKey),
+		PrivateKeyWoVersion: types.Int64Value(privateKeyWoVersion),
+	}
+	authObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.SnowflakeAuthenticationObjectType.AttrTypes, authModel)
+	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+	snowflakeObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.SnowflakeObjectType.AttrTypes, streamconnection.TFSnowflakeModel{
+		Authentication: authObject,
+	})
+	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+	return snowflakeObject
+}
+
+// tfSnowflakeStateObject builds the snowflake object as it appears in state: the
+// write-only private key is never persisted, only its rotation-trigger version.
+func tfSnowflakeStateObject(t *testing.T, account, user, role string, privateKeyWoVersion int64) types.Object {
+	t.Helper()
+	authModel := streamconnection.TFSnowflakeAuthenticationModel{
+		Account:             types.StringValue(account),
+		User:                types.StringValue(user),
+		Role:                types.StringValue(role),
+		PrivateKeyWoVersion: types.Int64Value(privateKeyWoVersion),
 	}
 	authObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.SnowflakeAuthenticationObjectType.AttrTypes, authModel)
 	require.False(t, diags.HasError(), "unexpected errors: %v", diags)

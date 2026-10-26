@@ -1916,12 +1916,12 @@ func TestAccStreamRSStreamConnection_dataCatalogDatabricks(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, clientSecret),
+				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, clientSecret, 1),
 				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, clientID),
 			},
 			{
-				// update: rotate the write-only client secret; the API never returns it, so it is preserved from the configuration
-				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, "rotated-databricks-client-secret"),
+				// update: rotate the write-only client secret by bumping its version; the value is never persisted to state
+				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, "rotated-databricks-client-secret", 2),
 				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, clientID),
 			},
 			{
@@ -1930,7 +1930,8 @@ func TestAccStreamRSStreamConnection_dataCatalogDatabricks(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					"databricks.authentication.client_secret",
+					// Atlas does not return the write-only version, so it is null after import
+					"databricks.authentication.client_secret_wo_version",
 				},
 			},
 		},
@@ -1954,7 +1955,7 @@ func TestAccStreamRSStreamConnection_dataCatalogSnowflake(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, catalogURL, account, user, role, privateKey),
+				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, catalogURL, account, user, role, privateKey, 1),
 				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "SNOWFLAKE_HORIZON", catalogURL, account),
 			},
 			{
@@ -1963,14 +1964,15 @@ func TestAccStreamRSStreamConnection_dataCatalogSnowflake(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					"snowflake.authentication.private_key",
+					// Atlas does not return the write-only version, so it is null after import
+					"snowflake.authentication.private_key_wo_version",
 				},
 			},
 		},
 	})
 }
 
-func configureDataCatalogDatabricks(projectID, workspaceName, connectionName, catalogURL, clientID, clientSecret string) string {
+func configureDataCatalogDatabricks(projectID, workspaceName, connectionName, catalogURL, clientID, clientSecret string, clientSecretWoVersion int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
 			project_id = %[1]q
@@ -1982,14 +1984,15 @@ func configureDataCatalogDatabricks(projectID, workspaceName, connectionName, ca
 			databricks = {
 				authentication = {
 					client_id = %[5]q
-					client_secret = %[6]q
+					client_secret_wo = %[6]q
+					client_secret_wo_version = %[7]d
 				}
 			}
 		}
-	`, projectID, workspaceName, connectionName, catalogURL, clientID, clientSecret)
+	`, projectID, workspaceName, connectionName, catalogURL, clientID, clientSecret, clientSecretWoVersion)
 }
 
-func configureDataCatalogSnowflake(projectID, workspaceName, connectionName, catalogURL, account, user, role, privateKey string) string {
+func configureDataCatalogSnowflake(projectID, workspaceName, connectionName, catalogURL, account, user, role, privateKey string, privateKeyWoVersion int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
 			project_id = %[1]q
@@ -2003,11 +2006,12 @@ func configureDataCatalogSnowflake(projectID, workspaceName, connectionName, cat
 					account = %[5]q
 					user = %[6]q
 					role = %[7]q
-					private_key = %[8]q
+					private_key_wo = %[8]q
+					private_key_wo_version = %[9]d
 				}
 			}
 		}
-	`, projectID, workspaceName, connectionName, catalogURL, account, user, role, privateKey)
+	`, projectID, workspaceName, connectionName, catalogURL, account, user, role, privateKey, privateKeyWoVersion)
 }
 
 func checkDataCatalogAttributes(resourceName, workspaceName, connectionName, catalogProvider, catalogURL, nonSecretValue string) resource.TestCheckFunc {

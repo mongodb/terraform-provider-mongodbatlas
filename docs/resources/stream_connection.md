@@ -327,8 +327,9 @@ resource "mongodbatlas_stream_connection" "example_data_catalog_databricks" {
   catalog_url      = "https://dbc-123e123e-a1b2.cloud.databricks.com"
   databricks = {
     authentication = {
-      client_id     = var.databricks_client_id
-      client_secret = var.databricks_client_secret
+      client_id                = var.databricks_client_id
+      client_secret_wo         = var.databricks_client_secret
+      client_secret_wo_version = 1
     }
   }
 }
@@ -347,10 +348,11 @@ resource "mongodbatlas_stream_connection" "example_data_catalog_snowflake" {
   catalog_url      = "https://myorg-myaccount.snowflakecomputing.com"
   snowflake = {
     authentication = {
-      account    = "myorg-myaccount"
-      user        = var.snowflake_user
-      role        = "ADMIN"
-      private_key = var.snowflake_private_key
+      account                = "myorg-myaccount"
+      user                   = var.snowflake_user
+      role                   = "ADMIN"
+      private_key_wo         = var.snowflake_private_key
+      private_key_wo_version = 1
     }
   }
 }
@@ -459,7 +461,7 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
 
 If `type` is of value `DataCatalog` the following additional arguments are defined:
 * `catalog_provider` - (Required) Catalog system the connection points at. Can be `DATABRICKS_UNITY` or `SNOWFLAKE_HORIZON`. Cannot be changed after creation.
-* `catalog_url` - (Required) Base HTTPS URL of the catalog. Must be on the provider's domain: `*.cloud.databricks.com` or `*.azuredatabricks.net` for Databricks Unity, and `*.snowflakecomputing.com` for Snowflake Horizon. The URL must not contain a path, query, or fragment.
+* `catalog_url` - (Required) Base HTTPS URL of the catalog. Must be on the provider's domain: `*.cloud.databricks.com` or `*.azuredatabricks.net` for Databricks Unity, and `*.snowflakecomputing.com` for Snowflake Horizon. The URL must not contain a path, query, or fragment. Changing the catalog URL requires the secret to be provided again (see the notes in [Databricks Authentication](#databricks-authentication) / [Snowflake Authentication](#snowflake-authentication)).
 * `databricks` - (Required when `catalog_provider` is `DATABRICKS_UNITY`) Databricks settings for the connection. Conflicts with `snowflake`. See [Databricks](#databricks).
 * `snowflake` - (Required when `catalog_provider` is `SNOWFLAKE_HORIZON`) Snowflake settings for the connection. Conflicts with `databricks`. See [Snowflake](#snowflake).
 
@@ -519,7 +521,10 @@ If `type` is of value `DataCatalog` the following additional arguments are defin
 
 ### Databricks Authentication
 * `client_id` - (Required) OAuth client ID of the Databricks service principal.
-* `client_secret` - (Required, Sensitive) OAuth client secret of the Databricks service principal. Never returned by the API; the stored secret is kept if omitted or left blank on update.
+* `client_secret_wo` - (Optional, Sensitive, Write-Only) OAuth client secret of the Databricks service principal. The secret is sent in requests but is **never persisted to the Terraform state**. Requires Terraform 1.11 or later. Atlas never returns the stored secret: to change it, set `client_secret_wo` and bump `client_secret_wo_version`; to keep the stored secret on update, leave them unchanged.
+* `client_secret_wo_version` - (Optional) Version of the Databricks client secret used as a rotation trigger, since the write-only value itself is not stored. Change this number (e.g. increment it) whenever `client_secret_wo` changes.
+
+~> **NOTE:** Changing `catalog_url` requires providing the secret again: set `client_secret_wo` and bump `client_secret_wo_version` when the catalog URL changes.
 
 ### Snowflake
 * `authentication` - (Required) Credentials of the Snowflake service user used to authenticate to the Snowflake Horizon catalog. See [Snowflake Authentication](#snowflake-authentication).
@@ -528,7 +533,10 @@ If `type` is of value `DataCatalog` the following additional arguments are defin
 * `account` - (Required) Snowflake account identifier.
 * `user` - (Required) Snowflake service user.
 * `role` - (Required) Snowflake role the service user assumes.
-* `private_key` - (Required, Sensitive) Private key of the service user's key pair. Never returned by the API; the stored key is kept if omitted or left blank on update.
+* `private_key_wo` - (Optional, Sensitive, Write-Only) Private key of the service user's key pair. The key is sent in requests but is **never persisted to the Terraform state**. Requires Terraform 1.11 or later. Atlas never returns the stored key: to change it, set `private_key_wo` and bump `private_key_wo_version`; to keep the stored key on update, leave them unchanged.
+* `private_key_wo_version` - (Optional) Version of the Snowflake private key used as a rotation trigger, since the write-only value itself is not stored. Change this number (e.g. increment it) whenever `private_key_wo` changes.
+
+~> **NOTE:** Changing `catalog_url` requires providing the private key again: set `private_key_wo` and bump `private_key_wo_version` when the catalog URL changes.
 
 ### Timeouts
 

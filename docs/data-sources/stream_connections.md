@@ -85,8 +85,8 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
 If `type` is of value `DataCatalog` the following additional attributes are defined:
 * `catalog_provider` - Catalog system the connection points at. Can be `DATABRICKS_UNITY` or `SNOWFLAKE_HORIZON`.
 * `catalog_url` - Base HTTPS URL of the catalog on the provider's domain.
-* `databricks` - Databricks settings for the connection. Only set when `catalog_provider` is `DATABRICKS_UNITY`. The write-only `client_secret` is never returned by the API.
-* `snowflake` - Snowflake settings for the connection. Only set when `catalog_provider` is `SNOWFLAKE_HORIZON`. The write-only `private_key` is never returned by the API.
+* `databricks` - Databricks settings for the connection. Only set when `catalog_provider` is `DATABRICKS_UNITY`. The write-only `client_secret_wo` is never returned by the API, so it is `null` in the data source.
+* `snowflake` - Snowflake settings for the connection. Only set when `catalog_provider` is `SNOWFLAKE_HORIZON`. The write-only `private_key_wo` is never returned by the API, so it is `null` in the data source.
 
 ### Authentication
 

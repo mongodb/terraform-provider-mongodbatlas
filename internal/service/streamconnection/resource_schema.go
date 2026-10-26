@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -237,9 +238,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							"client_id": schema.StringAttribute{
 								Required: true,
 							},
-							"client_secret": schema.StringAttribute{
-								Required:  true,
+							"client_secret_wo": schema.StringAttribute{
+								Optional:  true,
 								Sensitive: true,
+								WriteOnly: true,
+								Validators: []validator.String{
+									stringvalidator.AlsoRequires(
+										path.MatchRelative().AtParent().AtName("client_secret_wo_version"),
+									),
+								},
+							},
+							"client_secret_wo_version": schema.Int64Attribute{
+								Optional: true,
+								Validators: []validator.Int64{
+									int64validator.AlsoRequires(
+										path.MatchRelative().AtParent().AtName("client_secret_wo"),
+									),
+								},
 							},
 						},
 					},
@@ -263,9 +278,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							"role": schema.StringAttribute{
 								Required: true,
 							},
-							"private_key": schema.StringAttribute{
-								Required:  true,
+							"private_key_wo": schema.StringAttribute{
+								Optional:  true,
 								Sensitive: true,
+								WriteOnly: true,
+								Validators: []validator.String{
+									stringvalidator.AlsoRequires(
+										path.MatchRelative().AtParent().AtName("private_key_wo_version"),
+									),
+								},
+							},
+							"private_key_wo_version": schema.Int64Attribute{
+								Optional: true,
+								Validators: []validator.Int64{
+									int64validator.AlsoRequires(
+										path.MatchRelative().AtParent().AtName("private_key_wo"),
+									),
+								},
 							},
 						},
 					},
