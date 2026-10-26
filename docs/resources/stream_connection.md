@@ -462,8 +462,8 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
 If `type` is of value `DataCatalog` the following additional arguments are defined:
 * `catalog_provider` - (Required) Catalog system the connection points at. Can be `DATABRICKS_UNITY` or `SNOWFLAKE_HORIZON`. Cannot be changed after creation.
 * `catalog_url` - (Required) Base HTTPS URL of the catalog. Must be on the provider's domain: `*.cloud.databricks.com` or `*.azuredatabricks.net` for Databricks Unity, and `*.snowflakecomputing.com` for Snowflake Horizon. The URL must not contain a path, query, or fragment. Changing the catalog URL requires the secret to be provided again (see the notes in [Databricks Authentication](#databricks-authentication) / [Snowflake Authentication](#snowflake-authentication)).
-* `databricks` - (Required when `catalog_provider` is `DATABRICKS_UNITY`) Databricks settings for the connection. Conflicts with `snowflake`. See [Databricks](#databricks).
-* `snowflake` - (Required when `catalog_provider` is `SNOWFLAKE_HORIZON`) Snowflake settings for the connection. Conflicts with `databricks`. See [Snowflake](#snowflake).
+* `databricks` - (Required when `catalog_provider` is `DATABRICKS_UNITY`) Databricks settings for the connection. Only the block matching `catalog_provider` is used; Atlas rejects a request that sets both provider blocks. See [Databricks](#databricks).
+* `snowflake` - (Required when `catalog_provider` is `SNOWFLAKE_HORIZON`) Snowflake settings for the connection. Only the block matching `catalog_provider` is used; Atlas rejects a request that sets both provider blocks. See [Snowflake](#snowflake).
 
 ### Authentication
 

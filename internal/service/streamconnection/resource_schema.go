@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/objectvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -228,9 +227,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"databricks": schema.SingleNestedAttribute{
 				Optional: true,
-				Validators: []validator.Object{
-					objectvalidator.ConflictsWith(path.MatchRoot("snowflake")),
-				},
 				Attributes: map[string]schema.Attribute{
 					"authentication": schema.SingleNestedAttribute{
 						Required: true,
@@ -262,9 +258,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"snowflake": schema.SingleNestedAttribute{
 				Optional: true,
-				Validators: []validator.Object{
-					objectvalidator.ConflictsWith(path.MatchRoot("databricks")),
-				},
 				Attributes: map[string]schema.Attribute{
 					"authentication": schema.SingleNestedAttribute{
 						Required: true,
