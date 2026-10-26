@@ -232,8 +232,9 @@ func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionM
 }
 
 // NewTFStreamConnection determines if the original model was created with instance_name or workspace_name and sets the appropriate field.
-// The curr*Config parameters carry the user's configured values for write-only secret fields the
-// API never returns (Data Catalog credentials), so they can be persisted to state.
+// The curr*Config parameters carry the user's configured values for write-only secret fields
+// (Kafka/SchemaRegistry credentials and Data Catalog secrets) so they can be carried over into
+// state: the API never returns them, and without them state would lose the values set in config.
 // The planTimeouts parameter is optional and used to preserve user-configured timeouts across create/update operations.
 func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig, currSchemaRegistryAuthConfig, currDatabricksConfig, currSnowflakeConfig *types.Object, apiResp *admin.StreamsConnection, planTimeouts *timeouts.Value) (*TFStreamConnectionModel, diag.Diagnostics) {
 	streamWorkspaceName := workspaceName
