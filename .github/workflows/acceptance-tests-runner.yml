@@ -327,7 +327,7 @@ jobs:
             - 'internal/serviceapi/alertconfigurationapi/*.go'
             - 'internal/serviceapi/auditingapi/*.go'
             - 'internal/serviceapi/customdbroleapi/*.go'
-            - 'internal/serviceapi/databaseuserapi/*.go'
+            - 'internal/serviceapi/databaseuser/*.go'
             - 'internal/serviceapi/maintenancewindowapi/*.go'
             - 'internal/serviceapi/orgdelegationsettings/*.go'
             - 'internal/serviceapi/orglogintegration/*.go'
@@ -688,7 +688,7 @@ jobs:
             ./internal/serviceapi/alertconfigurationapi
             ./internal/serviceapi/auditingapi
             ./internal/serviceapi/customdbroleapi
-            ./internal/serviceapi/databaseuserapi
+            ./internal/serviceapi/databaseuser
             ./internal/serviceapi/logintegration
             ./internal/serviceapi/metricintegration
             ./internal/serviceapi/mcpconfig
