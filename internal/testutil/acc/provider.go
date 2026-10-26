@@ -161,28 +161,26 @@ func ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID stri
 	`, subscriptionID, clientID, clientSecret, tenantID)
 }
 
-// ConfigTags returns the Cloud Tag Policy tags as a resource-level tags attribute.
+// ConfigTags returns the Cloud Tag Policy tags as a resource-level tags attribute, indented by indent.
 // azurerm does not support provider-level default_tags, so Azure resources set tags individually: https://github.com/hashicorp/terraform-provider-azurerm/issues/13776.
-func ConfigTags() string {
-	return fmt.Sprintf(`tags = {
-%s
-	}`, configTagEntries("\t\t"))
+func ConfigTags(indent string) string {
+	return FormatToHCLMap(tagValues(), indent, "tags")
 }
 
 func ConfigDefaultTags() string {
 	return fmt.Sprintf(`
 		default_tags {
-			tags = {
 %s
-			}
 		}
-	`, configTagEntries("\t\t\t\t"))
+	`, FormatToHCLMap(tagValues(), "\t\t\t", "tags"))
 }
 
-// configTagEntries returns the Cloud Tag Policy tags as HCL map entries indented by indent.
-func configTagEntries(indent string) string {
-	return fmt.Sprintf(`%[3]s"mongodb-owner" = %[1]q
-%[3]s"mongodb-env"   = %[2]q`, tagValue(tagOwnerEnvVar), tagValue(tagEnvEnvVar), indent)
+// tagValues returns the Cloud Tag Policy tags applied to the resources created by tests.
+func tagValues() map[string]string {
+	return map[string]string{
+		"mongodb-owner": tagValue(tagOwnerEnvVar),
+		"mongodb-env":   tagValue(tagEnvEnvVar),
+	}
 }
 
 func ConfigAWSProviderWithTags() string {

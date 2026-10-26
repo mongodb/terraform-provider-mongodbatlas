@@ -58,7 +58,7 @@ func configBasicWithDNSDomain(projectID, provider, region, vendor string, withDN
 		region              = %[3]q
 		vendor              = %[4]q
 		service_endpoint_id = confluent_network.private-link.aws[0].private_link_endpoint_service
-		%[5]s
+%[5]s
 		depends_on = [
 			confluent_kafka_cluster.dedicated
 		]
@@ -163,7 +163,7 @@ func GetConfluentEnterpriseConfigForDNSDomainUpdate(withDNSDomain bool, projectI
         region              = %[3]q
         vendor              = %[4]q
         service_endpoint_id = %[7]q
-        %[5]s
+%[5]s
     }
 
     data "mongodbatlas_stream_privatelink_endpoint" "test" {
@@ -265,7 +265,7 @@ func GetCompleteAzureBlobStorageConfig(projectID, clusterName, subscriptionID, c
 			mongodbatlas_stream_privatelink_endpoint.test
 		]
 	}`, ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID),
-		projectID, resourceGroupName, storageAccountName, clusterName, ConfigTags())
+		projectID, resourceGroupName, storageAccountName, clusterName, ConfigTags("\t\t"))
 }
 
 func GetCompleteS3Config(projectID, region string) string {
