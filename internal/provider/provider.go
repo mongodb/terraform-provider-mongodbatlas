@@ -78,6 +78,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccountprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccountsecret"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/streamconnectionfailover"
+	autogenstreamworkspace "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -305,8 +306,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		streaminstance.DataSource,
 		streaminstance.PluralDataSource,
 		streamworkspace.DataSource,
-		streamworkspace.PluralDataSource,
-		streamconnection.DataSource,
+		streamworkspace.PluralDataSource, streamconnection.DataSource,
 		streamconnection.PluralDataSource,
 		streamconnectionfailover.DataSource,
 		streamconnectionfailover.PluralDataSource,
@@ -407,7 +407,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		searchdeployment.Resource,
 		pushbasedlogexport.Resource,
 		streaminstance.Resource,
-		streamworkspace.Resource,
+		autogenstreamworkspace.Resource, // spike pilot: autogen implementation replaces the manual resource; manual package kept for its data sources
 		streamconnection.Resource,
 		streamconnectionfailover.Resource,
 		streamprocessor.Resource,

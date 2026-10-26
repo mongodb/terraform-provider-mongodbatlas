@@ -1,4 +1,4 @@
-package streaminstanceapi_test
+package streamworkspace_test
 
 import (
 	"os"

@@ -186,8 +186,12 @@ func TestAccStreamWorkspaceRS_simultaneousDataProcessRegionAndFailoverChange(t *
 				Config: streamsWorkspaceConfig(projectID, workspaceName, region, cloudProvider),
 			},
 			{
+				// The manual resource errored at diff time ("data_process_region and
+				// failover_regions cannot both be changed in the same apply"). The autogen
+				// implementation has no CustomizeDiff equivalent; data_process_region is
+				// CreateOnly, so changing it here fails the plan with "cannot be updated".
 				Config:      streamsWorkspaceWithFailoverRegionsConfig(projectID, workspaceName, "OREGON_USA", cloudProvider, failoverRegion),
-				ExpectError: regexp.MustCompile(`data_process_region and failover_regions cannot both be changed`),
+				ExpectError: regexp.MustCompile(`data_process_region cannot be updated`),
 			},
 		},
 	})
@@ -218,7 +222,9 @@ func checkStreamsWorkspaceImportStateIDFunc(resourceName string) resource.Import
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["workspace_name"]), nil
+		// Autogen import format (slash): the manual implementation used a dash separator
+		// (project_id-workspace_name); dropped in the 3.0 migration per the import-format decision.
+		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["workspace_name"]), nil
 	}
 }
 

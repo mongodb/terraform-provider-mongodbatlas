@@ -1,0 +1,185 @@
+schema:
+    description: Creates one stream workspace in the specified project.
+    attributes:
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Human-readable label that identifies the cloud provider.
+                      computed_optional_required: required
+                      tf_schema_name: cloud_provider
+                      tf_model_name: CloudProvider
+                      api_name: cloudProvider
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Name of the cloud provider region hosting Atlas Stream Processing.
+                      computed_optional_required: required
+                      tf_schema_name: region
+                      tf_model_name: Region
+                      api_name: region
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Information about the cloud provider region in which MongoDB Cloud processes the stream.
+          custom_type:
+            name: DataProcessRegion
+            model: customtypes.ObjectValue[TFDataProcessRegionModel]
+            schema: customtypes.NewObjectType[TFDataProcessRegionModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: required
+          tf_schema_name: data_process_region
+          tf_model_name: DataProcessRegion
+          api_name: dataProcessRegion
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Human-readable label that identifies the cloud provider.
+                      computed_optional_required: required
+                      tf_schema_name: cloud_provider
+                      tf_model_name: CloudProvider
+                      api_name: cloudProvider
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Name of the cloud provider region hosting Atlas Stream Processing.
+                      computed_optional_required: required
+                      tf_schema_name: region
+                      tf_model_name: Region
+                      api_name: region
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: List of failover regions configured for the stream workspace.
+          custom_type:
+            name: FailoverRegions
+            model: customtypes.NestedListValue[TFFailoverRegionsModel]
+            schema: customtypes.NewNestedListType[TFFailoverRegionsModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: computed_optional
+          tf_schema_name: failover_regions
+          tf_model_name: FailoverRegions
+          api_name: failoverRegions
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: project_id
+          tf_model_name: Project_id
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - list:
+            element_type: 4
+          description: List that contains the hostnames assigned to the stream workspace.
+          custom_type:
+            model: customtypes.ListValue[types.String]
+            schema: customtypes.NewListType[types.String](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: computed
+          tf_schema_name: hostnames
+          tf_model_name: Hostnames
+          api_name: hostnames
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Label that identifies the stream workspace.
+          computed_optional_required: required
+          tf_schema_name: workspace_name
+          tf_model_name: Workspace_name
+          api_name: name
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Max tier size for the Stream Workspace. Configures Memory or VCPU allowances.
+                      computed_optional_required: computed_optional
+                      tf_schema_name: max_tier_size
+                      tf_model_name: MaxTierSize
+                      api_name: maxTierSize
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+                      computed_optional_required: computed_optional
+                      tf_schema_name: tier
+                      tf_model_name: Tier
+                      api_name: tier
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Configuration options for an Atlas Stream Processing Workspace.
+          custom_type:
+            name: StreamConfig
+            model: customtypes.ObjectValue[TFStreamConfigModel]
+            schema: customtypes.NewObjectType[TFStreamConfigModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: computed_optional
+          tf_schema_name: stream_config
+          tf_model_name: StreamConfig
+          api_name: streamConfig
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+    expanded_model: true
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{project_id}/streams/{workspace_name}
+    create:
+        http_method: POST
+        path: /api/atlas/v2/groups/{project_id}/streams
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{project_id}/streams/{workspace_name}
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{project_id}/streams/{workspace_name}
+    version_header: application/vnd.atlas.2023-02-01+json
+name: stream_workspace
+packageName: streamworkspace

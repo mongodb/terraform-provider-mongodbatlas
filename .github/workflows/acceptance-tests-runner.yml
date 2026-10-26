@@ -357,7 +357,7 @@ jobs:
             - 'internal/serviceapi/pushbasedlogexportapi/*.go'
             - 'internal/serviceapi/searchdeploymentapi/*.go'
             - 'internal/serviceapi/searchindexapi/*.go'
-            - 'internal/serviceapi/streaminstanceapi/*.go'
+            - 'internal/serviceapi/streamworkspace/*.go'
             - 'internal/serviceapi/streamprocessorapi/*.go'
           backup:
             - 'internal/service/cloudbackupschedule/*.go'
@@ -744,7 +744,7 @@ jobs:
             ./internal/serviceapi/pushbasedlogexportapi
             ./internal/serviceapi/searchdeploymentapi
             ./internal/serviceapi/searchindexapi
-            ./internal/serviceapi/streaminstanceapi
+            ./internal/serviceapi/streamworkspace
             ./internal/serviceapi/streamprocessorapi
         run: make testacc
 

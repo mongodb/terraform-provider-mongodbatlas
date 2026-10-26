@@ -946,7 +946,12 @@ resources:
 
   # Update doesn't work because API defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
   # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
-  stream_instance_api:
+  # Lift-and-shift of the manual mongodbatlas_stream_workspace (the stream_instance successor).
+  # region and cloud_provider are incorrectly declared in PATCH as root attributes, _id can't be used in Terraform schema.
+  # The manual schema has no connections/processor_status/sample_connections, so those GET-response surfaces are ignored.
+  # id is the API _id (a UUID), restored via expanded_model + PostReadAPICall hook.
+  # MoveState is hand-written in resource_hooks.go: HandleMove cannot rename attributes (name -> workspace_name, group_id -> project_id).
+  stream_workspace:
     read:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
       method: GET
@@ -961,26 +966,50 @@ resources:
       method: DELETE
     version_header: application/vnd.atlas.2023-02-01+json
     schema:
-      # region and cloud_provider are incorrectly declared in PATCH as root attributes, _id can't be used in Terraform schema
+      expanded_model: true # adds the `id` attribute (the API _id, a UUID; restored via hook)
       ignores:
         [
           "_id",
           "region",
           "cloud_provider",
           "links",
-          "connections.links",
-          "connections.authentication.links",
-          "connections.aws.links",
-          "connections.db_role_to_execute.links",
-          "connections.networking.links",
-          "connections.networking.access.links",
-          "connections.security.links",
+          "connections",
+          "processor_status",
+          "sample_connections",
           "data_process_region.links",
-          "sample_connections.links",
+          "failover_regions.links",
           "stream_config.links",
         ]
       aliases:
-        tenantName: name # path param name does not match the API request property
+        tenantName: workspace_name # path param name does not match the API request property
+        name: workspace_name
+        groupId: project_id
+      overrides:
+        workspace_name:
+          # The manual resource requires it.
+          computability:
+            required: true
+        data_process_region:
+          # The manual resource requires it; Atlas requires it at creation.
+          computability:
+            required: true
+        failover_regions:
+          # Atlas returns the configured (or default) failover regions on read.
+          computability:
+            optional: true
+            computed: true
+        stream_config:
+          computability:
+            optional: true
+            computed: true
+        stream_config.max_tier_size:
+          computability:
+            optional: true
+            computed: true
+        stream_config.tier:
+          computability:
+            optional: true
+            computed: true
 
   # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
   # Custom methods :startWith and :stop are not called so state attribute is not supported as Optional like in the curated resource, only as Computed.
