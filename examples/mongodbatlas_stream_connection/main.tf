@@ -195,8 +195,9 @@ resource "mongodbatlas_stream_connection" "example-data-catalog-databricks" {
   catalog_url      = "https://dbc-123e123e-a1b2.cloud.databricks.com"
   databricks = {
     authentication = {
-      client_id     = var.databricks_client_id
-      client_secret = var.databricks_client_secret
+      client_id                = var.databricks_client_id
+      client_secret_wo         = var.databricks_client_secret
+      client_secret_wo_version = 1
     }
   }
 }
@@ -211,10 +212,11 @@ resource "mongodbatlas_stream_connection" "example-data-catalog-snowflake" {
   catalog_url      = "https://myorg-myaccount.snowflakecomputing.com"
   snowflake = {
     authentication = {
-      account     = "myorg-myaccount"
-      user        = var.snowflake_user
-      role        = "ADMIN"
-      private_key = var.snowflake_private_key
+      account                = "myorg-myaccount"
+      user                   = var.snowflake_user
+      role                   = "ADMIN"
+      private_key_wo         = var.snowflake_private_key
+      private_key_wo_version = 1
     }
   }
 }

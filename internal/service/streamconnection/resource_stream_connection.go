@@ -204,8 +204,9 @@ var AzureObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 // DataCatalog (Iceberg) connection models. The API never returns the Databricks
-// client secret or the Snowflake private key, so those values are only set from
-// the user's configuration.
+// client secret or the Snowflake private key, so the secrets are write-only
+// attributes (`*_wo` + `*_wo_version`) that are sent in requests but never
+// persisted to state; only the version, a rotation trigger, is kept.
 type TFDatabricksModel struct {
 	Authentication types.Object `tfsdk:"authentication"`
 }
@@ -215,13 +216,15 @@ var DatabricksObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type TFDatabricksAuthenticationModel struct {
-	ClientID     types.String `tfsdk:"client_id"`
-	ClientSecret types.String `tfsdk:"client_secret"`
+	ClientID              types.String `tfsdk:"client_id"`
+	ClientSecretWo        types.String `tfsdk:"client_secret_wo"`
+	ClientSecretWoVersion types.Int64  `tfsdk:"client_secret_wo_version"`
 }
 
 var DatabricksAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"client_id":     types.StringType,
-	"client_secret": types.StringType,
+	"client_id":                types.StringType,
+	"client_secret_wo":         types.StringType,
+	"client_secret_wo_version": types.Int64Type,
 }}
 
 type TFSnowflakeModel struct {
@@ -233,17 +236,19 @@ var SnowflakeObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type TFSnowflakeAuthenticationModel struct {
-	Account    types.String `tfsdk:"account"`
-	User       types.String `tfsdk:"user"`
-	Role       types.String `tfsdk:"role"`
-	PrivateKey types.String `tfsdk:"private_key"`
+	Account             types.String `tfsdk:"account"`
+	User                types.String `tfsdk:"user"`
+	Role                types.String `tfsdk:"role"`
+	PrivateKeyWo        types.String `tfsdk:"private_key_wo"`
+	PrivateKeyWoVersion types.Int64  `tfsdk:"private_key_wo_version"`
 }
 
 var SnowflakeAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"account":     types.StringType,
-	"user":        types.StringType,
-	"role":        types.StringType,
-	"private_key": types.StringType,
+	"account":                types.StringType,
+	"user":                   types.StringType,
+	"role":                   types.StringType,
+	"private_key_wo":         types.StringType,
+	"private_key_wo_version": types.Int64Type,
 }}
 
 func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -262,12 +267,32 @@ func getWorkspaceOrInstanceName(model *TFStreamConnectionModel) string {
 	return ""
 }
 
+// applyWriteOnlyConfig copies the Data Catalog write-only secret values from the
+// configuration onto the plan: Terraform nullifies write-only attributes in the
+// plan, so the secrets must be read from the configuration to build API requests.
+func applyWriteOnlyConfig(plan, configModel *TFStreamConnectionModel) {
+	if configModel == nil {
+		return
+	}
+	if !configModel.Databricks.IsNull() && !configModel.Databricks.IsUnknown() {
+		plan.Databricks = configModel.Databricks
+	}
+	if !configModel.Snowflake.IsNull() && !configModel.Snowflake.IsUnknown() {
+		plan.Snowflake = configModel.Snowflake
+	}
+}
+
 func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var streamConnectionPlan TFStreamConnectionModel
+	var streamConnectionPlan, streamConnectionConfig TFStreamConnectionModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamConnectionPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	resp.Diagnostics.Append(req.Config.Get(ctx, &streamConnectionConfig)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	applyWriteOnlyConfig(&streamConnectionPlan, &streamConnectionConfig)
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionPlan.ProjectID.ValueString()
@@ -350,11 +375,16 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 }
 
 func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var streamConnectionPlan TFStreamConnectionModel
+	var streamConnectionPlan, streamConnectionConfig TFStreamConnectionModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamConnectionPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	resp.Diagnostics.Append(req.Config.Get(ctx, &streamConnectionConfig)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	applyWriteOnlyConfig(&streamConnectionPlan, &streamConnectionConfig)
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionPlan.ProjectID.ValueString()

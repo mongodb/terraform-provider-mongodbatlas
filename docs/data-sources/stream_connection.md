@@ -142,7 +142,7 @@ If `type` is of value `DataCatalog` the following additional attributes are defi
 
 ### Databricks Authentication
 * `client_id` - OAuth client ID of the Databricks service principal.
-* `client_secret` - OAuth client secret of the Databricks service principal. Never returned by the API.
+* `client_secret_wo` - OAuth client secret of the Databricks service principal. Write-only on the resource; Atlas never returns it, so it is always `null` in the data source.
 
 ### Snowflake
 * `authentication` - Credentials of the Snowflake service user used to authenticate to the Snowflake Horizon catalog. See [Snowflake Authentication](#snowflake-authentication).
@@ -151,7 +151,7 @@ If `type` is of value `DataCatalog` the following additional attributes are defi
 * `account` - Snowflake account identifier.
 * `user` - Snowflake service user.
 * `role` - Snowflake role the service user assumes.
-* `private_key` - Private key of the service user's key pair. Never returned by the API.
+* `private_key_wo` - Private key of the service user's key pair. Write-only on the resource; Atlas never returns it, so it is always `null` in the data source.
 
 To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getstreamconnection) Documentation.
 The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_processor/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.
