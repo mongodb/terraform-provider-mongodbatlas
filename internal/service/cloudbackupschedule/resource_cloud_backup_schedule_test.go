@@ -544,14 +544,14 @@ func TestAccBackupRSCloudBackupSchedule_copyPolicyItems(t *testing.T) {
 				Config: configLastN.HCL(),
 				Check:  configLastN.check(),
 			},
-			// Removing the flag and every copy target must plan cleanly. withAutoCopy(nil) is what
-			// omits copy_settings: the entry's modes stay in state because copy_settings is
-			// Optional+Computed, and reading those stale modes tripped the modes validation.
-			// Plan-only because Atlas rejects disabling copy-policy items once enabled.
+			// Setting the flag to false while every copy target stays in state fails the plan with the
+			// remedy: withAutoCopy(nil) is what omits copy_settings, so the entry's modes stay in state
+			// (copy_settings is Optional+Computed), and Atlas rejects disabling copy-policy items
+			// one-way. Plan-only because the apply would hit the same rejection from the API.
 			{
-				Config:             base.withAutoCopy(nil).withCopyFlagDisabled().HCL(),
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: true,
+				Config:      base.withAutoCopy(nil).withCopyFlagDisabled().HCL(),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`copy_policy_items_enabled cannot be set to false after being enabled`),
 			},
 		},
 	})

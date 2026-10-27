@@ -16,6 +16,7 @@ const (
 	errFrequenciesWithFlag      = "frequencies cannot be set when copy_policy_items_enabled is true"
 	errDeleteCopyRequiresFlag   = "delete_copy_snapshots requires copy_policy_items_enabled to be true"
 	errUpdateCopyRequiresFlag   = "update_copy_snapshots requires copy_policy_items_enabled to be true"
+	errCopyPolicyFlagDisable    = "copy_policy_items_enabled cannot be set to false after being enabled: Atlas cannot disable copy-policy items once enabled. To stop copying, keep copy_policy_items_enabled true and remove the copy_settings entries"
 	errAutoCopyWithCopySettings = "copy_settings cannot be set when auto_copy_settings_enabled is true"
 )
 
@@ -87,7 +88,28 @@ func copySettingsWithEmptyFrequencies(copySettings []any) ([]any, bool) {
 	return rewritten, changed
 }
 
+// validateCopyPolicyFlagDisable fails the plan when HCL sets copy_policy_items_enabled = false
+// while state has it true: that PATCH is always rejected (Atlas disables copy-policy items
+// one-way), so the error names the remedy instead of surfacing after apply. An omitted flag
+// also plans false but is not sent in the PATCH (SetOrRemoved), so it keeps the API behavior.
+func validateCopyPolicyFlagDisable(d *schema.ResourceDiff) error {
+	flag := sdkv2config.Bool(d, "copy_policy_items_enabled")
+	if !flag.Set() || flag.ValueBool() {
+		return nil
+	}
+	oldValue, _ := d.GetChange("copy_policy_items_enabled")
+	oldEnabled, ok := oldValue.(bool)
+	if !ok || !oldEnabled {
+		return nil
+	}
+	return errors.New(errCopyPolicyFlagDisable)
+}
+
 func validateCopySettingsModes(d *schema.ResourceDiff) error {
+	if err := validateCopyPolicyFlagDisable(d); err != nil {
+		return err
+	}
+
 	// Raw config only: a copy_settings block present in prior state but omitted in HCL must not trip this.
 	if sdkv2config.Bool(d, "auto_copy_settings_enabled").ValueBool() && !sdkv2config.CollectionEmpty(d, "copy_settings") {
 		return errors.New(errAutoCopyWithCopySettings)
