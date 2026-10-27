@@ -7,9 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20250312027/admin"
+	"go.mongodb.org/atlas-sdk/v20250312027/mockadmin"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -165,4 +168,54 @@ func TestIsFailedProvisioning(t *testing.T) {
 	assert.True(t, acc.IsFailedProvisioning(apiOutOfCapacityError()))
 	assert.True(t, acc.IsFailedProvisioning(unexpectedStateError()))
 	assert.True(t, acc.IsFailedProvisioning(fmt.Errorf("wrapped: %w", unexpectedStateError())))
+}
+
+// TestRemainingProjectResources covers the diagnostics printed when a shared project cannot be deleted, so the
+// teardown failure names the resource that blocked it. Flex clusters are listed separately because the Clusters API
+// does not return clusters created through the Flex Clusters API.
+func TestRemainingProjectResources(t *testing.T) {
+	const projectID = "6ad95b900c3871ac99ea9ca7"
+	cluster := admin.ClusterDescription20240805{Name: new("test-acc-tf-c-1"), StateName: new("DELETING")}
+	flexCluster := admin.FlexClusterDescription20241113{Name: new("test-acc-tf-2"), StateName: new("IDLE")}
+	clustersErr := errors.New("clusters boom")
+	flexClustersErr := errors.New("flex clusters boom")
+	testCases := map[string]struct {
+		clusters        *admin.PaginatedClusterDescription20240805
+		clustersErr     error
+		flexClusters    *admin.PaginatedFlexClusters20241113
+		flexClustersErr error
+		want            string
+	}{
+		"reports clusters and flex clusters with their state": {
+			clusters:     admin.NewPaginatedClusterDescription20240805([]admin.ClusterDescription20240805{cluster}),
+			flexClusters: admin.NewPaginatedFlexClusters20241113([]admin.FlexClusterDescription20241113{flexCluster}),
+			want:         "cluster test-acc-tf-c-1 (state DELETING), flex cluster test-acc-tf-2 (state IDLE)",
+		},
+		"reports when no cluster is returned": {
+			clusters:     admin.NewPaginatedClusterDescription20240805([]admin.ClusterDescription20240805{}),
+			flexClusters: admin.NewPaginatedFlexClusters20241113([]admin.FlexClusterDescription20241113{}),
+			want:         "no clusters reported by the Clusters and Flex Clusters APIs",
+		},
+		"reports listing errors instead of failing": {
+			clustersErr:     clustersErr,
+			flexClustersErr: flexClustersErr,
+			want:            "clusters could not be listed: clusters boom, flex clusters could not be listed: flex clusters boom",
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			clustersAPI := mockadmin.NewClustersAPI(t)
+			clustersAPI.EXPECT().ListClusters(mock.Anything, projectID).Return(admin.ListClustersApiRequest{ApiService: clustersAPI}).Once()
+			clustersAPI.EXPECT().ListClustersExecute(mock.Anything).Return(tc.clusters, nil, tc.clustersErr).Once()
+			flexClustersAPI := mockadmin.NewFlexClustersAPI(t)
+			flexClustersAPI.EXPECT().ListFlexClusters(mock.Anything, projectID).Return(admin.ListFlexClustersApiRequest{ApiService: flexClustersAPI}).Once()
+			flexClustersAPI.EXPECT().ListFlexClustersExecute(mock.Anything).Return(tc.flexClusters, nil, tc.flexClustersErr).Once()
+
+			restoreClient := acc.MongoDBClient
+			acc.MongoDBClient = &config.MongoDBClient{AtlasV2: &admin.APIClient{ClustersAPI: clustersAPI, FlexClustersAPI: flexClustersAPI}}
+			t.Cleanup(func() { acc.MongoDBClient = restoreClient })
+
+			assert.Equal(t, tc.want, acc.RemainingProjectResources(projectID))
+		})
+	}
 }

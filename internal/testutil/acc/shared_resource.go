@@ -74,6 +74,7 @@ func cleanupSharedResources() error {
 		fmt.Printf("Deleting execution project (%d): %s, id: %s\n", i+1, project.name, project.id)
 		if err := deleteProject(project.id); err != nil {
 			fmt.Printf("[ERROR] Project deletion failed: %v\n", err)
+			fmt.Printf("[ERROR] Project %s resources after failed deletion: %s\n", project.id, remainingProjectResources(project.id))
 			hasError = true
 		}
 	}

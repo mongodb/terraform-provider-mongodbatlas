@@ -11,4 +11,5 @@ func NewClusterCreateFuncs(create func(region string) error, wait, deleteFn func
 var (
 	CreateClusterWithRegionFallback = createClusterWithRegionFallback
 	IsFailedProvisioning            = isFailedProvisioning
+	RemainingProjectResources       = remainingProjectResources
 )

@@ -42,6 +42,37 @@ func deleteProject(id string) error {
 	return nil
 }
 
+// remainingProjectResources describes the clusters that still exist in a project whose deletion failed, so the
+// teardown failure names the resource that blocked it instead of only the HTTP error. An empty result is reported
+// explicitly because it still narrows the cause: either another dependent resource blocked the deletion, or Atlas
+// had already removed the cluster by the time the project was listed.
+// Flex clusters need their own request: the Clusters API does not return clusters created through the Flex Clusters API.
+func remainingProjectResources(projectID string) string {
+	resources := []string{}
+	clusters, _, err := ConnV2().ClustersAPI.ListClusters(context.Background(), projectID).Execute()
+	if err != nil {
+		resources = append(resources, "clusters could not be listed: "+err.Error())
+	} else {
+		results := clusters.GetResults()
+		for i := range results {
+			resources = append(resources, fmt.Sprintf("cluster %s (state %s)", results[i].GetName(), results[i].GetStateName()))
+		}
+	}
+	flexClusters, _, err := ConnV2().FlexClustersAPI.ListFlexClusters(context.Background(), projectID).Execute()
+	if err != nil {
+		resources = append(resources, "flex clusters could not be listed: "+err.Error())
+	} else {
+		results := flexClusters.GetResults()
+		for i := range results {
+			resources = append(resources, fmt.Sprintf("flex cluster %s (state %s)", results[i].GetName(), results[i].GetStateName()))
+		}
+	}
+	if len(resources) == 0 {
+		return "no clusters reported by the Clusters and Flex Clusters APIs"
+	}
+	return strings.Join(resources, ", ")
+}
+
 type clusterCreateFuncs struct {
 	create func(region string) error
 	wait   func() error
