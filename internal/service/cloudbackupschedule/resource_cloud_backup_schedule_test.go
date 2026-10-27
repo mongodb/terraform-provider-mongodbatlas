@@ -544,10 +544,10 @@ func TestAccBackupRSCloudBackupSchedule_copyPolicyItems(t *testing.T) {
 				Config: configLastN.HCL(),
 				Check:  configLastN.check(),
 			},
-			// Removing the flag and every copy target must plan cleanly. copy_settings is
-			// Optional+Computed, so the entry's modes stay in state when the HCL omits the block;
-			// reading those stale modes tripped the modes validation. Plan-only because Atlas rejects
-			// disabling copy-policy items once enabled.
+			// Removing the flag and every copy target must plan cleanly. withAutoCopy(nil) is what
+			// omits copy_settings: the entry's modes stay in state because copy_settings is
+			// Optional+Computed, and reading those stale modes tripped the modes validation.
+			// Plan-only because Atlas rejects disabling copy-policy items once enabled.
 			{
 				Config:             base.withAutoCopy(nil).withCopyFlagDisabled().HCL(),
 				PlanOnly:           true,
@@ -961,8 +961,9 @@ func (c copyScheduleConfig) withAutoCopy(enabled *bool) copyScheduleConfig {
 	return c
 }
 
-// withCopyFlagDisabled emits copy_policy_items_enabled = false. It plans the module's
-// `backup_copy_region = null` shape: the flag is dropped while the copy targets stay in state.
+// withCopyFlagDisabled emits copy_policy_items_enabled = false. It reproduces the reported
+// scenario: the flag goes false while the copy targets stay in state. With withAutoCopy(nil),
+// the equivalent of a root module setting backup_copy_region = null, copy_settings is omitted.
 func (c copyScheduleConfig) withCopyFlagDisabled() copyScheduleConfig {
 	c.copyFlagDisabled = true
 	return c
