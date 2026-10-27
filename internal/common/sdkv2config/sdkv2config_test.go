@@ -382,6 +382,111 @@ func TestNestedCollectionLen(t *testing.T) {
 	}
 }
 
+func TestNestedInt(t *testing.T) {
+	t.Parallel()
+	entryTy := cty.Object(map[string]cty.Type{"last_number_of_snapshots": cty.Number})
+	listTy := cty.List(entryTy)
+
+	entryWith := func(n cty.Value) cty.Value {
+		return cty.ObjectVal(map[string]cty.Value{"last_number_of_snapshots": n})
+	}
+	listOf := func(entries ...cty.Value) cty.Value {
+		return obj(map[string]cty.Value{"copy_settings": cty.ListVal(entries)})
+	}
+
+	tests := []struct {
+		raw   cty.Value
+		name  string
+		index int
+		want  int64
+	}{
+		{
+			name: "omitted list",
+			raw:  obj(map[string]cty.Value{"other": cty.ListValEmpty(entryTy)}),
+			want: 0,
+		},
+		{
+			name: "unknown list",
+			raw:  obj(map[string]cty.Value{"copy_settings": cty.UnknownVal(listTy)}),
+			want: 0,
+		},
+		{
+			name:  "index out of range",
+			raw:   listOf(entryWith(cty.NumberIntVal(5))),
+			index: 1,
+			want:  0,
+		},
+		{
+			name: "nested attr omitted",
+			raw:  listOf(cty.EmptyObjectVal),
+			want: 0,
+		},
+		{
+			name: "nested attr null",
+			raw:  listOf(entryWith(cty.NullVal(cty.Number))),
+			want: 0,
+		},
+		{
+			name: "nested attr unknown",
+			raw:  listOf(entryWith(cty.UnknownVal(cty.Number))),
+			want: 0,
+		},
+		{
+			name: "wrong type",
+			raw:  listOf(entryWith(cty.StringVal("5"))),
+			want: 0,
+		},
+		{
+			name: "fractional number is not truncated",
+			raw:  listOf(entryWith(cty.NumberFloatVal(1.5))),
+			want: 0,
+		},
+		{
+			name: "out-of-range number is not clamped",
+			raw:  listOf(entryWith(cty.NumberFloatVal(1e30))),
+			want: 0,
+		},
+		{
+			name: "zero is a value",
+			raw:  listOf(entryWith(cty.NumberIntVal(0))),
+			want: 0,
+		},
+		{
+			name: "set int",
+			raw:  listOf(entryWith(cty.NumberIntVal(5))),
+			want: 5,
+		},
+		{
+			name:  "second entry",
+			raw:   listOf(entryWith(cty.NumberIntVal(3)), entryWith(cty.NumberIntVal(5))),
+			index: 1,
+			want:  5,
+		},
+		{
+			name: "parent is a set so Index is not used",
+			raw:  obj(map[string]cty.Value{"copy_settings": cty.SetVal([]cty.Value{cty.EmptyObjectVal})}),
+			want: 0,
+		},
+		{
+			name: "null root",
+			raw:  cty.NullVal(cty.EmptyObject),
+			want: 0,
+		},
+		{
+			name: "unknown root",
+			raw:  cty.UnknownVal(cty.EmptyObject),
+			want: 0,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got := sdkv2config.NestedInt(view(tc.raw), "copy_settings", tc.index, "last_number_of_snapshots")
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
 func TestStringDoesNotPanicOnMissingAttr(t *testing.T) {
 	t.Parallel()
 	require.NotPanics(t, func() {

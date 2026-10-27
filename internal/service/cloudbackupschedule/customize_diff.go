@@ -112,20 +112,21 @@ func validateCopySettingsModes(d *schema.ResourceDiff) error {
 		return nil
 	}
 
+	// Validate the raw config, not d.Get: copy_settings is Optional+Computed, so d.Get still
+	// carries prior state when HCL omits the list. Reading all three modes from raw config
+	// keeps them consistent and lets an in-place removal of every copy target plan cleanly
+	// instead of tripping on the stale state entry.
 	copySettings, _ := d.Get("copy_settings").([]any)
 	for i, raw := range copySettings {
-		entry, ok := raw.(map[string]any)
-		if !ok {
+		if _, ok := raw.(map[string]any); !ok {
 			continue
 		}
-		hasFreq := collectionLen(entry["frequencies"]) > 0
-		hasItems := collectionLen(entry["copy_policy_items"]) > 0
-		lastN, _ := entry["last_number_of_snapshots"].(int)
-		hasLastN := lastN > 0
+		hasFreq := sdkv2config.NestedCollectionLen(d, "copy_settings", i, "frequencies") > 0
+		hasItems := sdkv2config.NestedCollectionLen(d, "copy_settings", i, "copy_policy_items") > 0
+		hasLastN := sdkv2config.NestedInt(d, "copy_settings", i, "last_number_of_snapshots") > 0
 
 		modeCount := 0
-		// Raw config only: d.Get frequencies can still be leftover Optional+Computed state.
-		if sdkv2config.NestedCollectionLen(d, "copy_settings", i, "frequencies") > 0 {
+		if hasFreq {
 			modeCount++
 		}
 		if hasItems {
@@ -140,7 +141,7 @@ func validateCopySettingsModes(d *schema.ResourceDiff) error {
 		if (hasItems || hasLastN) && !enabled {
 			return errors.New(errCopyPolicyRequiresFlag)
 		}
-		// Leftover Optional+Computed frequencies are ignored when another mode is set so a frequencies config can switch in one apply.
+		// Frequencies are ignored when another mode is set so a frequencies config can switch in one apply.
 		if enabled && hasFreq && !hasItems && !hasLastN {
 			return errors.New(errFrequenciesWithFlag)
 		}

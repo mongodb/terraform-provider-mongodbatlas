@@ -118,7 +118,7 @@ func Int64(d resourceView, name string) Int64Value {
 	case raw.IsNull() || raw.Type() != cty.Number:
 		v.null = true
 	default:
-		if n, acc := raw.AsBigFloat().Int64(); acc == big.Exact {
+		if n, ok := knownInt64(raw); ok {
 			v.value = n
 		} else {
 			v.unknown = true
@@ -143,18 +143,36 @@ func CollectionEmpty(d resourceView, name string) bool {
 // Returns 0 when the list is omitted, unknown, out of range, or the nested attr is
 // omitted, unknown, or empty.
 func NestedCollectionLen(d resourceView, list string, index int, attr string) int {
+	return knownCollectionLen(nestedAt(d, list, index, attr))
+}
+
+// NestedInt is the known int64 of list[index].attr in raw config, or 0 when the
+// list or nested attr is omitted, unknown, out of range, or not an exact int64.
+// Parent list must be a list or tuple. A nested TypeInt is a cty Number.
+func NestedInt(d resourceView, list string, index int, attr string) int64 {
+	n, ok := knownInt64(nestedAt(d, list, index, attr))
+	if !ok {
+		return 0
+	}
+	return n
+}
+
+// nestedAt walks list[index].attr in raw config. It returns null when the list is
+// omitted, unknown, not a list or tuple, out of range, or the nested attr is
+// missing. It does not panic.
+func nestedAt(d resourceView, list string, index int, attr string) cty.Value {
 	listVal := attrAt(d.GetRawConfig(), list)
 	if listVal.IsNull() || !listVal.IsKnown() {
-		return 0
+		return cty.NullVal(cty.DynamicPseudoType)
 	}
 	ty := listVal.Type()
 	if !ty.IsListType() && !ty.IsTupleType() {
-		return 0
+		return cty.NullVal(cty.DynamicPseudoType)
 	}
 	if index < 0 || index >= listVal.LengthInt() {
-		return 0
+		return cty.NullVal(cty.DynamicPseudoType)
 	}
-	return knownCollectionLen(attrAt(listVal.Index(cty.NumberIntVal(int64(index))), attr))
+	return attrAt(listVal.Index(cty.NumberIntVal(int64(index))), attr)
 }
 
 // attrAt walks one object attribute. It returns null on a missing name, null root, or
@@ -177,4 +195,18 @@ func knownCollectionLen(v cty.Value) int {
 		return 0
 	}
 	return v.LengthInt()
+}
+
+// knownInt64 converts a raw-config value to an exact int64. It reports false when
+// the value is null, unknown, not a number, or not an exact int64 (fractional or
+// out of range), so no caller sends a truncated or clamped value.
+func knownInt64(v cty.Value) (int64, bool) {
+	if v.IsNull() || !v.IsKnown() || v.Type() != cty.Number {
+		return 0, false
+	}
+	n, acc := v.AsBigFloat().Int64()
+	if acc != big.Exact {
+		return 0, false
+	}
+	return n, true
 }

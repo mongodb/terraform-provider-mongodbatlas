@@ -544,6 +544,15 @@ func TestAccBackupRSCloudBackupSchedule_copyPolicyItems(t *testing.T) {
 				Config: configLastN.HCL(),
 				Check:  configLastN.check(),
 			},
+			// Removing the flag and every copy target must plan cleanly. copy_settings is
+			// Optional+Computed, so the entry's modes stay in state when the HCL omits the block;
+			// reading those stale modes tripped the modes validation. Plan-only because Atlas rejects
+			// disabling copy-policy items once enabled.
+			{
+				Config:             base.withAutoCopy(nil).withCopyFlagDisabled().HCL(),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
 		},
 	})
 }
@@ -893,16 +902,17 @@ func warnLocalCopyDestRegion(t *testing.T) {
 }
 
 type copyScheduleConfig struct {
-	info            *acc.ClusterInfo
-	autoCopyEnabled *bool
-	regionName      string
-	dailyRetention  int
-	lastN           int
-	includeOndemand bool
-	updateCopy      bool
-	deleteCopy      bool
-	useFrequencies  bool
-	autoCopy        bool
+	info             *acc.ClusterInfo
+	autoCopyEnabled  *bool
+	regionName       string
+	dailyRetention   int
+	lastN            int
+	includeOndemand  bool
+	updateCopy       bool
+	deleteCopy       bool
+	useFrequencies   bool
+	autoCopy         bool
+	copyFlagDisabled bool
 }
 
 // newCopyScheduleConfig returns a copy-policy-items schedule with a valid daily retention.
@@ -951,12 +961,22 @@ func (c copyScheduleConfig) withAutoCopy(enabled *bool) copyScheduleConfig {
 	return c
 }
 
+// withCopyFlagDisabled emits copy_policy_items_enabled = false. It plans the module's
+// `backup_copy_region = null` shape: the flag is dropped while the copy targets stay in state.
+func (c copyScheduleConfig) withCopyFlagDisabled() copyScheduleConfig {
+	c.copyFlagDisabled = true
+	return c
+}
+
 func (c copyScheduleConfig) HCL() string {
 	copyFlags := ""
 	sourceDailyRetention := 2
 	if !c.useFrequencies {
 		copyFlags = "copy_policy_items_enabled = true"
 		sourceDailyRetention = 7
+	}
+	if c.copyFlagDisabled {
+		copyFlags = "copy_policy_items_enabled = false"
 	}
 	updateFlag := ""
 	if c.updateCopy {
