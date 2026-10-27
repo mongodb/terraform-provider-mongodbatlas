@@ -45,6 +45,16 @@ func TestHandleImport(t *testing.T) {
 			},
 		},
 		{
+			name:         "Last attribute contains separators",
+			importID:     "5c9d0a239ccf643e6a35ddasdf/$external/arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user",
+			idAttributes: []string{"project_id", "auth_database_name", "username"},
+			expectedAttrs: map[string]string{
+				"project_id":         "5c9d0a239ccf643e6a35ddasdf",
+				"auth_database_name": "$external",
+				"username":           "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user",
+			},
+		},
+		{
 			name:          "Error: Wrong number of attributes",
 			importID:      "5c9d0a239ccf643e6a35ddasdf/myCluster",
 			idAttributes:  []string{"project_id", "cluster_name", "region"},

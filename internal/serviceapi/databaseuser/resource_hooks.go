@@ -3,8 +3,6 @@ package databaseuser
 import (
 	"context"
 	"encoding/json"
-	"regexp"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -44,26 +42,6 @@ type TFExpandedModel struct {
 var _ autogen.ResourceSchemaHook = (*rs)(nil)
 var _ autogen.PostReadAPICallHook = (*rs)(nil)
 var _ autogen.PostCreateAPICallHook = (*rs)(nil)
-var _ autogen.PreImportHook = (*rs)(nil)
-
-// PreImport restores the manual resource's dual import format. The generated import
-// splits on "/" expecting exactly project_id/auth_database_name/username, which cannot
-// carry usernames containing "/" (AWS IAM ARNs, OIDC principal ids): no valid flat ID
-// exists for them in slash format. The manual dash format (project_id-username-auth_database_name)
-// is unambiguous for those (the project id anchors the head, the auth database is the last
-// dash segment), so it is kept ONLY for such usernames and converted to the slash order here.
-func (r *rs) PreImport(id string) (string, error) {
-	if len(strings.Split(id, "/")) == 3 {
-		return id, nil
-	}
-	parts := dashImportIDRegex.FindStringSubmatch(id)
-	if parts == nil {
-		return id, nil // not the dash format either: ProcessImportID reports the standard error
-	}
-	return parts[1] + "/" + parts[3] + "/" + parts[2], nil
-}
-
-var dashImportIDRegex = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([a-z$]{1,15})$`)
 
 func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schema.Schema {
 	if passwordAttr, ok := baseSchema.Attributes["password"].(schema.StringAttribute); ok {

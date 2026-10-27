@@ -6,7 +6,6 @@ import (
 	"os"
 	"regexp"
 	"slices"
-	"strings"
 	"testing"
 
 	"maps"
@@ -676,11 +675,8 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		// Autogen import order: project_id/auth_database_name/username (path param order).
-		// Usernames containing "/" (AWS IAM ARNs, OIDC principals) cannot ride the slash
-		// format: they use the manual dash format, which the PreImport hook converts.
-		if strings.Contains(ids["username"], "/") {
-			return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["username"], ids["auth_database_name"]), nil
-		}
+		// Usernames may contain "/" (AWS IAM ARNs, OIDC principals): the import's
+		// SplitN assigns the remainder to the last attribute.
 		return fmt.Sprintf("%s/%s/%s", ids["project_id"], ids["auth_database_name"], ids["username"]), nil
 	}
 }
