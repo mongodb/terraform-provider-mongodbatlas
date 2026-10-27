@@ -8,6 +8,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * data-source/mongodbatlas_advanced_clusters: Fixes `results` returning `null` instead of the project's clusters, and fails the read instead of returning `null` when the cluster list cannot be retrieved ([#4817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4817))
+* resource/mongodbatlas_cloud_backup_schedule: Fixes a plan-time error when removing every `copy_settings` entry, by validating `copy_policy_items` and `last_number_of_snapshots` from config instead of state ([#4842](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4842))
 
 ## 2.20.1 (October 19, 2026)
 
