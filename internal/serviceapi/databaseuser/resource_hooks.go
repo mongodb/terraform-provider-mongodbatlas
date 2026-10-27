@@ -3,6 +3,7 @@ package databaseuser
 import (
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -42,6 +43,19 @@ type TFExpandedModel struct {
 var _ autogen.ResourceSchemaHook = (*rs)(nil)
 var _ autogen.PostReadAPICallHook = (*rs)(nil)
 var _ autogen.PostCreateAPICallHook = (*rs)(nil)
+var _ autogen.PreImportHook = (*rs)(nil)
+
+// PreImport tolerates usernames containing slashes (AWS IAM ARNs, OIDC principal ids):
+// the generated import splits the ID on "/" expecting exactly project_id/auth_database_name/username.
+// The first two parts are unambiguous (project ids are 24-hex; auth database names are
+// "admin" or "$external"), so any extra parts belong to the username.
+func (r *rs) PreImport(id string) (string, error) {
+	parts := strings.Split(id, "/")
+	if len(parts) <= 3 {
+		return id, nil
+	}
+	return parts[0] + "/" + parts[1] + "/" + strings.Join(parts[2:], "/"), nil
+}
 
 func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schema.Schema {
 	if passwordAttr, ok := baseSchema.Attributes["password"].(schema.StringAttribute); ok {

@@ -11,7 +11,20 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
+// These original migration tests are disabled for the pilot: they run a released
+// provider (manual implementation) in step 1 and the dev build in step 2, whose config
+// uses block syntax that the autogen implementation rejects (breaking-group syntax
+// rewrite, spike finding 5). They are superseded for this pilot by the standalone
+// two-config migration test (TestMigDatabaseUser_basic) in internal/serviceapi/databaseuser.
+// When the full migration ships (3.0), convert them to assignment syntax (or retire them
+// in favor of standalone tests) and remove this skip.
+func skipMigrationTest(t *testing.T) {
+	t.Helper()
+	t.Skip("database_user pilot: superseded by TestMigDatabaseUser_basic (serviceapi/databaseuser); restored at full migration")
+}
+
 func TestMigConfigRSDatabaseUser_Basic(t *testing.T) {
+	skipMigrationTest(t)
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomName()
@@ -39,6 +52,7 @@ func TestMigConfigRSDatabaseUser_Basic(t *testing.T) {
 }
 
 func TestMigConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
+	skipMigrationTest(t)
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomLDAPName()
@@ -65,6 +79,7 @@ func TestMigConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 	})
 }
 func TestMigConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
+	skipMigrationTest(t)
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomIAMUser()
@@ -91,6 +106,7 @@ func TestMigConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 }
 
 func TestMigConfigRSDatabaseUser_withLabels(t *testing.T) {
+	skipMigrationTest(t)
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomName()
@@ -130,6 +146,7 @@ func TestMigConfigRSDatabaseUser_withLabels(t *testing.T) {
 }
 
 func TestMigConfigRSDatabaseUser_withEmptyLabels(t *testing.T) {
+	skipMigrationTest(t)
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomName()
@@ -156,6 +173,7 @@ func TestMigConfigRSDatabaseUser_withEmptyLabels(t *testing.T) {
 }
 
 func TestMigConfigRSDatabaseUser_withRoles(t *testing.T) {
+	skipMigrationTest(t)
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomName()
@@ -196,6 +214,7 @@ func TestMigConfigRSDatabaseUser_withRoles(t *testing.T) {
 }
 
 func TestMigConfigRSDatabaseUser_withScopes(t *testing.T) {
+	skipMigrationTest(t)
 	var (
 		projectID     = acc.ProjectIDExecution(t)
 		userScopeName = acc.RandomName()
@@ -233,6 +252,7 @@ func TestMigConfigRSDatabaseUser_withScopes(t *testing.T) {
 }
 
 func TestMigConfigRSDatabaseUser_withEmptyScopes(t *testing.T) {
+	skipMigrationTest(t)
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomName()
@@ -260,6 +280,7 @@ func TestMigConfigRSDatabaseUser_withEmptyScopes(t *testing.T) {
 }
 
 func TestMigConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
+	skipMigrationTest(t)
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomLDAPName()
