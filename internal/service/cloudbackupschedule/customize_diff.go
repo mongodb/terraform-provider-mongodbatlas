@@ -78,7 +78,7 @@ func copySettingsWithEmptyFrequencies(copySettings []any) ([]any, bool) {
 			continue
 		}
 		copied := maps.Clone(entry)
-		if collectionLen(copied["frequencies"]) > 0 {
+		if freqs, _ := copied["frequencies"].(*schema.Set); freqs != nil && freqs.Len() > 0 {
 			copied["frequencies"] = schema.NewSet(schema.HashString, []any{})
 			changed = true
 		}
@@ -147,18 +147,4 @@ func validateCopySettingsModes(d *schema.ResourceDiff) error {
 		}
 	}
 	return nil
-}
-
-func collectionLen(v any) int {
-	switch x := v.(type) {
-	case *schema.Set:
-		if x == nil {
-			return 0
-		}
-		return x.Len()
-	case []any:
-		return len(x)
-	default:
-		return 0
-	}
 }
