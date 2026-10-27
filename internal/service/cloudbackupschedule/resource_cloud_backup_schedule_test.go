@@ -544,6 +544,15 @@ func TestAccBackupRSCloudBackupSchedule_copyPolicyItems(t *testing.T) {
 				Config: configLastN.HCL(),
 				Check:  configLastN.check(),
 			},
+			// Setting the flag to false while every copy target stays in state fails the plan with the
+			// remedy: withAutoCopy(nil) is what omits copy_settings, so the entry's modes stay in state
+			// (copy_settings is Optional+Computed), and Atlas rejects disabling copy-policy items
+			// one-way. Plan-only because the apply would hit the same rejection from the API.
+			{
+				Config:      base.withAutoCopy(nil).withCopyFlagDisabled().HCL(),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`copy_policy_items_enabled cannot be set to false after being enabled`),
+			},
 		},
 	})
 }
@@ -893,16 +902,17 @@ func warnLocalCopyDestRegion(t *testing.T) {
 }
 
 type copyScheduleConfig struct {
-	info            *acc.ClusterInfo
-	autoCopyEnabled *bool
-	regionName      string
-	dailyRetention  int
-	lastN           int
-	includeOndemand bool
-	updateCopy      bool
-	deleteCopy      bool
-	useFrequencies  bool
-	autoCopy        bool
+	info             *acc.ClusterInfo
+	autoCopyEnabled  *bool
+	regionName       string
+	dailyRetention   int
+	lastN            int
+	includeOndemand  bool
+	updateCopy       bool
+	deleteCopy       bool
+	useFrequencies   bool
+	autoCopy         bool
+	copyFlagDisabled bool
 }
 
 // newCopyScheduleConfig returns a copy-policy-items schedule with a valid daily retention.
@@ -951,12 +961,23 @@ func (c copyScheduleConfig) withAutoCopy(enabled *bool) copyScheduleConfig {
 	return c
 }
 
+// withCopyFlagDisabled emits copy_policy_items_enabled = false. It reproduces the reported
+// scenario: the flag goes false while the copy targets stay in state. With withAutoCopy(nil),
+// the equivalent of a root module setting backup_copy_region = null, copy_settings is omitted.
+func (c copyScheduleConfig) withCopyFlagDisabled() copyScheduleConfig {
+	c.copyFlagDisabled = true
+	return c
+}
+
 func (c copyScheduleConfig) HCL() string {
 	copyFlags := ""
 	sourceDailyRetention := 2
 	if !c.useFrequencies {
 		copyFlags = "copy_policy_items_enabled = true"
 		sourceDailyRetention = 7
+	}
+	if c.copyFlagDisabled {
+		copyFlags = "copy_policy_items_enabled = false"
 	}
 	updateFlag := ""
 	if c.updateCopy {

@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_cloud_backup_schedule: Fixes a plan-time error when removing every `copy_settings` entry, by validating `copy_policy_items` and `last_number_of_snapshots` from config instead of state
+```
