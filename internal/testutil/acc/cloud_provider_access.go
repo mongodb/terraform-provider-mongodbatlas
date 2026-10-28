@@ -53,6 +53,7 @@ func ConfigAzureStorageResources(prefix, resourceGroupName, storageAccountName, 
 			name     = %[2]q
 			location = "East US 2"
 %[6]s
+%[7]s
 		}
 
 		resource "azurerm_storage_account" "%[1]s_storage" {
@@ -74,5 +75,13 @@ func ConfigAzureStorageResources(prefix, resourceGroupName, storageAccountName, 
 			role_definition_name = "Storage Blob Data Contributor"
 			principal_id         = %[5]q
 		}
-	`, prefix, resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID, ConfigTags("\t\t\t"))
+	`, prefix, resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID, ConfigTags("\t\t\t"), ConfigAzureResourceGroupLifecycle("\t\t\t"))
+}
+
+// ConfigAzureResourceGroupLifecycle ignores the isleakeditem tag that the Atlas leaked-item detector adds to resource groups
+// without an Atlas group ID tag. The tag can be added while the test runs and would otherwise make the refresh plan non-empty.
+func ConfigAzureResourceGroupLifecycle(indent string) string {
+	return fmt.Sprintf(`%[1]slifecycle {
+%[1]s	ignore_changes = [tags["isleakeditem"]]
+%[1]s}`, indent)
 }
