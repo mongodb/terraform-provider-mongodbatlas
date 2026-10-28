@@ -140,7 +140,7 @@ resource "mongodbatlas_database_user" "test" {
 
 
 ### Further Examples
-- [Database User](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.20.1/examples/mongodbatlas_database_user)
+- [Database User](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.21.0/examples/mongodbatlas_database_user)
 
 
 ## Argument Reference

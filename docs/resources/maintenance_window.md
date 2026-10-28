@@ -77,7 +77,7 @@ Use `wave_assignment` to assign the project to a maintenance wave. You can set `
 ```
 
 ### Further Examples
-- [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.20.1/examples/mongodbatlas_maintenance_window)
+- [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.21.0/examples/mongodbatlas_maintenance_window)
 
 ## Argument Reference
 
