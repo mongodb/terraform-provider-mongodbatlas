@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.21.0 (October 28, 2026)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_cloud_backup_schedule: Adds `auto_copy_settings_enabled` attribute ([#4818](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4818))
