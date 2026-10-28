@@ -1653,3 +1653,82 @@ func TestStreamConnectionKafkaAuthAWSTypedNull(t *testing.T) {
 	require.NotNil(t, sdkReq.Authentication)
 	assert.Nil(t, sdkReq.Authentication.Aws, "authentication.aws should be omitted when not configured")
 }
+
+func TestStreamConnectionUpdateReqWriteOnlySecrets(t *testing.T) {
+	const (
+		databricksClientID = "databricks-client-id"
+		databricksSecret   = "databricks-secret"
+		snowflakeAccount   = "myorg-myaccount"
+		snowflakeUser      = "svc-user"
+		snowflakeRole      = "ADMIN"
+		snowflakeKey       = "snowflake-private-key"
+	)
+	databricksPlan := &streamconnection.TFStreamConnectionModel{Databricks: tfDatabricksObject(t, databricksClientID, databricksSecret, 2)}
+	snowflakePlan := &streamconnection.TFStreamConnectionModel{Snowflake: tfSnowflakeObject(t, snowflakeAccount, snowflakeUser, snowflakeRole, snowflakeKey, 2)}
+
+	testCases := []struct {
+		name        string
+		plan        *streamconnection.TFStreamConnectionModel
+		state       *streamconnection.TFStreamConnectionModel
+		wantSecret  string
+		description string
+	}{
+		{
+			name:        "Databricks secret is sent when the version changed since state",
+			plan:        databricksPlan,
+			state:       &streamconnection.TFStreamConnectionModel{Databricks: tfDatabricksStateObject(t, databricksClientID, 1)},
+			wantSecret:  databricksSecret,
+			description: "databricks",
+		},
+		{
+			name:        "Databricks secret is blank when the version is unchanged, so the stored secret is kept",
+			plan:        databricksPlan,
+			state:       &streamconnection.TFStreamConnectionModel{Databricks: tfDatabricksStateObject(t, databricksClientID, 2)},
+			wantSecret:  "",
+			description: "databricks",
+		},
+		{
+			name:        "Databricks secret is sent when state has no version yet (import)",
+			plan:        databricksPlan,
+			state:       &streamconnection.TFStreamConnectionModel{},
+			wantSecret:  databricksSecret,
+			description: "databricks",
+		},
+		{
+			name:        "Snowflake key is sent when the version changed since state",
+			plan:        snowflakePlan,
+			state:       &streamconnection.TFStreamConnectionModel{Snowflake: tfSnowflakeStateObject(t, snowflakeAccount, snowflakeUser, snowflakeRole, 1)},
+			wantSecret:  snowflakeKey,
+			description: "snowflake",
+		},
+		{
+			name:        "Snowflake key is blank when the version is unchanged, so the stored key is kept",
+			plan:        snowflakePlan,
+			state:       &streamconnection.TFStreamConnectionModel{Snowflake: tfSnowflakeStateObject(t, snowflakeAccount, snowflakeUser, snowflakeRole, 2)},
+			wantSecret:  "",
+			description: "snowflake",
+		},
+		{
+			name:        "Snowflake key is sent when state has no version yet (import)",
+			plan:        snowflakePlan,
+			state:       &streamconnection.TFStreamConnectionModel{},
+			wantSecret:  snowflakeKey,
+			description: "snowflake",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			req, diags := streamconnection.NewStreamConnectionUpdateReq(t.Context(), tc.plan, tc.state)
+			require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+			switch tc.description {
+			case "databricks":
+				require.NotNil(t, req.Databricks)
+				assert.Equal(t, tc.wantSecret, req.Databricks.Authentication.ClientSecret)
+			case "snowflake":
+				require.NotNil(t, req.Snowflake)
+				assert.Equal(t, tc.wantSecret, req.Snowflake.Authentication.PrivateKey)
+			}
+		})
+	}
+}

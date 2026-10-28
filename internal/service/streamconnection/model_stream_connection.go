@@ -218,10 +218,21 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 	return &streamConnection, nil
 }
 
-func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
+// NewStreamConnectionUpdateReq builds the update request. The state is compared against the
+// plan for the write-only Data Catalog secrets: they are only sent when their rotation version
+// changed since state, because the API keeps the stored secret when the field is blank. This
+// avoids overwriting a secret rotated out-of-band when only an unrelated attribute changes.
+func NewStreamConnectionUpdateReq(ctx context.Context, plan, state *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
 	streamConnection, diags := NewStreamConnectionReq(ctx, plan)
 	if diags.HasError() {
 		return nil, diags
+	}
+
+	if streamConnection.Databricks != nil && !databricksSecretRotated(ctx, state.Databricks, plan.Databricks) {
+		streamConnection.Databricks.Authentication.ClientSecret = ""
+	}
+	if streamConnection.Snowflake != nil && !snowflakeSecretRotated(ctx, state.Snowflake, plan.Snowflake) {
+		streamConnection.Snowflake.Authentication.PrivateKey = ""
 	}
 
 	headersMap := make(map[string]string)
@@ -233,6 +244,69 @@ func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionM
 	}
 	streamConnection.Headers = &headersMap
 	return streamConnection, nil
+}
+
+// databricksSecretRotated reports whether the Databricks client secret should be (re)sent on
+// update: true when the rotation version changed since state or state has no version yet (e.g.
+// after import), so the first managed update always sends the configured secret.
+func databricksSecretRotated(ctx context.Context, state, plan types.Object) bool {
+	stateVersion, diags := databricksWoVersion(ctx, state)
+	if diags.HasError() || stateVersion.IsNull() {
+		return true
+	}
+	planVersion, diags := databricksWoVersion(ctx, plan)
+	if diags.HasError() {
+		return true
+	}
+	return stateVersion != planVersion
+}
+
+func snowflakeSecretRotated(ctx context.Context, state, plan types.Object) bool {
+	stateVersion, diags := snowflakeWoVersion(ctx, state)
+	if diags.HasError() || stateVersion.IsNull() {
+		return true
+	}
+	planVersion, diags := snowflakeWoVersion(ctx, plan)
+	if diags.HasError() {
+		return true
+	}
+	return stateVersion != planVersion
+}
+
+func databricksWoVersion(ctx context.Context, obj types.Object) (types.Int64, diag.Diagnostics) {
+	if obj.IsNull() || obj.IsUnknown() {
+		return types.Int64Null(), nil
+	}
+	model := &TFDatabricksModel{}
+	if diags := obj.As(ctx, model, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return types.Int64Null(), diags
+	}
+	if model.Authentication.IsNull() || model.Authentication.IsUnknown() {
+		return types.Int64Null(), nil
+	}
+	authModel := &TFDatabricksAuthenticationModel{}
+	if diags := model.Authentication.As(ctx, authModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return types.Int64Null(), diags
+	}
+	return authModel.ClientSecretWoVersion, nil
+}
+
+func snowflakeWoVersion(ctx context.Context, obj types.Object) (types.Int64, diag.Diagnostics) {
+	if obj.IsNull() || obj.IsUnknown() {
+		return types.Int64Null(), nil
+	}
+	model := &TFSnowflakeModel{}
+	if diags := obj.As(ctx, model, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return types.Int64Null(), diags
+	}
+	if model.Authentication.IsNull() || model.Authentication.IsUnknown() {
+		return types.Int64Null(), nil
+	}
+	authModel := &TFSnowflakeAuthenticationModel{}
+	if diags := model.Authentication.As(ctx, authModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return types.Int64Null(), diags
+	}
+	return authModel.PrivateKeyWoVersion, nil
 }
 
 // NewTFStreamConnection determines if the original model was created with instance_name or workspace_name and sets the appropriate field.

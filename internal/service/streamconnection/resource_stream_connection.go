@@ -384,6 +384,12 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	var streamConnectionState TFStreamConnectionModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &streamConnectionState)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	applyWriteOnlyConfig(&streamConnectionPlan, &streamConnectionConfig)
 
 	connV2 := r.Client.AtlasV2
@@ -394,7 +400,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 	connectionName := streamConnectionPlan.ConnectionName.ValueString()
-	streamConnectionReq, diags := NewStreamConnectionUpdateReq(ctx, &streamConnectionPlan)
+	streamConnectionReq, diags := NewStreamConnectionUpdateReq(ctx, &streamConnectionPlan, &streamConnectionState)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
