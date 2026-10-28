@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
@@ -1914,6 +1915,9 @@ func TestAccStreamRSStreamConnection_dataCatalogDatabricks(t *testing.T) {
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_11_0), // write-only attributes require Terraform 1.11+
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, clientSecret, 1),
@@ -1923,6 +1927,11 @@ func TestAccStreamRSStreamConnection_dataCatalogDatabricks(t *testing.T) {
 				// update: rotate the write-only client secret by bumping its version; the value is never persisted to state
 				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, "rotated-databricks-client-secret", 2),
 				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, map[string]string{"databricks.authentication.client_id": clientID}),
+			},
+			{
+				// update an unrelated attribute with an unchanged version: the secret is not resent, so the stored secret is kept
+				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, "updated-databricks-client-id", "rotated-databricks-client-secret", 2),
+				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, map[string]string{"databricks.authentication.client_id": "updated-databricks-client-id"}),
 			},
 			{
 				ResourceName:      resourceName,
@@ -1953,6 +1962,9 @@ func TestAccStreamRSStreamConnection_dataCatalogSnowflake(t *testing.T) {
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_11_0), // write-only attributes require Terraform 1.11+
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, catalogURL, account, user, role, privateKey, 1),
@@ -1960,6 +1972,15 @@ func TestAccStreamRSStreamConnection_dataCatalogSnowflake(t *testing.T) {
 					"snowflake.authentication.account": account,
 					"snowflake.authentication.user":    user,
 					"snowflake.authentication.role":    role,
+				}),
+			},
+			{
+				// update an unrelated attribute with an unchanged version: the secret is not resent, so the stored key is kept
+				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, catalogURL, account, user, "UPDATED_ROLE", privateKey, 1),
+				Check: checkDataCatalogAttributes(resourceName, instanceName, connectionName, "SNOWFLAKE_HORIZON", catalogURL, map[string]string{
+					"snowflake.authentication.account": account,
+					"snowflake.authentication.user":    user,
+					"snowflake.authentication.role":    "UPDATED_ROLE",
 				}),
 			},
 			{
