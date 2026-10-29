@@ -78,7 +78,7 @@ func RemoveProjectResources(ctx context.Context, logf func(format string, args .
 	for _, step := range steps {
 		count, err := step.run()
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("%s: %w", step.label, err)
 		}
 		if count > 0 {
 			changes = append(changes, fmt.Sprintf("removed %d %s", count, step.label))

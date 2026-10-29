@@ -72,7 +72,6 @@ func cleanupSharedResources() error {
 		changes, err := clean.RemoveProjectResources(ctx, logTeardownf, false, client, project.id)
 		if err != nil {
 			fmt.Printf("[ERROR] Project %s cleanup failed: %v\n", project.id, err)
-			fmt.Printf("[ERROR] Project %s resources after failed cleanup: %s\n", project.id, remainingProjectResources(client, project.id))
 			hasError = true
 			continue
 		}
@@ -87,7 +86,6 @@ func cleanupSharedResources() error {
 		fmt.Printf("Deleting execution project: %s, id: %s\n", project.name, project.id)
 		if err := deleteProjectUntil(ctx, client, project.id, projectDeletePollInterval); err != nil {
 			fmt.Printf("[WARN] Project deletion failed, the next cleanup run will delete it: %v\n", err)
-			fmt.Printf("[WARN] Project %s resources after failed deletion: %s\n", project.id, remainingProjectResources(client, project.id))
 		}
 	}
 	config.CloseTokenSource() // Revoke SA token when acceptance tests finish.
