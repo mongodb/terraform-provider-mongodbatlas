@@ -208,6 +208,9 @@ func GetCompleteMskConfig(projectID, clusterArn, authenticationScheme string) st
 	}`, projectID, clusterArn, authenticationScheme)
 }
 
+// GetCompleteAzureBlobStorageConfig returns Terraform config for the Azure Blob Storage private link endpoint test.
+// The resource group ignores tag changes because an automated leaked-resource detector can tag a resource group
+// while a long-running test still uses it, which would otherwise make the next plan non-empty.
 func GetCompleteAzureBlobStorageConfig(projectID, clusterName, subscriptionID, clientID, clientSecret, tenantID, resourceGroupName, storageAccountName string) string {
 	return fmt.Sprintf(`
 	%[1]s
@@ -233,6 +236,9 @@ func GetCompleteAzureBlobStorageConfig(projectID, clusterName, subscriptionID, c
 		name     = %[3]q
 		location = "East US 2"
 		%[6]s
+		lifecycle {
+			ignore_changes = [tags]
+		}
 	}
 
 	resource "azurerm_storage_account" "this" {

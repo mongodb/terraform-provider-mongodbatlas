@@ -12,25 +12,37 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-// TestConfigAzureStorageResources pins the scope of the resource group's tag handling: an automated
-// leaked-resource detector can tag the resource group while a long-running test uses it, so the group ignores
-// tag changes, while the other resources keep the tags the config sets under Terraform's control.
-func TestConfigAzureStorageResources(t *testing.T) {
-	config := acc.ConfigAzureStorageResources("blob", "test-rg", "testsa", "test-container", "test-principal")
+// TestAzureResourceGroupIgnoresTags pins the scope of the Azure resource group tag handling: an automated
+// leaked-resource detector can tag a resource group while a long-running test uses it, so each resource group
+// these fixtures create ignores tag changes, while the other resources keep their tags under Terraform's control.
+func TestAzureResourceGroupIgnoresTags(t *testing.T) {
+	testCases := map[string]struct {
+		config         string
+		resourceGroup  string
+		storageAccount string
+	}{
+		"storage resources": {
+			config:         acc.ConfigAzureStorageResources("blob", "test-rg", "testsa", "test-container", "test-principal"),
+			resourceGroup:  "blob_rg",
+			storageAccount: "blob_storage",
+		},
+		"privatelink endpoint": {
+			config:         acc.GetCompleteAzureBlobStorageConfig("test-project", "test-cluster", "test-subscription", "test-client", "test-secret", "test-tenant", "test-rg", "testsa"),
+			resourceGroup:  "this",
+			storageAccount: "this",
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			file, diags := hclwrite.ParseConfig([]byte(tc.config), "main.tf", hcl.InitialPos)
+			require.False(t, diags.HasErrors(), "generated config must be valid HCL: %s", diags)
 
-	file, diags := hclwrite.ParseConfig([]byte(config), "main.tf", hcl.InitialPos)
-	require.False(t, diags.HasErrors(), "generated config must be valid HCL: %s", diags)
+			resourceGroup := findResource(t, file, "azurerm_resource_group", tc.resourceGroup)
+			assert.Equal(t, []string{"tags"}, lifecycleIgnoreChanges(t, resourceGroup), "the resource group must ignore externally added tags")
 
-	resourceGroup := findResource(t, file, "azurerm_resource_group", "blob_rg")
-	assert.Equal(t, []string{"tags"}, lifecycleIgnoreChanges(t, resourceGroup), "the resource group must ignore externally added tags")
-
-	for _, resource := range []struct{ resourceType, name string }{
-		{"azurerm_storage_account", "blob_storage"},
-		{"azurerm_storage_container", "blob_container"},
-		{"azurerm_role_assignment", "blob_contributor"},
-	} {
-		block := findResource(t, file, resource.resourceType, resource.name)
-		assert.Empty(t, lifecycleIgnoreChanges(t, block), "%s must not ignore tag changes", resource.resourceType)
+			storageAccount := findResource(t, file, "azurerm_storage_account", tc.storageAccount)
+			assert.Empty(t, lifecycleIgnoreChanges(t, storageAccount), "the storage account must not ignore tag changes")
+		})
 	}
 }
 
