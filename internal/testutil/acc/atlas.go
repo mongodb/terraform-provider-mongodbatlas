@@ -37,25 +37,19 @@ func createProject(tb testing.TB, name string) string {
 const (
 	teardownDeleteWait        = 30 * time.Minute
 	projectDeletePollInterval = 30 * time.Second
-	retryLogEvery             = 10 // attempts, so a long wait logs about every 5 minutes
 )
 
 // deleteProjectUntil retries the project deletion while dependent resources are still terminating, until it succeeds
-// or ctx is done. Any other error is returned immediately because waiting would not change it. The retry is logged
-// on the first attempt and then every retryLogEvery attempts, so a project that takes minutes to become deletable
-// does not fill the log with identical lines.
+// or ctx is done. Any other error is returned immediately because waiting would not change it. The retries stay
+// silent because nobody follows the log in real time, and the caller reports the outcome.
 func deleteProjectUntil(ctx context.Context, client *admin.APIClient, projectID string, pollInterval time.Duration) error {
-	for attempt := 1; ; attempt++ {
+	for {
 		err := clean.DeleteProject(ctx, client, projectID)
-		code := clean.ProjectDeleteRetryCode(err)
-		if code == "" {
+		if clean.ProjectDeleteRetryCode(err) == "" {
 			if err != nil {
 				return fmt.Errorf("project deletion failed: %s, error: %w", projectID, err)
 			}
 			return nil
-		}
-		if attempt == 1 || attempt%retryLogEvery == 0 {
-			fmt.Printf("[WARN] Project %s still has resources (%s), retrying deletion in %s\n", projectID, code, pollInterval)
 		}
 		select {
 		case <-ctx.Done():
