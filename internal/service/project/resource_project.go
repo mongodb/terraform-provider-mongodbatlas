@@ -410,33 +410,33 @@ type PropsParams struct {
 func GetProjectPropsFromAPI(ctx context.Context, params *PropsParams) (*AdditionalProperties, error) {
 	teams, _, err := params.TeamsAPI.ListGroupTeams(ctx, params.ProjectID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's teams assigned (%s): %v", params.ProjectID, err.Error())
+		return nil, fmt.Errorf("error getting project's teams assigned (%s): %w", params.ProjectID, err)
 	}
 
 	limits, _, err := params.ProjectsAPI.ListGroupLimits(ctx, params.ProjectID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's limits (%s): %s", params.ProjectID, err.Error())
+		return nil, fmt.Errorf("error getting project's limits (%s): %w", params.ProjectID, err)
 	}
 
 	projectSettings, _, err := params.ProjectsAPI.GetGroupSettings(ctx, params.ProjectID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's settings assigned (%s): %v", params.ProjectID, err.Error())
+		return nil, fmt.Errorf("error getting project's settings assigned (%s): %w", params.ProjectID, err)
 	}
 
 	ipAddresses, _, err := params.ProjectsAPI.GetGroupIpAddresses(ctx, params.ProjectID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's IP addresses (%s): %v", params.ProjectID, err.Error())
+		return nil, fmt.Errorf("error getting project's IP addresses (%s): %w", params.ProjectID, err)
 	}
 	isSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(ctx, params.PerformanceAdvisorAPI, params.ProjectID)
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's slow operation thresholding enabled (%s): %v", params.ProjectID, err.Error())
+		return nil, fmt.Errorf("error getting project's slow operation thresholding enabled (%s): %w", params.ProjectID, err)
 	}
 
 	var users []admin.GroupUserResponse
 	if params.IsDataSource {
 		users, err = ListAllProjectUsers(ctx, params.ProjectID, params.MongoDBCloudUsersAPI)
 		if err != nil {
-			return nil, fmt.Errorf("error getting project's users (%s): %v", params.ProjectID, err.Error())
+			return nil, fmt.Errorf("error getting project's users (%s): %w", params.ProjectID, err)
 		}
 	}
 	return &AdditionalProperties{
