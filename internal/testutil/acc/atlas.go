@@ -48,8 +48,11 @@ func deleteProject(id string) error {
 // had already removed the cluster by the time the project was listed.
 // Flex clusters need their own request: the Clusters API does not return clusters created through the Flex Clusters API.
 func remainingProjectResources(client *admin.APIClient, projectID string) string {
+	// The HTTP client has no request timeout, so a shared deadline keeps these best-effort requests from blocking the rest of the cleanup.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
 	resources := []string{}
-	clusters, _, err := client.ClustersAPI.ListClusters(context.Background(), projectID).Execute()
+	clusters, _, err := client.ClustersAPI.ListClusters(ctx, projectID).Execute()
 	if err != nil {
 		resources = append(resources, "clusters could not be listed: "+err.Error())
 	} else {
@@ -58,7 +61,7 @@ func remainingProjectResources(client *admin.APIClient, projectID string) string
 			resources = append(resources, fmt.Sprintf("cluster %s (state %s)", results[i].GetName(), results[i].GetStateName()))
 		}
 	}
-	flexClusters, _, err := client.FlexClustersAPI.ListFlexClusters(context.Background(), projectID).Execute()
+	flexClusters, _, err := client.FlexClustersAPI.ListFlexClusters(ctx, projectID).Execute()
 	if err != nil {
 		resources = append(resources, "flex clusters could not be listed: "+err.Error())
 	} else {
