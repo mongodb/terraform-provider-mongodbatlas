@@ -50,15 +50,15 @@ func Run(m *testing.M) (code int) {
 	return exitCode
 }
 
-// logTeardownf prefixes shared-resource cleanup progress so it stands out from the test output around it.
+// logTeardownf prefixes shared-resource cleanup progress with [INFO] so it stands out from the test output around it.
 func logTeardownf(format string, args ...any) {
-	fmt.Println("[WARN]", fmt.Sprintf(format, args...))
+	fmt.Println("[INFO]", fmt.Sprintf(format, args...))
 }
 
 func cleanupSharedResources() error {
 	hasError := deleteLocalProjectSharedResources()
 	// The deadline bounds both the wait for terminating resources and every request, since the HTTP client has no
-	// request timeout. The diagnostics use their own deadline so they still run after this one passes.
+	// request timeout.
 	ctx, cancel := context.WithTimeout(context.Background(), teardownDeleteWait)
 	defer cancel()
 	client := ConnV2()

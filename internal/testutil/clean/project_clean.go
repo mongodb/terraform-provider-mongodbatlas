@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
@@ -126,7 +127,7 @@ func removeClusters(ctx context.Context, logf func(string, ...any), dryRun bool,
 }
 
 // removeFlexClusters deletes the flex clusters, which the Clusters API list does not return when they were created
-// through the Flex Clusters API. A flex cluster that is already gone is not an error.
+// through the Flex Clusters API. A flex cluster that is already gone, or already being deleted, is not an error.
 func removeFlexClusters(ctx context.Context, logf func(string, ...any), dryRun bool, client *admin.APIClient, projectID string) (int, error) {
 	flexClusters, resp, err := client.FlexClustersAPI.ListFlexClusters(ctx, projectID).ItemsPerPage(itemsPerPage).Execute()
 	if err != nil {
@@ -135,6 +136,10 @@ func removeFlexClusters(ctx context.Context, logf func(string, ...any), dryRun b
 	results := flexClusters.GetResults()
 	for i := range results {
 		name := results[i].GetName()
+		if results[i].GetStateName() == retrystrategy.RetryStrategyDeletingState {
+			logf("flex cluster %s is already being deleted, the project deletion waits for it", name)
+			continue
+		}
 		logf("delete flex cluster %s", name)
 		if !dryRun {
 			if resp, err := client.FlexClustersAPI.DeleteFlexCluster(ctx, projectID, name).Execute(); err != nil && !validate.StatusNotFound(resp) {
