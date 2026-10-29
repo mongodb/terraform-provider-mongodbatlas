@@ -30,18 +30,13 @@ func createProject(tb testing.TB, name string) string {
 	return id
 }
 
-// teardownDeleteWait bounds how long the teardown waits, in total, for the resources it requested for deletion, so a
-// project whose resources terminate quickly is deleted in the same run and one that does not is left to the next
-// cleanup run. The budget is shared by every project: the teardown requests the deletions of all projects' resources
-// before it deletes the first project, so they terminate concurrently.
+// All teardown requests and deletion waits share this budget.
 const (
 	teardownDeleteWait        = 30 * time.Minute
 	projectDeletePollInterval = 30 * time.Second
 )
 
-// deleteProjectUntil retries the project deletion while dependent resources are still terminating, until it succeeds
-// or ctx is done. Any other error is returned immediately because waiting would not change it. The retries stay
-// silent because nobody follows the log in real time, and the caller reports the outcome.
+// deleteProjectUntil retries only while dependent resources are terminating. The caller logs the final outcome.
 func deleteProjectUntil(ctx context.Context, client *admin.APIClient, projectID string, pollInterval time.Duration) error {
 	for {
 		err := clean.DeleteProject(ctx, client, projectID)
@@ -79,7 +74,7 @@ func createCluster(tb testing.TB, projectID, name string, backupEnabled, pitEnab
 			return err
 		},
 		delete: func() error {
-			return deleteCluster(projectID, name)
+			return deleteCluster(context.Background(), ConnV2(), projectID, name)
 		},
 	}
 	require.NoError(tb, createClusterWithRegionFallback(tb, DefaultRegions(), fns), "Cluster creation failed: %s", name)
@@ -139,13 +134,13 @@ func isOutOfCapacityError(err error) bool {
 	return err != nil && (admin.IsErrorCode(err, "OUT_OF_CAPACITY") || strings.Contains(err.Error(), "OUT_OF_CAPACITY"))
 }
 
-func deleteCluster(projectID, name string) error {
-	_, err := ConnV2().ClustersAPI.DeleteCluster(context.Background(), projectID, name).Execute()
+func deleteCluster(ctx context.Context, client *admin.APIClient, projectID, name string) error {
+	_, err := client.ClustersAPI.DeleteCluster(ctx, projectID, name).Execute()
 	if err != nil {
 		return fmt.Errorf("cluster deletion failed: %s %s, error: %w", projectID, name, err)
 	}
-	stateConf := cluster.DeleteStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
-	_, err = stateConf.WaitForStateContext(context.Background())
+	stateConf := cluster.DeleteStateChangeConfig(ctx, client, projectID, name, 1*time.Hour)
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return fmt.Errorf("cluster deletion failed: %s %s, error: %w", projectID, name, err)
 	}

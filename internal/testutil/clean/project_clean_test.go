@@ -17,42 +17,18 @@ import (
 
 const projectID = "6ad95b900c3871ac99ea9ca7"
 
-func noLog(string, ...any) {}
-
-// TestRemoveProjectResourcesFailure covers how a failed step is reported: the error names the step, so the teardown
-// failure says what blocked the cleanup, and a transient 401 still matches ErrUnauthorized so the org cleanup skips
-// the project. No later step runs after a failure.
 func TestRemoveProjectResourcesFailure(t *testing.T) {
-	testCases := map[string]struct {
-		listErr          error
-		resp             *http.Response
-		wantErr          string
-		wantUnauthorized bool
-	}{
-		"names the failed step": {
-			listErr: errors.New("boom"),
-			wantErr: "clusters: boom",
-		},
-		"keeps unauthorized detectable": {
-			resp:             &http.Response{StatusCode: http.StatusUnauthorized},
-			listErr:          errors.New("unauthorized"),
-			wantErr:          "clusters: " + clean.ErrUnauthorized.Error(),
-			wantUnauthorized: true,
-		},
-	}
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			clustersAPI := mockadmin.NewClustersAPI(t)
-			clustersAPI.EXPECT().ListClusters(mock.Anything, projectID).Return(admin.ListClustersApiRequest{ApiService: clustersAPI}).Once()
-			clustersAPI.EXPECT().ListClustersExecute(mock.Anything).Return(nil, tc.resp, tc.listErr).Once()
+	clustersAPI := mockadmin.NewClustersAPI(t)
+	clustersAPI.EXPECT().ListClusters(mock.Anything, projectID).Return(admin.ListClustersApiRequest{ApiService: clustersAPI}).Once()
+	clustersAPI.EXPECT().ListClustersExecute(mock.Anything).
+		Return(nil, &http.Response{StatusCode: http.StatusUnauthorized}, errors.New("unauthorized")).Once()
 
-			client := &admin.APIClient{ClustersAPI: clustersAPI}
-			changes, err := clean.RemoveProjectResources(t.Context(), noLog, false, client, projectID)
-			require.EqualError(t, err, tc.wantErr)
-			assert.Empty(t, changes)
-			assert.Equal(t, tc.wantUnauthorized, errors.Is(err, clean.ErrUnauthorized))
-		})
-	}
+	// Leaving later APIs unset verifies that cleanup stops at the failed step.
+	client := &admin.APIClient{ClustersAPI: clustersAPI}
+	changes, err := clean.RemoveProjectResources(t.Context(), t.Logf, false, client, projectID)
+	require.ErrorContains(t, err, "clusters:")
+	require.ErrorIs(t, err, clean.ErrUnauthorized)
+	assert.Empty(t, changes)
 }
 
 // TestRemoveFlexClusters covers the flex clusters step, needed because the Clusters API list does not return them.
@@ -61,41 +37,40 @@ func TestRemoveFlexClusters(t *testing.T) {
 		deleteErr   error
 		deleteResp  *http.Response
 		wantErr     string
-		wantCount   int
+		firstState  string
 		wantDeletes int
-		deleting    bool // when true, the first flex cluster is already being deleted
 		dryRun      bool
 	}{
 		"deletes every flex cluster": {
-			wantCount:   2,
+			firstState:  retrystrategy.RetryStrategyIdleState,
 			wantDeletes: 2,
 		},
 		"a flex cluster already gone is not an error": {
 			deleteResp:  &http.Response{StatusCode: http.StatusNotFound},
 			deleteErr:   errors.New("not found"),
-			wantCount:   2,
+			firstState:  retrystrategy.RetryStrategyIdleState,
 			wantDeletes: 2,
 		},
 		"returns other delete errors": {
 			deleteResp:  &http.Response{StatusCode: http.StatusInternalServerError},
 			deleteErr:   errors.New("boom"),
 			wantErr:     "boom",
+			firstState:  retrystrategy.RetryStrategyIdleState,
 			wantDeletes: 1,
 		},
 		"a flex cluster already being deleted is left alone": {
-			deleting:    true,
-			wantCount:   2,
+			firstState:  retrystrategy.RetryStrategyDeletingState,
 			wantDeletes: 1,
 		},
 		"dry run only counts them": {
-			dryRun:    true,
-			wantCount: 2,
+			firstState: retrystrategy.RetryStrategyIdleState,
+			dryRun:     true,
 		},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			flexClusters := admin.NewPaginatedFlexClusters20241113([]admin.FlexClusterDescription20241113{
-				{Name: new("flex-1"), StateName: new(stateName(tc.deleting))},
+				{Name: new("flex-1"), StateName: new(tc.firstState)},
 				{Name: new("flex-2"), StateName: new(retrystrategy.RetryStrategyIdleState)},
 			})
 			flexClustersAPI := mockadmin.NewFlexClustersAPI(t)
@@ -107,20 +82,79 @@ func TestRemoveFlexClusters(t *testing.T) {
 			}
 
 			client := &admin.APIClient{FlexClustersAPI: flexClustersAPI}
-			count, err := clean.RemoveFlexClusters(t.Context(), noLog, tc.dryRun, client, projectID)
+			count, err := clean.RemoveFlexClusters(t.Context(), t.Logf, tc.dryRun, client, projectID)
 			if tc.wantErr != "" {
 				require.EqualError(t, err, tc.wantErr)
 				return
 			}
 			require.NoError(t, err)
-			assert.Equal(t, tc.wantCount, count)
+			assert.Equal(t, 2, count)
 		})
 	}
 }
 
-func stateName(deleting bool) string {
-	if deleting {
-		return retrystrategy.RetryStrategyDeletingState
+func TestRemoveFederatedDatabasesIncompleteDeletion(t *testing.T) {
+	apiErr := apiError(http.StatusNotFound, "DATA_FEDERATION_TENANT_NOT_FOUND_FOR_ID")
+	dataFederationAPI := mockadmin.NewDataFederationAPI(t)
+	dataFederationAPI.EXPECT().ListDataFederation(mock.Anything, projectID).Return(admin.ListDataFederationApiRequest{ApiService: dataFederationAPI}).Once()
+	dataFederationAPI.EXPECT().ListDataFederationExecute(mock.Anything).Return(nil, nil, apiErr).Once()
+
+	client := &admin.APIClient{DataFederationAPI: dataFederationAPI}
+	count, err := clean.RemoveFederatedDatabases(t.Context(), t.Logf, false, client, projectID)
+	require.ErrorContains(t, err, "requires manual cleanup")
+	require.ErrorIs(t, err, apiErr)
+	assert.Zero(t, count)
+}
+
+func TestRemoveClustersDeletionRace(t *testing.T) {
+	testCases := map[string]struct {
+		deleteErr  error
+		deleteResp *http.Response
+		wantErr    bool
+	}{
+		"already deleted HTTP response": {
+			deleteErr:  errors.New("not found"),
+			deleteResp: &http.Response{StatusCode: http.StatusNotFound},
+		},
+		"already deleted API error": {
+			deleteErr: apiError(http.StatusNotFound, "CLUSTER_NOT_FOUND"),
+		},
+		"other deletion errors still fail": {
+			deleteErr: errors.New("boom"),
+			wantErr:   true,
+		},
 	}
-	return retrystrategy.RetryStrategyIdleState
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			clustersAPI := mockadmin.NewClustersAPI(t)
+			clusters := &admin.PaginatedClusterDescription20240805{Results: []admin.ClusterDescription20240805{
+				{Name: new("finishing-deletion"), StateName: new(retrystrategy.RetryStrategyDeletingState)},
+				{Name: new("remaining-cluster"), StateName: new(retrystrategy.RetryStrategyIdleState)},
+			}}
+			clustersAPI.EXPECT().ListClusters(mock.Anything, projectID).Return(admin.ListClustersApiRequest{ApiService: clustersAPI}).Once()
+			clustersAPI.EXPECT().ListClustersExecute(mock.Anything).Return(clusters, nil, nil).Once()
+			clustersAPI.EXPECT().DeleteCluster(mock.Anything, projectID, "finishing-deletion").Return(admin.DeleteClusterApiRequest{ApiService: clustersAPI}).Once()
+			clustersAPI.EXPECT().DeleteClusterExecute(mock.Anything).Return(tc.deleteResp, tc.deleteErr).Once()
+			if !tc.wantErr {
+				clustersAPI.EXPECT().DeleteCluster(mock.Anything, projectID, "remaining-cluster").Return(admin.DeleteClusterApiRequest{ApiService: clustersAPI}).Once()
+				clustersAPI.EXPECT().DeleteClusterExecute(mock.Anything).Return(nil, nil).Once()
+			}
+
+			client := &admin.APIClient{ClustersAPI: clustersAPI}
+			count, err := clean.RemoveClusters(t.Context(), t.Logf, false, client, projectID)
+			if tc.wantErr {
+				require.ErrorIs(t, err, tc.deleteErr)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, 2, count)
+		})
+	}
+}
+
+func apiError(status int, code string) error {
+	err := &admin.GenericOpenAPIError{}
+	err.SetError(code)
+	err.SetModel(*admin.NewApiError(status, code))
+	return err
 }

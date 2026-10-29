@@ -50,12 +50,8 @@ func DeleteProject(ctx context.Context, client *admin.APIClient, projectID strin
 	return err
 }
 
-// RemoveProjectResources deletes the resources that block a project deletion: clusters, flex clusters, network
-// peerings, federated databases and private endpoints, stream instances and private link connections, private
-// endpoint services, and encryption at rest private endpoints. It stops at the first step that fails and returns what
-// it removed. It only requests the deletions, so callers retry the project deletion while the resources terminate.
-// Both the org cleanup job and the acceptance-test teardown use it.
-// logf receives the per-resource progress lines, so callers pass `t.Logf` in tests and a print function elsewhere.
+// RemoveProjectResources requests deletion of resources that block project deletion, stopping at the first failed
+// step. Callers retry project deletion while resources terminate; logf receives per-resource progress.
 func RemoveProjectResources(ctx context.Context, logf func(format string, args ...any), dryRun bool, client *admin.APIClient, projectID string) (string, error) {
 	steps := []struct {
 		run   func() (int, error)
@@ -101,7 +97,7 @@ func removeClusters(ctx context.Context, logf func(string, ...any), dryRun bool,
 		cName := c.GetName()
 		logf("delete cluster %s", cName)
 		if !dryRun {
-			_, err = client.ClustersAPI.DeleteCluster(ctx, projectID, cName).Execute()
+			resp, err = client.ClustersAPI.DeleteCluster(ctx, projectID, cName).Execute()
 			if admin.IsErrorCode(err, "CANNOT_TERMINATE_CLUSTER_WITH_UNDERGOING_REGIONAL_OUTAGE_SIMULATION") {
 				logf("cluster %s has ongoing region outage simulation, deleting it now", cName)
 				_, _, err = client.ClusterOutageSimulationAPI.EndOutageSimulation(ctx, projectID, cName).Execute()
@@ -109,13 +105,13 @@ func removeClusters(ctx context.Context, logf func(string, ...any), dryRun bool,
 					deleteFailures = append(deleteFailures, fmt.Sprintf("Unable to delete %s (cluster simulation stuck), might require manual action: %s", cName, err))
 					continue
 				}
-				_, err = client.ClustersAPI.DeleteCluster(ctx, projectID, cName).Execute() // Retry deletion after ending outage simulation
+				resp, err = client.ClustersAPI.DeleteCluster(ctx, projectID, cName).Execute() // Retry deletion after ending outage simulation
 			}
 			if admin.IsErrorCode(err, "CLUSTER_ALREADY_REQUESTED_DELETION") {
 				logf("cluster %s already requested deletion", cName)
 				continue
 			}
-			if err != nil {
+			if err != nil && !validate.StatusNotFound(resp) && !admin.IsErrorCode(err, "CLUSTER_NOT_FOUND") {
 				return 0, err
 			}
 		}
@@ -229,8 +225,7 @@ func removeFederatedDatabasePrivateEndpoints(ctx context.Context, logf func(stri
 func removeFederatedDatabases(ctx context.Context, logf func(string, ...any), dryRun bool, client *admin.APIClient, projectID string) (int, error) {
 	federatedResults, resp, err := client.DataFederationAPI.ListDataFederation(ctx, projectID).Execute()
 	if admin.IsErrorCode(err, "DATA_FEDERATION_TENANT_NOT_FOUND_FOR_ID") {
-		logf("no federated databases found for project %s, must delete this manually from the UI", projectID) // Deletion task was only partially successful - deleted the storage config but not the tenant config (internal slack thread)
-		return 0, nil
+		return 0, fmt.Errorf("incomplete data federation tenant deletion requires manual cleanup in the UI: %w", err)
 	}
 	if err != nil {
 		return 0, SkipUnauthorizedErr(resp, err)

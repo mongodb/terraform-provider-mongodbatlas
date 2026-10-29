@@ -12,6 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/clean"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 )
 
 const (
@@ -50,23 +51,18 @@ func Run(m *testing.M) (code int) {
 	return exitCode
 }
 
-// logTeardownf prefixes shared-resource cleanup progress with [INFO] so it stands out from the test output around it.
 func logTeardownf(format string, args ...any) {
-	fmt.Println("[INFO]", fmt.Sprintf(format, args...))
+	fmt.Printf("[INFO] "+format+"\n", args...)
 }
 
 func cleanupSharedResources() error {
-	hasError := deleteLocalProjectSharedResources()
-	// The deadline bounds both the wait for terminating resources and every request, since the HTTP client has no
-	// request timeout.
+	// The HTTP client has no request timeout, so bound both requests and deletion waits.
 	ctx, cancel := context.WithTimeout(context.Background(), teardownDeleteWait)
 	defer cancel()
 	client := ConnV2()
-	// Emptying the projects first is what makes their deletion work: a project that still has clusters, stream
-	// instances or other dependents cannot be closed, and the resources of a shared project are not tracked
-	// individually. RemoveProjectResources only requests the deletions, so every project is emptied before the first
-	// one is deleted, letting their resources terminate concurrently within the shared wait.
-	emptied := make([]projectInfo, 0, len(sharedInfo.projects))
+	hasError := deleteLocalProjectSharedResources(ctx, client, projectIDLocal(), sharedInfo.clusterName, sharedInfo.streamInstanceName)
+	// Request all resource deletions before waiting, so resources in different projects terminate concurrently.
+	emptied := make([]string, 0, len(sharedInfo.projects))
 	for i, project := range sharedInfo.projects {
 		fmt.Printf("Deleting execution project (%d): %s, id: %s\n", i+1, project.name, project.id)
 		changes, err := clean.RemoveProjectResources(ctx, logTeardownf, false, client, project.id)
@@ -78,15 +74,10 @@ func cleanupSharedResources() error {
 		if changes != "" {
 			fmt.Printf("[WARN] Project %s cleaned: %s\n", project.id, changes)
 		}
-		emptied = append(emptied, project)
+		emptied = append(emptied, project.id)
 	}
-	// A project that cannot be deleted once its resources were removed does not fail the package: the next cleanup
-	// run deletes it, so only a cleanup failure needs a human.
-	for _, project := range emptied {
-		if err := deleteProjectUntil(ctx, client, project.id, projectDeletePollInterval); err != nil {
-			fmt.Printf("[WARN] Project deletion failed, the next cleanup run will delete it: %v\n", err)
-		}
-	}
+	// Project deletion failures only warn; the next org cleanup retries them.
+	deleteExecutionProjects(ctx, client, emptied)
 	config.CloseTokenSource() // Revoke SA token when acceptance tests finish.
 	if hasError {
 		return errors.New("failed to clean up shared resources")
@@ -94,24 +85,34 @@ func cleanupSharedResources() error {
 	return nil
 }
 
-// deleteLocalProjectSharedResources deletes the shared cluster and stream instances the run created in the project
-// set by `MONGODB_ATLAS_PROJECT_ID`. That project is not emptied like the execution projects because the run did not
-// create it, so it can hold resources the developer keeps.
-func deleteLocalProjectSharedResources() (hasError bool) {
-	projectID := projectIDLocal()
+// Delete projects concurrently so one slow deletion cannot consume the shared deadline before the others start.
+func deleteExecutionProjects(ctx context.Context, client *admin.APIClient, projectIDs []string) {
+	var pending sync.WaitGroup
+	for _, projectID := range projectIDs {
+		pending.Go(func() {
+			if err := deleteProjectUntil(ctx, client, projectID, projectDeletePollInterval); err != nil {
+				fmt.Printf("[WARN] Project deletion failed, the next cleanup run will delete it: %v\n", err)
+			}
+		})
+	}
+	pending.Wait()
+}
+
+// A caller-owned project may contain unrelated resources; delete only those the run created.
+func deleteLocalProjectSharedResources(ctx context.Context, client *admin.APIClient, projectID, clusterName, streamInstanceName string) (hasError bool) {
 	if projectID == "" {
 		return false
 	}
-	if sharedInfo.clusterName != "" {
-		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", sharedInfo.clusterName, projectID)
-		if err := deleteCluster(projectID, sharedInfo.clusterName); err != nil {
+	if clusterName != "" {
+		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", clusterName, projectID)
+		if err := deleteCluster(ctx, client, projectID, clusterName); err != nil {
 			fmt.Printf("[ERROR] Cluster deletion failed: %v\n", err)
 			hasError = true
 		}
 	}
-	if sharedInfo.streamInstanceName != "" {
-		fmt.Printf("Deleting execution stream instance: %s, project id: %s\n", sharedInfo.streamInstanceName, projectID)
-		if _, err := clean.RemoveStreamInstances(context.Background(), false, ConnV2(), projectID); err != nil {
+	if streamInstanceName != "" {
+		fmt.Printf("Deleting execution stream instance: %s, project id: %s\n", streamInstanceName, projectID)
+		if err := clean.RemoveStreamInstance(ctx, client, projectID, streamInstanceName); err != nil {
 			fmt.Printf("[ERROR] Stream instance deletion failed: %v\n", err)
 			hasError = true
 		}

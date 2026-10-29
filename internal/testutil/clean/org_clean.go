@@ -32,34 +32,40 @@ func RemoveStreamInstances(ctx context.Context, dryRun bool, client *admin.APICl
 	}
 
 	for _, instance := range streamInstances.GetResults() {
-		instanceName := *instance.Name
-
 		if !dryRun {
-			_, err = client.StreamsAPI.DeleteStreamWorkspace(ctx, projectID, instanceName).Execute()
-			if err != nil && admin.IsErrorCode(err, "STREAM_TENANT_HAS_STREAM_PROCESSORS") {
-				streamProcessors, spResp, spErr := client.StreamsAPI.GetStreamProcessors(ctx, projectID, instanceName).Execute()
-				if spErr != nil {
-					return 0, SkipUnauthorizedErr(spResp, spErr)
-				}
-
-				processors := streamProcessors.GetResults()
-				for i := range processors {
-					_, err = client.StreamsAPI.DeleteStreamProcessor(ctx, projectID, instanceName, processors[i].Name).Execute()
-					if err != nil {
-						return 0, err
-					}
-				}
-
-				_, err = client.StreamsAPI.DeleteStreamWorkspace(ctx, projectID, instanceName).Execute()
-				if err != nil {
-					return 0, err
-				}
-			} else if err != nil {
+			if err := RemoveStreamInstance(ctx, client, projectID, instance.GetName()); err != nil {
 				return 0, err
 			}
 		}
 	}
 	return len(streamInstances.GetResults()), nil
+}
+
+// RemoveStreamInstance deletes one stream instance and any processors that block its deletion. An instance that is
+// already gone is not an error.
+func RemoveStreamInstance(ctx context.Context, client *admin.APIClient, projectID, instanceName string) error {
+	resp, err := client.StreamsAPI.DeleteStreamWorkspace(ctx, projectID, instanceName).Execute()
+	if err == nil || validate.StatusNotFound(resp) {
+		return nil
+	}
+	if !admin.IsErrorCode(err, "STREAM_TENANT_HAS_STREAM_PROCESSORS") {
+		return err
+	}
+	streamProcessors, resp, err := client.StreamsAPI.GetStreamProcessors(ctx, projectID, instanceName).Execute()
+	if err != nil {
+		return SkipUnauthorizedErr(resp, err)
+	}
+	processors := streamProcessors.GetResults()
+	for i := range processors {
+		if _, err := client.StreamsAPI.DeleteStreamProcessor(ctx, projectID, instanceName, processors[i].Name).Execute(); err != nil {
+			return err
+		}
+	}
+	resp, err = client.StreamsAPI.DeleteStreamWorkspace(ctx, projectID, instanceName).Execute()
+	if err != nil && !validate.StatusNotFound(resp) {
+		return err
+	}
+	return nil
 }
 
 // RemovePrivateLinkConnections deletes all Stream Processing Private Link connections in the project;

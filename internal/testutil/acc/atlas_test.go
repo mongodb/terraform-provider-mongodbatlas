@@ -178,15 +178,13 @@ func apiError(code string) error {
 	return err
 }
 
-// TestDeleteProjectUntil covers the teardown project deletion: it retries only while dependent resources are still
-// terminating, and gives up when the shared wait ends.
 func TestDeleteProjectUntil(t *testing.T) {
 	const projectID = "6ad95b900c3871ac99ea9ca7"
 	activeClusters := apiError("CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS")
 	testCases := map[string]struct {
-		wantErr string
-		errs    []error
-		timeout time.Duration
+		wantErr  string
+		errs     []error
+		canceled bool
 	}{
 		"deleted on the first attempt": {
 			errs: []error{nil},
@@ -201,20 +199,19 @@ func TestDeleteProjectUntil(t *testing.T) {
 			errs:    []error{errors.New("boom")},
 			wantErr: "project deletion failed: 6ad95b900c3871ac99ea9ca7, error: boom",
 		},
-		"gives up when the wait ends": {
-			timeout: time.Nanosecond,
-			errs:    []error{activeClusters},
-			wantErr: "gave up waiting for its resources to terminate",
+		"stops when the context is canceled": {
+			canceled: true,
+			errs:     []error{activeClusters},
+			wantErr:  "gave up waiting for its resources to terminate",
 		},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			timeout := tc.timeout
-			if timeout == 0 {
-				timeout = time.Minute
-			}
-			ctx, cancel := context.WithTimeout(t.Context(), timeout)
+			ctx, cancel := context.WithCancel(t.Context())
 			defer cancel()
+			if tc.canceled {
+				cancel()
+			}
 			projectsAPI := mockadmin.NewProjectsAPI(t)
 			projectsAPI.EXPECT().DeleteGroup(mock.Anything, projectID).Return(admin.DeleteGroupApiRequest{ApiService: projectsAPI}).Times(len(tc.errs))
 			for _, err := range tc.errs {
