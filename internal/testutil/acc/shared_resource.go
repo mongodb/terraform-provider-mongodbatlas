@@ -68,7 +68,7 @@ func cleanupSharedResources() error {
 	// one is deleted, letting their resources terminate concurrently within the shared wait.
 	emptied := make([]projectInfo, 0, len(sharedInfo.projects))
 	for i, project := range sharedInfo.projects {
-		fmt.Printf("Cleaning execution project (%d): %s, id: %s\n", i+1, project.name, project.id)
+		fmt.Printf("Deleting execution project (%d): %s, id: %s\n", i+1, project.name, project.id)
 		changes, err := clean.RemoveProjectResources(ctx, logTeardownf, false, client, project.id)
 		if err != nil {
 			fmt.Printf("[ERROR] Project %s cleanup failed: %v\n", project.id, err)
@@ -83,7 +83,6 @@ func cleanupSharedResources() error {
 	// A project that cannot be deleted once its resources were removed does not fail the package: the next cleanup
 	// run deletes it, so only a cleanup failure needs a human.
 	for _, project := range emptied {
-		fmt.Printf("Deleting execution project: %s, id: %s\n", project.name, project.id)
 		if err := deleteProjectUntil(ctx, client, project.id, projectDeletePollInterval); err != nil {
 			fmt.Printf("[WARN] Project deletion failed, the next cleanup run will delete it: %v\n", err)
 		}
