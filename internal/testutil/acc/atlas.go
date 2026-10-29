@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/clean"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 )
@@ -29,17 +30,34 @@ func createProject(tb testing.TB, name string) string {
 	return id
 }
 
-func deleteProject(id string) error {
-	_, err := ConnV2().ProjectsAPI.DeleteGroup(context.Background(), id).Execute()
-	if admin.IsErrorCode(err, "CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS") {
-		fmt.Printf("Project deletion failed will retry in 30s: %s, error: %s", id, err)
-		time.Sleep(30 * time.Second)
-		_, err = ConnV2().ProjectsAPI.DeleteGroup(context.Background(), id).Execute()
+// teardownDeleteWait bounds how long the teardown waits, in total, for the resources it requested for deletion, so a
+// project whose resources terminate quickly is deleted in the same run and one that does not is left to the next
+// cleanup run. The budget is shared by every project: the teardown requests the deletions of all projects' resources
+// before it deletes the first project, so they terminate concurrently.
+const (
+	teardownDeleteWait        = 30 * time.Minute
+	projectDeletePollInterval = 30 * time.Second
+)
+
+// deleteProjectUntil retries the project deletion while dependent resources are still terminating, until it succeeds
+// or ctx is done. Any other error is returned immediately because waiting would not change it.
+func deleteProjectUntil(ctx context.Context, client *admin.APIClient, projectID string, pollInterval time.Duration) error {
+	for {
+		err := clean.DeleteProject(ctx, client, projectID)
+		code := clean.ProjectDeleteRetryCode(err)
+		if code == "" {
+			if err != nil {
+				return fmt.Errorf("project deletion failed: %s, error: %w", projectID, err)
+			}
+			return nil
+		}
+		fmt.Printf("[WARN] Project %s still has resources (%s), retrying deletion in %s\n", projectID, code, pollInterval)
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("project deletion failed: %s, gave up waiting for its resources to terminate, error: %w", projectID, err)
+		case <-time.After(pollInterval):
+		}
 	}
-	if err != nil {
-		return fmt.Errorf("project deletion failed: %s, error: %w", id, err)
-	}
-	return nil
 }
 
 // remainingProjectResources describes the clusters that still exist in a project whose deletion failed, so the

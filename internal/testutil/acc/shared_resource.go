@@ -50,39 +50,76 @@ func Run(m *testing.M) (code int) {
 	return exitCode
 }
 
+// logTeardownf prefixes shared-resource cleanup progress so it stands out from the test output around it.
+func logTeardownf(format string, args ...any) {
+	fmt.Println("[WARN]", fmt.Sprintf(format, args...))
+}
+
 func cleanupSharedResources() error {
-	var hasError bool
-	firstProjectID := projectIDLocal()
-	if firstProjectID == "" && len(sharedInfo.projects) > 0 {
-		firstProjectID = sharedInfo.projects[0].id
+	hasError := deleteLocalProjectSharedResources()
+	// The deadline bounds both the wait for terminating resources and every request, since the HTTP client has no
+	// request timeout. The diagnostics use their own deadline so they still run after this one passes.
+	ctx, cancel := context.WithTimeout(context.Background(), teardownDeleteWait)
+	defer cancel()
+	client := ConnV2()
+	// Emptying the projects first is what makes their deletion work: a project that still has clusters, stream
+	// instances or other dependents cannot be closed, and the resources of a shared project are not tracked
+	// individually. RemoveProjectResources only requests the deletions, so every project is emptied before the first
+	// one is deleted, letting their resources terminate concurrently within the shared wait.
+	emptied := make([]projectInfo, 0, len(sharedInfo.projects))
+	for i, project := range sharedInfo.projects {
+		fmt.Printf("Cleaning execution project (%d): %s, id: %s\n", i+1, project.name, project.id)
+		changes, err := clean.RemoveProjectResources(ctx, logTeardownf, false, client, project.id)
+		if err != nil {
+			fmt.Printf("[ERROR] Project %s cleanup failed: %v\n", project.id, err)
+			fmt.Printf("[ERROR] Project %s resources after failed cleanup: %s\n", project.id, remainingProjectResources(client, project.id))
+			hasError = true
+			continue
+		}
+		if changes != "" {
+			fmt.Printf("[WARN] Project %s cleaned: %s\n", project.id, changes)
+		}
+		emptied = append(emptied, project)
+	}
+	// A project that cannot be deleted once its resources were removed does not fail the package: the next cleanup
+	// run deletes it, so only a cleanup failure needs a human.
+	for _, project := range emptied {
+		fmt.Printf("Deleting execution project: %s, id: %s\n", project.name, project.id)
+		if err := deleteProjectUntil(ctx, client, project.id, projectDeletePollInterval); err != nil {
+			fmt.Printf("[WARN] Project deletion failed, the next cleanup run will delete it: %v\n", err)
+			fmt.Printf("[WARN] Project %s resources after failed deletion: %s\n", project.id, remainingProjectResources(client, project.id))
+		}
+	}
+	config.CloseTokenSource() // Revoke SA token when acceptance tests finish.
+	if hasError {
+		return errors.New("failed to clean up shared resources")
+	}
+	return nil
+}
+
+// deleteLocalProjectSharedResources deletes the shared cluster and stream instances the run created in the project
+// set by `MONGODB_ATLAS_PROJECT_ID`. That project is not emptied like the execution projects because the run did not
+// create it, so it can hold resources the developer keeps.
+func deleteLocalProjectSharedResources() (hasError bool) {
+	projectID := projectIDLocal()
+	if projectID == "" {
+		return false
 	}
 	if sharedInfo.clusterName != "" {
-		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", sharedInfo.clusterName, firstProjectID)
-		if err := deleteCluster(firstProjectID, sharedInfo.clusterName); err != nil {
+		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", sharedInfo.clusterName, projectID)
+		if err := deleteCluster(projectID, sharedInfo.clusterName); err != nil {
 			fmt.Printf("[ERROR] Cluster deletion failed: %v\n", err)
 			hasError = true
 		}
 	}
 	if sharedInfo.streamInstanceName != "" {
-		fmt.Printf("Deleting execution stream instance: %s, project id: %s\n", sharedInfo.streamInstanceName, firstProjectID)
-		if _, err := clean.RemoveStreamInstances(context.TODO(), false, ConnV2(), firstProjectID); err != nil {
+		fmt.Printf("Deleting execution stream instance: %s, project id: %s\n", sharedInfo.streamInstanceName, projectID)
+		if _, err := clean.RemoveStreamInstances(context.Background(), false, ConnV2(), projectID); err != nil {
 			fmt.Printf("[ERROR] Stream instance deletion failed: %v\n", err)
 			hasError = true
 		}
 	}
-	for i, project := range sharedInfo.projects {
-		fmt.Printf("Deleting execution project (%d): %s, id: %s\n", i+1, project.name, project.id)
-		if err := deleteProject(project.id); err != nil {
-			fmt.Printf("[ERROR] Project deletion failed: %v\n", err)
-			fmt.Printf("[ERROR] Project %s resources after failed deletion: %s\n", project.id, remainingProjectResources(ConnV2(), project.id))
-			hasError = true
-		}
-	}
-	config.CloseTokenSource() // Revoke SA token when acceptance tests finish.
-	if hasError {
-		return errors.New("failed to delete shared resources")
-	}
-	return nil
+	return hasError
 }
 
 // ProjectIDExecution returns a project id created for the execution of the tests in the resource package.

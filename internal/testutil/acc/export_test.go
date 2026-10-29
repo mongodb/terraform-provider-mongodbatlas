@@ -12,4 +12,5 @@ var (
 	CreateClusterWithRegionFallback = createClusterWithRegionFallback
 	IsFailedProvisioning            = isFailedProvisioning
 	RemainingProjectResources       = remainingProjectResources
+	DeleteProjectUntil              = deleteProjectUntil
 )

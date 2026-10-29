@@ -1,9 +1,11 @@
 package acc_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/stretchr/testify/assert"
@@ -212,6 +214,67 @@ func TestRemainingProjectResources(t *testing.T) {
 
 			client := &admin.APIClient{ClustersAPI: clustersAPI, FlexClustersAPI: flexClustersAPI}
 			assert.Equal(t, tc.want, acc.RemainingProjectResources(client, projectID))
+		})
+	}
+}
+
+func apiError(code string) error {
+	err := &admin.GenericOpenAPIError{}
+	err.SetError(code)
+	err.SetModel(*admin.NewApiError(409, code))
+	return err
+}
+
+// TestDeleteProjectUntil covers the teardown project deletion: it retries only while dependent resources are still
+// terminating, and gives up when the shared wait ends.
+func TestDeleteProjectUntil(t *testing.T) {
+	const projectID = "6ad95b900c3871ac99ea9ca7"
+	activeClusters := apiError("CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS")
+	testCases := map[string]struct {
+		wantErr string
+		errs    []error
+		timeout time.Duration
+	}{
+		"deleted on the first attempt": {
+			errs: []error{nil},
+		},
+		"retries while clusters are terminating": {
+			errs: []error{activeClusters, activeClusters, nil},
+		},
+		"project already gone counts as deleted": {
+			errs: []error{apiError("PROJECT_NOT_FOUND")},
+		},
+		"other errors are not retried": {
+			errs:    []error{errors.New("boom")},
+			wantErr: "project deletion failed: 6ad95b900c3871ac99ea9ca7, error: boom",
+		},
+		"gives up when the wait ends": {
+			timeout: time.Nanosecond,
+			errs:    []error{activeClusters},
+			wantErr: "gave up waiting for its resources to terminate",
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			timeout := tc.timeout
+			if timeout == 0 {
+				timeout = time.Minute
+			}
+			ctx, cancel := context.WithTimeout(t.Context(), timeout)
+			defer cancel()
+			projectsAPI := mockadmin.NewProjectsAPI(t)
+			projectsAPI.EXPECT().DeleteGroup(mock.Anything, projectID).Return(admin.DeleteGroupApiRequest{ApiService: projectsAPI}).Times(len(tc.errs))
+			for _, err := range tc.errs {
+				projectsAPI.EXPECT().DeleteGroupExecute(mock.Anything).Return(nil, err).Once()
+			}
+
+			client := &admin.APIClient{ProjectsAPI: projectsAPI}
+			err := acc.DeleteProjectUntil(ctx, client, projectID, time.Millisecond)
+			if tc.wantErr == "" {
+				require.NoError(t, err)
+			} else {
+				require.ErrorContains(t, err, tc.wantErr)
+			}
 		})
 	}
 }
