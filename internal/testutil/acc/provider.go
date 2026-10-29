@@ -161,10 +161,14 @@ func ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID stri
 	`, subscriptionID, clientID, clientSecret, tenantID)
 }
 
-// ConfigTags returns the Cloud Tag Policy tags as a resource-level tags attribute, indented by indent.
+// ConfigAzureTags returns the tags attribute that every Azure resource supporting tags must set, indented by indent.
 // azurerm does not support provider-level default_tags, so Azure resources set tags individually: https://github.com/hashicorp/terraform-provider-azurerm/issues/13776.
-func ConfigTags(indent string) string {
-	return FormatToHCLMap(tagValues(), indent, "tags")
+// Besides the Cloud Tag Policy tags, it sets dnr so the Atlas leaked-item detector skips the resource. Otherwise the detector can add
+// an isleakeditem tag while the test runs, making the refresh plan non-empty.
+func ConfigAzureTags(indent string) string {
+	tags := tagValues()
+	tags["dnr"] = "true"
+	return FormatToHCLMap(tags, indent, "tags")
 }
 
 func ConfigDefaultTags() string {

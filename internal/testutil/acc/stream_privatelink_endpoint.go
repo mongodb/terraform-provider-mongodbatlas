@@ -266,7 +266,7 @@ func GetCompleteAzureBlobStorageConfig(projectID, clusterName, subscriptionID, c
 			mongodbatlas_stream_privatelink_endpoint.test
 		]
 	}`, ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID),
-		projectID, resourceGroupName, storageAccountName, clusterName, ConfigTags("\t\t"), ConfigAzureResourceGroupLifecycle("\t\t"))
+		projectID, resourceGroupName, storageAccountName, clusterName, ConfigAzureTags("\t\t"), ConfigAzureResourceGroupLifecycle("\t\t"))
 }
 
 func GetCompleteS3Config(projectID, region string) string {
