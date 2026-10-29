@@ -47,12 +47,17 @@ func ConfigAzureCloudProviderAccess(projectID, atlasAzureAppID, servicePrincipal
 // ConfigAzureStorageResources returns Terraform config for Azure resource group, storage account,
 // storage container, and role assignment resources. The prefix parameter is used as a prefix for the
 // Terraform resource names (e.g., "blob" produces "azurerm_resource_group.blob_rg").
+// The resource group ignores tag changes because an automated leaked-resource detector can tag a resource
+// group while a long-running test still uses it, which would otherwise make the next plan non-empty.
 func ConfigAzureStorageResources(prefix, resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID string) string {
 	return fmt.Sprintf(`
 		resource "azurerm_resource_group" "%[1]s_rg" {
 			name     = %[2]q
 			location = "East US 2"
 %[6]s
+			lifecycle {
+				ignore_changes = [tags]
+			}
 		}
 
 		resource "azurerm_storage_account" "%[1]s_storage" {
