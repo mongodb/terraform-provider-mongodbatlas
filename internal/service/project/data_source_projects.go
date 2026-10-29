@@ -3,6 +3,7 @@ package project
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
@@ -82,16 +83,27 @@ func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClien
 		}
 
 		projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams)
-		if err == nil { // if the project is still valid, e.g. could have just been deleted
-			projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, projectProps)
-			diagnostics = append(diagnostics, diags...)
-			if projectModel != nil {
-				results = append(results, projectModel)
+		if err != nil {
+			if isNotFoundError(err) { // the project could have been deleted after it was listed
+				continue
 			}
+			diagnostics.AddError(fmt.Sprintf("error getting properties of project %s", project.GetId()), err.Error())
+			return diagnostics
+		}
+		projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, projectProps)
+		diagnostics = append(diagnostics, diags...)
+		if projectModel != nil {
+			results = append(results, projectModel)
 		}
 	}
 	stateModel.Results = results
 	stateModel.TotalCount = types.Int64Value(int64(projectsRes.GetTotalCount()))
 	stateModel.ID = types.StringValue(id.UniqueId())
 	return diagnostics
+}
+
+// isNotFoundError reports whether err is an Atlas API 404 response.
+func isNotFoundError(err error) bool {
+	apiErr, ok := admin.AsError(err)
+	return ok && apiErr.GetError() == http.StatusNotFound
 }
