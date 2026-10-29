@@ -12,7 +12,6 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 	"go.mongodb.org/atlas-sdk/v20250312027/mockadmin"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -211,11 +210,8 @@ func TestRemainingProjectResources(t *testing.T) {
 			flexClustersAPI.EXPECT().ListFlexClusters(mock.Anything, projectID).Return(admin.ListFlexClustersApiRequest{ApiService: flexClustersAPI}).Once()
 			flexClustersAPI.EXPECT().ListFlexClustersExecute(mock.Anything).Return(tc.flexClusters, nil, tc.flexClustersErr).Once()
 
-			restoreClient := acc.MongoDBClient
-			acc.MongoDBClient = &config.MongoDBClient{AtlasV2: &admin.APIClient{ClustersAPI: clustersAPI, FlexClustersAPI: flexClustersAPI}}
-			t.Cleanup(func() { acc.MongoDBClient = restoreClient })
-
-			assert.Equal(t, tc.want, acc.RemainingProjectResources(projectID))
+			client := &admin.APIClient{ClustersAPI: clustersAPI, FlexClustersAPI: flexClustersAPI}
+			assert.Equal(t, tc.want, acc.RemainingProjectResources(client, projectID))
 		})
 	}
 }

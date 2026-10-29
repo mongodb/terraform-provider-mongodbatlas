@@ -47,9 +47,9 @@ func deleteProject(id string) error {
 // explicitly because it still narrows the cause: either another dependent resource blocked the deletion, or Atlas
 // had already removed the cluster by the time the project was listed.
 // Flex clusters need their own request: the Clusters API does not return clusters created through the Flex Clusters API.
-func remainingProjectResources(projectID string) string {
+func remainingProjectResources(client *admin.APIClient, projectID string) string {
 	resources := []string{}
-	clusters, _, err := ConnV2().ClustersAPI.ListClusters(context.Background(), projectID).Execute()
+	clusters, _, err := client.ClustersAPI.ListClusters(context.Background(), projectID).Execute()
 	if err != nil {
 		resources = append(resources, "clusters could not be listed: "+err.Error())
 	} else {
@@ -58,7 +58,7 @@ func remainingProjectResources(projectID string) string {
 			resources = append(resources, fmt.Sprintf("cluster %s (state %s)", results[i].GetName(), results[i].GetStateName()))
 		}
 	}
-	flexClusters, _, err := ConnV2().FlexClustersAPI.ListFlexClusters(context.Background(), projectID).Execute()
+	flexClusters, _, err := client.FlexClustersAPI.ListFlexClusters(context.Background(), projectID).Execute()
 	if err != nil {
 		resources = append(resources, "flex clusters could not be listed: "+err.Error())
 	} else {
