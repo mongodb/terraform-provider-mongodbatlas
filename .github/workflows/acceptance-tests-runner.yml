@@ -332,7 +332,7 @@ jobs:
             - 'internal/serviceapi/aimodelratelimit/*.go'
             - 'internal/serviceapi/alertconfigurationapi/*.go'
             - 'internal/serviceapi/auditingapi/*.go'
-            - 'internal/serviceapi/customdbroleapi/*.go'
+            - 'internal/serviceapi/customdbrole/*.go'
             - 'internal/serviceapi/databaseuserapi/*.go'
             - 'internal/serviceapi/maintenancewindowapi/*.go'
             - 'internal/serviceapi/orgdelegationsettings/*.go'
@@ -386,6 +386,7 @@ jobs:
           cluster_outage_simulation:
             - 'internal/service/clusteroutagesimulation/*.go'  
           config:
+            - 'internal/common/autogen/*.go'
             - 'internal/config/*.go'
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/apikey/*.go'
@@ -393,6 +394,7 @@ jobs:
             - 'internal/service/atlasuser/*.go'
             - 'internal/service/cloudprovideraccess/*.go'
             - 'internal/service/customdbrole/*.go'
+            - 'internal/serviceapi/customdbrole/*.go'
             - 'internal/service/customdnsconfigurationclusteraws/*.go'
             - 'internal/service/databaseuser/*.go'
             - 'internal/service/maintenancewindow/*.go'
@@ -693,7 +695,7 @@ jobs:
             ./internal/serviceapi/aimodelratelimit
             ./internal/serviceapi/alertconfigurationapi
             ./internal/serviceapi/auditingapi
-            ./internal/serviceapi/customdbroleapi
+            ./internal/serviceapi/customdbrole
             ./internal/serviceapi/databaseuserapi
             ./internal/serviceapi/logintegration
             ./internal/serviceapi/metricintegration
@@ -913,6 +915,7 @@ jobs:
             ./internal/service/atlasuser
             ./internal/service/cloudprovideraccess
             ./internal/service/customdbrole
+            ./internal/serviceapi/customdbrole
             ./internal/service/customdnsconfigurationclusteraws
             ./internal/service/databaseuser
             ./internal/service/maintenancewindow
@@ -983,6 +986,7 @@ jobs:
             ./internal/service/atlasuser
             ./internal/service/cloudprovideraccess
             ./internal/service/customdbrole
+            ./internal/serviceapi/customdbrole
             ./internal/service/customdnsconfigurationclusteraws
             ./internal/service/databaseuser
             ./internal/service/maintenancewindow

@@ -640,20 +640,76 @@ resources:
           project_id:
             description: *project_id_description
 
-  custom_db_role_api:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+  # Lift-and-shift of the handwritten SDKv2 mongodbatlas_custom_db_role (spike pilot).
+  custom_db_role:
+    read: &custom_db_role_read_op
+      path: &custom_db_role_item_path /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
       method: GET
     create:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles
+      path: &custom_db_role_collection_path /api/atlas/v2/groups/{groupId}/customDBRoles/roles
       method: POST
     update:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+      path: *custom_db_role_item_path
       method: PATCH
     delete:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+      path: *custom_db_role_item_path
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
+    schema: &custom_db_role_schema
+      expanded_model: true # adds the crafted `id` of the manual resource
+      aliases:
+        groupId: projectId
+        actions.resources.db: databaseName
+        actions.resources.collection: collectionName
+        inheritedRoles.db: databaseName
+        inheritedRoles.role: roleName
+      overrides:
+        project_id:
+          description: *project_id_description
+        # Order is not meaningful and the API may reorder them (manual TypeSet). The manual resource always
+        # sends both root arrays (empty when unset), so removing every element clears them.
+        actions:
+          type: set
+          request_body_usage: send_null_as_empty_on_update
+        actions.resources:
+          type: set
+        inherited_roles:
+          type: set
+          request_body_usage: send_null_as_empty_on_update
+        # Optional in the manual resource (cluster resources only set `cluster`, database resources only
+        # `database_name`/`collection_name`); defaults are added by the schema hook.
+        actions.resources.cluster:
+          computability:
+            optional: true
+            computed: true
+        actions.resources.collection_name:
+          computability:
+            optional: true
+            computed: true
+        actions.resources.database_name:
+          computability:
+            optional: true
+            computed: true
+    # Only the singular data source moves: the list endpoint returns a bare array (no `results` envelope),
+    # which codegen cannot express, so mongodbatlas_custom_db_roles stays handwritten.
+    datasources:
+      read: *custom_db_role_read_op
+      schema:
+        expanded_model: true # adds the crafted `id` of the manual data source
+        aliases:
+          groupId: projectId
+          actions.resources.db: databaseName
+          actions.resources.collection: collectionName
+          inheritedRoles.db: databaseName
+          inheritedRoles.role: roleName
+        overrides:
+          project_id:
+            description: *project_id_description
+          # Collection types of the manual data source: actions and inherited_roles lists, resources set.
+          actions.resources:
+            type: set
+          inherited_roles:
+            type: list
 
   database_user_api:
     read:
