@@ -30,6 +30,8 @@ const (
 	timeout                   = 1 * time.Minute
 )
 
+var onlineArchiveImportIDRegex = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.+)-([0-9a-fA-F]{24})$`)
+
 func Resource() *schema.Resource {
 	return &schema.Resource{
 		Schema:               resourceSchema(),
@@ -695,8 +697,7 @@ func mapSchedule(d *schema.ResourceData) *admin.OnlineArchiveSchedule {
 // SplitOnlineArchiveImportID splits an import ID in the format {project_id}-{cluster_name}-{archive_id}.
 // The cluster name can contain hyphens.
 func SplitOnlineArchiveImportID(id string) (projectID, clusterName, archiveID string, err error) {
-	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.+)-([0-9a-fA-F]{24})$`)
-	parts := re.FindStringSubmatch(id)
+	parts := onlineArchiveImportIDRegex.FindStringSubmatch(id)
 	if len(parts) != 4 {
 		err = errors.New("import format error to import a MongoDB Atlas Online Archive, use the format {project_id}-{cluster_name}-{archive_id}")
 		return
