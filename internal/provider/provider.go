@@ -30,7 +30,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexrestorejob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexsnapshot"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
@@ -61,6 +60,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabasecollection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusteradaptivesettings"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusteroverloadsimulation"
+	autogenflexcluster "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/flexcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/mcpconfig"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/mcpconfigsecret"
@@ -322,8 +322,8 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		privatelinkendpoint.PluralDataSource,
 		streamprivatelinkendpoint.DataSource,
 		streamprivatelinkendpoint.PluralDataSource,
-		flexcluster.DataSource,
-		flexcluster.PluralDataSource,
+		autogenflexcluster.DataSource,
+		autogenflexcluster.PluralDataSource,
 		flexsnapshot.DataSource,
 		flexsnapshot.PluralDataSource,
 		flexrestorejob.DataSource,
@@ -414,7 +414,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		encryptionatrestprivateendpoint.Resource,
 		mongodbemployeeaccessgrant.Resource,
 		streamprivatelinkendpoint.Resource,
-		flexcluster.Resource,
+		autogenflexcluster.Resource,
 		clusteradaptivesettings.Resource,
 		clusteroverloadsimulation.Resource,
 		resourcepolicy.Resource,

@@ -415,7 +415,9 @@ jobs:
             - 'internal/service/federatedsettingsorgconfig/*.go'
             - 'internal/service/federatedsettingsorgrolemapping/*.go'
           flex_cluster:
+            - 'internal/common/autogen/*.go'
             - 'internal/service/flexcluster/*.go'
+            - 'internal/serviceapi/flexcluster/*.go'
           generic:
             - 'internal/service/auditing/*.go'
             - 'internal/service/backupcompliancepolicy/*.go'
@@ -1094,7 +1096,9 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: ./internal/service/flexcluster
+          ACCTEST_PACKAGES: |
+            ./internal/service/flexcluster
+            ./internal/serviceapi/flexcluster
         run: make testacc
 
   generic:

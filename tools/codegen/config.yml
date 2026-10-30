@@ -1720,6 +1720,83 @@ resources:
             computability:
               computed: true
 
+  flex_cluster:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/flexClusters
+      method: POST
+      wait: &flex-cluster-create-wait
+        state_property: "stateName"
+        pending_states: ["CREATING", "UPDATING", "REPAIRING"]
+        target_states: ["IDLE"]
+        timeout_seconds: 10800 # 3 hours, same default as the manual resource
+        min_timeout_seconds: 3
+        delay_seconds: 0
+    update:
+      path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}
+      method: PATCH
+      wait: *flex-cluster-create-wait
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}
+      method: DELETE
+      wait:
+        <<: *flex-cluster-create-wait
+        pending_states: ["CREATING", "IDLE", "DELETING"]
+        target_states: ["DELETED"]
+    version_header: application/vnd.atlas.2024-11-13+json
+    schema:
+      # database_edition (Public Preview) is not exposed by the handwritten resource; lift-and-shift keeps parity.
+      ignores: ["database_edition"]
+      aliases:
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+        tags:
+          description: &flex_cluster_tags_description "Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance."
+        # Optional but Atlas returns the default value (false) when omitted.
+        termination_protection_enabled:
+          computability:
+            optional: true
+            computed: true
+          immutable_computed: true
+        # Server-generated and stable after creation (UseStateForUnknown in the manual resource).
+        id:
+          immutable_computed: true
+        create_date:
+          immutable_computed: true
+        cluster_type:
+          immutable_computed: true
+        version_release_system:
+          immutable_computed: true
+        backup_settings:
+          immutable_computed: true
+        connection_strings:
+          immutable_computed: true
+        provider_settings.disk_size_gb:
+          immutable_computed: true
+        provider_settings.provider_name:
+          immutable_computed: true
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/flexClusters
+        method: GET
+      schema:
+        ignores: ["results.links", "database_edition", "results.database_edition"]
+        aliases:
+          groupId: projectId
+          results.groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description
+          tags:
+            description: *flex_cluster_tags_description
+
   log_integration:
     read:
       path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}

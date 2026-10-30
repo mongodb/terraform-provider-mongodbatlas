@@ -1,0 +1,919 @@
+schema:
+    description: Creates one flex cluster in the specified project.
+    attributes:
+        - single_nested:
+            nested_object:
+                attributes:
+                    - bool:
+                        default: true
+                      description: Flag that indicates whether backups are performed for this flex cluster. Backup uses flex cluster backups.
+                      computed_optional_required: computed
+                      tf_schema_name: enabled
+                      tf_model_name: Enabled
+                      api_name: enabled
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Flex backup configuration.
+          custom_type:
+            name: BackupSettings
+            model: customtypes.ObjectValue[TFBackupSettingsModel]
+            schema: customtypes.NewObjectType[TFBackupSettingsModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: computed
+          tf_schema_name: backup_settings
+          tf_model_name: BackupSettings
+          api_name: backupSettings
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string:
+            default: REPLICASET
+          description: Flex cluster topology.
+          computed_optional_required: computed
+          tf_schema_name: cluster_type
+          tf_model_name: ClusterType
+          api_name: clusterType
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Public connection string that you can use to connect to this cluster. This connection string uses the `mongodb://` protocol.
+                      computed_optional_required: computed
+                      tf_schema_name: standard
+                      tf_model_name: Standard
+                      api_name: standard
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Public connection string that you can use to connect to this flex cluster. This connection string uses the `mongodb+srv://` protocol.
+                      computed_optional_required: computed
+                      tf_schema_name: standard_srv
+                      tf_model_name: StandardSrv
+                      api_name: standardSrv
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Collection of Uniform Resource Locators that point to the MongoDB database.
+          custom_type:
+            name: ConnectionStrings
+            model: customtypes.ObjectValue[TFConnectionStringsModel]
+            schema: customtypes.NewObjectType[TFConnectionStringsModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: computed
+          tf_schema_name: connection_strings
+          tf_model_name: ConnectionStrings
+          api_name: connectionStrings
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string: {}
+          description: Date and time when MongoDB Cloud created this instance. This parameter expresses its value in ISO 8601 format in UTC.
+          computed_optional_required: computed
+          tf_schema_name: create_date
+          tf_model_name: CreateDate
+          api_name: createDate
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+          computed_optional_required: required
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies the instance.
+          computed_optional_required: computed
+          tf_schema_name: id
+          tf_model_name: Id
+          api_name: id
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string: {}
+          description: Version of MongoDB that the instance runs.
+          computed_optional_required: computed
+          tf_schema_name: mongo_db_version
+          tf_model_name: MongoDBVersion
+          api_name: mongoDBVersion
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Human-readable label that identifies the instance.
+          computed_optional_required: required
+          tf_schema_name: name
+          tf_model_name: Name
+          api_name: name
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Cloud service provider on which MongoDB Cloud provisioned the flex cluster.
+                      computed_optional_required: required
+                      tf_schema_name: backing_provider_name
+                      tf_model_name: BackingProviderName
+                      api_name: backingProviderName
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - float64: {}
+                      description: Storage capacity available to the flex cluster expressed in gigabytes.
+                      computed_optional_required: computed
+                      tf_schema_name: disk_size_gb
+                      tf_model_name: DiskSizeGB
+                      api_name: diskSizeGB
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                      immutable_computed: true
+                    - string:
+                        default: FLEX
+                      description: Human-readable label that identifies the provider type.
+                      computed_optional_required: computed
+                      tf_schema_name: provider_name
+                      tf_model_name: ProviderName
+                      api_name: providerName
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                      immutable_computed: true
+                    - string: {}
+                      description: Human-readable label that identifies the geographic location of your MongoDB flex cluster. The region you choose can affect network latency for clients accessing your databases. For a complete list of region names, see [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/#std-label-amazon-aws), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), and [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
+                      computed_optional_required: required
+                      tf_schema_name: region_name
+                      tf_model_name: RegionName
+                      api_name: regionName
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Group of cloud provider settings that configure the provisioned MongoDB flex cluster.
+          custom_type:
+            name: ProviderSettings
+            model: customtypes.ObjectValue[TFProviderSettingsModel]
+            schema: customtypes.NewObjectType[TFProviderSettingsModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: required
+          tf_schema_name: provider_settings
+          tf_model_name: ProviderSettings
+          api_name: providerSettings
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: |-
+            Human-readable label that indicates any current activity being taken on this cluster by the Atlas control plane. With the exception of CREATING and DELETING states, clusters should always be available and have a Primary node even when in states indicating ongoing activity.
+
+             - `IDLE`: Atlas is making no changes to this cluster and all changes requested via the UI or API can be assumed to have been applied.
+             - `CREATING`: A cluster being provisioned for the very first time returns state CREATING until it is ready for connections. Ensure IP Access List and DB Users are configured before attempting to connect.
+             - `UPDATING`: A change requested via the UI, API, AutoScaling, or other scheduled activity is taking place.
+             - `DELETING`: The cluster is in the process of deletion and will soon be deleted.
+             - `REPAIRING`: One or more nodes in the cluster are being returned to service by the Atlas control plane. Other nodes should continue to provide service as normal.
+          computed_optional_required: computed
+          tf_schema_name: state_name
+          tf_model_name: StateName
+          api_name: stateName
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - map:
+            element_type: 4
+          description: Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.
+          custom_type:
+            model: customtypes.MapValue[types.String]
+            schema: customtypes.NewMapType[types.String](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: optional
+          tf_schema_name: tags
+          tf_model_name: Tags
+          api_name: tags
+          req_body_usage: send_null_as_empty_on_update
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          list_type_as_map: true
+        - bool:
+            default: false
+          description: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster.
+          computed_optional_required: computed_optional
+          tf_schema_name: termination_protection_enabled
+          tf_model_name: TerminationProtectionEnabled
+          api_name: terminationProtectionEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string:
+            default: LTS
+          description: Method by which the cluster maintains the MongoDB versions.
+          computed_optional_required: computed
+          tf_schema_name: version_release_system
+          tf_model_name: VersionReleaseSystem
+          api_name: versionReleaseSystem
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - bool:
+            default: true
+          description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
+          computed_optional_required: computed_optional
+          tf_schema_name: delete_on_create_timeout
+          tf_model_name: DeleteOnCreateTimeout
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - timeouts:
+            configurable_timeouts:
+                - create
+                - update
+                - delete
+          computed_optional_required: ""
+          tf_schema_name: timeouts
+          tf_model_name: Timeouts
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
+operations:
+    delete:
+        wait:
+            state_property: stateName
+            pending_states:
+                - CREATING
+                - IDLE
+                - DELETING
+            target_states:
+                - DELETED
+            timeout_seconds: 10800
+            min_timeout_seconds: 3
+            delay_seconds: 0
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{projectId}/flexClusters/{name}
+    create:
+        wait:
+            state_property: stateName
+            pending_states:
+                - CREATING
+                - UPDATING
+                - REPAIRING
+            target_states:
+                - IDLE
+            timeout_seconds: 10800
+            min_timeout_seconds: 3
+            delay_seconds: 0
+        http_method: POST
+        path: /api/atlas/v2/groups/{projectId}/flexClusters
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{projectId}/flexClusters/{name}
+    update:
+        wait:
+            state_property: stateName
+            pending_states:
+                - CREATING
+                - UPDATING
+                - REPAIRING
+            target_states:
+                - IDLE
+            timeout_seconds: 10800
+            min_timeout_seconds: 3
+            delay_seconds: 0
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{projectId}/flexClusters/{name}
+    version_header: application/vnd.atlas.2024-11-13+json
+data_sources:
+    singular:
+        description: Returns details for one flex cluster in the specified project.
+        attributes:
+            - single_nested:
+                nested_object:
+                    attributes:
+                        - bool:
+                            default: true
+                          description: Flag that indicates whether backups are performed for this flex cluster. Backup uses flex cluster backups.
+                          computed_optional_required: computed
+                          tf_schema_name: enabled
+                          tf_model_name: Enabled
+                          api_name: enabled
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: Flex backup configuration.
+              custom_type:
+                name: BackupSettings
+                model: customtypes.ObjectValue[TFBackupSettingsModel]
+                schema: customtypes.NewObjectType[TFBackupSettingsModel](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: backup_settings
+              tf_model_name: BackupSettings
+              api_name: backupSettings
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string:
+                default: REPLICASET
+              description: Flex cluster topology.
+              computed_optional_required: computed
+              tf_schema_name: cluster_type
+              tf_model_name: ClusterType
+              api_name: clusterType
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - single_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Public connection string that you can use to connect to this cluster. This connection string uses the `mongodb://` protocol.
+                          computed_optional_required: computed
+                          tf_schema_name: standard
+                          tf_model_name: Standard
+                          api_name: standard
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Public connection string that you can use to connect to this flex cluster. This connection string uses the `mongodb+srv://` protocol.
+                          computed_optional_required: computed
+                          tf_schema_name: standard_srv
+                          tf_model_name: StandardSrv
+                          api_name: standardSrv
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: Collection of Uniform Resource Locators that point to the MongoDB database.
+              custom_type:
+                name: ConnectionStrings
+                model: customtypes.ObjectValue[TFConnectionStringsModel]
+                schema: customtypes.NewObjectType[TFConnectionStringsModel](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: connection_strings
+              tf_model_name: ConnectionStrings
+              api_name: connectionStrings
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Date and time when MongoDB Cloud created this instance. This parameter expresses its value in ISO 8601 format in UTC.
+              computed_optional_required: computed
+              tf_schema_name: create_date
+              tf_model_name: CreateDate
+              api_name: createDate
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies the instance.
+              computed_optional_required: computed
+              tf_schema_name: id
+              tf_model_name: Id
+              api_name: id
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Version of MongoDB that the instance runs.
+              computed_optional_required: computed
+              tf_schema_name: mongo_db_version
+              tf_model_name: MongoDBVersion
+              api_name: mongoDBVersion
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Human-readable label that identifies the flex cluster.
+              computed_optional_required: required
+              tf_schema_name: name
+              tf_model_name: Name
+              api_name: name
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - single_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Cloud service provider on which MongoDB Cloud provisioned the flex cluster.
+                          computed_optional_required: computed
+                          tf_schema_name: backing_provider_name
+                          tf_model_name: BackingProviderName
+                          api_name: backingProviderName
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - float64: {}
+                          description: Storage capacity available to the flex cluster expressed in gigabytes.
+                          computed_optional_required: computed
+                          tf_schema_name: disk_size_gb
+                          tf_model_name: DiskSizeGB
+                          api_name: diskSizeGB
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string:
+                            default: FLEX
+                          description: Human-readable label that identifies the provider type.
+                          computed_optional_required: computed
+                          tf_schema_name: provider_name
+                          tf_model_name: ProviderName
+                          api_name: providerName
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Human-readable label that identifies the geographic location of your MongoDB flex cluster. The region you choose can affect network latency for clients accessing your databases. For a complete list of region names, see [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/#std-label-amazon-aws), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), and [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
+                          computed_optional_required: computed
+                          tf_schema_name: region_name
+                          tf_model_name: RegionName
+                          api_name: regionName
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: Group of cloud provider settings that configure the provisioned MongoDB flex cluster.
+              custom_type:
+                name: ProviderSettings
+                model: customtypes.ObjectValue[TFProviderSettingsModel]
+                schema: customtypes.NewObjectType[TFProviderSettingsModel](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: provider_settings
+              tf_model_name: ProviderSettings
+              api_name: providerSettings
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: |-
+                Human-readable label that indicates any current activity being taken on this cluster by the Atlas control plane. With the exception of CREATING and DELETING states, clusters should always be available and have a Primary node even when in states indicating ongoing activity.
+
+                 - `IDLE`: Atlas is making no changes to this cluster and all changes requested via the UI or API can be assumed to have been applied.
+                 - `CREATING`: A cluster being provisioned for the very first time returns state CREATING until it is ready for connections. Ensure IP Access List and DB Users are configured before attempting to connect.
+                 - `UPDATING`: A change requested via the UI, API, AutoScaling, or other scheduled activity is taking place.
+                 - `DELETING`: The cluster is in the process of deletion and will soon be deleted.
+                 - `REPAIRING`: One or more nodes in the cluster are being returned to service by the Atlas control plane. Other nodes should continue to provide service as normal.
+              computed_optional_required: computed
+              tf_schema_name: state_name
+              tf_model_name: StateName
+              api_name: stateName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - map:
+                element_type: 4
+              description: Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.
+              custom_type:
+                model: customtypes.MapValue[types.String]
+                schema: customtypes.NewMapType[types.String](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: tags
+              tf_model_name: Tags
+              api_name: tags
+              req_body_usage: send_null_as_empty_on_update
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+              list_type_as_map: true
+            - bool:
+                default: false
+              description: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster.
+              computed_optional_required: computed
+              tf_schema_name: termination_protection_enabled
+              tf_model_name: TerminationProtectionEnabled
+              api_name: terminationProtectionEnabled
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string:
+                default: LTS
+              description: Method by which the cluster maintains the MongoDB versions.
+              computed_optional_required: computed
+              tf_schema_name: version_release_system
+              tf_model_name: VersionReleaseSystem
+              api_name: versionReleaseSystem
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    plural:
+        description: Returns details for all flex clusters in the specified project.
+        attributes:
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - single_nested:
+                            nested_object:
+                                attributes:
+                                    - bool:
+                                        default: true
+                                      description: Flag that indicates whether backups are performed for this flex cluster. Backup uses flex cluster backups.
+                                      computed_optional_required: computed
+                                      tf_schema_name: enabled
+                                      tf_model_name: Enabled
+                                      api_name: enabled
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: Flex backup configuration.
+                          custom_type:
+                            name: ResultsBackupSettings
+                            model: customtypes.ObjectValue[TFResultsBackupSettingsModel]
+                            schema: customtypes.NewObjectType[TFResultsBackupSettingsModel](ctx)
+                            packages:
+                                - customtypes
+                          computed_optional_required: computed
+                          tf_schema_name: backup_settings
+                          tf_model_name: BackupSettings
+                          api_name: backupSettings
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string:
+                            default: REPLICASET
+                          description: Flex cluster topology.
+                          computed_optional_required: computed
+                          tf_schema_name: cluster_type
+                          tf_model_name: ClusterType
+                          api_name: clusterType
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - single_nested:
+                            nested_object:
+                                attributes:
+                                    - string: {}
+                                      description: Public connection string that you can use to connect to this cluster. This connection string uses the `mongodb://` protocol.
+                                      computed_optional_required: computed
+                                      tf_schema_name: standard
+                                      tf_model_name: Standard
+                                      api_name: standard
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Public connection string that you can use to connect to this flex cluster. This connection string uses the `mongodb+srv://` protocol.
+                                      computed_optional_required: computed
+                                      tf_schema_name: standard_srv
+                                      tf_model_name: StandardSrv
+                                      api_name: standardSrv
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: Collection of Uniform Resource Locators that point to the MongoDB database.
+                          custom_type:
+                            name: ResultsConnectionStrings
+                            model: customtypes.ObjectValue[TFResultsConnectionStringsModel]
+                            schema: customtypes.NewObjectType[TFResultsConnectionStringsModel](ctx)
+                            packages:
+                                - customtypes
+                          computed_optional_required: computed
+                          tf_schema_name: connection_strings
+                          tf_model_name: ConnectionStrings
+                          api_name: connectionStrings
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Date and time when MongoDB Cloud created this instance. This parameter expresses its value in ISO 8601 format in UTC.
+                          computed_optional_required: computed
+                          tf_schema_name: create_date
+                          tf_model_name: CreateDate
+                          api_name: createDate
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+                          computed_optional_required: computed
+                          tf_schema_name: project_id
+                          tf_model_name: ProjectId
+                          api_name: groupId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-hexadecimal digit string that identifies the instance.
+                          computed_optional_required: computed
+                          tf_schema_name: id
+                          tf_model_name: Id
+                          api_name: id
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Version of MongoDB that the instance runs.
+                          computed_optional_required: computed
+                          tf_schema_name: mongo_db_version
+                          tf_model_name: MongoDBVersion
+                          api_name: mongoDBVersion
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Human-readable label that identifies the instance.
+                          computed_optional_required: computed
+                          tf_schema_name: name
+                          tf_model_name: Name
+                          api_name: name
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - single_nested:
+                            nested_object:
+                                attributes:
+                                    - string: {}
+                                      description: Cloud service provider on which MongoDB Cloud provisioned the flex cluster.
+                                      computed_optional_required: computed
+                                      tf_schema_name: backing_provider_name
+                                      tf_model_name: BackingProviderName
+                                      api_name: backingProviderName
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - float64: {}
+                                      description: Storage capacity available to the flex cluster expressed in gigabytes.
+                                      computed_optional_required: computed
+                                      tf_schema_name: disk_size_gb
+                                      tf_model_name: DiskSizeGB
+                                      api_name: diskSizeGB
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string:
+                                        default: FLEX
+                                      description: Human-readable label that identifies the provider type.
+                                      computed_optional_required: computed
+                                      tf_schema_name: provider_name
+                                      tf_model_name: ProviderName
+                                      api_name: providerName
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Human-readable label that identifies the geographic location of your MongoDB flex cluster. The region you choose can affect network latency for clients accessing your databases. For a complete list of region names, see [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/#std-label-amazon-aws), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), and [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
+                                      computed_optional_required: computed
+                                      tf_schema_name: region_name
+                                      tf_model_name: RegionName
+                                      api_name: regionName
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: Group of cloud provider settings that configure the provisioned MongoDB flex cluster.
+                          custom_type:
+                            name: ResultsProviderSettings
+                            model: customtypes.ObjectValue[TFResultsProviderSettingsModel]
+                            schema: customtypes.NewObjectType[TFResultsProviderSettingsModel](ctx)
+                            packages:
+                                - customtypes
+                          computed_optional_required: computed
+                          tf_schema_name: provider_settings
+                          tf_model_name: ProviderSettings
+                          api_name: providerSettings
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: |-
+                            Human-readable label that indicates any current activity being taken on this cluster by the Atlas control plane. With the exception of CREATING and DELETING states, clusters should always be available and have a Primary node even when in states indicating ongoing activity.
+
+                             - `IDLE`: Atlas is making no changes to this cluster and all changes requested via the UI or API can be assumed to have been applied.
+                             - `CREATING`: A cluster being provisioned for the very first time returns state CREATING until it is ready for connections. Ensure IP Access List and DB Users are configured before attempting to connect.
+                             - `UPDATING`: A change requested via the UI, API, AutoScaling, or other scheduled activity is taking place.
+                             - `DELETING`: The cluster is in the process of deletion and will soon be deleted.
+                             - `REPAIRING`: One or more nodes in the cluster are being returned to service by the Atlas control plane. Other nodes should continue to provide service as normal.
+                          computed_optional_required: computed
+                          tf_schema_name: state_name
+                          tf_model_name: StateName
+                          api_name: stateName
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - map:
+                            element_type: 4
+                          description: Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.
+                          custom_type:
+                            model: customtypes.MapValue[types.String]
+                            schema: customtypes.NewMapType[types.String](ctx)
+                            packages:
+                                - customtypes
+                          computed_optional_required: computed
+                          tf_schema_name: tags
+                          tf_model_name: Tags
+                          api_name: tags
+                          req_body_usage: send_null_as_empty_on_update
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                          list_type_as_map: true
+                        - bool:
+                            default: false
+                          description: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster.
+                          computed_optional_required: computed
+                          tf_schema_name: termination_protection_enabled
+                          tf_model_name: TerminationProtectionEnabled
+                          api_name: terminationProtectionEnabled
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string:
+                            default: LTS
+                          description: Method by which the cluster maintains the MongoDB versions.
+                          computed_optional_required: computed
+                          tf_schema_name: version_release_system
+                          tf_model_name: VersionReleaseSystem
+                          api_name: versionReleaseSystem
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of returned documents that MongoDB Cloud provides when completing this request.
+              custom_type:
+                name: Results
+                model: customtypes.NestedListValue[TFResultsModel]
+                schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: results
+              tf_model_name: Results
+              api_name: results
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/flexClusters/{name}
+        list:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/flexClusters
+        version_header: application/vnd.atlas.2024-11-13+json
+name: flex_cluster
+packageName: flexcluster
