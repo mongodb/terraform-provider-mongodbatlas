@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
@@ -1899,4 +1900,162 @@ func streamConnectionsAttributeChecksAcceptance(resourceName string, pageNum, it
 func streamConnectionsAttributeChecksMigration(resourceName string, pageNum, itemsPerPage *int) resource.TestCheckFunc {
 	commonTests := streamConnectionsAttributeChecks(resourceName, pageNum, itemsPerPage)
 	return resource.ComposeAggregateTestCheckFunc(commonTests, resource.TestCheckResourceAttrSet(resourceName, "instance_name"))
+}
+
+func TestAccStreamRSStreamConnection_dataCatalogDatabricks(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = acc.RandomName()
+		catalogURL              = "https://dbc-123e123e-a1b2.cloud.databricks.com"
+		clientID                = "databricks-client-id"
+		clientSecret            = "databricks-client-secret"
+	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_11_0), // write-only attributes require Terraform 1.11+
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, clientSecret, 1),
+				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, map[string]string{"databricks.authentication.client_id": clientID}),
+			},
+			{
+				// update: rotate the write-only client secret by bumping its version; the value is never persisted to state
+				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, "rotated-databricks-client-secret", 2),
+				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, map[string]string{"databricks.authentication.client_id": clientID}),
+			},
+			{
+				// update an unrelated attribute with an unchanged version: the secret is not resent, so the stored secret is kept
+				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, "updated-databricks-client-id", "rotated-databricks-client-secret", 2),
+				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, map[string]string{"databricks.authentication.client_id": "updated-databricks-client-id"}),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					// Atlas does not return the write-only version, so it is null after import
+					"databricks.authentication.client_secret_wo_version",
+				},
+			},
+		},
+	})
+}
+
+func TestAccStreamRSStreamConnection_dataCatalogSnowflake(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = acc.RandomName()
+		catalogURL              = "https://myorg-myaccount.snowflakecomputing.com"
+		account                 = "myorg-myaccount"
+		user                    = "svc-user"
+		role                    = "ADMIN"
+		privateKey              = "snowflake-private-key"
+	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_11_0), // write-only attributes require Terraform 1.11+
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, catalogURL, account, user, role, privateKey, 1),
+				Check: checkDataCatalogAttributes(resourceName, instanceName, connectionName, "SNOWFLAKE_HORIZON", catalogURL, map[string]string{
+					"snowflake.authentication.account": account,
+					"snowflake.authentication.user":    user,
+					"snowflake.authentication.role":    role,
+				}),
+			},
+			{
+				// update an unrelated attribute with an unchanged version: the secret is not resent, so the stored key is kept
+				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, catalogURL, account, user, "UPDATED_ROLE", privateKey, 1),
+				Check: checkDataCatalogAttributes(resourceName, instanceName, connectionName, "SNOWFLAKE_HORIZON", catalogURL, map[string]string{
+					"snowflake.authentication.account": account,
+					"snowflake.authentication.user":    user,
+					"snowflake.authentication.role":    "UPDATED_ROLE",
+				}),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					// Atlas does not return the write-only version, so it is null after import
+					"snowflake.authentication.private_key_wo_version",
+				},
+			},
+		},
+	})
+}
+
+func configureDataCatalogDatabricks(projectID, workspaceName, connectionName, catalogURL, clientID, clientSecret string, clientSecretWoVersion int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_connection" "test" {
+			project_id = %[1]q
+			workspace_name = %[2]q
+			connection_name = %[3]q
+			type = "DataCatalog"
+			catalog_provider = "DATABRICKS_UNITY"
+			catalog_url = %[4]q
+			databricks = {
+				authentication = {
+					client_id = %[5]q
+					client_secret_wo = %[6]q
+					client_secret_wo_version = %[7]d
+				}
+			}
+		}
+	`, projectID, workspaceName, connectionName, catalogURL, clientID, clientSecret, clientSecretWoVersion)
+}
+
+func configureDataCatalogSnowflake(projectID, workspaceName, connectionName, catalogURL, account, user, role, privateKey string, privateKeyWoVersion int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_connection" "test" {
+			project_id = %[1]q
+			workspace_name = %[2]q
+			connection_name = %[3]q
+			type = "DataCatalog"
+			catalog_provider = "SNOWFLAKE_HORIZON"
+			catalog_url = %[4]q
+			snowflake = {
+				authentication = {
+					account = %[5]q
+					user = %[6]q
+					role = %[7]q
+					private_key_wo = %[8]q
+					private_key_wo_version = %[9]d
+				}
+			}
+		}
+	`, projectID, workspaceName, connectionName, catalogURL, account, user, role, privateKey, privateKeyWoVersion)
+}
+
+// checkDataCatalogAttributes verifies the resource and data source state for a Data Catalog
+// connection. providerAuthChecks maps every non-secret attribute the API returns, e.g.
+// {"databricks.authentication.client_id": "..."} or all of
+// {"snowflake.authentication.account": "...", "...user": "...", "...role": "..."}; the
+// write-only secret values are never checked because the API does not return them.
+func checkDataCatalogAttributes(resourceName, workspaceName, connectionName, catalogProvider, catalogURL string, providerAuthChecks map[string]string) resource.TestCheckFunc {
+	setChecks := []string{"project_id"}
+	mapChecks := map[string]string{
+		"workspace_name":   workspaceName,
+		"connection_name":  connectionName,
+		"type":             "DataCatalog",
+		"catalog_provider": catalogProvider,
+		"catalog_url":      catalogURL,
+	}
+	for attr, value := range providerAuthChecks {
+		mapChecks[attr] = value
+	}
+	extra := []resource.TestCheckFunc{checkStreamConnectionExists()}
+	return acc.CheckRSAndDS(resourceName, conversion.StringPtr(dataSourceName), nil, setChecks, mapChecks, extra...)
 }

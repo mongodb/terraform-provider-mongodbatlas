@@ -173,13 +173,66 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		}
 	}
 
+	// DataCatalog (Iceberg)
+	streamConnection.CatalogUrl = plan.CatalogURL.ValueStringPointer()
+	streamConnection.CatalogProvider = plan.CatalogProvider.ValueStringPointer()
+	if !plan.Databricks.IsNull() && !plan.Databricks.IsUnknown() {
+		databricksModel := &TFDatabricksModel{}
+		if diags := plan.Databricks.As(ctx, databricksModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		databricksAuthModel := &TFDatabricksAuthenticationModel{}
+		if diags := databricksModel.Authentication.As(ctx, databricksAuthModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamConnection.Databricks = &admin.StreamsDatabricksConnectionConfig{
+			Authentication: admin.StreamsDatabricksAuthentication{
+				ClientId: databricksAuthModel.ClientID.ValueString(),
+				// write-only: taken from the configuration (copied onto the plan by create/update);
+				// a blank value on update keeps the stored secret
+				ClientSecret: databricksAuthModel.ClientSecretWo.ValueString(),
+			},
+		}
+	}
+	if !plan.Snowflake.IsNull() && !plan.Snowflake.IsUnknown() {
+		snowflakeModel := &TFSnowflakeModel{}
+		if diags := plan.Snowflake.As(ctx, snowflakeModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		snowflakeAuthModel := &TFSnowflakeAuthenticationModel{}
+		if diags := snowflakeModel.Authentication.As(ctx, snowflakeAuthModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamConnection.Snowflake = &admin.StreamsSnowflakeConnectionConfig{
+			Authentication: admin.StreamsSnowflakeAuthentication{
+				Account: snowflakeAuthModel.Account.ValueString(),
+				User:    snowflakeAuthModel.User.ValueString(),
+				Role:    snowflakeAuthModel.Role.ValueString(),
+				// write-only: taken from the configuration (copied onto the plan by create/update);
+				// a blank value on update keeps the stored key
+				PrivateKey: snowflakeAuthModel.PrivateKeyWo.ValueString(),
+			},
+		}
+	}
+
 	return &streamConnection, nil
 }
 
-func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
+// NewStreamConnectionUpdateReq builds the update request. The state is compared against the
+// plan for the write-only Data Catalog secrets: they are only sent when their rotation version
+// changed since state, because the API keeps the stored secret when the field is blank. This
+// avoids overwriting a secret rotated out-of-band when only an unrelated attribute changes.
+func NewStreamConnectionUpdateReq(ctx context.Context, plan, state *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
 	streamConnection, diags := NewStreamConnectionReq(ctx, plan)
 	if diags.HasError() {
 		return nil, diags
+	}
+
+	if streamConnection.Databricks != nil && !databricksSecretRotated(ctx, state.Databricks, plan.Databricks) {
+		streamConnection.Databricks.Authentication.ClientSecret = ""
+	}
+	if streamConnection.Snowflake != nil && !snowflakeSecretRotated(ctx, state.Snowflake, plan.Snowflake) {
+		streamConnection.Snowflake.Authentication.PrivateKey = ""
 	}
 
 	headersMap := make(map[string]string)
@@ -193,9 +246,76 @@ func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionM
 	return streamConnection, nil
 }
 
+// databricksSecretRotated reports whether the Databricks client secret should be (re)sent on
+// update: true when the rotation version changed since state or state has no version yet (e.g.
+// after import), so the first managed update always sends the configured secret.
+func databricksSecretRotated(ctx context.Context, state, plan types.Object) bool {
+	stateVersion, diags := databricksWoVersion(ctx, state)
+	if diags.HasError() || stateVersion.IsNull() {
+		return true
+	}
+	planVersion, diags := databricksWoVersion(ctx, plan)
+	if diags.HasError() {
+		return true
+	}
+	return stateVersion != planVersion
+}
+
+func snowflakeSecretRotated(ctx context.Context, state, plan types.Object) bool {
+	stateVersion, diags := snowflakeWoVersion(ctx, state)
+	if diags.HasError() || stateVersion.IsNull() {
+		return true
+	}
+	planVersion, diags := snowflakeWoVersion(ctx, plan)
+	if diags.HasError() {
+		return true
+	}
+	return stateVersion != planVersion
+}
+
+func databricksWoVersion(ctx context.Context, obj types.Object) (types.Int64, diag.Diagnostics) {
+	if obj.IsNull() || obj.IsUnknown() {
+		return types.Int64Null(), nil
+	}
+	model := &TFDatabricksModel{}
+	if diags := obj.As(ctx, model, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return types.Int64Null(), diags
+	}
+	if model.Authentication.IsNull() || model.Authentication.IsUnknown() {
+		return types.Int64Null(), nil
+	}
+	authModel := &TFDatabricksAuthenticationModel{}
+	if diags := model.Authentication.As(ctx, authModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return types.Int64Null(), diags
+	}
+	return authModel.ClientSecretWoVersion, nil
+}
+
+func snowflakeWoVersion(ctx context.Context, obj types.Object) (types.Int64, diag.Diagnostics) {
+	if obj.IsNull() || obj.IsUnknown() {
+		return types.Int64Null(), nil
+	}
+	model := &TFSnowflakeModel{}
+	if diags := obj.As(ctx, model, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return types.Int64Null(), diags
+	}
+	if model.Authentication.IsNull() || model.Authentication.IsUnknown() {
+		return types.Int64Null(), nil
+	}
+	authModel := &TFSnowflakeAuthenticationModel{}
+	if diags := model.Authentication.As(ctx, authModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return types.Int64Null(), diags
+	}
+	return authModel.PrivateKeyWoVersion, nil
+}
+
 // NewTFStreamConnection determines if the original model was created with instance_name or workspace_name and sets the appropriate field.
+// The curr*Config parameters carry the user's configured values so state can keep what the API
+// does not return: the write-only secret values are never persisted (write-only attributes are
+// not stored in state), but their rotation-trigger versions are; the Kafka/SchemaRegistry secret
+// values are carried over into state as before.
 // The planTimeouts parameter is optional and used to preserve user-configured timeouts across create/update operations.
-func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig, currSchemaRegistryAuthConfig *types.Object, apiResp *admin.StreamsConnection, planTimeouts *timeouts.Value) (*TFStreamConnectionModel, diag.Diagnostics) {
+func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig, currSchemaRegistryAuthConfig, currDatabricksConfig, currSnowflakeConfig *types.Object, apiResp *admin.StreamsConnection, planTimeouts *timeouts.Value) (*TFStreamConnectionModel, diag.Diagnostics) {
 	streamWorkspaceName := workspaceName
 	if instanceName != "" {
 		streamWorkspaceName = instanceName
@@ -259,6 +379,27 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 		return nil, diags
 	}
 	connectionModel.SchemaRegistryAuthentication = *schemaRegistryAuthModel
+
+	connectionModel.CatalogProvider = types.StringPointerValue(apiResp.CatalogProvider)
+	connectionModel.CatalogURL = types.StringPointerValue(apiResp.CatalogUrl)
+
+	connectionModel.Databricks = types.ObjectNull(DatabricksObjectType.AttrTypes)
+	if apiResp.Databricks != nil {
+		databricks, diags := newTFDatabricks(ctx, currDatabricksConfig, apiResp.Databricks)
+		if diags.HasError() {
+			return nil, diags
+		}
+		connectionModel.Databricks = databricks
+	}
+
+	connectionModel.Snowflake = types.ObjectNull(SnowflakeObjectType.AttrTypes)
+	if apiResp.Snowflake != nil {
+		snowflake, diags := newTFSnowflake(ctx, currSnowflakeConfig, apiResp.Snowflake)
+		if diags.HasError() {
+			return nil, diags
+		}
+		connectionModel.Snowflake = snowflake
+	}
 
 	connectionModel.Security = types.ObjectNull(ConnectionSecurityObjectType.AttrTypes)
 	if apiResp.Security != nil {
@@ -362,11 +503,67 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 
 // NewTFStreamConnectionDS creates a data source model by reusing NewTFStreamConnection and converting.
 func NewTFStreamConnectionDS(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig, currSchemaRegistryAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionDSModel, diag.Diagnostics) {
-	model, diags := NewTFStreamConnection(ctx, projID, instanceName, workspaceName, currAuthConfig, currSchemaRegistryAuthConfig, apiResp, nil)
+	model, diags := NewTFStreamConnection(ctx, projID, instanceName, workspaceName, currAuthConfig, currSchemaRegistryAuthConfig, nil, nil, apiResp, nil)
 	if diags.HasError() {
 		return nil, diags
 	}
 	return model.ToDS(), nil
+}
+
+// newTFDatabricks maps a Databricks Unity Catalog connection from the API. The client
+// secret is a write-only attribute and is never persisted to state; only the
+// rotation-trigger version is kept from the user's configuration when available.
+func newTFDatabricks(ctx context.Context, currDatabricksConfig *types.Object, apiResp *admin.StreamsDatabricksConnectionConfig) (types.Object, diag.Diagnostics) {
+	authModel := TFDatabricksAuthenticationModel{
+		ClientID: types.StringValue(apiResp.Authentication.ClientId),
+	}
+	if currDatabricksConfig != nil && !currDatabricksConfig.IsNull() {
+		currModel := &TFDatabricksModel{}
+		if diags := currDatabricksConfig.As(ctx, currModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return types.Object{}, diags
+		}
+		currAuthModel := &TFDatabricksAuthenticationModel{}
+		if !currModel.Authentication.IsNull() && !currModel.Authentication.IsUnknown() {
+			if diags := currModel.Authentication.As(ctx, currAuthModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+				return types.Object{}, diags
+			}
+			authModel.ClientSecretWoVersion = currAuthModel.ClientSecretWoVersion
+		}
+	}
+	authObject, diags := types.ObjectValueFrom(ctx, DatabricksAuthenticationObjectType.AttrTypes, authModel)
+	if diags.HasError() {
+		return types.Object{}, diags
+	}
+	return types.ObjectValueFrom(ctx, DatabricksObjectType.AttrTypes, TFDatabricksModel{Authentication: authObject})
+}
+
+// newTFSnowflake maps a Snowflake Horizon Catalog connection from the API. The private
+// key is a write-only attribute and is never persisted to state; only the
+// rotation-trigger version is kept from the user's configuration when available.
+func newTFSnowflake(ctx context.Context, currSnowflakeConfig *types.Object, apiResp *admin.StreamsSnowflakeConnectionConfig) (types.Object, diag.Diagnostics) {
+	authModel := TFSnowflakeAuthenticationModel{
+		Account: types.StringValue(apiResp.Authentication.Account),
+		User:    types.StringValue(apiResp.Authentication.User),
+		Role:    types.StringValue(apiResp.Authentication.Role),
+	}
+	if currSnowflakeConfig != nil && !currSnowflakeConfig.IsNull() {
+		currModel := &TFSnowflakeModel{}
+		if diags := currSnowflakeConfig.As(ctx, currModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return types.Object{}, diags
+		}
+		currAuthModel := &TFSnowflakeAuthenticationModel{}
+		if !currModel.Authentication.IsNull() && !currModel.Authentication.IsUnknown() {
+			if diags := currModel.Authentication.As(ctx, currAuthModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+				return types.Object{}, diags
+			}
+			authModel.PrivateKeyWoVersion = currAuthModel.PrivateKeyWoVersion
+		}
+	}
+	authObject, diags := types.ObjectValueFrom(ctx, SnowflakeAuthenticationObjectType.AttrTypes, authModel)
+	if diags.HasError() {
+		return types.Object{}, diags
+	}
+	return types.ObjectValueFrom(ctx, SnowflakeObjectType.AttrTypes, TFSnowflakeModel{Authentication: authObject})
 }
 
 func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *types.Object, authResp *admin.StreamsKafkaAuthentication) (*types.Object, diag.Diagnostics) {
