@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"go.mongodb.org/atlas-sdk/v20250312026/admin"
+	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 )
 
 // GetWorkspaceOrInstanceName returns the workspace name from workspace_name or instance_name field. Assumes exactly one of the two is set.
@@ -50,14 +50,14 @@ func equalOptionalComputedString(plan, state types.String) bool {
 	return plan.IsUnknown() || plan.Equal(state)
 }
 
-func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessor, diag.Diagnostics) {
+func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessorRequest, diag.Diagnostics) {
 	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
 	if diags != nil {
 		return nil, diags
 	}
-	streamProcessor := &admin.StreamsProcessor{
-		Name:     plan.ProcessorName.ValueStringPointer(),
-		Pipeline: &pipeline,
+	streamProcessor := &admin.StreamsProcessorRequest{
+		Name:     plan.ProcessorName.ValueString(),
+		Pipeline: pipeline,
 	}
 
 	if !plan.FailoverEnabled.IsNull() && !plan.FailoverEnabled.IsUnknown() {

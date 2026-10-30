@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312026/admin"
+	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -296,7 +296,7 @@ func DeleteFlexCluster(ctx context.Context, projectID, clusterName string, clien
 	return WaitStateTransitionDelete(ctx, flexClusterParams, client, timeout)
 }
 
-func ListFlexClusters(ctx context.Context, projectID string, client admin.FlexClustersAPI) (*[]admin.FlexClusterDescription20241113, error) {
+func ListFlexClusters(ctx context.Context, projectID string, client admin.FlexClustersAPI) ([]admin.FlexClusterDescription20241113, error) {
 	params := admin.ListFlexClustersApiParams{
 		GroupId: projectID,
 	}
@@ -311,5 +311,5 @@ func ListFlexClusters(ctx context.Context, projectID string, client admin.FlexCl
 		return nil, err
 	}
 
-	return &flexClusters, nil
+	return flexClusters, nil
 }

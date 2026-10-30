@@ -70,7 +70,7 @@ type TFModel struct {
 	GroupId              types.String                                   `tfsdk:"group_id" autogen:"omitjson"`
 	HourOfDay            types.Int64                                    `tfsdk:"hour_of_day"`
 	NumberOfDeferrals    types.Int64                                    `tfsdk:"number_of_deferrals" autogen:"omitjson"`
-	ProtectedHours       customtypes.ObjectValue[TFProtectedHoursModel] `tfsdk:"protected_hours"`
+	ProtectedHours       customtypes.ObjectValue[TFProtectedHoursModel] `tfsdk:"protected_hours" autogen:"sendnullasnullonupdate"`
 	StartASAP            types.Bool                                     `tfsdk:"start_asap"`
 	TimeZoneId           types.String                                   `tfsdk:"time_zone_id" autogen:"omitjson"`
 }

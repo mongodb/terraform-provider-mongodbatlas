@@ -92,9 +92,20 @@ var (
 	pluralDataSourceName = "data.mongodbatlas_stream_connections.test"
 )
 
+// logStreamConnectionOnFailure logs the project, workspace, and connection names
+// when a test fails, so the connection can be located in backend logs.
+func logStreamConnectionOnFailure(t *testing.T, project, workspaceName, connectionName string) {
+	t.Helper()
+	t.Cleanup(func() {
+		if t.Failed() {
+			t.Logf("stream connection test failed: project=%s workspace_name=%s connection_name=%s", project, workspaceName, connectionName)
+		}
+	})
+}
+
 func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 	testCase := testCaseKafkaPlaintext(t)
-	resource.Test(t, *testCase)
+	resource.ParallelTest(t, *testCase)
 }
 
 func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
@@ -103,6 +114,7 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = "kafka-conn-plaintext"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -150,6 +162,7 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = "kafka-conn-plaintext-mig"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -192,6 +205,7 @@ func TestAccStreamRSStreamConnection_kafkaOAuthBearer(t *testing.T) {
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = "kafka-conn-oauthbearer"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 
 	testCase := &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -223,28 +237,32 @@ func TestAccStreamRSStreamConnection_kafkaOAuthBearer(t *testing.T) {
 			},
 		},
 	}
-	resource.Test(t, *testCase)
+	resource.ParallelTest(t, *testCase)
 }
 
 func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		vpcID                   = os.Getenv("AWS_VPC_ID")
-		vpcCIDRBlock            = os.Getenv("AWS_VPC_CIDR_BLOCK")
-		awsAccountID            = os.Getenv("AWS_ACCOUNT_ID")
-		peerRegion              = os.Getenv("AWS_REGION")
-		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
-		providerName            = "AWS"
-		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
+		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName          = acc.RandomProjectName() // Dedicated project: one network container per region per project.
+		instanceName         = acc.RandomStreamInstanceName()
+		vpcID                = os.Getenv("AWS_VPC_ID")
+		vpcCIDRBlock         = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID         = os.Getenv("AWS_ACCOUNT_ID")
+		peerRegion           = os.Getenv("AWS_REGION")
+		containerRegion      = conversion.AWSRegionToMongoDBRegion(peerRegion)
+		providerName         = "AWS"
+		projectConfig        = configStreamProjectAWS(orgID, projectName, instanceName)
+		networkPeeringConfig = configNetworkPeeringAWS("mongodbatlas_project.test.id", providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
+	logStreamConnectionOnFailure(t, projectName, instanceName, "kafka-conn-vpc")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-vpc", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingVPC, true),
+				Config: projectConfig + networkPeeringConfig + configureKafkaInWorkspace("mongodbatlas_network_peering.test.project_id", "mongodbatlas_stream_workspace.test.workspace_name", "kafka-conn-vpc", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingVPC, true),
 				Check:  checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-vpc", "user", "rawpassword", "example.com:9092", "earliest", networkingTypeVPC, true, true),
 			},
 			{
@@ -260,16 +278,20 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		vpcID                   = os.Getenv("AWS_VPC_ID")
-		vpcCIDRBlock            = os.Getenv("AWS_VPC_CIDR_BLOCK")
-		awsAccountID            = os.Getenv("AWS_ACCOUNT_ID")
-		peerRegion              = os.Getenv("AWS_REGION")
-		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
-		providerName            = "AWS"
-		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
+		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName          = acc.RandomProjectName() // Dedicated project: one network container per region per project.
+		instanceName         = acc.RandomStreamInstanceName()
+		vpcID                = os.Getenv("AWS_VPC_ID")
+		vpcCIDRBlock         = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID         = os.Getenv("AWS_ACCOUNT_ID")
+		peerRegion           = os.Getenv("AWS_REGION")
+		containerRegion      = conversion.AWSRegionToMongoDBRegion(peerRegion)
+		providerName         = "AWS"
+		projectConfig        = configStreamProjectAWS(orgID, projectName, instanceName)
+		networkPeeringConfig = configNetworkPeeringAWS("mongodbatlas_project.test.id", providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
-	resource.Test(t, resource.TestCase{
+	logStreamConnectionOnFailure(t, projectName, instanceName, "kafka-conn-ssl")
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			acc.PreCheckBasic(t)
 			acc.PreCheckPeeringEnvAWS(t)
@@ -278,14 +300,14 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf("%s\n%s", configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingPublic, true), dataSourceConfig),
+				Config: fmt.Sprintf("%s\n%s", projectConfig+configureKafkaInWorkspace("mongodbatlas_project.test.id", "mongodbatlas_stream_workspace.test.workspace_name", "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingPublic, true), dataSourceConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-ssl", "user", "rawpassword", "example.com:9092", "earliest", networkingTypePublic, true, true),
 					checkKafkaAttributesAcceptance(dataSourceName, instanceName, "kafka-conn-ssl", "user", "rawpassword", "example.com:9092", "earliest", networkingTypePublic, true, false),
 				),
 			},
 			{
-				Config: networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingVPC, true),
+				Config: projectConfig + networkPeeringConfig + configureKafkaInWorkspace("mongodbatlas_network_peering.test.project_id", "mongodbatlas_stream_workspace.test.workspace_name", "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "example.com:9092", "earliest", kafkaNetworkingVPC, true),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectResourceAction(
@@ -321,26 +343,22 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t *testing.T) {
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		vpcID                   = os.Getenv("AWS_VPC_ID")
-		vpcCIDRBlock            = os.Getenv("AWS_VPC_CIDR_BLOCK")
-		awsAccountID            = os.Getenv("AWS_ACCOUNT_ID")
-		peerRegion              = os.Getenv("AWS_REGION")
-		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
-		providerName            = "AWS"
-		networkPeeringConfig    = configNetworkPeeringAWS(
-			projectID,
-			providerName,
-			vpcID,
-			awsAccountID,
-			vpcCIDRBlock,
-			containerRegion,
-			peerRegion,
-		)
-		connectionName = "kafka-conn-public-to-vpc"
+		orgID                = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName          = acc.RandomProjectName() // Dedicated project: one network container per region per project.
+		instanceName         = acc.RandomStreamInstanceName()
+		vpcID                = os.Getenv("AWS_VPC_ID")
+		vpcCIDRBlock         = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID         = os.Getenv("AWS_ACCOUNT_ID")
+		peerRegion           = os.Getenv("AWS_REGION")
+		containerRegion      = conversion.AWSRegionToMongoDBRegion(peerRegion)
+		providerName         = "AWS"
+		projectConfig        = configStreamProjectAWS(orgID, projectName, instanceName)
+		networkPeeringConfig = configNetworkPeeringAWS("mongodbatlas_project.test.id", providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
+		connectionName       = "kafka-conn-public-to-vpc"
 	)
+	logStreamConnectionOnFailure(t, projectName, instanceName, connectionName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			acc.PreCheckBasic(t)
 			acc.PreCheckPeeringEnvAWS(t)
@@ -350,9 +368,9 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t
 		Steps: []resource.TestStep{
 			{
 				// Create the connection with PUBLIC networking.
-				Config: configureKafka(
-					fmt.Sprintf("%q", projectID),
-					instanceName,
+				Config: projectConfig + configureKafkaInWorkspace(
+					"mongodbatlas_project.test.id",
+					"mongodbatlas_stream_workspace.test.workspace_name",
 					connectionName,
 					getKafkaAuthenticationConfig(
 						"PLAIN",
@@ -386,9 +404,9 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t
 			{
 				// Changing networking from PUBLIC to VPC must replace
 				// the stream connection rather than update it in place.
-				Config: networkPeeringConfig + configureKafka(
+				Config: projectConfig + networkPeeringConfig + configureKafkaInWorkspace(
 					"mongodbatlas_network_peering.test.project_id",
-					instanceName,
+					"mongodbatlas_stream_workspace.test.workspace_name",
 					connectionName,
 					getKafkaAuthenticationConfig(
 						"PLAIN",
@@ -421,7 +439,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingPublicToVPCRequiresReplace(t
 
 func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 	testCase := testCaseCluster(t)
-	resource.Test(t, *testCase)
+	resource.ParallelTest(t, *testCase)
 }
 
 func testCaseCluster(t *testing.T) *resource.TestCase {
@@ -431,6 +449,7 @@ func testCaseCluster(t *testing.T) *resource.TestCase {
 		_, instanceName        = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName         = "conn-cluster"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -460,6 +479,7 @@ func testCaseClusterMigration(t *testing.T) *resource.TestCase {
 		_, instanceName        = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName         = "conn-cluster-mig"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -488,7 +508,8 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 		instanceName = acc.RandomStreamInstanceName() // The execution stream instance use sample stream, so we need to create this in a different instance
 		sampleName   = "sample_stream_solar"
 	)
-	resource.Test(t, resource.TestCase{
+	logStreamConnectionOnFailure(t, projectID, instanceName, sampleName)
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -524,7 +545,8 @@ func TestAccStreamStreamConnection_https(t *testing.T) {
 		}`
 		emptyHeaders string
 	)
-	resource.Test(t, resource.TestCase{
+	logStreamConnectionOnFailure(t, projectID, workspaceName, "ConnectionNameHttps")
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -581,8 +603,9 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 			}
 		}`, networkingTypePrivatelink)
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, "kafka-conn-privatelink")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -611,7 +634,8 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 		awsIAMRoleName          = acc.RandomIAMRole()
 		connectionName          = acc.RandomName()
 	)
-	resource.Test(t, resource.TestCase{
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -641,6 +665,7 @@ func TestAccStreamRSStreamConnection_AWSLambdaPrivateLink(t *testing.T) {
 		awsIAMRoleName = acc.RandomIAMRole()
 		region         = "us-east-1"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
@@ -666,7 +691,8 @@ func TestAccStreamRSStreamConnection_GCPPubSub(t *testing.T) {
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = acc.RandomName()
 	)
-	resource.Test(t, resource.TestCase{
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -694,6 +720,7 @@ func TestAccStreamRSStreamConnection_GCPPubSubPrivateLink(t *testing.T) {
 		connectionName = acc.RandomName()
 		region         = "us-east4"
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -719,7 +746,8 @@ func TestAccStreamRSStreamConnection_instanceName(t *testing.T) {
 		connectionName          = acc.RandomName()
 	)
 
-	resource.Test(t, resource.TestCase{
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -752,7 +780,8 @@ func TestAccStreamRSStreamConnection_conflictingFields(t *testing.T) {
 		connectionName          = "conflict-test"
 	)
 
-	resource.Test(t, resource.TestCase{
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -773,7 +802,8 @@ func TestAccStreamRSStreamConnection_SchemaRegistry(t *testing.T) {
 		username                = "user"
 		password                = "password"
 	)
-	resource.Test(t, resource.TestCase{
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -840,7 +870,8 @@ func TestAccStreamRSStreamConnection_SchemaRegistrySASLInherit(t *testing.T) {
 		connectionName          = acc.RandomName()
 		schemaRegistryURLs      = []string{"https://httpbin.org/anything/schema-registry"}
 	)
-	resource.Test(t, resource.TestCase{
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -904,6 +935,7 @@ func TestAccStreamRSStreamConnection_kafkaIAM(t *testing.T) {
 		roleARN             = os.Getenv("AWS_ROLE_ARN")
 		bootstrapServersEnv = os.Getenv("MONGODB_ATLAS_STREAM_KAFKA_MSK_BOOTSTRAP_SERVERS")
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			acc.PreCheckBasic(t)
@@ -965,7 +997,27 @@ func getKafkaAuthenticationConfig(mechanism, username, password, tokenEndpointUR
 		}`, mechanism, method, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions)
 }
 
+// streamConnectionCreateTimeout returns the create timeout block for a stream connection. The timeouts
+// attribute only exists from provider 2.7.0, so it is omitted when migration tests run against an older
+// released provider.
+func streamConnectionCreateTimeout() string {
+	if mig.IsProviderVersionLowerThan("2.7.0") {
+		return ""
+	}
+	return `
+			# Provisioning can run close to the default 40 minute create timeout.
+			timeouts = {
+				create = "60m"
+			}`
+}
+
 func configureKafka(projectRef, workspaceName, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
+	return configureKafkaInWorkspace(projectRef, fmt.Sprintf("%q", workspaceName), connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, useSSL)
+}
+
+// configureKafkaInWorkspace is like configureKafka but takes an HCL expression for
+// workspace_name, so callers can reference a stream workspace resource.
+func configureKafkaInWorkspace(projectRef, workspaceRef, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
 	securityConfig := `
 		security = {
 			protocol = "SASL_PLAINTEXT"
@@ -981,7 +1033,7 @@ func configureKafka(projectRef, workspaceName, connectionName, authenticationCon
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = %[1]s
-			workspace_name = %[2]q
+			workspace_name = %[2]s
 		 	connection_name = %[3]q
 		 	type = "Kafka"
 		 	%[4]s
@@ -991,8 +1043,9 @@ func configureKafka(projectRef, workspaceName, connectionName, authenticationCon
 		    }
 		    %[7]s
 			%[8]s
+			%[9]s
 		}
-	`, projectRef, workspaceName, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig)
+	`, projectRef, workspaceRef, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig, streamConnectionCreateTimeout())
 }
 
 // configureKafkaForMigration uses instance_name for compatibility with older provider versions
@@ -1022,8 +1075,9 @@ func configureKafkaMigration(projectRef, instanceName, connectionName, authentic
 		    }
 		    %[7]s
 			%[8]s
+			%[9]s
 		}
-	`, projectRef, instanceName, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig)
+	`, projectRef, instanceName, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig, securityConfig, streamConnectionCreateTimeout())
 }
 
 func configureSampleStream(projectID, workspaceName, sampleName string) string {
@@ -1191,8 +1245,9 @@ func configureCluster(projectID, workspaceName, connectionName, clusterName stri
 				role = "atlasAdmin"
 				type = "BUILT_IN"
 			}
+			%[5]s
 		}
-	`, projectID, workspaceName, connectionName, clusterName)
+	`, projectID, workspaceName, connectionName, clusterName, streamConnectionCreateTimeout())
 }
 
 // configureClusterMigration uses instance_name for compatibility with older provider versions
@@ -1208,8 +1263,9 @@ func configureClusterMigration(projectID, instanceName, connectionName, clusterN
 				role = "atlasAdmin"
 				type = "BUILT_IN"
 			}
+			%[5]s
 		}
-	`, projectID, instanceName, connectionName, clusterName)
+	`, projectID, instanceName, connectionName, clusterName, streamConnectionCreateTimeout())
 }
 
 func configureHTTPS(projectID, workspaceName, url, headers string) string {
@@ -1307,10 +1363,33 @@ func CheckDestroyStreamConnection(state *terraform.State) error {
 	return nil
 }
 
-func configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer string) string {
+// configStreamProjectAWS creates a dedicated project and stream workspace for a test that
+// cannot share the execution project, such as a network peering test, because only one
+// network container per region per project is allowed.
+func configStreamProjectAWS(orgID, projectName, workspaceName string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_project" "test" {
+		name   = %[2]q
+		org_id = %[1]q
+	}
+
+	resource "mongodbatlas_stream_workspace" "test" {
+		project_id     = mongodbatlas_project.test.id
+		workspace_name = %[3]q
+		data_process_region = {
+			region         = "VIRGINIA_USA"
+			cloud_provider = "AWS"
+		}
+	}
+`, orgID, projectName, workspaceName)
+}
+
+// configNetworkPeeringAWS creates a network container and peering. projectRef is an HCL
+// expression, so callers can pass a project id literal or a project resource reference.
+func configNetworkPeeringAWS(projectRef, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_network_container" "test" {
-		project_id   		 = %[1]q
+		project_id   		 = %[1]s
 		atlas_cidr_block  	 = "192.168.208.0/21"
 		provider_name		 = %[2]q
 		region_name			 = %[6]q
@@ -1318,21 +1397,21 @@ func configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCI
 
 	resource "mongodbatlas_network_peering" "test" {
 		accepter_region_name	= %[7]q
-		project_id    			= %[1]q
+		project_id    			= %[1]s
 		container_id           	= mongodbatlas_network_container.test.id
 		provider_name           = %[2]q
 		route_table_cidr_block  = %[5]q
 		vpc_id					= %[3]q
 		aws_account_id	        = %[4]q
 	}
-`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer)
+`, projectRef, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer)
 }
 
 // configureAWSCloudProviderAccessRole creates an AWS role that Atlas can assume and
 // registers it with the project. Callers can append service-specific IAM policies
 // and resources that consume mongodbatlas_cloud_provider_access_authorization.auth_role.
 func configureAWSCloudProviderAccessRole(projectID, awsIAMRoleName string) string {
-	return fmt.Sprintf(`
+	return acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
 			project_id    = %[1]q
 			provider_name = "AWS"
@@ -1593,7 +1672,8 @@ func TestAccStreamRSStreamConnection_AzureBlobStorage(t *testing.T) {
 		storageAccountName      = "tfacctest" + acctest.RandString(10)
 		storageContainerName    = acc.RandomBucketName()
 	)
-	resource.Test(t, resource.TestCase{
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			acc.PreCheckAzureEnvWithServicePrincipal(t)
 			azureServicePrincipalMu.Lock()
@@ -1633,6 +1713,7 @@ func TestAccStreamRSStreamConnection_AzureBlobStoragePrivateLink(t *testing.T) {
 		storageAccountName   = "tfacctest" + acctest.RandString(10)
 		storageContainerName = acc.RandomBucketName()
 	)
+	logStreamConnectionOnFailure(t, projectID, instanceName, connectionName)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			acc.PreCheckAzureEnvWithServicePrincipal(t)
@@ -1774,8 +1855,9 @@ func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, cluste
 				mongodbatlas_cloud_provider_access_authorization.azure_auth,
 				azurerm_role_assignment.blob_contributor,
 			]
+			%[5]s
 		}
-	`, projectID, workspaceName, connectionName, clusterName)
+	`, projectID, workspaceName, connectionName, clusterName, streamConnectionCreateTimeout())
 }
 
 func checkAzureBlobStoragePrivateLinkAttributes(resourceName, workspaceName, connectionName, servicePrincipalID, storageAccountName string) resource.TestCheckFunc {

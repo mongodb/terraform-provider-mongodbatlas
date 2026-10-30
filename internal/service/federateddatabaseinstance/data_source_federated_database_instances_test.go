@@ -42,7 +42,7 @@ func TestAccFederatedDatabaseInstanceDSPlural_basic(t *testing.T) {
 func configDSPlural(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket string) string {
 	stepConfig := configDSPluralFirstStep(firstName, secondName, testS3Bucket)
 	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
-	return fmt.Sprintf(`
+	return acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
   role = aws_iam_role.test_role.id

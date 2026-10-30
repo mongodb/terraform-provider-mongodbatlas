@@ -4,15 +4,22 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20250312026/admin"
+	"github.com/stretchr/testify/assert"
+	mock "github.com/stretchr/testify/mock"
+	"go.mongodb.org/atlas-sdk/v20250312027/admin"
+	"go.mongodb.org/atlas-sdk/v20250312027/mockadmin"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/maintenancewindow"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -60,6 +67,48 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 			{
 				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay, defaultProtectedHours),
 				Check:  checkBasic(dayOfWeek, hourOfDay, defaultProtectedHours),
+			},
+			{
+				// Update an unrelated attribute while protected_hours stays unchanged in config:
+				// Atlas must preserve them. The refreshed state and the following
+				// ImportStateVerify fail if protected hours are missing from Atlas.
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDayUpdated, defaultProtectedHours),
+				Check:  checkBasic(dayOfWeek, hourOfDayUpdated, defaultProtectedHours),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccConfigRSMaintenanceWindow_protectedHoursMidnight(t *testing.T) {
+	var (
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName()
+		dayOfWeek      = 4
+		hourOfDay      = 7
+		midnightHours  = &admin.ProtectedHours{StartHourOfDay: new(12), EndHourOfDay: new(0)}
+		midnightHours2 = &admin.ProtectedHours{StartHourOfDay: new(0), EndHourOfDay: new(18)}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				// end_hour_of_day = 0 (midnight) is valid for the API and must be sent
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay, midnightHours),
+				Check:  checkBasic(dayOfWeek, hourOfDay, midnightHours),
+			},
+			{
+				// start_hour_of_day = 0 is also valid
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay, midnightHours2),
+				Check:  checkBasic(dayOfWeek, hourOfDay, midnightHours2),
 			},
 			{
 				ResourceName:      resourceName,
@@ -193,6 +242,22 @@ func configWithAutoDeferEnabled(orgID, projectName string, dayOfWeek, hourOfDay 
 		}`, orgID, projectName, dayOfWeek, hourOfDay)
 }
 
+// preCheckWaveAssignmentModeManual fails when the organization's effective wave assignment mode is
+// not MANUAL, because Atlas rejects waveAssignment with HTTP 400 in that case.
+func preCheckWaveAssignmentModeManual(tb testing.TB) {
+	tb.Helper()
+	acc.PreCheckBasic(tb)
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	settings, _, err := acc.ConnV2().OrganizationsAPI.GetOrgMaintenanceSettings(tb.Context(), orgID).Execute()
+	if err != nil {
+		tb.Fatalf("failed to read the maintenance settings of organization %s: %s", orgID, err)
+	}
+	// Omitted when maintenance sequencing is disabled, where the effective mode is MANUAL.
+	if mode, ok := settings.GetEffectiveWaveAssignmentModeOk(); ok && *mode != "MANUAL" {
+		tb.Fatalf("the effective wave assignment mode of organization %s is %s, but these tests require MANUAL", orgID, *mode)
+	}
+}
+
 func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -202,7 +267,7 @@ func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { preCheckWaveAssignmentModeManual(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -360,7 +425,7 @@ func TestAccConfigRSMaintenanceWindow_waveAssignmentMidnight(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { preCheckWaveAssignmentModeManual(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -412,4 +477,46 @@ func checkBasic(dayOfWeek, hourOfDay int, protectedHours *admin.ProtectedHours) 
 		checks = append(checks, resource.TestCheckResourceAttr(resourceName, "protected_hours.#", "0"))
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+// Unit test for the Read behavior: starts with protected hours in state (stale) and
+// mocks the API returning none, so the attribute must be cleared to surface drift.
+// This cannot be covered by an acceptance test while the API preserves protected
+// hours, since the drift only exists when the API omits them.
+func TestResourceReadProtectedHours(t *testing.T) {
+	testCases := map[string]struct {
+		apiResponse         *admin.GroupMaintenanceWindow
+		stateProtectedHours []any
+		expectedProtectedHL []any
+	}{
+		"no protected hours in API response clears the stale attribute": {
+			apiResponse:         &admin.GroupMaintenanceWindow{},
+			stateProtectedHours: []any{map[string]any{"start_hour_of_day": 9, "end_hour_of_day": 17}},
+			expectedProtectedHL: []any{},
+		},
+		"protected hours in API response are set": {
+			apiResponse: &admin.GroupMaintenanceWindow{
+				ProtectedHours: &admin.ProtectedHours{
+					StartHourOfDay: new(9),
+					EndHourOfDay:   new(17),
+				},
+			},
+			expectedProtectedHL: []any{map[string]any{"start_hour_of_day": 9, "end_hour_of_day": 17}},
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			apiMock := mockadmin.NewMaintenanceWindowsAPI(t)
+			apiMock.On("GetMaintenanceWindow", mock.Anything, "projectID").Return(admin.GetMaintenanceWindowApiRequest{ApiService: apiMock})
+			apiMock.On("GetMaintenanceWindowExecute", mock.Anything).Return(tc.apiResponse, &http.Response{StatusCode: http.StatusOK}, nil)
+
+			d := schema.TestResourceDataRaw(t, maintenancewindow.Resource().Schema, map[string]any{"protected_hours": tc.stateProtectedHours})
+			d.SetId("projectID")
+
+			diags := maintenancewindow.Resource().ReadContext(context.Background(), d, &config.MongoDBClient{AtlasV2: &admin.APIClient{MaintenanceWindowsAPI: apiMock}})
+			assert.False(t, diags.HasError(), "unexpected errors: %v", diags)
+			assert.Equal(t, tc.expectedProtectedHL, d.Get("protected_hours").([]any))
+		})
+	}
 }

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312026/admin"
+	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
@@ -34,9 +34,15 @@ func WaitDeleteStateTransition(ctx context.Context, projectID, cloudProvider, en
 }
 
 func WaitDeleteStateTransitionWithMinTimeoutAndTimeout(ctx context.Context, minTimeout, timeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementAPI) (*admin.EARPrivateEndpoint, error) {
+	// A delete request can be observed while the endpoint still reports a pre-delete
+	// state (INITIATING or PENDING_ACCEPTANCE), before Atlas moves it to DELETING.
 	return waitStateTransitionForStates(
 		ctx,
-		[]string{retrystrategy.RetryStrategyDeletingState},
+		[]string{
+			retrystrategy.RetryStrategyInitiatingState,
+			retrystrategy.RetryStrategyPendingAcceptanceState,
+			retrystrategy.RetryStrategyDeletingState,
+		},
 		[]string{retrystrategy.RetryStrategyDeletedState, retrystrategy.RetryStrategyFailedState},
 		minTimeout, timeout, projectID, cloudProvider, endpointID, client)
 }

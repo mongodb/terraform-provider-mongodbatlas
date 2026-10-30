@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"go.mongodb.org/atlas-sdk/v20250312026/admin"
+	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -131,7 +131,7 @@ func ConfigProjectWithAwsKmsPrivateNetworking(projectName, orgID, awsIAMRoleName
 }
 
 func configAwsRoleAndPolicy(awsIamRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration) string {
-	config := fmt.Sprintf(`
+	config := ConfigAWSProviderWithTags() + fmt.Sprintf(`
 		resource "aws_iam_role" "test_role" {
 			name = %[1]q
 	  

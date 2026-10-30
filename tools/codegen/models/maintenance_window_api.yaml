@@ -104,7 +104,7 @@ schema:
           tf_schema_name: protected_hours
           tf_model_name: ProtectedHours
           api_name: protectedHours
-          req_body_usage: all_request_bodies
+          req_body_usage: send_null_as_null_on_update
           sensitive: false
           create_only: false
           present_in_any_response: true

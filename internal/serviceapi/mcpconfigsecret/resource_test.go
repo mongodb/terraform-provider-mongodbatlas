@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -156,7 +157,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if orgID == "" || mcpConfigID == "" || secretID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetOrgMcpSecret(context.Background(), orgID, mcpConfigID, secretID).Execute()
+		_, _, err := acc.ConnV2().RemoteMCPConfigurationsAPI.GetOrgMcpSecret(context.Background(), orgID, mcpConfigID, secretID).Execute()
 		if err == nil {
 			return nil
 		}
@@ -176,9 +177,14 @@ func checkDestroy(s *terraform.State) error {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
 
-		if _, _, err := acc.ConnPreview().RemoteMCPConfigurationsAPI.GetOrgMcpSecret(context.Background(), orgID, mcpConfigID, secretID).Execute(); err == nil {
+		_, resp, err := acc.ConnV2().RemoteMCPConfigurationsAPI.GetOrgMcpSecret(context.Background(), orgID, mcpConfigID, secretID).Execute()
+		if err == nil {
 			return fmt.Errorf("mcp config secret (%s/%s/%s) still exists", orgID, mcpConfigID, secretID)
 		}
+		if validate.StatusNotFound(resp) {
+			continue
+		}
+		return fmt.Errorf("checkDestroy, could not confirm deletion of mcp config secret (%s/%s/%s): %w", orgID, mcpConfigID, secretID, err)
 	}
 	return nil
 }

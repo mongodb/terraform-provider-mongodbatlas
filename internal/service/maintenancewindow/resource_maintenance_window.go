@@ -7,11 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	admin "go.mongodb.org/atlas-sdk/v20250312026/admin"
+	admin "go.mongodb.org/atlas-sdk/v20250312027/admin"
 )
 
 const (
@@ -152,9 +151,11 @@ func newProtectedHours(d *schema.ResourceData) *admin.ProtectedHours {
 	if protectedHours, ok := d.Get("protected_hours").([]any); ok && len(protectedHours) > 0 {
 		item := protectedHours[0].(map[string]any)
 
+		// Both fields are Required, so hour 0 (midnight) is a valid value and must be
+		// sent, not treated as unset.
 		return &admin.ProtectedHours{
-			EndHourOfDay:   conversion.IntPtr(item["end_hour_of_day"].(int)),
-			StartHourOfDay: conversion.IntPtr(item["start_hour_of_day"].(int)),
+			EndHourOfDay:   new(item["end_hour_of_day"].(int)),
+			StartHourOfDay: new(item["start_hour_of_day"].(int)),
 		}
 	}
 
@@ -203,10 +204,14 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
+	// Set an empty list when the API returns no protected hours, otherwise a loss
+	// in Atlas would never show up as drift in plans.
+	var protectedHours []map[string]int
 	if maintenanceWindow.ProtectedHours != nil {
-		if err := d.Set("protected_hours", flattenProtectedHours(maintenanceWindow.GetProtectedHours())); err != nil {
-			return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
-		}
+		protectedHours = flattenProtectedHours(maintenanceWindow.GetProtectedHours())
+	}
+	if err := d.Set("protected_hours", protectedHours); err != nil {
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
 	if err := d.Set("wave_assignment", maintenanceWindow.GetWaveAssignment()); err != nil {

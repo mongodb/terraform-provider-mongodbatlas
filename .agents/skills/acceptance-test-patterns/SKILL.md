@@ -28,7 +28,7 @@ For an optional attribute on a resource, cover the configuration lifecycle, not 
 
 ## CheckExists / CheckDestroy for Autogen Resources
 
-Autogen resources map directly from the OpenAPI spec and avoid typed Atlas SDK methods, calling the API through the SDK's untyped client instead. Their `checkExists` / `checkDestroy` should follow the same approach: verify against Atlas with an untyped client rather than a typed SDK method. Keep these check functions in the resource's own `resource_test.go`, since they are resource-specific. Issue the untyped request with the resource's version header (see the `apiVersionHeader` const in the resource’s `resource.go`). Promoting a preview API to stable then only requires bumping the version header, not a rewrite.
+Autogen resource implementations call the API through the SDK's untyped client because they are generated directly from the OpenAPI spec, which may target a preview version. The `checkExists` / `checkDestroy` functions are hand-written, so prefer the typed Atlas SDK method when the API is already in the SDK at a compatible version; it is type-checked and clearer. Use the untyped client only when the typed method is not available yet or the API is preview-only, issuing the request with the resource's version header (see the `apiVersionHeader` const in the resource's `resource.go`); promoting that API to stable then only requires bumping the version header, not a rewrite. Keep these check functions in the resource's own `resource_test.go`, since they are resource-specific.
 
 ## Plural Data Source Ordering
 

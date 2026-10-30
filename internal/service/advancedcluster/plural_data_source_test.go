@@ -1,11 +1,15 @@
 package advancedcluster_test
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 )
 
 func TestRemoveClusterNotFoundErrors(t *testing.T) {
@@ -66,4 +70,48 @@ func TestRemoveClusterNotFoundErrors(t *testing.T) {
 			assert.Equal(t, tc.expected, tc.input)
 		})
 	}
+}
+
+func TestRetryListOnClusterNotFound(t *testing.T) {
+	t.Run("retries transient CLUSTER_NOT_FOUND", func(t *testing.T) {
+		calls := 0
+		result, err := advancedcluster.RetryListOnClusterNotFound(t.Context(), func() (string, error) {
+			calls++
+			if calls < 3 {
+				return "", clusterNotFoundError()
+			}
+			return "clusters", nil
+		})
+		require.NoError(t, err)
+		require.Equal(t, "clusters", result)
+		require.Equal(t, 3, calls)
+	})
+
+	t.Run("does not retry other errors", func(t *testing.T) {
+		calls := 0
+		_, err := advancedcluster.RetryListOnClusterNotFound(t.Context(), func() (string, error) {
+			calls++
+			return "", errors.New("unexpected error")
+		})
+		require.Error(t, err)
+		require.Equal(t, 1, calls)
+	})
+
+	t.Run("returns the zero value when cancelled", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(t.Context())
+		result, err := advancedcluster.RetryListOnClusterNotFound(ctx, func() (string, error) {
+			cancel()
+			return "partial", clusterNotFoundError()
+		})
+		require.Error(t, err)
+		require.Empty(t, result)
+	})
+}
+
+// clusterNotFoundError builds the SDK error Atlas returns for CLUSTER_NOT_FOUND.
+func clusterNotFoundError() error {
+	apiErr := &admin.GenericOpenAPIError{}
+	apiErr.SetModel(admin.ApiError{ErrorCode: "CLUSTER_NOT_FOUND"})
+	apiErr.SetError("cluster not found")
+	return apiErr
 }

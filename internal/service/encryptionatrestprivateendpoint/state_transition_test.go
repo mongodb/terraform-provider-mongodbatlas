@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312026/admin"
-	"go.mongodb.org/atlas-sdk/v20250312026/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312027/admin"
+	"go.mongodb.org/atlas-sdk/v20250312027/mockadmin"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -80,6 +80,15 @@ func TestDeleteStateTransition(t *testing.T) {
 	testCases := map[string]testCase{
 		"Successful transitioning from DELELTING to deleted": {
 			mockResponses: []response{
+				{state: conversion.StringPtr(retrystrategy.RetryStrategyDeletingState)},
+				{statusCode: admin.PtrInt(http.StatusNotFound), err: errors.New("does not exist")},
+			},
+			expectedError: false,
+		},
+		"Successful transitioning from pre-delete states to deleted": {
+			mockResponses: []response{
+				{state: conversion.StringPtr(retrystrategy.RetryStrategyInitiatingState)},
+				{state: conversion.StringPtr(retrystrategy.RetryStrategyPendingAcceptanceState)},
 				{state: conversion.StringPtr(retrystrategy.RetryStrategyDeletingState)},
 				{statusCode: admin.PtrInt(http.StatusNotFound), err: errors.New("does not exist")},
 			},

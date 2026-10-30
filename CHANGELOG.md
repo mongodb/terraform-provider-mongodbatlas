@@ -1,22 +1,51 @@
 ## (Unreleased)
 
+## 2.21.0 (October 28, 2026)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_cloud_backup_schedule: Adds `auto_copy_settings_enabled` attribute ([#4818](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4818))
+* resource/mongodbatlas_cloud_backup_schedule: Adds `auto_copy_settings_enabled` attribute ([#4818](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4818))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_advanced_clusters: Fixes `results` returning `null` instead of the project's clusters, and fails the read instead of returning `null` when the cluster list cannot be retrieved ([#4817](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4817))
+* resource/mongodbatlas_cloud_backup_schedule: Fixes a plan-time error when removing every `copy_settings` entry, by validating `copy_policy_items` and `last_number_of_snapshots` from config instead of state ([#4842](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4842))
+
+## 2.20.1 (October 19, 2026)
+
+NOTES:
+
+* provider: Signs releases with a new RSA GPG key, replacing the previous DSA key that caused `terraform init` to panic on FIPS 140 builds ([#4809](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4809))
+
+BUG FIXES:
+
+* resource/mongodbatlas_encryption_at_rest_private_endpoint: Fixes delete failing with `unexpected state 'PENDING_ACCEPTANCE'` when the endpoint has not been approved yet ([#4805](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4805))
+* resource/mongodbatlas_maintenance_window: Fixes reads keeping stale `protected_hours` in state when they are missing in Atlas, so the loss now shows up as plan drift and the next apply restores them ([#4811](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4811))
+
+## 2.20.0 (October 14, 2026)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_alert_configuration: Adds `notification.webhook_body_template` and `notification.webhook_headers_template` attributes ([#4773](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4773))
 * data-source/mongodbatlas_alert_configurations: Adds `notification.webhook_body_template` and `notification.webhook_headers_template` attributes ([#4773](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4773))
 * data-source/mongodbatlas_federated_database_instance: Adds `gcp` attribute to support reading federated databases with Google Cloud provider configuration ([#4789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4789))
 * data-source/mongodbatlas_federated_database_instances: Adds `gcp` attribute to support reading federated databases with Google Cloud provider configuration ([#4789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4789))
+* data-source/mongodbatlas_metric_integration: Adds OAuth 2.0 support via a new `oauth` block (client-secret or private-key JWT authentication) ([#4737](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4737))
+* data-source/mongodbatlas_metric_integrations: Adds OAuth 2.0 support via a new `oauth` block (client-secret or private-key JWT authentication) ([#4737](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4737))
 * data-source/mongodbatlas_third_party_integration: Adds `send_sharding_metrics` attribute ([#4768](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4768))
 * data-source/mongodbatlas_third_party_integrations: Adds `send_sharding_metrics` attribute ([#4768](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4768))
 * resource/mongodbatlas_advanced_cluster: Documents that NVMe clusters require either the `PROVISIONED` or `HIGH_PERFORMANCE` `ebs_volume_type` value ([#4776](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4776))
 * resource/mongodbatlas_advanced_cluster: Warns when spec changes are ignored with `use_effective_fields` ([#4791](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4791))
 * resource/mongodbatlas_alert_configuration: Adds `notification.webhook_body_template` and `notification.webhook_headers_template` attributes to customize the JSON body and headers of `WEBHOOK` notifications ([#4773](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4773))
 * resource/mongodbatlas_federated_database_instance: Adds `gcp` attribute to allow the creation of federated databases with Google Cloud provider configuration ([#4789](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4789))
+* resource/mongodbatlas_metric_integration: Adds OAuth 2.0 support via a new `oauth` block (client-secret or private-key JWT authentication) ([#4737](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4737))
 * resource/mongodbatlas_third_party_integration: Adds `send_sharding_metrics` attribute to the `DATADOG` integration type ([#4768](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4768))
 
 BUG FIXES:
 
 * provider: Fixes delete operations failing with 404 when the resource is already gone from Atlas. The delete now succeeds and the resource is removed from state instead of erroring. Affects mongodbatlas_advanced_cluster, mongodbatlas_alert_configuration, mongodbatlas_auditing, mongodbatlas_backup_compliance_policy, mongodbatlas_cloud_backup_schedule, mongodbatlas_cloud_backup_snapshot, mongodbatlas_cloud_backup_snapshot_export_bucket, mongodbatlas_cloud_backup_snapshot_restore_job, mongodbatlas_cloud_provider_access_setup, mongodbatlas_cluster, mongodbatlas_cluster_outage_simulation, mongodbatlas_custom_db_role, mongodbatlas_database_user, mongodbatlas_encryption_at_rest_private_endpoint, mongodbatlas_event_trigger, mongodbatlas_federated_database_instance, mongodbatlas_federated_query_limit, mongodbatlas_federated_settings_identity_provider, mongodbatlas_federated_settings_org_config, mongodbatlas_federated_settings_org_role_mapping, mongodbatlas_flex_cluster, mongodbatlas_global_cluster_config, mongodbatlas_ldap_configuration, mongodbatlas_maintenance_window, mongodbatlas_network_peering, mongodbatlas_online_archive, mongodbatlas_organization, mongodbatlas_org_invitation, mongodbatlas_privatelink_endpoint, mongodbatlas_privatelink_endpoint_service, mongodbatlas_project, mongodbatlas_project_invitation, mongodbatlas_project_ip_access_list, mongodbatlas_project_service_account_access_list_entry, mongodbatlas_resource_policy, mongodbatlas_search_deployment, mongodbatlas_search_index, mongodbatlas_serverless_instance, mongodbatlas_service_account_access_list_entry, mongodbatlas_stream_instance, mongodbatlas_stream_privatelink_endpoint, mongodbatlas_stream_processor, mongodbatlas_stream_workspace, mongodbatlas_team_project_assignment ([#4784](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4784))
+* resource/mongodbatlas_maintenance_window: Fixes `protected_hours` with `start_hour_of_day` or `end_hour_of_day` set to `0` being rejected by the API ([#4801](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4801))
 
 ## 2.19.0 (September 30, 2026)
 

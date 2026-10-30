@@ -132,7 +132,7 @@ jobs:
       mongodb_atlas_metric_integration_api_key: ${{ secrets.MONGODB_ATLAS_METRIC_INTEGRATION_API_KEY }}
 
     with:
-      terraform_version: ${{ inputs.terraform_version || '1.16.x' }}
+      terraform_version: ${{ inputs.terraform_version || '1.17.x' }}
       provider_version: ${{ inputs.provider_version }}
       test_group: ${{ inputs.test_group }}
       test_name: ${{ inputs.test_name }}
@@ -140,6 +140,7 @@ jobs:
       reduced_tests: ${{ inputs.reduced_tests == true }}
       use_sa: ${{ inputs.use_sa == true }}
       send_notification: ${{ inputs.send_notification == true }}
+      mongodb_tag_env: ${{ inputs.atlas_cloud_env == 'qa' && 'qa' || 'dev' }}
       mongodb_atlas_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA || vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
       mongodb_atlas_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_BASE_URL_QA || vars.MONGODB_ATLAS_BASE_URL }}
       mongodb_realm_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_REALM_BASE_URL_QA || vars.MONGODB_REALM_BASE_URL }}

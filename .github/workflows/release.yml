@@ -166,8 +166,8 @@ jobs:
         with:
           tag: ${{ inputs.version_number }}
           commit_sha: ${{ steps.get-sha.outputs.sha }}
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg_passphrase: ${{ secrets.PASSPHRASE }}
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY_RELEASE }}
+          gpg_passphrase: ${{ secrets.PASSPHRASE_RELEASE }}
 
   run-qa-acceptance-tests:
     needs: [ release-config, validate-inputs, update-examples-reference-in-docs, update-changelog-header, create-tag ]
@@ -206,10 +206,10 @@ jobs:
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd
         with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.PASSPHRASE }}
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY_RELEASE }}
+          passphrase: ${{ secrets.PASSPHRASE_RELEASE }}
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de
         with:
           version: '~> v2'
           args: release --clean

@@ -2,16 +2,14 @@ package orgdelegationsettings_test
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -174,51 +172,40 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-type delegationSettings struct {
-	DelegatedMcpAccess          *string `json:"delegatedMcpAccess"`
-	DelegatedPartnerAccess      *string `json:"delegatedPartnerAccess"`
-	IdleRefreshTokenLifetime    *int64  `json:"idleRefreshTokenLifetime"`
-	MaximumRefreshTokenLifetime *int64  `json:"maximumRefreshTokenLifetime"`
-}
-
-func getDelegationSettings(orgID string) (*delegationSettings, error) {
-	resp, err := delegationSettingsAPICall(orgID, http.MethodGet, nil)
+func getDelegationSettings(orgID string) (*admin.OrgDelegationSettingsResponse, error) {
+	resp, _, err := acc.ConnV2().OrganizationsAPI.GetOrgDelegationSettings(context.Background(), orgID).Execute()
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status %d fetching delegation settings for org %s", resp.StatusCode, orgID)
-	}
-	var result delegationSettings
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, err
-	}
-	return &result, nil
+	return resp, nil
 }
 
-func updateDelegationSettings(orgID string, settings *delegationSettings) error {
-	body, err := json.Marshal(settings)
-	if err != nil {
-		return err
-	}
-	resp, err := delegationSettingsAPICall(orgID, http.MethodPatch, body)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status %d updating delegation settings for org %s", resp.StatusCode, orgID)
-	}
-	return nil
+func updateDelegationSettings(orgID string, settings *admin.OrgDelegationSettingsResponse) error {
+	req := delegationSettingsUpdateRequest(settings)
+	_, _, err := acc.ConnV2().OrganizationsAPI.UpdateOrgDelegationSettings(context.Background(), orgID, req).Execute()
+	return err
 }
 
-func delegationSettingsAPICall(orgID, method string, body []byte) (*http.Response, error) {
-	callParams := config.APICallParams{
-		VersionHeader: "application/vnd.atlas.2025-03-12+json",
-		RelativePath:  "/api/atlas/v2/orgs/{orgId}/delegationSettings",
-		PathParams:    map[string]string{"orgId": orgID},
-		Method:        method,
+// delegationSettingsUpdateRequest restores the captured baseline, sending an explicit
+// null for unset fields to match the resource's send_null_as_null_on_update behavior.
+func delegationSettingsUpdateRequest(settings *admin.OrgDelegationSettingsResponse) *admin.OrgDelegationSettingsUpdateRequest {
+	req := &admin.OrgDelegationSettingsUpdateRequest{
+		DelegatedMcpAccess:          settings.DelegatedMcpAccess,
+		DelegatedPartnerAccess:      settings.DelegatedPartnerAccess,
+		IdleRefreshTokenLifetime:    settings.IdleRefreshTokenLifetime,
+		MaximumRefreshTokenLifetime: settings.MaximumRefreshTokenLifetime,
 	}
-	return acc.MongoDBClient.UntypedAPICall(context.Background(), callParams, body)
+	if settings.DelegatedMcpAccess == nil {
+		req.SetDelegatedMcpAccessNil()
+	}
+	if settings.DelegatedPartnerAccess == nil {
+		req.SetDelegatedPartnerAccessNil()
+	}
+	if settings.IdleRefreshTokenLifetime == nil {
+		req.SetIdleRefreshTokenLifetimeNil()
+	}
+	if settings.MaximumRefreshTokenLifetime == nil {
+		req.SetMaximumRefreshTokenLifetimeNil()
+	}
+	return req
 }

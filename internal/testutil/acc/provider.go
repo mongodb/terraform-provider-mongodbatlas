@@ -7,11 +7,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-const AwsProviderVersion = "5.1.0"
+const AwsProviderVersion = "6.23.0"
 const azurermProviderVersion = "4.60.0"
 const azapiProviderVersion = "1.15.0"
 const confluentProviderVersion = "2.12.0"
 const googleProviderVersion = "7.0.0"
+
+// Cloud Tag Policy: resources created by acceptance tests must carry
+// mongodb-owner and mongodb-env tags
+const (
+	tagOwnerEnvVar = "MONGODB_TAG_OWNER"
+	tagEnvEnvVar   = "MONGODB_TAG_ENV"
+)
 
 func ExternalProviders(versionAtlasProvider string) map[string]resource.ExternalProvider {
 	return map[string]resource.ExternalProvider{
@@ -152,6 +159,46 @@ func ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID stri
 			tenant_id       = %[4]q
 		}
 	`, subscriptionID, clientID, clientSecret, tenantID)
+}
+
+// ConfigTags returns the Cloud Tag Policy tags as a resource-level tags attribute, indented by indent.
+// azurerm does not support provider-level default_tags, so Azure resources set tags individually: https://github.com/hashicorp/terraform-provider-azurerm/issues/13776.
+func ConfigTags(indent string) string {
+	return FormatToHCLMap(tagValues(), indent, "tags")
+}
+
+func ConfigDefaultTags() string {
+	return fmt.Sprintf(`
+		default_tags {
+%s
+		}
+	`, FormatToHCLMap(tagValues(), "\t\t\t", "tags"))
+}
+
+// tagValues returns the Cloud Tag Policy tags applied to the resources created by tests.
+func tagValues() map[string]string {
+	return map[string]string{
+		"mongodb-owner": tagValue(tagOwnerEnvVar),
+		"mongodb-env":   tagValue(tagEnvEnvVar),
+	}
+}
+
+func ConfigAWSProviderWithTags() string {
+	return fmt.Sprintf(`
+		provider "aws" {
+			%[1]s
+		}
+	`, ConfigDefaultTags())
+}
+
+func tagValue(envVar string) string {
+	if v := os.Getenv(envVar); v != "" {
+		return v
+	}
+	if os.Getenv("TF_ACC") == "" {
+		return "unused"
+	}
+	panic(fmt.Sprintf("%s must be set", envVar))
 }
 
 func ConfigConfluentProvider() string {

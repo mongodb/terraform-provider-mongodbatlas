@@ -2,9 +2,7 @@ package aimodelratelimit_test
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"regexp"
 	"testing"
@@ -12,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -156,8 +153,14 @@ func checkBasic() resource.TestCheckFunc {
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs := s.RootModule().Resources[resourceName]
-		if !rateLimitExists(rs) {
-			return fmt.Errorf("rate limit (%s) does not exist", rs.Primary.ID)
+		_, err := getRateLimit(
+			rs.Primary.Attributes["project_id"],
+			rs.Primary.Attributes["cloud"],
+			rs.Primary.Attributes["geography"],
+			rs.Primary.Attributes["model_group_name"],
+		)
+		if err != nil {
+			return fmt.Errorf("rate limit (%s) does not exist: %w", rs.Primary.ID, err)
 		}
 		return nil
 	}
@@ -183,19 +186,14 @@ type rateLimitValues struct {
 // The baseline rate limit is captured before the resource is created, so that CheckDestroy
 // can verify that destroying the resource resets the rate limit back to the baseline.
 func getRateLimit(projectID, cloud, geography, modelGroupName string) (*rateLimitValues, error) {
-	resp, err := acc.GetAIModelRateLimit(context.Background(), projectID, cloud, geography, modelGroupName)
+	resp, _, err := acc.ConnV2().AIModelRateLimitsAPI.GetGroupRateLimits(context.Background(), projectID, cloud, geography, modelGroupName).Execute()
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status %d fetching rate limit for %s", resp.StatusCode, modelGroupName)
-	}
-	var result rateLimitValues
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, err
-	}
-	return &result, nil
+	return &rateLimitValues{
+		RequestsPerMinuteLimit: resp.GetRequestsPerMinuteLimit(),
+		TokensPerMinuteLimit:   resp.GetTokensPerMinuteLimit(),
+	}, nil
 }
 
 func checkDestroy(baseline *rateLimitValues) resource.TestCheckFunc {
@@ -214,24 +212,4 @@ func checkDestroy(baseline *rateLimitValues) resource.TestCheckFunc {
 		}
 		return nil
 	}
-}
-
-// rateLimitExists checks if a rate limit exists.
-func rateLimitExists(rs *terraform.ResourceState) bool {
-	callParams := config.APICallParams{
-		VersionHeader: "application/vnd.atlas.2025-03-12+json",
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits",
-		PathParams: map[string]string{
-			"groupId":        rs.Primary.Attributes["project_id"],
-			"cloud":          rs.Primary.Attributes["cloud"],
-			"geography":      rs.Primary.Attributes["geography"],
-			"modelGroupName": rs.Primary.Attributes["model_group_name"],
-		},
-		Method: "GET",
-	}
-	resp, err := acc.MongoDBClient.UntypedAPICall(context.Background(), callParams, nil)
-	if resp != nil {
-		resp.Body.Close()
-	}
-	return err == nil
 }
