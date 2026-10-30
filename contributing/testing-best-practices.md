@@ -43,6 +43,13 @@
    2. `TestMigGovProject_regionUsageRestrictionsDefault`, note prefix: `TestMigGov`
    3. Although `Gov` tests can be run together with other acceptance tests, using the `Test(Acc|Mig)Gov` makes it easier to run *only* gov tests or find similar gov tests
 
+### Cloud provider resources
+
+Tests that create AWS or Azure resources must tag them:
+
+- AWS: use [`acc.ConfigAWSProviderWithTags`](../internal/testutil/acc/provider.go), which sets the tags as provider `default_tags`.
+- Azure: `azurerm` has no provider-level default tags, so add [`acc.ConfigAzureTags`](../internal/testutil/acc/provider.go) to every Azure resource that supports tags. Besides the required tags, it sets a `createDate` tag a few hours in the future, which makes the Atlas leaked-item detector skip the resource while the test runs. Without it, the detector can add an `isleakeditem` tag mid-test, and the refresh plan after apply is then not empty.
+
 ## Migration tests
 
 - There must be at least one `basic migration test` for each resource that leverages on the `basic acceptance tests` using helper test functions such as `CreateAndRunTest`, e.g. [TestMigServerlessInstance_basic](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/66c44e62c9afe04ffe8be0dbccaec682bab830e6/internal/service/serverlessinstance/resource_serverless_instance_migration_test.go#L10).

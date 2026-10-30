@@ -3,6 +3,8 @@ package acc
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -161,11 +163,16 @@ func ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID stri
 	`, subscriptionID, clientID, clientSecret, tenantID)
 }
 
-// ConfigTags returns the Cloud Tag Policy tags as a resource-level tags attribute, indented by indent.
+// ConfigAzureTags returns the tags attribute that every Azure resource supporting tags must set, indented by indent.
 // azurerm does not support provider-level default_tags, so Azure resources set tags individually: https://github.com/hashicorp/terraform-provider-azurerm/issues/13776.
-func ConfigTags(indent string) string {
-	return FormatToHCLMap(tagValues(), indent, "tags")
+func ConfigAzureTags(indent string) string {
+	tags := tagValues()
+	tags["createDate"] = azureCreateDate
+	return FormatToHCLMap(tags, indent, "tags")
 }
+
+// azureCreateDate 6h ahead of the current time, which is the GitHub Actions job limit.
+var azureCreateDate = strconv.FormatInt(time.Now().Add(6*time.Hour).UnixMilli(), 10)
 
 func ConfigDefaultTags() string {
 	return fmt.Sprintf(`
