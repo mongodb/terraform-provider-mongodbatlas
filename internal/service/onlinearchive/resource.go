@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -28,6 +29,8 @@ const (
 	scheduleTypeDefault       = "DEFAULT"
 	timeout                   = 1 * time.Minute
 )
+
+var onlineArchiveImportIDRegex = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.+)-([0-9a-fA-F]{24})$`)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -347,20 +350,9 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	parts := strings.Split(d.Id(), "-")
-
-	var projectID, clusterName, archiveID string
-
-	if len(parts) != 3 {
-		if len(parts) < 3 {
-			return nil, errors.New("import format error to import a MongoDB Atlas Online Archive, use the format {project_id}-{cluster_name}-{archive_id}")
-		}
-
-		projectID = parts[0]
-		clusterName = strings.Join(parts[1:len(parts)-2], "")
-		archiveID = parts[len(parts)-1]
-	} else {
-		projectID, clusterName, archiveID = parts[0], parts[1], parts[2]
+	projectID, clusterName, archiveID, err := SplitOnlineArchiveImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
 
 	outOnlineArchive, _, err := connV2.OnlineArchiveAPI.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
@@ -700,4 +692,15 @@ func mapSchedule(d *schema.ResourceData) *admin.OnlineArchiveSchedule {
 	}
 
 	return scheduleInput
+}
+
+// SplitOnlineArchiveImportID splits an import ID in the format {project_id}-{cluster_name}-{archive_id}.
+// The cluster name can contain hyphens.
+func SplitOnlineArchiveImportID(id string) (projectID, clusterName, archiveID string, err error) {
+	parts := onlineArchiveImportIDRegex.FindStringSubmatch(id)
+	if len(parts) != 4 {
+		err = errors.New("import format error to import a MongoDB Atlas Online Archive, use the format {project_id}-{cluster_name}-{archive_id}")
+		return
+	}
+	return parts[1], parts[2], parts[3], nil
 }
