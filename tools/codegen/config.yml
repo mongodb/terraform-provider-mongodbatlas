@@ -126,6 +126,48 @@ resources:
       schema:
         <<: *ai_model_rate_limit_schema
 
+  # Lift-and-shift of the handwritten SDKv2 mongodbatlas_api_key (spike pilot). Only the resource moves:
+  # the data sources stay handwritten because their role_names (strings flattened from the response
+  # role objects, also under results.*) and page_num/items_per_page cannot be expressed by codegen.
+  api_key:
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/apiKeys
+      method: POST
+    read:
+      path: &api_key_item_path /api/atlas/v2/orgs/{orgId}/apiKeys/{apiUserId}
+      method: GET
+    update:
+      path: *api_key_item_path
+      method: PATCH
+    delete:
+      path: *api_key_item_path
+      method: DELETE
+    version_header: application/vnd.atlas.2023-01-01+json
+    schema:
+      expanded_model: true # adds the crafted `id` of the manual resource
+      ignores: ["links"]
+      aliases:
+        apiUserId: apiKeyId
+        id: apiKeyId
+        desc: description
+        # The request sends role names as strings; the response returns role objects, flattened back
+        # to the ORG_ role names of this org by the resource hooks (manual parity).
+        roles: roleNames
+      overrides:
+        org_id:
+          description: *org_id_description
+        role_names:
+          type: set
+        # Server-generated and stable after creation (SDKv2 kept them in state on update).
+        api_key_id:
+          immutable_computed: true
+        public_key:
+          immutable_computed: true
+        # Only returned unredacted on create; sensitive keeps the state value on read.
+        private_key:
+          sensitive: true
+          immutable_computed: true
+
   # Singleton resource in project.
   # Create, Delete and Update uses PATCH.
   auditing_api:

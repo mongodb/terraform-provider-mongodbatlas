@@ -10,6 +10,7 @@ import (
 )
 
 func TestMigConfigAPIKey_basic(t *testing.T) {
+	skipSupersededMigTest(t)
 	var (
 		resourceName = "mongodbatlas_api_key.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -34,4 +35,12 @@ func TestMigConfigAPIKey_basic(t *testing.T) {
 			mig.TestStepCheckEmptyPlan(config),
 		},
 	})
+}
+
+// skipSupersededMigTest skips the manual-era migration tests while mongodbatlas_api_key is served by
+// the autogen implementation (spike pilot): superseded by the standalone TestMigAPIKey_* tests in
+// internal/serviceapi/apikey, restored or removed at the full migration.
+func skipSupersededMigTest(t *testing.T) {
+	t.Helper()
+	t.Skip("superseded by TestMigAPIKey_* in internal/serviceapi/apikey (autogen lift-and-shift pilot)")
 }

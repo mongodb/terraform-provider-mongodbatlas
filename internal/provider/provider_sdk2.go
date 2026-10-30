@@ -249,7 +249,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_api_key":                              apikey.Resource(),
 		"mongodbatlas_access_list_api_key":                  accesslistapikey.Resource(),
 		"mongodbatlas_project_api_key":                      projectapikey.Resource(),
 		"mongodbatlas_custom_db_role":                       customdbrole.Resource(),

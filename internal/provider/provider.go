@@ -55,6 +55,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgratelimit"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelratelimit"
+	autogenapikey "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/apikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejobcollection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabase"
@@ -433,6 +434,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		projectserviceaccountaccesslistentry.Resource,
 		privatelinkendpointservicedatafederationonlinearchive.Resource,
 		aimodelapikey.Resource,
+		autogenapikey.Resource,
 		aimodelratelimit.Resource,
 		orgdelegationsettings.Resource,
 		mcpconfig.Resource,

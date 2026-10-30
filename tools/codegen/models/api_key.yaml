@@ -1,0 +1,95 @@
+schema:
+    description: Creates one API key for the specified organization. An organization API key grants programmatic access to an organization. You can't use the API key to log into the console.
+    attributes:
+        - string: {}
+          description: Purpose or explanation provided when someone created this organization API key.
+          computed_optional_required: required
+          tf_schema_name: description
+          tf_model_name: Description
+          api_name: desc
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies this organization API key assigned to this project.
+          computed_optional_required: computed
+          tf_schema_name: api_key_id
+          tf_model_name: ApiKeyId
+          api_name: id
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+          computed_optional_required: required
+          tf_schema_name: org_id
+          tf_model_name: OrgId
+          api_name: orgId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - string: {}
+          description: Redacted private key returned for this organization API key. This key displays unredacted when first created.
+          computed_optional_required: computed
+          tf_schema_name: private_key
+          tf_model_name: PrivateKey
+          api_name: privateKey
+          req_body_usage: omit_always
+          sensitive: true
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string: {}
+          description: Public API key value set for the specified organization API key.
+          computed_optional_required: computed
+          tf_schema_name: public_key
+          tf_model_name: PublicKey
+          api_name: publicKey
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - set:
+            element_type: 4
+          description: List of roles to grant this API key. If you provide this list, provide a minimum of one role and ensure each role applies to this organization.
+          custom_type:
+            model: customtypes.SetValue[types.String]
+            schema: customtypes.NewSetType[types.String](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: required
+          tf_schema_name: role_names
+          tf_model_name: RoleNames
+          api_name: roles
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+    expanded_model: true
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/orgs/{orgId}/apiKeys/{apiKeyId}
+    create:
+        http_method: POST
+        path: /api/atlas/v2/orgs/{orgId}/apiKeys
+    read:
+        http_method: GET
+        path: /api/atlas/v2/orgs/{orgId}/apiKeys/{apiKeyId}
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/orgs/{orgId}/apiKeys/{apiKeyId}
+    version_header: application/vnd.atlas.2023-01-01+json
+name: api_key
+packageName: apikey
