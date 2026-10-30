@@ -3,6 +3,8 @@ package acc
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -163,13 +165,17 @@ func ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID stri
 
 // ConfigAzureTags returns the tags attribute that every Azure resource supporting tags must set, indented by indent.
 // azurerm does not support provider-level default_tags, so Azure resources set tags individually: https://github.com/hashicorp/terraform-provider-azurerm/issues/13776.
-// Besides the Cloud Tag Policy tags, it sets dnr so the Atlas leaked-item detector skips the resource. Otherwise the detector can add
-// an isleakeditem tag while the test runs, making the refresh plan non-empty.
+// Besides the Cloud Tag Policy tags, it sets createDate in the future so the Atlas leaked-item detector skips the resource while the test runs.
+// Otherwise the detector can add an isleakeditem tag mid-test, making the refresh plan non-empty. Leaked resources are still cleaned up afterwards.
 func ConfigAzureTags(indent string) string {
 	tags := tagValues()
-	tags["dnr"] = "true"
+	tags["createDate"] = azureCreateDate
 	return FormatToHCLMap(tags, indent, "tags")
 }
+
+// azureCreateDate is computed once per test process so every step renders the same tag.
+// 6h is the GitHub Actions job limit, so it stays in the future for the whole run.
+var azureCreateDate = strconv.FormatInt(time.Now().Add(6*time.Hour).UnixMilli(), 10)
 
 func ConfigDefaultTags() string {
 	return fmt.Sprintf(`
