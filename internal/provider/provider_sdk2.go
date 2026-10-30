@@ -172,7 +172,6 @@ func assumeRoleSchema() *schema.Schema {
 
 func getDataSourcesMap() map[string]*schema.Resource {
 	dataSourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_custom_db_role":                        customdbrole.DataSource(),
 		"mongodbatlas_custom_db_roles":                       customdbrole.PluralDataSource(),
 		"mongodbatlas_api_key":                               apikey.DataSource(),
 		"mongodbatlas_api_keys":                              apikey.PluralDataSource(),
@@ -252,7 +251,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_api_key":                              apikey.Resource(),
 		"mongodbatlas_access_list_api_key":                  accesslistapikey.Resource(),
 		"mongodbatlas_project_api_key":                      projectapikey.Resource(),
-		"mongodbatlas_custom_db_role":                       customdbrole.Resource(),
 		"mongodbatlas_cluster":                              cluster.Resource(),
 		"mongodbatlas_network_container":                    networkcontainer.Resource(),
 		"mongodbatlas_network_peering":                      networkpeering.Resource(),

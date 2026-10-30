@@ -80,11 +80,11 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 				ConfigStateChecks: []statecheck.StateCheck{acc.PluralResultCheck(dataSourcePluralName, "role_name", knownvalue.StringExact(roleName), pluralMapChecks("FIND", ""))},
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasCustomDBRolesImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"actions.0.resources.0.cluster"},
+				// Legacy {project_id}-{role_name} import format of the manual resource.
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasCustomDBRolesImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	}
@@ -119,8 +119,77 @@ func basicTestCaseWithTwoActions(t *testing.T) *resource.TestCase {
 					},
 				},
 			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	}
+}
+
+// TestAccCustomDBRoles_parallelRoles creates, updates and deletes several independent roles in the same project
+// in one apply: Terraform runs them concurrently, which the Custom DB Role API does not support (the manual
+// resource serialized them per project with a mutex and retried the POST).
+func TestAccCustomDBRoles_parallelRoles(t *testing.T) {
+	const count = 5
+	var (
+		projectID     = acc.ProjectIDExecution(t)
+		rolePrefix    = acc.RandomName()
+		databaseName1 = acc.RandomClusterName()
+		databaseName2 = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configParallel(projectID, rolePrefix, "INSERT", databaseName1, count),
+				Check:  checkParallel(count, "INSERT", databaseName1),
+			},
+			{
+				Config: configParallel(projectID, rolePrefix, "UPDATE", databaseName2, count),
+				Check:  checkParallel(count, "UPDATE", databaseName2),
+			},
+		},
+	})
+}
+
+func configParallel(projectID, rolePrefix, action, databaseName string, count int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_custom_db_role" "parallel" {
+			count      = %[5]d
+			project_id = %[1]q
+			role_name  = "%[2]s-${count.index}"
+
+			actions = [
+				{
+					action = %[3]q
+					resources = [
+						{
+							database_name = %[4]q
+						}
+					]
+				}
+			]
+		}
+	`, projectID, rolePrefix, action, databaseName, count)
+}
+
+func checkParallel(count int, action, databaseName string) resource.TestCheckFunc {
+	checks := make([]resource.TestCheckFunc, 0, count*3)
+	for i := range count {
+		name := fmt.Sprintf("mongodbatlas_custom_db_role.parallel.%d", i)
+		checks = append(checks,
+			checkExists(name),
+			resource.TestCheckResourceAttr(name, "actions.0.action", action),
+			resource.TestCheckResourceAttr(name, "actions.0.resources.0.database_name", databaseName),
+		)
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func checkAttrs(projectID, roleName, action, databaseName string) resource.TestCheckFunc {
@@ -665,31 +734,47 @@ func testAccCheckMongoDBAtlasCustomDBRolesImportStateIDFunc(resourceName string)
 	}
 }
 
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["role_name"]), nil
+	}
+}
+
 func configBasic(projectID, roleName, action, databaseName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_custom_db_role" "test" {
 			project_id = %[1]q
 			role_name  = %[2]q
 
-			actions {
-				action = %[3]q
-				resources {
-					collection_name = ""
-					database_name   = %[4]q
+			actions = [
+				{
+					action = %[3]q
+					resources = [
+						{
+							collection_name = ""
+							database_name   = %[4]q
+						}
+					]
 				}
-			}
+			]
 		}
 	`, projectID, roleName, action, databaseName)
 }
 
 func generateActionConfig(action, databaseName string) string {
 	return fmt.Sprintf(`
-		actions {
+		{
 			action = %q
-			resources {
-				collection_name = ""
-				database_name   = %q
-			}
+			resources = [
+				{
+					collection_name = ""
+					database_name   = %q
+				}
+			]
 		}
 	`, action, databaseName)
 }
@@ -700,8 +785,10 @@ func configBasicWithTwoActions(projectID, roleName, action1, databaseName1, acti
 			project_id = %[1]q
 			role_name  = %[2]q
 
-			%[3]s
-			%[4]s
+			actions = [
+				%[3]s,
+				%[4]s
+			]
 		}
 	`, projectID, roleName, generateActionConfig(action1, databaseName1), generateActionConfig(action2, databaseName2))
 }
@@ -717,48 +804,61 @@ func configWithInheritedRoles(orgID, projectName string, inheritedRole []admin.U
 		 	project_id = mongodbatlas_project.test.id
 		 	role_name  = %[3]q
 
-			actions {
-				action = %[4]q
-				resources {
-					collection_name = ""
-					database_name   = %[5]q
+			actions = [
+				{
+					action = %[4]q
+					resources = [
+						{
+							collection_name = ""
+							database_name   = %[5]q
+						}
+					]
 				}
-			}
+			]
 		}
 
 		resource "mongodbatlas_custom_db_role" "inherited_role_two" {
 			project_id = mongodbatlas_custom_db_role.inherited_role_one.project_id
 		 	role_name  = %[6]q
 
-			actions {
-				action = %[7]q
-				resources {
-					cluster = %[8]t
+			actions = [
+				{
+					action = %[7]q
+					resources = [
+						{
+							cluster = %[8]t
+						}
+					]
 				}
-			}
+			]
 		}
 
 		resource "mongodbatlas_custom_db_role" "test_role" {
 			project_id = mongodbatlas_custom_db_role.inherited_role_one.project_id
 			role_name  = %[9]q
 
-			actions {
-				action = %[10]q
-				resources {
-					collection_name = ""
-					database_name   = %[11]q
+			actions = [
+				{
+					action = %[10]q
+					resources = [
+						{
+							collection_name = ""
+							database_name   = %[11]q
+						}
+					]
 				}
-			}
+			]
 
-			inherited_roles {
-				role_name     = mongodbatlas_custom_db_role.inherited_role_one.role_name
-				database_name = "admin"
-			}
-
-			inherited_roles {
-				role_name     = mongodbatlas_custom_db_role.inherited_role_two.role_name
-				database_name = "admin"
-			}
+			inherited_roles = [
+				{
+					role_name     = mongodbatlas_custom_db_role.inherited_role_one.role_name
+					database_name = "admin"
+				},
+				{
+					role_name     = mongodbatlas_custom_db_role.inherited_role_two.role_name
+					database_name = "admin"
+				}
+			]
 		}
 	`, orgID, projectName,
 		inheritedRole[0].RoleName, inheritedRole[0].GetActions()[0].Action, inheritedRole[0].GetActions()[0].GetResources()[0].Db,
@@ -770,45 +870,42 @@ func configWithInheritedRoles(orgID, projectName string, inheritedRole []admin.U
 func configWithMultiple(orgID, projectName string, inheritedRole, testRole *admin.UserCustomDBRole) string {
 	getCustomRoleFields := func(customRole *admin.UserCustomDBRole) map[string]string {
 		var (
-			actions        strings.Builder
-			inheritedRoles strings.Builder
+			actions        []string
+			inheritedRoles []string
 		)
 
 		for _, a := range customRole.GetActions() {
-			var resources strings.Builder
-
-			// get the resources
+			var resources []string
 			for _, r := range a.GetResources() {
-				fmt.Fprintf(&resources, `
-					resources {
+				resources = append(resources, fmt.Sprintf(`
+					{
 						collection_name = ""
-						database_name   = "%s"
-					}
-			`, r.Db)
+						database_name   = %q
+					}`, r.Db))
 			}
-
-			// get the actions and set the resources
-			fmt.Fprintf(&actions, `
-				actions {
-					action = "%s"
-					%s
-				}
-			`, a.Action, resources.String())
+			actions = append(actions, fmt.Sprintf(`
+				{
+					action    = %q
+					resources = [%s]
+				}`, a.Action, strings.Join(resources, ",")))
 		}
 
 		for _, in := range customRole.GetInheritedRoles() {
-			fmt.Fprintf(&inheritedRoles, `
-				inherited_roles {
-					role_name     = "%s"
-					database_name = "%s"
-				}
-			`, in.Role, in.Db)
+			inheritedRoles = append(inheritedRoles, fmt.Sprintf(`
+				{
+					role_name     = %q
+					database_name = %q
+				}`, in.Role, in.Db))
 		}
 
-		return map[string]string{
-			"actions":         actions.String(),
-			"inherited_roles": inheritedRoles.String(),
+		fields := map[string]string{"actions": "", "inherited_roles": ""}
+		if len(actions) > 0 {
+			fields["actions"] = fmt.Sprintf("actions = [%s]", strings.Join(actions, ","))
 		}
+		if len(inheritedRoles) > 0 {
+			fields["inherited_roles"] = fmt.Sprintf("inherited_roles = [%s]", strings.Join(inheritedRoles, ","))
+		}
+		return fields
 	}
 
 	return fmt.Sprintf(`
@@ -820,7 +917,7 @@ func configWithMultiple(orgID, projectName string, inheritedRole, testRole *admi
 		 	project_id = mongodbatlas_project.test.id
 		 	role_name  = %[3]q
 
-			 %[4]s
+			%[4]s
 		}
 
 		resource "mongodbatlas_custom_db_role" "test_role" {

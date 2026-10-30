@@ -1,4 +1,4 @@
-package customdbroleapi_test
+package customdbrole_test
 
 import (
 	"os"

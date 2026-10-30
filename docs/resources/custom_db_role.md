@@ -16,27 +16,35 @@ resource "mongodbatlas_custom_db_role" "test_role" {
   project_id = "<PROJECT-ID>"
   role_name  = "myCustomRole"
 
-  actions {
-    action = "UPDATE"
-    resources {
-      collection_name = ""
-      database_name   = "anyDatabase" # use the empty string ("") to allow an action on all databases.
+  actions = [
+    {
+      action = "UPDATE"
+      resources = [
+        {
+          collection_name = ""
+          database_name   = "anyDatabase" # use the empty string ("") to allow an action on all databases.
+        }
+      ]
+    },
+    {
+      action = "INSERT"
+      resources = [
+        {
+          collection_name = ""
+          database_name   = "anyDatabase"
+        }
+      ]
+    },
+    {
+      action = "REMOVE"
+      resources = [
+        {
+          collection_name = ""
+          database_name   = "anyDatabase"
+        }
+      ]
     }
-  }
-  actions {
-    action = "INSERT"
-    resources {
-      collection_name = ""
-      database_name   = "anyDatabase"
-    }
-  }
-  actions {
-    action = "REMOVE"
-    resources {
-      collection_name = ""
-      database_name   = "anyDatabase"
-    }
-  }
+  ]
 }
 ```
 
@@ -47,55 +55,70 @@ resource "mongodbatlas_custom_db_role" "inherited_role_one" {
   project_id = "<PROJECT-ID>"
   role_name  = "insertRole"
 
-  actions {
-    action = "INSERT"
-    resources {
-      collection_name = ""
-      database_name   = "anyDatabase"
+  actions = [
+    {
+      action = "INSERT"
+      resources = [
+        {
+          collection_name = ""
+          database_name   = "anyDatabase"
+        }
+      ]
     }
-  }
+  ]
 }
 
 resource "mongodbatlas_custom_db_role" "inherited_role_two" {
   project_id = mongodbatlas_custom_db_role.inherited_role_one.project_id
   role_name  = "statusServerRole"
 
-  actions {
-    action = "SERVER_STATUS"
-    resources {
-      cluster = true
+  actions = [
+    {
+      action = "SERVER_STATUS"
+      resources = [
+        {
+          cluster = true
+        }
+      ]
     }
-  }
+  ]
 }
 
 resource "mongodbatlas_custom_db_role" "test_role" {
   project_id = mongodbatlas_custom_db_role.inherited_role_one.project_id
   role_name  = "myCustomRole"
 
-  actions {
-    action = "UPDATE"
-    resources {
-      collection_name = ""
-      database_name   = "anyDatabase"
+  actions = [
+    {
+      action = "UPDATE"
+      resources = [
+        {
+          collection_name = ""
+          database_name   = "anyDatabase"
+        }
+      ]
+    },
+    {
+      action = "REMOVE"
+      resources = [
+        {
+          collection_name = ""
+          database_name   = "anyDatabase"
+        }
+      ]
     }
-  }
-  actions {
-    action = "REMOVE"
-    resources {
-      collection_name = ""
-      database_name   = "anyDatabase"
+  ]
+
+  inherited_roles = [
+    {
+      role_name     = mongodbatlas_custom_db_role.inherited_role_one.role_name
+      database_name = "admin"
+    },
+    {
+      role_name     = mongodbatlas_custom_db_role.inherited_role_two.role_name
+      database_name = "admin"
     }
-  }
-
-  inherited_roles {
-    role_name     = mongodbatlas_custom_db_role.inherited_role_one.role_name
-    database_name = "admin"
-  }
-
-  inherited_roles {
-    role_name     = mongodbatlas_custom_db_role.inherited_role_two.role_name
-    database_name = "admin"
-  }
+  ]
 }
 
 ```
@@ -151,10 +174,12 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Database users can be imported using project ID and username, in the format `PROJECTID-ROLENAME`, e.g.
+Custom DB roles can be imported using project ID and role name, in the format `PROJECTID/ROLENAME`, e.g.
 
 ```
-$ terraform import mongodbatlas_custom_db_role.my_role 1112222b3bf99403840e8934-MyCustomRole
+$ terraform import mongodbatlas_custom_db_role.my_role 1112222b3bf99403840e8934/MyCustomRole
 ```
+
+The legacy format `PROJECTID-ROLENAME` (e.g. `1112222b3bf99403840e8934-MyCustomRole`) is also accepted.
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/custom-roles/)

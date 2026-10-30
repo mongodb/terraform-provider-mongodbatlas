@@ -61,6 +61,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabasecollection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusteradaptivesettings"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusteroverloadsimulation"
+	autogencustomdbrole "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/customdbrole"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/mcpconfig"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/mcpconfigsecret"
@@ -339,6 +340,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		apikeyprojectassignment.DataSource,
 		apikeyprojectassignment.PluralDataSource,
 		advancedcluster.DataSource,
+		autogencustomdbrole.DataSource,
 		advancedcluster.PluralDataSource,
 		serviceaccount.DataSource,
 		serviceaccount.PluralDataSource,
@@ -439,6 +441,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		mcpconfigsecret.Resource,
 		projectmcpconfig.Resource,
 		projectmcpconfigsecret.Resource,
+		autogencustomdbrole.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {
