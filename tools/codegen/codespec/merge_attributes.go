@@ -77,6 +77,13 @@ func updateAttrWithNewSource(existingAttr, newAttr *Attribute, reqBodyUsage Attr
 		existingAttr.PresentInAnyResponse = true
 	}
 
+	// A primitive collection defined by a request keeps its shape when a response defines the same property as
+	// nested objects (e.g. request roles: [string], response roles: [{roleName, orgId}]): the request shape is the
+	// one users configure, the response is adapted by hooks.
+	if existingAttr.List != nil || existingAttr.Set != nil {
+		return
+	}
+
 	// handle nested attributes
 	if existingAttr.ListNested != nil && newAttr.ListNested != nil {
 		mergeNestedAttributes(&existingAttr.ListNested.NestedObject.Attributes, newAttr.ListNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)

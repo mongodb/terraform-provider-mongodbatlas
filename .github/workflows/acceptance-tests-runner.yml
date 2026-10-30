@@ -386,9 +386,11 @@ jobs:
           cluster_outage_simulation:
             - 'internal/service/clusteroutagesimulation/*.go'  
           config:
+            - 'internal/common/autogen/*.go'
             - 'internal/config/*.go'
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/apikey/*.go'
+            - 'internal/serviceapi/apikey/*.go'
             - 'internal/service/apikeyprojectassignment/*.go'
             - 'internal/service/atlasuser/*.go'
             - 'internal/service/cloudprovideraccess/*.go'
@@ -921,6 +923,7 @@ jobs:
             ./internal/service/projectapikey
             ./internal/service/apikeyprojectassignment
             ./internal/service/apikey
+            ./internal/serviceapi/apikey
             ./internal/service/rolesorgid
             ./internal/service/team
             ./internal/service/teamprojectassignment
@@ -991,6 +994,7 @@ jobs:
             ./internal/service/projectapikey
             ./internal/service/apikeyprojectassignment
             ./internal/service/apikey
+            ./internal/serviceapi/apikey
             ./internal/service/rolesorgid
             ./internal/service/team
             ./internal/service/teamprojectassignment

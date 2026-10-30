@@ -44,10 +44,19 @@ func TestAccConfigRSAPIKey_basic(t *testing.T) {
 				),
 			},
 			{
+				// Legacy manual import format {org_id}-{api_key_id}, still accepted by the autogen PreImport hook.
 				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName, "-"),
 				ImportState:       true,
 				ImportStateVerify: false,
+			},
+			{
+				// The private key is only returned unredacted on create, an import gets the redacted value.
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName, "/"),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_key"},
 			},
 		},
 	})
@@ -85,13 +94,13 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName, separator string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["org_id"], rs.Primary.Attributes["api_key_id"]), nil
+		return rs.Primary.Attributes["org_id"] + separator + rs.Primary.Attributes["api_key_id"], nil
 	}
 }
 
