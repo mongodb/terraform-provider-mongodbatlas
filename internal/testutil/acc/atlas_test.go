@@ -1,14 +1,18 @@
 package acc_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20250312027/admin"
+	"go.mongodb.org/atlas-sdk/v20250312027/mockadmin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -165,4 +169,62 @@ func TestIsFailedProvisioning(t *testing.T) {
 	assert.True(t, acc.IsFailedProvisioning(apiOutOfCapacityError()))
 	assert.True(t, acc.IsFailedProvisioning(unexpectedStateError()))
 	assert.True(t, acc.IsFailedProvisioning(fmt.Errorf("wrapped: %w", unexpectedStateError())))
+}
+
+func apiError(code string) error {
+	err := &admin.GenericOpenAPIError{}
+	err.SetError(code)
+	err.SetModel(*admin.NewApiError(409, code))
+	return err
+}
+
+func TestDeleteProjectUntil(t *testing.T) {
+	const projectID = "6ad95b900c3871ac99ea9ca7"
+	activeClusters := apiError("CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS")
+	testCases := map[string]struct {
+		wantErr  string
+		errs     []error
+		canceled bool
+	}{
+		"deleted on the first attempt": {
+			errs: []error{nil},
+		},
+		"retries while clusters are terminating": {
+			errs: []error{activeClusters, activeClusters, nil},
+		},
+		"project already gone counts as deleted": {
+			errs: []error{apiError("PROJECT_NOT_FOUND")},
+		},
+		"other errors are not retried": {
+			errs:    []error{errors.New("boom")},
+			wantErr: "project deletion failed: 6ad95b900c3871ac99ea9ca7, error: boom",
+		},
+		"stops when the context is canceled": {
+			canceled: true,
+			errs:     []error{activeClusters},
+			wantErr:  "gave up waiting for its resources to terminate",
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(t.Context())
+			defer cancel()
+			if tc.canceled {
+				cancel()
+			}
+			projectsAPI := mockadmin.NewProjectsAPI(t)
+			projectsAPI.EXPECT().DeleteGroup(mock.Anything, projectID).Return(admin.DeleteGroupApiRequest{ApiService: projectsAPI}).Times(len(tc.errs))
+			for _, err := range tc.errs {
+				projectsAPI.EXPECT().DeleteGroupExecute(mock.Anything).Return(nil, err).Once()
+			}
+
+			client := &admin.APIClient{ProjectsAPI: projectsAPI}
+			err := acc.DeleteProjectUntil(ctx, client, projectID, time.Millisecond)
+			if tc.wantErr == "" {
+				require.NoError(t, err)
+			} else {
+				require.ErrorContains(t, err, tc.wantErr)
+			}
+		})
+	}
 }
