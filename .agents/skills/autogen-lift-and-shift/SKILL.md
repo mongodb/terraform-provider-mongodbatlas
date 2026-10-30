@@ -7,7 +7,50 @@ description: Use when migrating an existing manual resource (internal/service/<n
 
 Replaces a manual resource implementation with the generated one at the SAME resource address, preserving user state and configs as far as the breaking-change decision allows. Proven three times: `database_user` (breaking group: syntax pattern, PR #4831), `stream_workspace` (no-change group, PR #4837) `flex_cluster` (no-change group, PR #4849: config overrides plus one schema hook, migration test green on the first CI run) `api_key` (SDKv2, no syntax rewrite, PR #4850: resource only, about 95 lines of hooks plus a 7-line codegen fix; empty migration plan, 0 SDKv2 warnings) and `custom_db_role` (SDKv2 with nested blocks, syntax rewrite, PR #4851: resource and singular data source, 221 lines of hooks, no codegen change; empty refreshed migration plan, 0 SDKv2 warnings).
 
+Pilot outcomes after the inventory reverification: `custom_db_role` was later reclassified No-go because its write retries were dropped (see Pre-flight gate), and `stream_workspace` and `maintenance_window` became No-go once a pilot ran; in all three the blocker was visible in the manual code before any work started. Run the Pre-flight gate first.
+
 Read with: `autogen-config` (schema/config judgment), `acceptance-test-patterns` (test conventions), `pr-and-documentation-standards` (docs/examples/changelog).
+
+## Pre-flight gate (before Phase 0)
+
+A migration (or pilot) measures effort, not feasibility. Before writing config, confirm the resource is migratable with today's autogen; if any blocking rule below applies, stop and report the verdict (No-go with the feature needed, or "pending decision") instead of migrating. About 15 minutes per resource.
+
+**Hook contract** (use it for every "can a hook do this?" decision; source: `internal/common/autogen/custom_hooks.go`):
+- `Pre{Create,Update}APICall(callParams, body)`: request params and marshaled body. Cannot return an error. No prior state, plan or config.
+- `Pre{Read,Delete}APICall(callParams)`: params only.
+- `Post{Create,Update,Delete}APICall(result)`: the call result (status, body, error), rewritable. No state, plan or config.
+- `PostReadAPICall(req, result)`: also sees the current state (`req.State`) and an API client.
+- `PreImport(id)`: rewrites the import ID string only (the split happens afterwards).
+- `ResourceSchema(schema)`: validators, plan modifiers, extra attributes.
+- Every hook is a method on the resource and can call the API through `r.Client` (read-before-write is possible), but no hook sees prior state or plan during create/update, and none can wrap the API call (no retry or lock around it).
+
+A behavior is hook-level only if you can name the hook that carries it and that hook can see the data it needs: write that mapping down. If a hook would only re-implement the API call, it is not hook-level (no maintenance gain, tenet 4).
+
+**Blocking rules** (any one makes the resource No-go until the named feature exists):
+- **Write retries cannot be dropped.** Retry-on-error loops around a create/update/delete (`StateChangeConf` whose refresh re-issues the write, re-DELETE until gone, retry on specific error codes) need the "write retry on error codes" codegen feature. Passing a parallel acceptance test without them is not enough (custom_db_role). A per-key mutex alone is portable as a lock held across the Pre/Post hooks; the retries are not.
+- **Waits the wait block cannot express cannot be dropped.** The wait block polls only the resource's own item GET for a top-level string state. Not covered: polling another endpoint (cluster list, ListClusters), gated by a provider-only flag (`sync_creation`, `skip_wait_on_update`, `wait_for_index_build_completion`: "conditional wait" feature), a per-provider or boolean state, a wait BEFORE the write (wait for cluster IDLE, then POST: "hand-written operations"), and 5xx tolerance inside the wait. Cross-endpoint waits need the API to adopt IPA-132 plus standardized long-running operations (CLOUDP-418893), which only helps once an endpoint returns 202 with an Operation resource (none does yet).
+- **Change-gated logic**: SDKv2 `d.HasChange`/`d.GetChange`, or TPF `req.State` vs plan comparisons in Update, that gate a DIFFERENT API call (action endpoint, second write), choose between mutually exclusive bodies or endpoints (stream_workspace), or decide whether to re-send a field with side effects (passwords, toggles; database_user). Building a partial body for the main PATCH/PUT is NOT a marker (autogen sends the full planned body).
+- **Action and toggle endpoints** triggered on change (`/defer`, `/autoDefer` toggle, start/stop, verify): "hand-written operations" (maintenance_window).
+- **Multi-step writes**: more than one write per CRUD operation (count the distinct `<X>API.<Method>(` calls).
+- **Derived path params**: a path param computed from one of several attributes, or by stripping a value (`cidr_block` without `/32`); create/update hooks cannot read the config to build it (access_list_api_key, project_ip_access_list).
+- **Item selection from list responses**: create takes an array and returns the whole list, so no hook can pick the new entry.
+- **No item GET** (read only through a list), a non-Admin API, or actions on a parent resource: Outside autogen's model.
+- **Pending product decisions**: if the migration depends on removing or deprecating attributes (e.g. CLOUDP-375503 for maintenance_window), the verdict is "pending decision"; do not migrate or pilot it until it is decided.
+
+**Not blocking, but cost drivers to record**: blocks-to-attributes rewrites (BL1, including `TypeList`/`TypeSet` with `Elem: &schema.Resource` at any `MaxItems`; `MaxItems: 1` also changes the state shape from a list of one to an object); structural schema changes beyond that (attributes moving under a nested object, the API's flat shape replacing per-provider blocks) are accepted as BL1 in 3.0; SDKv2 nested-block empty/unset semantics; `SchemaVersion` > 0.
+
+**Group rule**: No-change allows only config.yml and the `ResourceSchema` hook. Any other hook (identity, read rewrite, create body wrapping) makes it Necessary changes (hook-level).
+
+**Spec checks**:
+- List every manual attribute that is not a property of the API object (after aliases): crafted id, write-only/secret, or a trigger for another call (triggers are blocking, above). Check against the spec, never against notes (maintenance_window's "auto_defer is a PATCH field" confused it with `auto_defer_once_enabled`).
+- Create/update responses: a body present, path ids in it? The generator warning "response body schema could not be mapped" means no body, so computed values end up null after apply.
+- The `version_header` exists for every path in the spec (a twin can pin a version the path does not have).
+
+**Dry-run generation**: write a minimal config entry (or reuse the twin), `make autogen-generate-resources resource_name=<name>`, diff the generated resource and data source schemas against the manual ones, then discard the generated code. Look for the known traps (CreateOnly on objects with computed children, list-of-one vs object, element types).
+
+**Runtime-only risks**: list what can only be proven by running (how SDKv2 list-of-one state decodes into an object; whether a lock across Pre/Post hooks holds on error paths) with the test step that will prove it. Do not guess.
+
+**Grow the scan**: every new blocker found in a pilot becomes a signal here and in the spike's Appendix C "Verification per resource", and the scan is rerun across the inventory, not one resource at a time.
 
 ## Phase 0: Study the manual implementation
 
@@ -16,7 +59,7 @@ Before touching anything, extract the parity contract from `internal/service/<na
 - **Schema**: every attribute with computability, plan modifiers, validators, custom types.
 - **id format**: crafted composite (`conversion.EncodeStateID`), API `_id`/UUID, or plain. Dictates hook work later.
 - **Import format**: how `ImportState`/`SplitImportID` splits the ID. Autogen import = `{attr}/{attr}` in path-param order. Legacy dash or different part ORDER changes are accepted breaking changes for 3.0 (record them for the upgrade guide); decide whether to keep a `PreImport` hook for compatibility.
-- **Custom logic**: CustomizeDiff, state upgraders, waits/polling, update-request branching, cross-attribute guards, `MoveState`. Each maps to a gap (see Known gaps).
+- **Custom logic**: CustomizeDiff, state upgraders, waits/polling, update-request branching, cross-attribute guards, `MoveState`. Each maps to a gap (see Known gaps). Blocking cases should already have stopped the work at the Pre-flight gate.
 - **The twin**: find the `internal/serviceapi/*` package for the same API family (check `tools/codegen/config.yml`). The twin may be tuned for a DIFFERENT sibling resource: expect a config rework, not just exposure. No twin is fine: write the entry from scratch (flex_cluster).
 - **Other importers of the manual package**: `grep -rn "<pkg>\." internal` outside the package. If other resources use its helpers (advanced_cluster uses flexcluster's create/update/wait helpers and models), only the registration moves; the package stays and extracting the shared helpers is a follow-up, not part of the pilot.
 - **Data sources**: they move with the resource. Compare the manual singular/plural data source schemas with the generated ones too (manual ones are often derived from the resource schema via `conversion.DataSourceSchemaFromResource`).
@@ -40,7 +83,7 @@ Follow `autogen-config`. Migration-specific points:
 - **Crafted id when the response already has an `id`**: if the API `id` maps to another attribute (api_key: `api_key_id`), give the crafted `id` a provider-only `apiname` (e.g. `tfStateId`) in `TFExpandedModel` and have the hooks add that key to the response body.
 - **Collections the manual always sent**: use `request_body_usage: send_null_as_empty_on_update` on root collections the manual implementation always sent on update (custom_db_role `actions`, `inherited_roles`), so removing them from the config clears them in Atlas.
 - **Create-only secrets** (returned only by create): `sensitive: true` plus `immutable_computed` is enough. Autogen never overwrites a sensitive value already in state, so no hook is needed (api_key `private_key`).
-- **`request_body_usage` / update quirks**: if the manual update sends fields differently than the spec's PATCH body declares (e.g. root-level fields from nested attributes), note it: autogen cannot express update branching (Known gaps). The safe interim is the generated CreateOnly behavior; record the parity gap.
+- **`request_body_usage` / update quirks**: if the manual update sends fields differently than the spec's PATCH body declares (e.g. root-level fields from nested attributes), note it: autogen cannot express update branching, so that is a blocker (Pre-flight gate: "hand-written operations"), not a parity gap to accept with the generated CreateOnly behavior (stream_workspace).
 
 ## Phase 2: Generate and review
 
@@ -62,8 +105,9 @@ Port manual behavior that the generator cannot express. Patterns proven in the p
 - **Non-404 not-found**: in `PostReadAPICall`, map the status the API returns for a deleted object (api_key: 400) to `autogen.ErrNotFound` so the resource is removed from state.
 - **Keeping a legacy import format**: when the old separator cannot be ambiguous (e.g. 24-hex ids joined with `-`), a `PreImport` hook can rewrite it to the slash format, so the import change is not breaking (api_key). When it can be ambiguous, accept the slash format as a 3.0 change.
 - **Response collection rewrites**: transform a response collection back to the manual shape in the Post-Create/Read/Update hooks (api_key: role objects to this org's `ORG_` role names). Create and update responses do not include the path params, so take values such as the org id from the response data, not the call params. When the response lacks a path id entirely (custom_db_role: the project id), take it from `result.Resp.Request.URL` in the Post-Create/Update hooks.
-- **Mutex or retry wrappers around the API call** (gap class): hooks run before or after the call and cannot wrap it, so per-key serialization and retry-on-error are not portable (custom_db_role: per-project mutex, POST retry, delete-until-gone loop). Find out why the wrapper exists, and test with a parallel-resources acceptance test (several instances in one parent, created, updated and destroyed in parallel) before treating it as a blocker: custom_db_role passed without it. Candidate codegen feature: per-key serialization and retry on create.
-- **Known gaps** (do not attempt via hooks): codegen cannot change a collection's element type; expanded models only attach at the root, not under `results.*` (so plural data sources with reshaped collections cannot be generated, api_key data sources stayed handwritten); candidate codegen feature: response-to-attribute transforms for nested and plural results. Also: write-only attribute VALUES do not reach the API body (framework nullifies them in planned state; needs a codegen feature: read expanded write-only fields from `req.Config`); CustomizeDiff-equivalents (diff-time branching, cross-attribute guards) have no hook (no hook sees `req.Config`/plan state, and the generated `Update` is always present: omitting `update:` from config emits an "Operation not supported" stub); polling inside a hook is unproven. The agreed resolution for the CustomizeDiff class is a codegen feature (delegate a hand-written operation with plan/state access, e.g. a `hand_written_operations` config option); until it exists, document the accepted behavior change (e.g. CreateOnly plan errors) per resource.
+- **Mutex or retry wrappers around the API call**: retries are a blocker (Pre-flight gate), not a gap to test around. A per-key mutex without retries is portable as a lock acquired in the Pre hook and released in the Post hook; verify the Post hook runs on error paths, or the lock leaks. custom_db_role lesson: dropping the retries and passing a parallel-resources test did not make it migratable; the retries existed for real API behavior (the endpoint does not support concurrent POSTs, and returns 500/404 while the role propagates).
+- **Waits**: only status waits on the resource's own item GET with a top-level string state are config-level (wait blocks). Every other wait kind is a blocker (Pre-flight gate).
+- **Known gaps** (do not attempt via hooks): codegen cannot change a collection's element type; expanded models only attach at the root, not under `results.*` (so plural data sources with reshaped collections cannot be generated, api_key data sources stayed handwritten); candidate codegen feature: response-to-attribute transforms for nested and plural results. Also: write-only attribute VALUES do not reach the API body (framework nullifies them in planned state; needs a codegen feature: read expanded write-only fields from `req.Config`); CustomizeDiff-equivalents (diff-time branching, cross-attribute guards) have no hook (no hook sees `req.Config`/plan state, and the generated `Update` is always present: omitting `update:` from config emits an "Operation not supported" stub); polling inside a hook is unproven. The agreed resolution for the CustomizeDiff class is a codegen feature (delegate a hand-written operation with plan/state access, e.g. a `hand_written_operations` config option); until it exists, those resources are No-go (Pre-flight gate); do not ship them with an accepted behavior change such as CreateOnly plan errors.
 
 ## Phase 4: Registration swap
 
@@ -102,4 +146,4 @@ PR CI runs unit tests + `^TestAccMockable`; the full parity suite needs a dispat
 
 ## Run summary
 
-End every migration run with: (1) **Parity verdict**: what matched, what needed hooks/overrides, what is an accepted breaking change (id format, import format, plan diffs) or an unresolvable gap (with the CustomizeDiff/write-only classification); (2) **Recipe deviations**: anything this resource needed that previous migrations did not (feed back into this skill); (3) **Follow-ups**: skipped tests, pending CI runs, spec fixes to report upstream.
+End every migration run with: (0) **Pre-flight verdict**: the blocking rules checked and the hook mapping for each non-config behavior (if a rule applied, the run ends here with the feature needed); (1) **Parity verdict**: what matched, what needed hooks/overrides, what is an accepted breaking change (id format, import format, plan diffs) or an unresolvable gap (with the CustomizeDiff/write-only classification); (2) **Recipe deviations**: anything this resource needed that previous migrations did not (feed back into this skill); (3) **Follow-ups**: skipped tests, pending CI runs, spec fixes to report upstream.
