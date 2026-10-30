@@ -45,9 +45,12 @@ func migTestCase(t *testing.T, roleNames []string) {
 		samePrivateKey    = statecheck.CompareValue(compare.ValuesSame())
 		sameID            = statecheck.CompareValue(compare.ValuesSame())
 	)
-	stateChecks := []statecheck.StateCheck{
-		samePrivateKey.AddStateValue(migResourceName, tfjsonpath.New("private_key")),
-		sameID.AddStateValue(migResourceName, tfjsonpath.New("id")),
+	// AddStateValue registers one value per call, so each step needs its own checks.
+	stateChecks := func() []statecheck.StateCheck {
+		return []statecheck.StateCheck{
+			samePrivateKey.AddStateValue(migResourceName, tfjsonpath.New("private_key")),
+			sameID.AddStateValue(migResourceName, tfjsonpath.New("id")),
+		}
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -65,7 +68,7 @@ func migTestCase(t *testing.T, roleNames []string) {
 					resource.TestCheckResourceAttr(migResourceName, "role_names.#", fmt.Sprintf("%d", len(roleNames))),
 					resource.TestCheckResourceAttrSet(migResourceName, "private_key"),
 				),
-				ConfigStateChecks: stateChecks,
+				ConfigStateChecks: stateChecks(),
 			},
 			{
 				// Step 2: the autogen implementation must plan no diff at the same address.
@@ -83,7 +86,7 @@ func migTestCase(t *testing.T, roleNames []string) {
 					resource.TestCheckResourceAttr(migResourceName, "description", descriptionUpdate),
 					resource.TestCheckResourceAttr(migResourceName, "role_names.#", fmt.Sprintf("%d", len(roleNames))),
 				),
-				ConfigStateChecks: stateChecks,
+				ConfigStateChecks: stateChecks(),
 			},
 			{
 				// Step 4: convergence, a diff here would be a perpetual diff (parity gap).
