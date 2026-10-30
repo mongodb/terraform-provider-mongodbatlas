@@ -5,7 +5,7 @@ description: Use when migrating an existing manual resource (internal/service/<n
 
 # Skill: lift-and-shift a manual resource to autogen
 
-Replaces a manual resource implementation with the generated one at the SAME resource address, preserving user state and configs as far as the breaking-change decision allows. Proven twice: `database_user` (breaking group: syntax pattern, PR #4831) and `stream_workspace` (no-change group, PR #4837).
+Replaces a manual resource implementation with the generated one at the SAME resource address, preserving user state and configs as far as the breaking-change decision allows. Proven three times: `database_user` (breaking group: syntax pattern, PR #4831), `stream_workspace` (no-change group, PR #4837) and `flex_cluster` (no-change group, PR #4849: config overrides plus one schema hook, migration test green on the first CI run).
 
 Read with: `autogen-config` (schema/config judgment), `acceptance-test-patterns` (test conventions), `pr-and-documentation-standards` (docs/examples/changelog).
 
@@ -17,7 +17,9 @@ Before touching anything, extract the parity contract from `internal/service/<na
 - **id format**: crafted composite (`conversion.EncodeStateID`), API `_id`/UUID, or plain. Dictates hook work later.
 - **Import format**: how `ImportState`/`SplitImportID` splits the ID. Autogen import = `{attr}/{attr}` in path-param order. Legacy dash or different part ORDER changes are accepted breaking changes for 3.0 (record them for the upgrade guide); decide whether to keep a `PreImport` hook for compatibility.
 - **Custom logic**: CustomizeDiff, state upgraders, waits/polling, update-request branching, cross-attribute guards, `MoveState`. Each maps to a gap (see Known gaps).
-- **The twin**: find the `internal/serviceapi/*` package for the same API family (check `tools/codegen/config.yml`). The twin may be tuned for a DIFFERENT sibling resource: expect a config rework, not just exposure.
+- **The twin**: find the `internal/serviceapi/*` package for the same API family (check `tools/codegen/config.yml`). The twin may be tuned for a DIFFERENT sibling resource: expect a config rework, not just exposure. No twin is fine: write the entry from scratch (flex_cluster).
+- **Other importers of the manual package**: `grep -rn "<pkg>\." internal` outside the package. If other resources use its helpers (advanced_cluster uses flexcluster's create/update/wait helpers and models), only the registration moves; the package stays and extracting the shared helpers is a follow-up, not part of the pilot.
+- **Data sources**: they move with the resource. Compare the manual singular/plural data source schemas with the generated ones too (manual ones are often derived from the resource schema via `conversion.DataSourceSchemaFromResource`).
 
 ## Phase 1: Parity config (`tools/codegen/config.yml`)
 
@@ -27,6 +29,8 @@ Follow `autogen-config`. Migration-specific points:
 - **Aliases**: map path params AND body properties to the manual's attribute names (`tenantName: workspace_name`, `groupId: project_id`).
 - **Ignores**: response surfaces the manual schema lacks (connections, processor_status, `links` subtrees), `_id` (illegal TF name).
 - **Computability overrides**: match the MANUAL schema exactly (required vs optional+computed), not the spec.
+- **New spec fields**: the spec may have gained attributes the manual never exposed (flex_cluster: `database_edition`, Public Preview). `ignores` them on the resource AND data sources (`results.<field>` for the plural): exposing them is a feature, not part of the lift-and-shift.
+- **`immutable_computed`** on exactly the attributes where the manual uses `UseStateForUnknown` (works on nested paths, e.g. `provider_settings.disk_size_gb`).
 - **`type: set`**: for set-semantics collections (also dodges the tags/labels-as-map transformation).
 - **`expanded_model: true`** (under `schema:`, not at the resource root) when the manual has provider-only attributes: `id` from `_id`/crafted, write-only fields. It embeds `TFExpandedModel` into the root model; declare that struct in `resource_hooks.go` BEFORE generating.
 - **`request_body_usage` / update quirks**: if the manual update sends fields differently than the spec's PATCH body declares (e.g. root-level fields from nested attributes), note it: autogen cannot express update branching (Known gaps). The safe interim is the generated CreateOnly behavior; record the parity gap.
@@ -43,6 +47,7 @@ Diff the generated `resource_schema.go` against the manual schema attribute by a
 
 Port manual behavior that the generator cannot express. Patterns proven in the pilots:
 
+- **CreateOnly on a nested object with computed children** (found in flex_cluster): codegen marks a whole object CreateOnly when it is absent from the PATCH body. If the object also holds computed attributes, they are still unknown when the object-level modifier runs, so plan != state and EVERY update fails (`<object> cannot be updated`, even for a tags-only change). Fix in the `ResourceSchema` hook: clear the object's `PlanModifiers` and add `customplanmodifier.CreateOnly()` to its user-set leaves, as the manual resource does (this also keeps the manual's per-field error messages). Unit tests do not catch it; only an update step in an acceptance test does. Candidate codegen fix: push create-only to non-computed leaves.
 - **`ResourceSchema` hook**: add missing attributes (`id`: Computed + `UseStateForUnknown`; write-only fields). Convert CreateOnly to RequiresReplace by REBUILDING the attribute's `PlanModifiers` (CreateOnly hard-errors at plan time; appending RequiresReplace does not remove it). Port custom plan modifiers (e.g. `FailoverRegionsWriteOnce`) and validators here.
 - **`PostReadAPICall`/`PostCreateAPICall` hooks**: craft composite ids by rewriting the response body (`autogen.Decode` + set `id` + re-marshal). If the manual id is simply the API `_id`, skip the hooks: `TFExpandedModel{ID ..., apiname:"_id" autogen:"omitjson"}` unmarshals it natively.
 - **`MoveState`**: codegen has native `move_state: source_resources` support, but `autogen.HandleMove` only copies id attributes by name. When the move renames attributes (instance_name -> workspace_name), hand-write the `MoveState` method (port from the manual resource) and do NOT declare `move_state` in config (the generated method would conflict).
@@ -60,10 +65,15 @@ Port manual behavior that the generator cannot express. Patterns proven in the p
 - **Original `TestMigConfigRS*` tests** (when the repo already has them for the resource): they fail once the autogen implementation is registered (their step-2 configs predate the syntax rewrite). For a pilot PR, skip them with a `t.Helper()` + `t.Skip` helper stating they are superseded by the standalone migration test and restored at the full migration; do not leave them red.
 - **`main_test.go` with `TestMain` calling `acc.Run(m)`** is REQUIRED in the new package: without it `acc.ProjectIDExecution` fails with "sharedInfo not initialized".
 - Shared config builders go in `internal/testutil/acc/<name>.go` (block-syntax and assignment-syntax variants when both are needed).
+- **Cover the empty-collection case in the migration test**: one variant without the optional collection (tags, labels) and one with it. The manual often stores null where Atlas returns an empty list (`conversion.UseNilForEmpty`); the empty-plan step proves autogen keeps that (it did for flex_cluster).
+- **Import helpers**: shared `acc` helpers may build the legacy dash format and be used by other resources (`acc.ImportStateIDFuncProjectIDClusterName`); do not change them, add a local `importStateIDFunc` with the slash format in the test file.
+- **Running tests locally**: shells with `TF_ACC` and Atlas credentials set run the REAL acceptance tests on `go test` (they create resources in the configured org). Run unit tests with `env -u TF_ACC go test ...`.
 
 ## Phase 6: CI wiring
 
-`.github/workflows/acceptance-tests-runner.yml`: rename the `autogen_fast` change-detection filter entry and the `ACCTEST_PACKAGES` entry to the new package path. A stale entry fails with `[setup failed]`.
+`.github/workflows/acceptance-tests-runner.yml`: rename the `autogen_fast` change-detection filter entry and the `ACCTEST_PACKAGES` entry to the new package path. A stale entry fails with `[setup failed]`. When the resource has its own test group (e.g. `flex_cluster`), add the new `internal/serviceapi/<pkg>` path (and `internal/common/autogen/*.go`) to that group's change-detection filter and its `ACCTEST_PACKAGES`, so one dispatch runs the manual suite and the migration test together.
+
+**Docs**: update the import format in `templates/resources/<name>.md.tmpl` (dash to slash) and run `make generate-doc resource_name=<name>`. Descriptions switch to the spec wording; expect small regressions (timeouts lose the "Default: `3h`" text, some links disappear) and note them in the PR.
 
 ## Phase 7: Examples
 
@@ -71,7 +81,7 @@ Sweep the WHOLE `examples/` tree for the resource name: resources get embedded i
 
 ## Phase 8: Validation
 
-`go build ./...`, unit tests, `golangci-lint` (available at `$(go env GOPATH)/bin/golangci-lint`), `make tf-validate`. PR CI runs unit tests + `^TestAccMockable`; the full parity suite needs a dispatch of `acceptance-tests.yml` (step 1 pins `MONGODB_ATLAS_LAST_VERSION`, auto-resolved to the latest release).
+`go build ./...`, unit tests, `golangci-lint` (available at `$(go env GOPATH)/bin/golangci-lint`), `make tf-validate`. PR CI runs unit tests + `^TestAccMockable`; the full parity suite needs a dispatch of `acceptance-tests.yml` (step 1 pins `MONGODB_ATLAS_LAST_VERSION`, auto-resolved to the latest release). Dispatch FROM the branch so the branch's runner workflow (with the Phase 6 changes) is used: `gh workflow run acceptance-tests.yml --repo mongodb/terraform-provider-mongodbatlas --ref <branch> -f ref=<branch> -f test_group=<group>`. Without `--ref` the workflow file comes from master: the code is the branch's, but new packages in `ACCTEST_PACKAGES` (the migration test) do not run.
 
 ## Run summary
 
