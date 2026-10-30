@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 
@@ -122,7 +123,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"delete_on_create_timeout"},
@@ -231,4 +232,14 @@ func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabl
 	}
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
 	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
+}
+
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["name"]), nil
+	}
 }

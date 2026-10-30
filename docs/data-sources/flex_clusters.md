@@ -43,27 +43,33 @@ output "mongodbatlas_flex_clusters_names" {
 
 ### Required
 
-- `project_id` (String) Unique 24-hexadecimal character string that identifies the project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Read-Only
 
-- `results` (Attributes List) List of documents that MongoDB Cloud returns for this request. (see [below for nested schema](#nestedatt--results))
+- `results` (Attributes List) List of returned documents that MongoDB Cloud provides when completing this request. (see [below for nested schema](#nestedatt--results))
 
 <a id="nestedatt--results"></a>
 ### Nested Schema for `results`
 
 Read-Only:
 
-- `backup_settings` (Attributes) Flex backup configuration (see [below for nested schema](#nestedatt--results--backup_settings))
+- `backup_settings` (Attributes) Flex backup configuration. (see [below for nested schema](#nestedatt--results--backup_settings))
 - `cluster_type` (String) Flex cluster topology.
 - `connection_strings` (Attributes) Collection of Uniform Resource Locators that point to the MongoDB database. (see [below for nested schema](#nestedatt--results--connection_strings))
 - `create_date` (String) Date and time when MongoDB Cloud created this instance. This parameter expresses its value in ISO 8601 format in UTC.
 - `id` (String) Unique 24-hexadecimal digit string that identifies the instance.
 - `mongo_db_version` (String) Version of MongoDB that the instance runs.
 - `name` (String) Human-readable label that identifies the instance.
-- `project_id` (String) Unique 24-hexadecimal character string that identifies the project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `provider_settings` (Attributes) Group of cloud provider settings that configure the provisioned MongoDB flex cluster. (see [below for nested schema](#nestedatt--results--provider_settings))
-- `state_name` (String) Human-readable label that indicates the current operating condition of this instance.
+- `state_name` (String) Human-readable label that indicates any current activity being taken on this cluster by the Atlas control plane. With the exception of CREATING and DELETING states, clusters should always be available and have a Primary node even when in states indicating ongoing activity.
+
+ - `IDLE`: Atlas is making no changes to this cluster and all changes requested via the UI or API can be assumed to have been applied.
+ - `CREATING`: A cluster being provisioned for the very first time returns state CREATING until it is ready for connections. Ensure IP Access List and DB Users are configured before attempting to connect.
+ - `UPDATING`: A change requested via the UI, API, AutoScaling, or other scheduled activity is taking place.
+ - `DELETING`: The cluster is in the process of deletion and will soon be deleted.
+ - `REPAIRING`: One or more nodes in the cluster are being returned to service by the Atlas control plane. Other nodes should continue to provide service as normal.
 - `tags` (Map of String) Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.
 - `termination_protection_enabled` (Boolean) Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster.
 - `version_release_system` (String) Method by which the cluster maintains the MongoDB versions.
@@ -73,7 +79,7 @@ Read-Only:
 
 Read-Only:
 
-- `enabled` (Boolean) Flag that indicates whether backups are performed for this flex cluster. Backup uses [flex cluster backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/).
+- `enabled` (Boolean) Flag that indicates whether backups are performed for this flex cluster. Backup uses flex cluster backups.
 
 
 <a id="nestedatt--results--connection_strings"></a>
@@ -81,7 +87,7 @@ Read-Only:
 
 Read-Only:
 
-- `standard` (String) Public connection string that you can use to connect to this cluster. This connection string uses the mongodb:// protocol.
+- `standard` (String) Public connection string that you can use to connect to this cluster. This connection string uses the `mongodb://` protocol.
 - `standard_srv` (String) Public connection string that you can use to connect to this flex cluster. This connection string uses the `mongodb+srv://` protocol.
 
 
@@ -92,7 +98,7 @@ Read-Only:
 
 - `backing_provider_name` (String) Cloud service provider on which MongoDB Cloud provisioned the flex cluster.
 - `disk_size_gb` (Number) Storage capacity available to the flex cluster expressed in gigabytes.
-- `provider_name` (String) Human-readable label that identifies the cloud service provider.
-- `region_name` (String) Human-readable label that identifies the geographic location of your MongoDB flex cluster. The region you choose can affect network latency for clients accessing your databases. For a complete list of region names, see [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/), [GCP](https://www.mongodb.com/docs/atlas/reference/google-gcp/), and [Azure](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/).
+- `provider_name` (String) Human-readable label that identifies the provider type.
+- `region_name` (String) Human-readable label that identifies the geographic location of your MongoDB flex cluster. The region you choose can affect network latency for clients accessing your databases. For a complete list of region names, see [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/#std-label-amazon-aws), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), and [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
 
 For more information see: [MongoDB Atlas API - Flex Clusters](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listflexclusters) Documentation.
