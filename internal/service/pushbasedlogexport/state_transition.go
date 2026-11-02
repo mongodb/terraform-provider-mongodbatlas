@@ -48,9 +48,10 @@ func WaitStateTransition(ctx context.Context, projectID string, client admin.Pus
 }
 
 func WaitResourceDelete(ctx context.Context, projectID string, client admin.PushBasedLogExportAPI, timeConfig retrystrategy.TimeConfig) error {
+	// refreshFunc maps a 404 (e.g. the project is already gone) to DELETED, which also means the configuration no longer exists.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{ActiveState, InitiatingState, BucketVerifiedState},
-		Target:     []string{UnconfiguredState},
+		Target:     []string{UnconfiguredState, retrystrategy.RetryStrategyDeletedState},
 		Refresh:    refreshFunc(ctx, projectID, client),
 		Timeout:    timeConfig.Timeout,
 		MinTimeout: timeConfig.MinTimeout,

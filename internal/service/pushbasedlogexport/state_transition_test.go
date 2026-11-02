@@ -24,6 +24,7 @@ var (
 	bucketVerifiedState   = "BUCKET_VERIFIED"
 	assumeRoleFailedState = "ASSUME_ROLE_FAILED"
 	unknown               = ""
+	sc404                 = conversion.IntPtr(404)
 	sc500                 = conversion.IntPtr(500)
 	currentTime           = time.Now()
 )
@@ -102,6 +103,13 @@ func TestPushBasedLogExportStateTransitionForDelete(t *testing.T) {
 			name: "Successful transition to UNCONFIGURED",
 			mockResponses: []response{
 				{state: &unconfiguredState},
+			},
+			expectedError: false,
+		},
+		{
+			name: "Successful delete when API responds with 404",
+			mockResponses: []response{
+				{statusCode: sc404, err: errors.New("Not found")},
 			},
 			expectedError: false,
 		},
