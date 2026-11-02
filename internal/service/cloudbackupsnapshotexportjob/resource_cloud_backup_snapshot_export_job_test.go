@@ -3,11 +3,15 @@ package cloudbackupsnapshotexportjob_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotexportjob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -66,10 +70,17 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportStateIdFunc:       importStateIDFunc(resourceName, "/"),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"state"}, // state can change from Queued to InProgress
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName, "--"),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"state"},
 			},
 		},
 	}
@@ -93,7 +104,8 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+// importStateIDFunc builds the import ID with the given separator: "/", or "--" for the legacy format.
+func importStateIDFunc(resourceName, separator string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -103,7 +115,66 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		if err != nil {
 			return "", err
 		}
-		return fmt.Sprintf("%s--%s--%s", projectID, clusterName, exportJobID), err
+		return strings.Join([]string{projectID, clusterName, exportJobID}, separator), err
+	}
+}
+
+func TestSplitImportID(t *testing.T) {
+	tests := map[string]struct {
+		importID    string
+		projectID   string
+		clusterName string
+		exportJobID string
+		errorString string
+	}{
+		"valid input": {
+			importID:    "664619d870c247237f4b86a6/my-cluster/664619d870c247237f4b86a7",
+			projectID:   "664619d870c247237f4b86a6",
+			clusterName: "my-cluster",
+			exportJobID: "664619d870c247237f4b86a7",
+		},
+		"valid input with double hyphen in cluster name": {
+			importID:    "664619d870c247237f4b86a6/my--cluster/664619d870c247237f4b86a7",
+			projectID:   "664619d870c247237f4b86a6",
+			clusterName: "my--cluster",
+			exportJobID: "664619d870c247237f4b86a7",
+		},
+		"valid input legacy": {
+			importID:    "664619d870c247237f4b86a6--my-cluster--664619d870c247237f4b86a7",
+			projectID:   "664619d870c247237f4b86a6",
+			clusterName: "my-cluster",
+			exportJobID: "664619d870c247237f4b86a7",
+		},
+		"invalid input with more parts": {
+			importID:    "part1/part2/part3/part4",
+			errorString: cloudbackupsnapshotexportjob.ErrorImportFormat,
+		},
+		"invalid input with less parts": {
+			importID:    "part1/part2",
+			errorString: cloudbackupsnapshotexportjob.ErrorImportFormat,
+		},
+		"invalid input with single hyphens": {
+			importID:    "664619d870c247237f4b86a6-my-cluster-664619d870c247237f4b86a7",
+			errorString: cloudbackupsnapshotexportjob.ErrorImportFormat,
+		},
+		"empty input": {
+			importID:    "",
+			errorString: cloudbackupsnapshotexportjob.ErrorImportFormat,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			projectID, clusterName, exportJobID, err := cloudbackupsnapshotexportjob.SplitImportID(tc.importID)
+			if tc.errorString != "" {
+				require.EqualError(t, err, tc.errorString)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, tc.projectID, projectID)
+			assert.Equal(t, tc.clusterName, clusterName)
+			assert.Equal(t, tc.exportJobID, exportJobID)
+		})
 	}
 }
 

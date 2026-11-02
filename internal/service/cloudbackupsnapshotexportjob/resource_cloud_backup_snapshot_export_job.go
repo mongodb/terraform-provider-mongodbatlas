@@ -13,6 +13,8 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 )
 
+const ErrorImportFormat = "import format error: to import a snapshot export job, use the format {project_id}/{cluster_name}/{export_job_id}"
+
 func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceCreate,
@@ -282,16 +284,12 @@ func expandExportJobCustomData(d *schema.ResourceData) *[]admin.BackupLabel {
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	parts := strings.SplitN(d.Id(), "--", 3)
-	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import snapshot export job, use the format {project_id}--{cluster_name}--{export_job_id}")
+	projectID, clusterName, exportID, err := SplitImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
 
-	projectID := parts[0]
-	clusterName := parts[1]
-	exportID := parts[2]
-
-	_, _, err := connV2.CloudBackupsAPI.GetBackupExport(ctx, projectID, clusterName, exportID).Execute()
+	_, _, err = connV2.CloudBackupsAPI.GetBackupExport(ctx, projectID, clusterName, exportID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import snapshot export job %s in project %s and cluster %s, error: %s", exportID, projectID, clusterName, err)
 	}
@@ -306,6 +304,20 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 		return nil, fmt.Errorf("error setting `export_job_id` for snapshot export job (%s): %s", d.Id(), err)
 	}
 	return []*schema.ResourceData{d}, nil
+}
+
+// SplitImportID splits an import ID in the format {project_id}/{cluster_name}/{export_job_id},
+// or in the legacy format {project_id}--{cluster_name}--{export_job_id}.
+func SplitImportID(id string) (projectID, clusterName, exportJobID string, err error) {
+	if ok, parts := conversion.ImportSplit(id, 3); ok {
+		return parts[0], parts[1], parts[2], nil
+	}
+	parts := strings.SplitN(id, "--", 3)
+	if len(parts) != 3 {
+		err = errors.New(ErrorImportFormat)
+		return
+	}
+	return parts[0], parts[1], parts[2], nil
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
