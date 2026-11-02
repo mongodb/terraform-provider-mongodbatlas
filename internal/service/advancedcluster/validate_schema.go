@@ -47,25 +47,31 @@ func (v FailOnIncompatibleMongoDBVersion) PlanModifyInt64(ctx context.Context, r
 	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
 		return
 	}
-	performValidation(ctx, &req.State, &req.Plan, &resp.Diagnostics, v, req.Path)
+	performValidation(ctx, &req.State, &req.Config, &resp.Diagnostics, v, req.Path)
 }
 
 func (v FailOnIncompatibleMongoDBVersion) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
 	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
 		return
 	}
-	performValidation(ctx, &req.State, &req.Plan, &resp.Diagnostics, v, req.Path)
+	performValidation(ctx, &req.State, &req.Config, &resp.Diagnostics, v, req.Path)
 }
 
-func performValidation(ctx context.Context, state *tfsdk.State, plan *tfsdk.Plan, diags *diag.Diagnostics, v FailOnIncompatibleMongoDBVersion, validationPath path.Path) {
-	var mongoDbMajorVersion types.String
+// performValidation resolves mongo_db_major_version from config, falling back to state only when the
+// attribute is not configured (then it cannot change in this apply). If the version cannot be resolved,
+// the check is skipped and Atlas validates at apply.
+func performValidation(ctx context.Context, state *tfsdk.State, config *tfsdk.Config, diags *diag.Diagnostics, v FailOnIncompatibleMongoDBVersion, validationPath path.Path) {
+	var mongoDbMajorVersionConfig types.String
 	var mongoDbMajorVersionState types.String
-	diags.Append(plan.GetAttribute(ctx, path.Root("mongo_db_major_version"), &mongoDbMajorVersion)...)
+	diags.Append(config.GetAttribute(ctx, path.Root("mongo_db_major_version"), &mongoDbMajorVersionConfig)...)
 	diags.Append(state.GetAttribute(ctx, path.Root("mongo_db_major_version"), &mongoDbMajorVersionState)...)
 	if diags.HasError() {
 		return
 	}
-	mongoDbMajorVersionString := mongoDbMajorVersion.ValueString()
+	if mongoDbMajorVersionConfig.IsUnknown() {
+		return // set through a reference not known until apply, the version may differ from state
+	}
+	mongoDbMajorVersionString := mongoDbMajorVersionConfig.ValueString()
 	if mongoDbMajorVersionString == "" {
 		mongoDbMajorVersionString = mongoDbMajorVersionState.ValueString()
 	}

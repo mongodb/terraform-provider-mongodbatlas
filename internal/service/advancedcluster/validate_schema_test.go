@@ -26,29 +26,33 @@ func TestPlanMustUseMongoDBVersion(t *testing.T) {
 	var null any // nil -> null value
 
 	tests := map[string]struct {
-		planVersion  any
-		stateVersion any
-		operator     advancedcluster.MajorVersionOperator
-		threshold    float64
-		expectError  bool
+		configVersion any
+		stateVersion  any
+		operator      advancedcluster.MajorVersionOperator
+		threshold     float64
+		expectError   bool
 	}{
 		// Version cannot be resolved (create without mongo_db_major_version): check is skipped, whatever the threshold.
-		"unknown in plan, null state, >= 9.0 is skipped": {planVersion: unknown, stateVersion: null, operator: advancedcluster.EqualOrHigher, threshold: 9.0},
-		"unknown in plan, null state, < 9.0 is skipped":  {planVersion: unknown, stateVersion: null, operator: advancedcluster.Lower, threshold: 9.0},
-		"null in plan, null state, >= 9.0 is skipped":    {planVersion: null, stateVersion: null, operator: advancedcluster.EqualOrHigher, threshold: 9.0},
-		"null in plan, null state, < 7.0 is skipped":     {planVersion: null, stateVersion: null, operator: advancedcluster.Lower, threshold: 7.0},
-		// Version resolved from plan or state is still validated.
-		"plan version fails >= 9.0":         {planVersion: "8.0", stateVersion: null, operator: advancedcluster.EqualOrHigher, threshold: 9.0, expectError: true},
-		"plan version passes >= 8.0":        {planVersion: "8.0", stateVersion: null, operator: advancedcluster.EqualOrHigher, threshold: 8.0},
-		"state version used when plan null": {planVersion: null, stateVersion: "7.0", operator: advancedcluster.EqualOrHigher, threshold: 8.0, expectError: true},
-		"state version used when unknown":   {planVersion: unknown, stateVersion: "8.0", operator: advancedcluster.EqualOrHigher, threshold: 8.0},
+		"null config, null state, >= 9.0 is skipped": {configVersion: null, stateVersion: null, operator: advancedcluster.EqualOrHigher, threshold: 9.0},
+		"null config, null state, < 9.0 is skipped":  {configVersion: null, stateVersion: null, operator: advancedcluster.Lower, threshold: 9.0},
+		"null config, null state, < 7.0 is skipped":  {configVersion: null, stateVersion: null, operator: advancedcluster.Lower, threshold: 7.0},
+		// Set through a reference unknown at plan time: state may be stale, so the check is skipped.
+		"unknown config, state 7.0, >= 8.0 is skipped": {configVersion: unknown, stateVersion: "7.0", operator: advancedcluster.EqualOrHigher, threshold: 8.0},
+		"unknown config, state 8.0, < 8.0 is skipped":  {configVersion: unknown, stateVersion: "8.0", operator: advancedcluster.Lower, threshold: 8.0},
+		"unknown config, null state is skipped":        {configVersion: unknown, stateVersion: null, operator: advancedcluster.EqualOrHigher, threshold: 9.0},
+		// Version resolved from config or (when not configured) state is still validated.
+		"config version fails >= 9.0":         {configVersion: "8.0", stateVersion: null, operator: advancedcluster.EqualOrHigher, threshold: 9.0, expectError: true},
+		"config version passes >= 8.0":        {configVersion: "8.0", stateVersion: null, operator: advancedcluster.EqualOrHigher, threshold: 8.0},
+		"config takes precedence over state":  {configVersion: "8.0", stateVersion: "7.0", operator: advancedcluster.EqualOrHigher, threshold: 8.0},
+		"state used when config null, fails":  {configVersion: null, stateVersion: "7.0", operator: advancedcluster.EqualOrHigher, threshold: 8.0, expectError: true},
+		"state used when config null, passes": {configVersion: null, stateVersion: "8.0", operator: advancedcluster.EqualOrHigher, threshold: 8.0},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			req := planmodifier.Int64Request{
 				Path:        path.Root("advanced_configuration").AtName("default_max_time_ms"),
 				ConfigValue: types.Int64Value(100),
-				Plan:        tfsdk.Plan{Schema: versionSchema, Raw: rawVersion(tc.planVersion)},
+				Config:      tfsdk.Config{Schema: versionSchema, Raw: rawVersion(tc.configVersion)},
 				State:       tfsdk.State{Schema: versionSchema, Raw: rawVersion(tc.stateVersion)},
 			}
 			resp := &planmodifier.Int64Response{}
