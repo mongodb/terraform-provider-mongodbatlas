@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/clean"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 )
@@ -29,17 +30,28 @@ func createProject(tb testing.TB, name string) string {
 	return id
 }
 
-func deleteProject(id string) error {
-	_, err := ConnV2().ProjectsAPI.DeleteGroup(context.Background(), id).Execute()
-	if admin.IsErrorCode(err, "CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS") {
-		fmt.Printf("Project deletion failed will retry in 30s: %s, error: %s", id, err)
-		time.Sleep(30 * time.Second)
-		_, err = ConnV2().ProjectsAPI.DeleteGroup(context.Background(), id).Execute()
+// All teardown requests and deletion waits share this budget.
+const (
+	teardownDeleteWait        = 30 * time.Minute
+	projectDeletePollInterval = 30 * time.Second
+)
+
+// deleteProjectUntil retries only while dependent resources are terminating. The caller logs the final outcome.
+func deleteProjectUntil(ctx context.Context, client *admin.APIClient, projectID string, pollInterval time.Duration) error {
+	for {
+		err := clean.DeleteProject(ctx, client, projectID)
+		if clean.ProjectDeleteRetryCode(err) == "" {
+			if err != nil {
+				return fmt.Errorf("project deletion failed: %s, error: %w", projectID, err)
+			}
+			return nil
+		}
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("project deletion failed: %s, gave up waiting for its resources to terminate, error: %w", projectID, err)
+		case <-time.After(pollInterval):
+		}
 	}
-	if err != nil {
-		return fmt.Errorf("project deletion failed: %s, error: %w", id, err)
-	}
-	return nil
 }
 
 type clusterCreateFuncs struct {
@@ -62,7 +74,7 @@ func createCluster(tb testing.TB, projectID, name string, backupEnabled, pitEnab
 			return err
 		},
 		delete: func() error {
-			return deleteCluster(projectID, name)
+			return deleteCluster(context.Background(), ConnV2(), projectID, name)
 		},
 	}
 	require.NoError(tb, createClusterWithRegionFallback(tb, DefaultRegions(), fns), "Cluster creation failed: %s", name)
@@ -122,13 +134,13 @@ func isOutOfCapacityError(err error) bool {
 	return err != nil && (admin.IsErrorCode(err, "OUT_OF_CAPACITY") || strings.Contains(err.Error(), "OUT_OF_CAPACITY"))
 }
 
-func deleteCluster(projectID, name string) error {
-	_, err := ConnV2().ClustersAPI.DeleteCluster(context.Background(), projectID, name).Execute()
+func deleteCluster(ctx context.Context, client *admin.APIClient, projectID, name string) error {
+	_, err := client.ClustersAPI.DeleteCluster(ctx, projectID, name).Execute()
 	if err != nil {
 		return fmt.Errorf("cluster deletion failed: %s %s, error: %w", projectID, name, err)
 	}
-	stateConf := cluster.DeleteStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
-	_, err = stateConf.WaitForStateContext(context.Background())
+	stateConf := cluster.DeleteStateChangeConfig(ctx, client, projectID, name, 1*time.Hour)
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return fmt.Errorf("cluster deletion failed: %s %s, error: %w", projectID, name, err)
 	}
