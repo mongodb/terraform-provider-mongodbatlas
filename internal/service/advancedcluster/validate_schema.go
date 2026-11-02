@@ -12,8 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var defaultMongoDBMajorVersion = "8.0"
-
 func PlanMustUseMongoDBVersion(version float64, operator MajorVersionOperator) FailOnIncompatibleMongoDBVersion {
 	return FailOnIncompatibleMongoDBVersion{
 		Version:  version,
@@ -72,7 +70,7 @@ func performValidation(ctx context.Context, state *tfsdk.State, plan *tfsdk.Plan
 		mongoDbMajorVersionString = mongoDbMajorVersionState.ValueString()
 	}
 	if mongoDbMajorVersionString == "" {
-		mongoDbMajorVersionString = defaultMongoDBMajorVersion
+		return // version unknown (e.g. create without mongo_db_major_version): let Atlas validate at apply
 	}
 	isCompatible := MajorVersionCompatible(&mongoDbMajorVersionString, v.Version, v.Operator)
 	if isCompatible == nil {
