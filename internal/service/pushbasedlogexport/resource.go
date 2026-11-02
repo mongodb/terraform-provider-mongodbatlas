@@ -27,6 +27,8 @@ const (
 	retryTimeDelay         time.Duration = 10 * time.Second
 )
 
+const errorCodeAlreadyUnconfigured = "PUSH_BASED_LOG_EXPORT_ALREADY_UNCONFIGURED"
+
 var _ resource.ResourceWithConfigure = &pushBasedLogExportRS{}
 var _ resource.ResourceWithImportState = &pushBasedLogExportRS{}
 
@@ -165,7 +167,7 @@ func (r *pushBasedLogExportRS) Delete(ctx context.Context, req resource.DeleteRe
 	// The API returns 400 PUSH_BASED_LOG_EXPORT_ALREADY_UNCONFIGURED instead of 404 when the
 	// configuration is already gone, so that error code is also treated as a successful delete.
 	httpResp, err := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute()
-	if err != nil && !deletenotfound.IsNotFoundOrErrorCode(ctx, httpResp, err, "PUSH_BASED_LOG_EXPORT_ALREADY_UNCONFIGURED") {
+	if err != nil && !deletenotfound.IsNotFoundOrErrorCode(ctx, httpResp, err, errorCodeAlreadyUnconfigured) {
 		resp.Diagnostics.AddError("Error when deleting push-based log export configuration", err.Error())
 		return
 	}

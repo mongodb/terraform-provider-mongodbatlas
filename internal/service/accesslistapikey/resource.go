@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -174,7 +175,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// The API returns 400 API_KEY_NOT_FOUND (for the parent API key) instead of 404 when
 	// the entry is already gone, so that error code is also treated as a successful delete.
 	httpResp, err := connV2.ProgrammaticAPIKeysAPI.DeleteAccessEntry(ctx, orgID, apiKeyID, ipAddress).Execute()
-	if err != nil && !deletenotfound.IsNotFoundOrErrorCode(ctx, httpResp, err, "API_KEY_NOT_FOUND") {
+	if err != nil && !deletenotfound.IsNotFoundOrErrorCode(ctx, httpResp, err, constant.ErrorCodeAPIKeyNotFound) {
 		return diag.FromErr(fmt.Errorf("error deleting API Key: %s", err))
 	}
 	return nil
