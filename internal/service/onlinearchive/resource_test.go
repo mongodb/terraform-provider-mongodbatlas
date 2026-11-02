@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -158,8 +159,27 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_minute"),
 				),
 			},
+			{
+				ResourceName:            onlineArchiveResourceName,
+				ImportStateIdFunc:       importStateIDFunc(onlineArchiveResourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"sync_creation", "delete_on_create_timeout", "state"},
+			},
 		},
 	})
+}
+
+// importStateIDFunc builds the import ID {project_id}-{cluster_name}-{archive_id}. Test cluster names contain hyphens.
+func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+		attrs := rs.Primary.Attributes
+		return fmt.Sprintf("%s-%s-%s", attrs["project_id"], attrs["cluster_name"], attrs["archive_id"]), nil
+	}
 }
 
 func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
