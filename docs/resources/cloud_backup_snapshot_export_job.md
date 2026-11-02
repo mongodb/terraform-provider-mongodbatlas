@@ -119,8 +119,8 @@ In addition to all arguments above, the following attributes are exported:
     * `Cancelled` - indicates that the export job has cancelled
 
 ### components
-* `export_id` - _Returned for sharded clusters only._ Export job details for each replica set in the sharded cluster.
-* `replica_set_name` - _Returned for sharded clusters only._ Unique identifier of the export job for the replica set.
+* `export_id` - _Returned for sharded clusters only._ Unique 24-hexadecimal character string that identifies the Cloud Backup snapshot export job for each shard in a sharded cluster.
+* `replica_set_name` - _Returned for sharded clusters only._ Human-readable label that identifies the replica set on the sharded cluster.
 
 
 ## Import
