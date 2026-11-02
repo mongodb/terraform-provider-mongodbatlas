@@ -5,12 +5,14 @@ package deletenotfound
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 	"go.mongodb.org/atlas/mongodbatlas"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
@@ -28,18 +30,32 @@ func IsNotFound(ctx context.Context, resp *http.Response, err error) bool {
 
 // IsNotFoundOrErrorCode is the equivalent of IsNotFound for APIs that answer a delete of a missing
 // resource with a non-404 status and a specific Atlas error code (e.g. 400 API_KEY_NOT_FOUND).
-// Besides a 404, err carrying errorCode is also treated as not-found. The error code is matched
-// against errors from the go.mongodb.org/atlas-sdk/v20250312027 SDK only.
+// Besides a 404, err carrying errorCode is also treated as not-found. The error code is read from
+// the JSON body of the error, so errors from any Atlas SDK version are matched.
 func IsNotFoundOrErrorCode(ctx context.Context, resp *http.Response, err error, errorCode string) bool {
 	if IsNotFound(ctx, resp, err) {
 		return true
 	}
-	if err == nil || !admin.IsErrorCode(err, errorCode) {
+	if !hasErrorCode(err, errorCode) {
 		return false
 	}
 	tflog.Info(ctx, "delete returned "+errorCode+", resource already no longer exists, considering the delete as successful")
 
 	return true
+}
+
+// hasErrorCode reports whether err has a JSON body with the given Atlas error code. It relies on
+// conversion.ErrBody instead of a specific SDK type because the SDK error type (GenericOpenAPIError)
+// is different in each SDK version, while its Body method is the same.
+func hasErrorCode(err error, errorCode string) bool {
+	var errBody conversion.ErrBody
+	if !errors.As(err, &errBody) {
+		return false
+	}
+	var apiError struct {
+		ErrorCode string `json:"errorCode"`
+	}
+	return json.Unmarshal(errBody.Body(), &apiError) == nil && apiError.ErrorCode == errorCode
 }
 
 // IsNotFoundLegacy is the equivalent of IsNotFound for legacy SDKs (go.mongodb.org/atlas and
