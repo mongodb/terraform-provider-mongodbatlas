@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -150,9 +151,9 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	projectID := assignmentState.ProjectId.ValueString()
 	apiKeyID := assignmentState.ApiKeyId.ValueString()
 	// The API returns 400 API_KEY_NOT_FOUND instead of 404 when the key is already gone,
-	// so handling a 404 here would be a no-op.
-	_, err := connV2.ProgrammaticAPIKeysAPI.RemoveGroupApiKey(ctx, projectID, apiKeyID).Execute()
-	if err != nil {
+	// so that error code is also treated as a successful delete.
+	httpResp, err := connV2.ProgrammaticAPIKeysAPI.RemoveGroupApiKey(ctx, projectID, apiKeyID).Execute()
+	if err != nil && !deletenotfound.IsNotFoundOrErrorCode(ctx, httpResp, err, "API_KEY_NOT_FOUND") {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}
