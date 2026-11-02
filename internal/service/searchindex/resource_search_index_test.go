@@ -760,7 +760,6 @@ func checkSearchWithNumPartitions(projectID, indexName, clusterName string, numP
 	return checkAggr(projectID, clusterName, indexName, indexType, mappingsDynamic, checks...)
 }
 
-// importStateIDFunc builds the import ID with the given separator: "/", or "--" for the legacy format.
 func importStateIDFunc(resourceName, separator string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]

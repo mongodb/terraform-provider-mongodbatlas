@@ -104,7 +104,6 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-// importStateIDFunc builds the import ID with the given separator: "/", or "--" for the legacy format.
 func importStateIDFunc(resourceName, separator string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]

@@ -483,8 +483,8 @@ For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com
 
 You can import search indexes using `project_id`, `cluster_name`, and `index_id` in one of the following formats:
 
-1. `project_id`/`cluster_name`/`index_id`
-2. `project_id`--`cluster_name`--`index_id` (legacy). Doesn't work if `cluster_name` contains `--`. Use (1) instead.
+1. `project_id`/`cluster_name`/`index_id` (recommended)
+2. `project_id`--`cluster_name`--`index_id` (legacy)
 
 ```shell
 terraform import mongodbatlas_search_index.test {project_id}/{cluster_name}/{index_id} # (1)
