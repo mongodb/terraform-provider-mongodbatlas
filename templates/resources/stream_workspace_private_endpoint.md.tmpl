@@ -1,0 +1,24 @@
+---
+subcategory: "Streams"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` registers a customer VPC interface endpoint for inbound private connectivity to Atlas Stream Processing in a project.
+
+Registering the endpoint makes it available to the stream workspaces in the project: once Atlas approves the endpoint, workspace connection strings can resolve privately over the customer's VPC. The resource is project-scoped, identified by the customer's VPC endpoint `id` (AWS interface endpoint id, e.g. `vpce-0abc123def4567890`), and the endpoint's registration is applied asynchronously — the computed `status` attribute reports its readiness. AWS is the only supported provider.
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name)}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+Workspace private endpoint resource can be imported using the project ID and the customer's VPC endpoint id, separated by slashes, e.g.
+
+```
+$ terraform import mongodbatlas_stream_workspace_private_endpoint.test "6117ac2fe2a3d04ed27a9871/vpce-0abc123def4567890"
+```
+
+For more information see: [MongoDB Atlas API - Streams](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-streams) Documentation.
