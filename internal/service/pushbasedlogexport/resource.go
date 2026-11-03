@@ -79,10 +79,10 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 
 	err = cleanup.HandleCreateTimeout(tfPlan.DeleteOnCreateTimeout.ValueBool(), err, func(ctx context.Context) error {
 		cleanResp, cleanErr := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute()
-		if validate.StatusNotFound(cleanResp) {
-			return nil
+		if cleanErr != nil && !deletenotfound.IsNotFoundOrErrorCode(ctx, cleanResp, cleanErr, errorCodeAlreadyUnconfigured) {
+			return cleanErr
 		}
-		return cleanErr
+		return nil
 	})
 
 	if err != nil {
@@ -202,7 +202,8 @@ func unconfigureFailedPushBasedLog(ctx context.Context, connV2 *admin.APIClient,
 	logConfig, _, _ := connV2.PushBasedLogExportAPI.GetLogExport(ctx, projectID).Execute()
 	if logConfig != nil && slices.Contains(failureStates, *logConfig.State) {
 		log.Printf("[INFO] Unconfiguring push-based log export for project due to create failure: %s", projectID)
-		if _, err := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute(); err != nil {
+		httpResp, err := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute()
+		if err != nil && !deletenotfound.IsNotFoundOrErrorCode(ctx, httpResp, err, errorCodeAlreadyUnconfigured) {
 			return err
 		}
 	}

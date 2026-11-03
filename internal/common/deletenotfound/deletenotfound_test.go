@@ -16,6 +16,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 	"go.mongodb.org/atlas/mongodbatlas"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 )
 
@@ -107,6 +108,7 @@ func plain(resp *http.Response, err error) deleteCall {
 }
 
 func TestIsNotFoundOrErrorCode(t *testing.T) {
+	// The server returns the wire value, while the helper gets the constant used by callers, pinning the constant to it.
 	const errorCode = "API_KEY_NOT_FOUND"
 	testCases := map[string]struct {
 		call     deleteCall
@@ -127,7 +129,7 @@ func TestIsNotFoundOrErrorCode(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			resp, err := tc.call(t)
-			assert.Equal(t, tc.expected, deletenotfound.IsNotFoundOrErrorCode(t.Context(), resp, err, errorCode))
+			assert.Equal(t, tc.expected, deletenotfound.IsNotFoundOrErrorCode(t.Context(), resp, err, constant.ErrorCodeAPIKeyNotFound))
 		})
 	}
 }

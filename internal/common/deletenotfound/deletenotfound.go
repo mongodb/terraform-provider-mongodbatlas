@@ -31,7 +31,8 @@ func IsNotFound(ctx context.Context, resp *http.Response, err error) bool {
 // IsNotFoundOrErrorCode is the equivalent of IsNotFound for APIs that answer a delete of a missing
 // resource with a non-404 status and a specific Atlas error code (e.g. 400 API_KEY_NOT_FOUND).
 // Besides a 404, err carrying errorCode is also treated as not-found. The error code is read from
-// the JSON body of the error, so errors from any Atlas SDK version are matched.
+// the JSON body of the error, so errors from any Atlas SDK version are matched. The HTTP status is
+// intentionally not checked: the error code alone identifies the case, and the status could change.
 func IsNotFoundOrErrorCode(ctx context.Context, resp *http.Response, err error, errorCode string) bool {
 	if IsNotFound(ctx, resp, err) {
 		return true
