@@ -126,6 +126,40 @@ resources:
       schema:
         <<: *ai_model_rate_limit_schema
 
+  api_key_project_assignment:
+    create:
+      # Assigns an existing organization API key to one project. The request body is an array and the
+      # response is empty (204), so the resulting assignment is read from the project API key list.
+      path: /api/atlas/v2/groups/{groupId}/apiKeys/{apiUserId}
+      method: POST
+    read:
+      # There is no GET operation for a single assignment: the assignment is found in the project API
+      # key list using a PostReadAPICall hook.
+      path: /api/atlas/v2/groups/{groupId}/apiKeys
+      method: GET
+      schema_ignore: true
+    update:
+      path: /api/atlas/v2/groups/{groupId}/apiKeys/{apiUserId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/apiKeys/{apiUserId}
+      method: DELETE
+    version_header: application/vnd.atlas.2023-01-01+json
+    id_attributes: ["project_id", "api_key_id"]
+    schema:
+      aliases:
+        groupId: projectId
+        apiUserId: apiKeyId
+      ignores: ["userId", "desc"]
+      overrides:
+        project_id:
+          description: *project_id_description
+        roles:
+          computability:
+            required: true
+          type: set
+          description: "Human-readable label that identifies the collection of privileges that MongoDB Cloud grants a specific API key, MongoDB Cloud user, or MongoDB Cloud team. These roles include only the specific project-level roles."
+
   # Singleton resource in project.
   # Create, Delete and Update uses PATCH.
   auditing_api:

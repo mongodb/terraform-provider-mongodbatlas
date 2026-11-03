@@ -55,6 +55,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgratelimit"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelratelimit"
+	autogenapikeyprojectassignment "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/apikeyprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejobcollection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabase"
@@ -419,7 +420,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		clusteroverloadsimulation.Resource,
 		resourcepolicy.Resource,
 		clouduserorgassignment.Resource,
-		apikeyprojectassignment.Resource,
+		autogenapikeyprojectassignment.Resource,
 		clouduserprojectassignment.Resource,
 		teamprojectassignment.Resource,
 		clouduserteamassignment.Resource,

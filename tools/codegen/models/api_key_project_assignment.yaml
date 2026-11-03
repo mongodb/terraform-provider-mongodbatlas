@@ -1,0 +1,61 @@
+schema:
+    description: Assigns the specified organization API key to the specified project. Users with the Project Owner role in the project associated with the API key can then use the organization API key to access the resources.
+    attributes:
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies this organization API key that you want to assign to one project.
+          computed_optional_required: required
+          tf_schema_name: api_key_id
+          tf_model_name: ApiKeyId
+          api_name: apiUserId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+          computed_optional_required: required
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - set:
+            element_type: 4
+          description: Human-readable label that identifies the collection of privileges that MongoDB Cloud grants a specific API key, MongoDB Cloud user, or MongoDB Cloud team. These roles include only the specific project-level roles.
+          custom_type:
+            model: customtypes.SetValue[types.String]
+            schema: customtypes.NewSetType[types.String](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: required
+          tf_schema_name: roles
+          tf_model_name: Roles
+          api_name: roles
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{projectId}/apiKeys/{apiKeyId}
+    create:
+        http_method: POST
+        path: /api/atlas/v2/groups/{projectId}/apiKeys/{apiKeyId}
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{projectId}/apiKeys
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{projectId}/apiKeys/{apiKeyId}
+    version_header: application/vnd.atlas.2023-01-01+json
+name: api_key_project_assignment
+packageName: apikeyprojectassignment
+id_attributes:
+    - project_id
+    - api_key_id
