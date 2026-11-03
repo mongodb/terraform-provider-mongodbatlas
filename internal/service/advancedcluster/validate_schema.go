@@ -12,6 +12,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+var (
+	changeStreamOptionsVersionGate = PlanMustUseMongoDBVersion(7.0, EqualOrHigher)
+	defaultMaxTimeMSVersionGate    = PlanMustUseMongoDBVersion(8.0, EqualOrHigher)
+
+	// advancedConfigVersionGates lists the version-gated advanced_configuration attributes. The schema plan
+	// modifiers and ValidateMongoDBVersionAtApply both use these gates, so a new gate must be added here too.
+	advancedConfigVersionGates = []struct {
+		attrName string
+		gate     FailOnIncompatibleMongoDBVersion
+	}{
+		{"change_stream_options_pre_and_post_images_expire_after_seconds", changeStreamOptionsVersionGate},
+		{"default_max_time_ms", defaultMaxTimeMSVersionGate},
+	}
+)
+
 func PlanMustUseMongoDBVersion(version float64, operator MajorVersionOperator) FailOnIncompatibleMongoDBVersion {
 	return FailOnIncompatibleMongoDBVersion{
 		Version:  version,
@@ -78,13 +93,45 @@ func performValidation(ctx context.Context, state *tfsdk.State, config *tfsdk.Co
 	if mongoDbMajorVersionString == "" {
 		return // version unknown (e.g. create without mongo_db_major_version): let Atlas validate at apply
 	}
-	isCompatible := MajorVersionCompatible(&mongoDbMajorVersionString, v.Version, v.Operator)
+	checkMongoDBVersion(ctx, diags, v, mongoDbMajorVersionString, validationPath)
+}
+
+func checkMongoDBVersion(ctx context.Context, diags *diag.Diagnostics, v FailOnIncompatibleMongoDBVersion, version string, validationPath path.Path) {
+	isCompatible := MajorVersionCompatible(&version, v.Version, v.Operator)
 	if isCompatible == nil {
 		diags.AddWarning("Unable to parse mongo_db_major_version", "")
 		return
 	}
 	if !*isCompatible {
 		diags.AddError(fmt.Sprintf("%#q %s", validationPath, v.Description(ctx)), "")
+	}
+}
+
+// ValidateMongoDBVersionAtApply checks the version-gated advanced_configuration attributes in Create and Update,
+// before any API call. The plan modifier skips the check when mongo_db_major_version is set through a reference
+// unknown at plan time. Without this check, Update would apply the version change and then fail on the advanced
+// configuration call, leaving the cluster changed without writing the new state. At apply the reference is
+// resolved, so the planned version is used, falling back to state when the attribute is not configured.
+// If neither has a version (create with the Atlas default), the check is skipped and Atlas validates.
+func ValidateMongoDBVersionAtApply(ctx context.Context, diags *diag.Diagnostics, config *tfsdk.Config, plannedVersion, stateVersion types.String) {
+	version := plannedVersion.ValueString() // "" when null or unknown
+	if version == "" {
+		version = stateVersion.ValueString()
+	}
+	if version == "" {
+		return
+	}
+	var advancedConfig types.Object
+	diags.Append(config.GetAttribute(ctx, path.Root("advanced_configuration"), &advancedConfig)...)
+	if diags.HasError() || advancedConfig.IsNull() || advancedConfig.IsUnknown() {
+		return
+	}
+	attrs := advancedConfig.Attributes()
+	for _, g := range advancedConfigVersionGates {
+		if value, ok := attrs[g.attrName]; !ok || value.IsNull() || value.IsUnknown() {
+			continue
+		}
+		checkMongoDBVersion(ctx, diags, g.gate, version, path.Root("advanced_configuration").AtName(g.attrName))
 	}
 }
 
