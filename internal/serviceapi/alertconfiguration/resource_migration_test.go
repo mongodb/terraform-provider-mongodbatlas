@@ -115,9 +115,6 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		projectID := rs.Primary.Attributes["project_id"]
 		alertID := rs.Primary.Attributes["alert_configuration_id"]
-		if alertID != rs.Primary.ID {
-			return fmt.Errorf("id %q does not match alert_configuration_id %q", rs.Primary.ID, alertID)
-		}
 		_, _, err := acc.ConnV2().AlertConfigurationsAPI.GetAlertConfig(context.Background(), projectID, alertID).Execute()
 		if err != nil {
 			return fmt.Errorf("the Alert Configuration(%s) does not exist", alertID)

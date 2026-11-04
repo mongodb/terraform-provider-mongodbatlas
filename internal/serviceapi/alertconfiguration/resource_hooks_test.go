@@ -43,6 +43,10 @@ func TestPostReadAPICall_thresholdPrecedenceAndNormalization(t *testing.T) {
 			body: `{"enabled":true}`,
 			want: `{"enabled":true}`,
 		},
+		"sensitive values returned by the API are dropped": {
+			body: `{"notifications":[{"typeName":"PAGER_DUTY","serviceKey":"echoed-from-integration","intervalMin":10}]}`,
+			want: `{"notifications":[{"typeName":"PAGER_DUTY","intervalMin":10}]}`,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

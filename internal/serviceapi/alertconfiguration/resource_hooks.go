@@ -164,9 +164,10 @@ func applyThresholdPrecedence(result autogen.APICallResult) autogen.APICallResul
 	return result
 }
 
-// normalizeAlertConfigResponse drops empty-string values from the notifications of the response body.
-// The manual read converts "" into null (conversion.StringPtrNullIfEmpty), so an unset notification
-// attribute stays null in state instead of drifting to "".
+// normalizeAlertConfigResponse adapts the response notifications the way the manual resource did
+// (NewTFNotificationModelList): sensitive attributes never take the value returned by the API (it is
+// redacted, or echoed from a third-party integration), and empty strings are converted to null
+// (conversion.StringPtrNullIfEmpty) so an unset notification attribute stays null in state.
 func normalizeAlertConfigResponse(result autogen.APICallResult) autogen.APICallResult {
 	obj, ok := decodeBodyMap(result)
 	if !ok {
@@ -181,6 +182,12 @@ func normalizeAlertConfigResponse(result autogen.APICallResult) autogen.APICallR
 		notification, ok := n.(map[string]any)
 		if !ok {
 			continue
+		}
+		for _, key := range sensitiveNotificationKeys {
+			if _, ok := notification[key]; ok {
+				delete(notification, key)
+				changed = true
+			}
 		}
 		for _, key := range emptyToNullNotificationKeys {
 			if value, ok := notification[key].(string); ok && value == "" {
@@ -201,11 +208,19 @@ func normalizeAlertConfigResponse(result autogen.APICallResult) autogen.APICallR
 	return result
 }
 
-// emptyToNullNotificationKeys are the notification string attributes the manual read normalizes with
-// conversion.StringPtrNullIfEmpty.
+// emptyToNullNotificationKeys are the non-sensitive notification string attributes the manual read
+// normalizes with conversion.StringPtrNullIfEmpty.
 var emptyToNullNotificationKeys = []string{
 	"channelName", "datadogRegion", "emailAddress", "mobileNumber",
 	"opsGenieRegion", "teamId", "teamName", "typeName", "username",
+}
+
+// sensitiveNotificationKeys are the notification attributes marked sensitive in the manual resource.
+// They are always removed from the response body: autogen's unmarshal then keeps the value already set
+// in state or plan (or null), replicating the manual behavior of never storing what the API returns for
+// them. This avoids a plan-null to result-known inconsistency when the API echoes a credential stored in
+// a third-party integration, and redacted values on read.
+var sensitiveNotificationKeys = []string{
 	"apiToken", "datadogApiKey", "opsGenieApiKey", "serviceKey",
 	"victorOpsApiKey", "victorOpsRoutingKey", "webhookUrl", "webhookSecret",
 	"webhookBodyTemplate", "webhookHeadersTemplate", "microsoftTeamsWebhookUrl",
