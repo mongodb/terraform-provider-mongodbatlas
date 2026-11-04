@@ -1,0 +1,11 @@
+```release-note:new-resource
+resource/mongodbatlas_stream_workspace_private_endpoint
+```
+
+```release-note:new-datasource
+data-source/mongodbatlas_stream_workspace_private_endpoint
+```
+
+```release-note:new-datasource
+data-source/mongodbatlas_stream_workspace_private_endpoints
+```
