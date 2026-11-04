@@ -1824,6 +1824,7 @@ func configAddNotification(projectID string, twoNotifications bool) string {
 			{
 				type_name     = "EMAIL"
 				email_address = "ops-team@example.com"
+				interval_min  = 5
 			}`
 	}
 	return fmt.Sprintf(`
@@ -1836,6 +1837,7 @@ func configAddNotification(projectID string, twoNotifications bool) string {
 				{
 					type_name     = "EMAIL"
 					email_address = "test@mongodb.com"
+					interval_min  = 5
 				},
 				%[2]s
 			]

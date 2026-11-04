@@ -117,8 +117,8 @@ func (r *rs) PostUpdateAPICall(result autogen.APICallResult) autogen.APICallResu
 	return applyThresholdPrecedence(normalizeAlertConfigResponse(result))
 }
 
-// PreCreateAPICall and PreUpdateAPICall add the zero values the manual resource sent for unset
-// attributes (see fillManualZeroValues), without which the API rejects the request.
+// PreCreateAPICall and PreUpdateAPICall add the zero values the manual resource sent for unknown
+// optional+computed attributes (see fillManualZeroValues), without which the API rejects the call.
 func (r *rs) PreCreateAPICall(callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte) {
 	return fillManualZeroValues(callParams, bodyReq)
 }
@@ -181,12 +181,14 @@ func unwrapListOfOne(rawMap map[string]any, name string) {
 	}
 }
 
-// fillManualZeroValues reproduces the request body the manual resource marshaled for unset attributes:
-// Terraform plans optional+computed attributes as unknown on create, and the manual model's
-// ValueXPointer() sent a zero value for unknown fields (pointer to 0, false or ""), while the generated
-// marshal omits unknowns and the API rejects the request (MISSING_ATTRIBUTE for `threshold` and
-// `intervalMin`). `delayMin` was always sent (pointer to 0 even when null), and the manual model sent
-// `notifierId`/`integrationId` as "" when unset.
+// fillManualZeroValues reproduces the create body the manual resource marshaled: Terraform plans
+// optional+computed attributes as unknown on create, and the manual model's ValueXPointer() sent a zero
+// value for unknown fields (pointer to 0 or false), while the generated marshal omits unknowns. Without
+// them the API rejects the call: `threshold` and `intervalMin` are required (MISSING_ATTRIBUTE), and an
+// absent `emailEnabled`/`smsEnabled` defaults to true, which makes the API require `intervalMin >= 5`
+// ("Notifications must have an internal of at least 5 minutes"). `delayMin` was always sent (pointer to 0
+// even when null). Attributes the manual omitted (null pointers, including notifierId and integrationId
+// via conversion.StringPtr) stay omitted.
 func fillManualZeroValues(callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte) {
 	if autogen.IsEmptyJSON(bodyReq) {
 		return callParams, bodyReq
@@ -195,45 +197,40 @@ func fillManualZeroValues(callParams config.APICallParams, bodyReq []byte) (modi
 	if err := autogen.Decode(bodyReq, &obj); err != nil {
 		return callParams, bodyReq // leave the body untouched; the generated marshal owns it
 	}
-	for _, notification := range notificationsOf(obj) {
-		setIfMissing(notification, "delayMin", 0)
-		setIfMissing(notification, "intervalMin", 0)
-		setIfMissing(notification, "smsEnabled", false)
-		setIfMissing(notification, "emailEnabled", false)
-		setIfMissing(notification, "notifierId", "")
-		setIfMissing(notification, "integrationId", "")
+	changed := false
+	if notifications, ok := obj["notifications"].([]any); ok {
+		for _, item := range notifications {
+			notification, ok := item.(map[string]any)
+			if !ok {
+				continue
+			}
+			for key, zeroValue := range map[string]any{
+				"delayMin": 0, "intervalMin": 0,
+				"smsEnabled": false, "emailEnabled": false,
+			} {
+				if _, ok := notification[key]; !ok {
+					notification[key] = zeroValue
+					changed = true
+				}
+			}
+		}
 	}
 	for _, name := range []string{"metricThreshold", "threshold"} {
 		if threshold, ok := obj[name].(map[string]any); ok {
-			setIfMissing(threshold, "threshold", 0)
+			if _, ok := threshold["threshold"]; !ok {
+				threshold["threshold"] = 0
+				changed = true
+			}
 		}
 	}
-	setIfMissing(obj, "enabled", false)
+	if !changed {
+		return callParams, bodyReq
+	}
 	body, err := json.Marshal(obj)
 	if err != nil {
 		return callParams, bodyReq
 	}
 	return callParams, body
-}
-
-func notificationsOf(obj map[string]any) []map[string]any {
-	items, ok := obj["notifications"].([]any)
-	if !ok {
-		return nil
-	}
-	result := make([]map[string]any, 0, len(items))
-	for _, item := range items {
-		if notification, ok := item.(map[string]any); ok {
-			result = append(result, notification)
-		}
-	}
-	return result
-}
-
-func setIfMissing(obj map[string]any, key string, value any) {
-	if _, ok := obj[key]; !ok {
-		obj[key] = value
-	}
 }
 
 // PostReadAPICall applies the same adaptations; the threshold precedence matters here for

@@ -127,25 +127,36 @@ func TestPreImport_rewritesLegacyDashFormat(t *testing.T) {
 	}
 }
 
-func TestFillManualZeroValues(t *testing.T) {
+func TestPreCreateAPICall_fillsRequiredZeroValues(t *testing.T) {
 	body := `{"enabled":true,"eventTypeName":"OUTSIDE_METRIC_THRESHOLD","notifications":[{"typeName":"EMAIL","emailAddress":"a@b.com"}],"metricThreshold":{"metricName":"ASSERT_REGULAR","operator":"LESS_THAN","units":"RAW","mode":"AVERAGE"}}`
 	params, got := alertconfiguration.Resource().(autogen.PreCreateAPICallHook).PreCreateAPICall(config.APICallParams{Method: "POST"}, []byte(body))
 	require.Equal(t, "POST", params.Method)
 	obj := decodeBodyJSON(t, got)
 	notification := obj["notifications"].([]any)[0].(map[string]any)
-	// Zero values the manual resource sent for unknown optional+computed attributes (ValueXPointer on
-	// unknown returns 0/false/""), plus the always-sent delayMin/notifierId/integrationId.
+	// The API requires the intervalMin and threshold keys (MISSING_ATTRIBUTE otherwise); the manual sent
+	// 0 for the unknown optional+computed attributes (ValueXPointer returns a pointer to 0 on unknown).
 	assert.InDelta(t, 0, notification["intervalMin"], 0)
+	assert.InDelta(t, 0, obj["metricThreshold"].(map[string]any)["threshold"], 0)
+	// delayMin 0, smsEnabled false and emailEnabled false are filled (the manual sent them for unknown
+	// optional+computed attributes; an absent emailEnabled defaults to true in the API).
 	assert.InDelta(t, 0, notification["delayMin"], 0)
 	assert.Equal(t, false, notification["smsEnabled"])
 	assert.Equal(t, false, notification["emailEnabled"])
-	assert.Empty(t, notification["notifierId"])
-	assert.Empty(t, notification["integrationId"])
-	// metric threshold: the API requires the `threshold` key (manual sent 0 for unknown).
-	assert.InDelta(t, 0, obj["metricThreshold"].(map[string]any)["threshold"], 0)
-	// configured values are kept.
+	// Attributes the manual omitted (null pointers) stay omitted.
+	assert.NotContains(t, notification, "notifierId")
+	assert.NotContains(t, notification, "integrationId")
+	// Configured values are kept.
 	assert.Equal(t, true, obj["enabled"])
 	assert.Equal(t, "a@b.com", notification["emailAddress"])
+}
+
+func TestPreCreateAPICall_keepsConfiguredIntervalAndThreshold(t *testing.T) {
+	body := `{"notifications":[{"typeName":"GROUP","intervalMin":5}],"threshold":{"operator":"GREATER_THAN","units":"HOURS","threshold":48}}`
+	_, got := alertconfiguration.Resource().(autogen.PreCreateAPICallHook).PreCreateAPICall(config.APICallParams{}, []byte(body))
+	obj := decodeBodyJSON(t, got)
+	notification := obj["notifications"].([]any)[0].(map[string]any)
+	assert.InDelta(t, 5, notification["intervalMin"], 0)
+	assert.InDelta(t, 48, obj["threshold"].(map[string]any)["threshold"], 0)
 }
 
 func TestUpgradeManualStateJSON_unwrapsThresholdLists(t *testing.T) {

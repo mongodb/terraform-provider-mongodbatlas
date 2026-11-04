@@ -1397,6 +1397,8 @@ resources:
           sensitive: true
         notification.victor_ops_api_key:
           sensitive: true
+        notification.victor_ops_routing_key:
+          sensitive: true
         notification.microsoft_teams_webhook_url:
           sensitive: true
         notification.webhook_url:

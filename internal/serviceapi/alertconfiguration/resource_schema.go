@@ -201,6 +201,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"victor_ops_routing_key": schema.StringAttribute{
 							Optional:            true,
 							MarkdownDescription: "Routing key that MongoDB Cloud needs to send alert notifications to Splunk On-Call. The resource requires this parameter when `\"notifications.[n].typeName\" : \"VICTOR_OPS\"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.",
+							Sensitive:           true,
 						},
 						"webhook_body_template": schema.StringAttribute{
 							Optional:            true,
@@ -306,7 +307,7 @@ type TFNotificationModel struct {
 	TypeName                 types.String                        `tfsdk:"type_name"`
 	Username                 types.String                        `tfsdk:"username"`
 	VictorOpsApiKey          types.String                        `tfsdk:"victor_ops_api_key" autogen:"sensitive"`
-	VictorOpsRoutingKey      types.String                        `tfsdk:"victor_ops_routing_key"`
+	VictorOpsRoutingKey      types.String                        `tfsdk:"victor_ops_routing_key" autogen:"sensitive"`
 	WebhookBodyTemplate      types.String                        `tfsdk:"webhook_body_template" autogen:"sensitive"`
 	WebhookHeadersTemplate   types.String                        `tfsdk:"webhook_headers_template" autogen:"sensitive"`
 	WebhookSecret            types.String                        `tfsdk:"webhook_secret" autogen:"sensitive"`
