@@ -16,6 +16,8 @@ import (
 func TestPopulateProjectsDataSourceModel(t *testing.T) {
 	notFoundErr := &admin.GenericOpenAPIError{}
 	notFoundErr.SetModel(admin.ApiError{Error: http.StatusNotFound, ErrorCode: "GROUP_NOT_FOUND"})
+	otherNotFoundErr := &admin.GenericOpenAPIError{}
+	otherNotFoundErr.SetModel(admin.ApiError{Error: http.StatusNotFound, ErrorCode: "RESOURCE_NOT_FOUND"})
 
 	testCases := map[string]struct {
 		firstTeamsErr   error
@@ -34,6 +36,10 @@ func TestPopulateProjectsDataSourceModel(t *testing.T) {
 		},
 		"transient error is reported instead of dropping the project": {
 			firstTeamsErr: errors.New("EOF"),
+			expectedError: true,
+		},
+		"404 for a project that still exists is reported instead of dropping the project": {
+			firstTeamsErr: otherNotFoundErr,
 			expectedError: true,
 		},
 	}
