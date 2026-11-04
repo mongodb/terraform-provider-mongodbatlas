@@ -4,217 +4,177 @@ subcategory: "Cloud Backups"
 
 # Resource: mongodbatlas_backup_compliance_policy
 
-`mongodbatlas_backup_compliance_policy` provides a resource that enables you to set up a Backup Compliance Policy resource. [Backup Compliance Policy ](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy) prevents any user, regardless of role, from modifying or deleting specific cluster settings, backups, and backup configurations. When enabled, the Backup Compliance Policy will be applied as the minimum policy for all clusters and backups in the project. It can only be disabled by contacting MongoDB support. This feature is only supported for cluster tiers M10+.
+`mongodbatlas_backup_compliance_policy` provides a resource that enables you to set up a Backup Compliance Policy resource. [Backup Compliance Policy](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy) prevents any user, regardless of role, from modifying or deleting specific cluster settings, backups, and backup configurations. When enabled, the Backup Compliance Policy will be applied as the minimum policy for all clusters and backups in the project. It can only be disabled by contacting MongoDB support. This feature is only supported for cluster tiers M10+.
 
 The [Official MongoDB Atlas Project Module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/project/mongodbatlas/latest) makes use of this resource and simplifies backup compliance policy management as part of project configuration.
 
-When enabled, the Backup Compliance Policy will be applied as the minimum backup policy to all clusters in a project and will protect all existing snapshots. This will prevent any user, regardless of role, from modifying or deleting existing snapshots prior to expiration. Changes made to existing backup policies will only apply to future snapshots.
-
--> **IMPORTANT NOTE:** Once a Backup Compliance Policy is enabled, no user, regardless of role, can disable the Backup Compliance Policy via Terraform, or any other method, without contacting MongoDB Support. However, if the Backup Compliance Policy is approved for disablement by MongoDB Support, the resource can be removed and the delete operation will successfully disable the Backup Compliance Policy. With Backup Compliance Policy enabled, some resources defined in Terraform will no longer be modifiable. See the full list of [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy). 
-
--> **NOTE:** With Backup Compliance Policy enabled, cluster backups are retained after a cluster is deleted and backups can be used normally until retention expiration. When the Backup Compliance Policy is not enabled, Atlas deletes the cluster's associated backup snapshots when a cluster is terminated. By default, a Backup Compliance Policy is not enabled. For more details see [Back Up, Restore, and Archive Data](https://www.mongodb.com/docs/atlas/backup-restore-cluster/). 
-
--> **NOTE:** To delete an Atlas cluster that has an associated `mongodbatlas_cloud_backup_schedule` resource and an enabled Backup Compliance Policy, first instruct Terraform to remove the `mongodbatlas_cloud_backup_schedule` resource from the state and then use Terraform to delete the cluster. To learn more, see [Delete a Cluster with a Backup Compliance Policy](../guides/delete-cluster-with-backup-compliance-policy.md).
-
+-> **NOTE:** Once a Backup Compliance Policy is enabled, no user, regardless of role, can disable it via Terraform, or any other method, without contacting MongoDB Support. However, if the Backup Compliance Policy is approved for disablement by MongoDB Support, the resource can be removed and the delete operation will successfully disable the Backup Compliance Policy. With a Backup Compliance Policy enabled, some resources defined in Terraform will no longer be modifiable. See the full list of [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy). With a Backup Compliance Policy enabled, cluster backups are retained after a cluster is deleted and backups can be used normally until retention expiration. To delete an Atlas cluster that has an associated `mongodbatlas_cloud_backup_schedule` resource and an enabled Backup Compliance Policy, first instruct Terraform to remove the `mongodbatlas_cloud_backup_schedule` resource from the state and then use Terraform to delete the cluster. To learn more, see [Delete a Cluster with a Backup Compliance Policy](../guides/delete-cluster-with-backup-compliance-policy.md).
 
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_advanced_cluster" "my_cluster" {
-  project_id     = "<PROJECT-ID>"
-  name           = "clusterTest"
-  cluster_type   = "REPLICASET"
-  backup_enabled = true # enable cloud backup snapshots
-
-  replication_specs = [{
-    region_configs = [{
-      priority      = 7
-      provider_name = "AWS"
-      region_name   = var.region
-      electable_specs = {
-        instance_size = "M10"
-        node_count    = 3
-      }
-    }]
-  }]
+data "mongodbatlas_atlas_user" "this" {
+  user_id = var.user_id
 }
 
-resource "mongodbatlas_cloud_backup_schedule" "test" {
-  project_id   = mongodbatlas_advanced_cluster.my_cluster.project_id
-  cluster_name = mongodbatlas_advanced_cluster.my_cluster.name
-
-  reference_hour_of_day    = 3
-  reference_minute_of_hour = 45
-  restore_window_days      = 4
-  
-  // This will now add the desired policy items to the existing mongodbatlas_cloud_backup_schedule resource
-  policy_item_hourly {
-    frequency_interval = 1        #accepted values = 1, 2, 4, 6, 8, 12 -> every n hours
-    retention_unit     = "days"
-    retention_value    = 7
-  }
-  policy_item_daily {
-    frequency_interval = 1        #accepted values = 1 -> every 1 day
-    retention_unit     = "days"
-    retention_value    = 7
-  }
-  policy_item_weekly {
-    frequency_interval = 1        # accepted values = 1 to 7 -> every 1=Monday,2=Tuesday,3=Wednesday,4=Thursday,5=Friday,6=Saturday,7=Sunday day of the week
-    retention_unit     = "weeks"
-    retention_value    = 4
-  }
-  policy_item_monthly {
-    frequency_interval = 1        # accepted values = 1 to 28 -> 1 to 28 every nth day of the month  
-                                  # accepted values = 40 -> every last day of the month
-    retention_unit     = "months"
-    retention_value    = 12
-  }
-  policy_item_yearly {
-    frequency_interval = 1        # accepted values = 1 to 12 -> 1st day of nth month  
-    retention_unit     = "years"
-    retention_value    = 1
-  }
-
-}
-
-data "mongodbatlas_cloud_backup_schedule" "test" {
-  project_id   = mongodbatlas_cloud_backup_schedule.test.project_id
-  cluster_name = mongodbatlas_cloud_backup_schedule.test.cluster_name
-}
-
-data "mongodbatlas_backup_compliance_policy" "backup_policy" {
-  project_id = mongodbatlas_cloud_backup_schedule.test.project_id
-}
-
-resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
-  project_id                 = "<PROJECT-ID>"
-  authorized_email           = "user@email.com"
-  authorized_user_first_name = "First"
-  authorized_user_last_name  = "Last"
+# Be aware that deleting the `mongodbatlas_backup_compliance_policy` resource requires contacting MongoDB Support.
+resource "mongodbatlas_backup_compliance_policy" "this" {
+  project_id                 = var.project_id
+  authorized_email           = data.mongodbatlas_atlas_user.this.email_address
+  authorized_user_first_name = data.mongodbatlas_atlas_user.this.first_name
+  authorized_user_last_name  = data.mongodbatlas_atlas_user.this.last_name
   copy_protection_enabled    = false
   pit_enabled                = false
   encryption_at_rest_enabled = false
 
   restore_window_days = 7
+  on_demand_policy_item = {
+    frequency_type     = "ondemand"
+    frequency_interval = 0
+    retention_unit     = "days"
+    retention_value    = 1
+  }
+  scheduled_policy_items = [
+    {
+      frequency_type     = "daily"
+      frequency_interval = 0
+      retention_unit     = "days"
+      retention_value    = 1
+    }
+  ]
+}
 
-  on_demand_policy_item {
-		  frequency_interval = 1
-		  retention_unit     = "days"
-		  retention_value    = 3
-		}
-		
-		policy_item_hourly {
-			frequency_interval = 1
-			retention_unit     = "days"
-			retention_value    = 7
-		  }
-	  
-		policy_item_daily {
-			frequency_interval = 1
-			retention_unit     = "days"
-			retention_value    = 7
-		  }
-	  
-		  policy_item_weekly {
-			frequency_interval = 1
-			retention_unit     = "weeks"
-			retention_value    = 4
-		  }
-	  
-		  policy_item_monthly {
-			frequency_interval = 1
-			retention_unit     = "months"
-			retention_value    = 12
-		  }
+resource "mongodbatlas_advanced_cluster" "this" {
+  project_id             = var.project_id
+  name                   = var.cluster_name
+  cluster_type           = "REPLICASET"
+  backup_enabled         = true
+  retain_backups_enabled = true
 
-	          policy_item_yearly {
-	            frequency_interval = 1
-	            retention_unit     = "years"
-	            retention_value    = 1
-	          }
-      
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          provider_name = "AWS"
+          region_name   = "US_EAST_1"
+          priority      = 7
+          electable_specs = {
+            node_count    = 3
+            instance_size = var.instance_size
+            disk_size_gb  = 10
+          }
+        },
+      ]
+    }
+  ]
+}
+
+resource "mongodbatlas_cloud_backup_schedule" "this" {
+  project_id               = var.project_id
+  cluster_name             = resource.mongodbatlas_advanced_cluster.this.name
+  reference_hour_of_day    = 19
+  reference_minute_of_hour = 15
+  restore_window_days      = 7
+  policy_item_daily {
+    frequency_interval = 1
+    retention_unit     = "days"
+    retention_value    = 1
+  }
+  copy_policy_items_enabled = true
+
+  copy_settings {
+    cloud_provider     = "AWS"
+    region_name        = "US_EAST_2"
+    zone_id            = mongodbatlas_advanced_cluster.this.replication_specs[0].zone_id
+    should_copy_oplogs = false
+
+    copy_policy_items {
+      frequency_type  = "daily"
+      retention_unit  = "days"
+      retention_value = 1
+    }
+    copy_policy_items {
+      frequency_type = "ondemand"
+    }
+  }
 }
 ```
 
-### Further Examples
-- [Backup Compliance Policy](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.21.0/examples/mongodbatlas_backup_compliance_policy/resource)
+<!-- schema generated by tfplugindocs -->
+## Schema
 
-## Argument Reference
+### Required
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
-* `authorized_email` - (Required) Email address of a security or legal representative for the Backup Compliance Policy who is authorized to update the Backup Compliance Policy settings.
-* `authorized_user_first_name` - (Required) First name of the user who authorized to update the Backup Compliance Policy settings.
-* `authorized_user_last_name` - (Required) Last name of the user who authorized to update the Backup Compliance Policy settings.
-* `copy_protection_enabled` - Flag that indicates whether to enable additional backup copies for the cluster. If unspecified, this value defaults to false.
-* `pit_enabled` - Flag that indicates whether the cluster uses Continuous Cloud Backups with a Backup Compliance Policy. If unspecified, this value defaults to false.
-* `encryption_at_rest_enabled` - Flag that indicates whether Encryption at Rest using Customer Key Management is required for all clusters with a Backup Compliance Policy. If unspecified, this value defaults to false.
-* `restore_window_days` - Number of previous days that you can restore back to with Continuous Cloud Backup with a Backup Compliance Policy. You must specify a positive, non-zero integer, and the maximum retention window can't exceed the hourly retention time. This parameter applies only to Continuous Cloud Backups with a Backup Compliance Policy.
-* `on_demand_policy_item` - Specifications for [on-demand policy](#on-demand-policy-item).
-* `policy_item_hourly` - Scheduled policy using an hourly frequency type, see [block fields](#policy-item-hourly).
-* `policy_item_daily` - Scheduled policy using a daily frequency type, see [block fields](#policy-item-daily).
-* `policy_item_weekly` - Scheduled policy using a weekly frequency type, see [block fields](#policy-item-weekly).
-* `policy_item_monthly` - Scheduled policy using a monthly frequency type, see [block fields](#policy-item-monthly).
-* `policy_item_yearly` - Scheduled policy using a yearly frequency type, see [block fields](#policy-item-yearly).
+- `authorized_email` (String) Email address of the user who authorized to update the Backup Compliance Policy  settings.
+- `authorized_user_first_name` (String) First name of the user who authorized to updated the Backup Compliance Policy  settings.
+- `authorized_user_last_name` (String) Last name of the user who authorized to updated the Backup Compliance Policy  settings.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
 
-## Attributes Reference
+**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
 
-In addition to all arguments above, the following attributes are exported:
+### Optional
 
-*  `state` - Label that indicates the state of the Backup Compliance Policy settings. MongoDB Cloud ignores this setting when you enable or update the Backup Compliance Policy settings.
-* `updated_date` - ISO 8601 timestamp format in UTC that indicates when the user updated the Data Protection Policy settings. MongoDB Cloud ignores this setting when you enable or update the Backup Compliance Policy settings.
-* `updated_user` - Email address that identifies the user who updated the Backup Compliance Policy settings. MongoDB Cloud ignores this email setting when you enable or update the Backup Compliance Policy settings.
+- `copy_protection_enabled` (Boolean) Flag that indicates whether to prevent cluster users from deleting backups copied to other regions, even if those additional snapshot regions are removed. If unspecified, this value defaults to false.
+- `encryption_at_rest_enabled` (Boolean) Flag that indicates whether Encryption at Rest using Customer Key  Management is required for all clusters with a Backup Compliance Policy. If unspecified, this value defaults to false.
+- `on_demand_policy_item` (Attributes) Specifications for on-demand policy. (see [below for nested schema](#nestedatt--on_demand_policy_item))
+- `pit_enabled` (Boolean) Flag that indicates whether the cluster uses Continuous Cloud Backups with a Backup Compliance Policy. If unspecified, this value defaults to false.
+- `restore_window_days` (Number) Number of previous days that you can restore back to with Continuous Cloud Backup with a Backup Compliance Policy. You must specify a positive, non-zero integer, and the maximum retention window can't exceed the hourly retention time. This parameter applies only to Continuous Cloud Backups with a Backup Compliance Policy.
+- `scheduled_policy_items` (Attributes List) List that contains the specifications for one scheduled policy. (see [below for nested schema](#nestedatt--scheduled_policy_items))
 
-### On Demand Policy Item
-* `id` - Unique identifier of the backup policy item.
-* `frequency_type` - Frequency associated with the backup policy item. For hourly policies, the frequency type is defined as `ondemand`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
-* `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (hourly in this case). The supported values for hourly policies are `1`, `2`, `4`, `6`, `8` or `12` hours. Note that `12` hours is the only accepted value for NVMe clusters.
-* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
-* `retention_value` - Value to associate with `retention_unit`.
+### Read-Only
 
-### Policy Item Hourly
-* `id` - Unique identifier of the backup policy item.
-* `frequency_type` - Frequency associated with the backup policy item. For hourly policies, the frequency type is defined as `hourly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
-* `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (hourly in this case). The supported values for hourly policies are `1`, `2`, `4`, `6`, `8` or `12` hours. Note that `12` hours is the only accepted value for NVMe clusters.
-* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
-* `retention_value` - Value to associate with `retention_unit`.
+- `id` (String) The ID of this resource.
+- `state` (String) Label that indicates the state of the Backup Compliance Policy settings. MongoDB Cloud ignores this setting when you enable or update the Backup Compliance Policy settings.
+- `updated_date` (String) ISO 8601 timestamp format in UTC that indicates when the user updated the Data Protection Policy settings. MongoDB Cloud ignores this setting when you enable or update the Backup Compliance Policy settings.
+- `updated_user` (String) Email address that identifies the user who updated the Backup Compliance Policy settings. MongoDB Cloud ignores this email setting when you enable or update the Backup Compliance Policy settings.
 
-### Policy Item Daily
-* `id` - Unique identifier of the backup policy item.
-* `frequency_type` - Frequency associated with the backup policy item. For daily policies, the frequency type is defined as `daily`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
-* `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (daily in this case). The only supported value for daily policies is `1` day.
-* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
-* `retention_value` - Value to associate with `retention_unit`.  Note that for less frequent policy items, Atlas requires that you specify a retention period greater than or equal to the retention period specified for more frequent policy items. For example: If the hourly policy item specifies a retention of two days, the daily retention policy must specify two days or greater.
+<a id="nestedatt--on_demand_policy_item"></a>
+### Nested Schema for `on_demand_policy_item`
 
-### Policy Item Weekly
-* `id` - Unique identifier of the backup policy item.
-* `frequency_type` - Frequency associated with the backup policy item. For weekly policies, the frequency type is defined as `weekly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
-* `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (weekly in this case). The supported values for weekly policies are `1` through `7`, where `1` represents Monday and `7` represents Sunday.
-* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
-* `retention_value` - Value to associate with `retention_unit`. Weekly policy must have retention of at least 7 days or 1 week. Note that for less frequent policy items, Atlas requires that you specify a retention period greater than or equal to the retention period specified for more frequent policy items. For example: If the daily policy item specifies a retention of two weeks, the weekly retention policy must specify two weeks or greater.
+Required:
 
-### Policy Item Monthly
-* `id` - Unique identifier of the backup policy item.
-* `frequency_type` - Frequency associated with the backup policy item. For monthly policies, the frequency type is defined as `monthly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
-* `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (monthly in this case). The supported values for weekly policies are 
-  * `1` through `28` where the number represents the day of the month (i.e. `1` is the first of the month and `5` is the fifth day of the month).
-  * `40` represents the last day of the month (depending on the month).
-* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
-* `retention_value` - Value to associate with `retention_unit`. Monthly policy must have retention days of at least 31 days or 5 weeks or 1 month. Note that for less frequent policy items, Atlas requires that you specify a retention period greater than or equal to the retention period specified for more frequent policy items. For example: If the weekly policy item specifies a retention of two weeks, the montly retention policy must specify two weeks or greater.
+- `frequency_interval` (Number) Number that indicates the frequency interval for a set of snapshots. MongoDB Cloud ignores this setting for non-hourly policy items in Backup Compliance Policy settings.
+- `frequency_type` (String) Human-readable label that identifies the frequency type associated with the backup policy.
+- `retention_unit` (String) Unit of time in which MongoDB Cloud measures snapshot retention.
+- `retention_value` (Number) Duration in days, weeks, months, or years that MongoDB Cloud retains the snapshot. For less frequent policy items, MongoDB Cloud requires that you specify a value greater than or equal to the value specified for more frequent policy items.
 
-### Policy Item Yearly
-* `id` - Unique identifier of the backup policy item.
-* `frequency_type` - Frequency associated with the backup policy item. For yearly policies, the frequency type is defined as `yearly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
-* `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (yearly in this case). The supported values for yearly policies are 
-  * `1` through `12` the first day of the month where the number represents the month, i.e. `1` is January and `12` is December.
-* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, `months`, or `years`.
-* `retention_value` - Value to associate with `retention_unit`. Yearly policy must have retention of at least 1 year.
+For example: If the hourly policy item specifies a retention of two days, you must specify two days or greater for the retention of the weekly policy item.
+
+Read-Only:
+
+- `id` (String) Unique 24-hexadecimal digit string that identifies this backup policy item.
+
+
+<a id="nestedatt--scheduled_policy_items"></a>
+### Nested Schema for `scheduled_policy_items`
+
+Required:
+
+- `frequency_interval` (Number) Number that indicates the frequency interval for a set of Snapshots. A value of `1` specifies the first instance of the corresponding `frequencyType`.
+
+- In a yearly policy item, `1` indicates that the yearly Snapshot occurs on the first day of January and `12` indicates the first day of December.
+
+- In a monthly policy item, `1` indicates that the monthly Snapshot occurs on the first day of the month and `40` indicates the last day of the month.
+
+- In a weekly policy item, `1` indicates that the weekly Snapshot occurs on Monday and `7` indicates Sunday.
+
+- In an hourly policy item, you can set the frequency interval to `1`, `2`, `4`, `6`, `8`, or `12`. For hourly policy items for NVMe clusters, MongoDB Cloud accepts only `12` as the frequency interval value.
+
+ MongoDB Cloud ignores this setting for non-hourly policy items in Backup Compliance Policy settings.
+- `frequency_type` (String) Human-readable label that identifies the frequency type associated with the backup policy.
+- `retention_unit` (String) Unit of time in which MongoDB Cloud measures Snapshot retention.
+- `retention_value` (Number) Duration in days, weeks, months, or years that MongoDB Cloud retains the Snapshot. For less frequent policy items, MongoDB Cloud requires that you specify a value greater than or equal to the value specified for more frequent policy items.
+
+For example: If the hourly policy item specifies a retention of two days, you must specify two days or greater for the retention of the weekly policy item.
+
+Read-Only:
+
+- `id` (String) Unique 24-hexadecimal digit string that identifies this backup policy item.
 
 ## Import
 
-Backup Compliance Policy entries can be imported using project project_id  in the format `project_id`, e.g.
+Import a Backup Compliance Policy by using its project ID, for example:
 
+```shell
+terraform import mongodbatlas_backup_compliance_policy.test <PROJECT_ID>
 ```
-$ terraform import mongodbatlas_backup_compliance_policy.backup_policy 5d0f1f73cf09a29120e173cf
-```
-
-For more information see: [MongoDB Atlas API Reference](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backups/operation/updateDataProtectionSettings) and [Backup Compliance Policy Prohibited Actions](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#prohibited-actions).

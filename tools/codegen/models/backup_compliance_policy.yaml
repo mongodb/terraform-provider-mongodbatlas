@@ -1,0 +1,614 @@
+schema:
+    description: Updates the Backup Compliance Policy settings for the specified project.
+    attributes:
+        - string: {}
+          description: Email address of the user who authorized to update the Backup Compliance Policy  settings.
+          computed_optional_required: required
+          tf_schema_name: authorized_email
+          tf_model_name: AuthorizedEmail
+          api_name: authorizedEmail
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: First name of the user who authorized to updated the Backup Compliance Policy  settings.
+          computed_optional_required: required
+          tf_schema_name: authorized_user_first_name
+          tf_model_name: AuthorizedUserFirstName
+          api_name: authorizedUserFirstName
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Last name of the user who authorized to updated the Backup Compliance Policy  settings.
+          computed_optional_required: required
+          tf_schema_name: authorized_user_last_name
+          tf_model_name: AuthorizedUserLastName
+          api_name: authorizedUserLastName
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - bool:
+            default: false
+          description: Flag that indicates whether to prevent cluster users from deleting backups copied to other regions, even if those additional snapshot regions are removed. If unspecified, this value defaults to false.
+          computed_optional_required: computed_optional
+          tf_schema_name: copy_protection_enabled
+          tf_model_name: CopyProtectionEnabled
+          api_name: copyProtectionEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - bool:
+            default: false
+          description: Flag that indicates whether Encryption at Rest using Customer Key  Management is required for all clusters with a Backup Compliance Policy. If unspecified, this value defaults to false.
+          computed_optional_required: computed_optional
+          tf_schema_name: encryption_at_rest_enabled
+          tf_model_name: EncryptionAtRestEnabled
+          api_name: encryptionAtRestEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - int64: {}
+                      description: Number that indicates the frequency interval for a set of snapshots. MongoDB Cloud ignores this setting for non-hourly policy items in Backup Compliance Policy settings.
+                      computed_optional_required: required
+                      tf_schema_name: frequency_interval
+                      tf_model_name: FrequencyInterval
+                      api_name: frequencyInterval
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Human-readable label that identifies the frequency type associated with the backup policy.
+                      computed_optional_required: required
+                      tf_schema_name: frequency_type
+                      tf_model_name: FrequencyType
+                      api_name: frequencyType
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unique 24-hexadecimal digit string that identifies this backup policy item.
+                      computed_optional_required: computed
+                      tf_schema_name: id
+                      tf_model_name: Id
+                      api_name: id
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unit of time in which MongoDB Cloud measures snapshot retention.
+                      computed_optional_required: required
+                      tf_schema_name: retention_unit
+                      tf_model_name: RetentionUnit
+                      api_name: retentionUnit
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - int64: {}
+                      description: |-
+                        Duration in days, weeks, months, or years that MongoDB Cloud retains the snapshot. For less frequent policy items, MongoDB Cloud requires that you specify a value greater than or equal to the value specified for more frequent policy items.
+
+                        For example: If the hourly policy item specifies a retention of two days, you must specify two days or greater for the retention of the weekly policy item.
+                      computed_optional_required: required
+                      tf_schema_name: retention_value
+                      tf_model_name: RetentionValue
+                      api_name: retentionValue
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Specifications for on-demand policy.
+          custom_type:
+            name: OnDemandPolicyItem
+            model: customtypes.ObjectValue[TFOnDemandPolicyItemModel]
+            schema: customtypes.NewObjectType[TFOnDemandPolicyItemModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: optional
+          tf_schema_name: on_demand_policy_item
+          tf_model_name: OnDemandPolicyItem
+          api_name: onDemandPolicyItem
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - bool:
+            default: false
+          description: Flag that indicates whether the cluster uses Continuous Cloud Backups with a Backup Compliance Policy. If unspecified, this value defaults to false.
+          computed_optional_required: computed_optional
+          tf_schema_name: pit_enabled
+          tf_model_name: PitEnabled
+          api_name: pitEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - int64: {}
+          description: Number of previous days that you can restore back to with Continuous Cloud Backup with a Backup Compliance Policy. You must specify a positive, non-zero integer, and the maximum retention window can't exceed the hourly retention time. This parameter applies only to Continuous Cloud Backups with a Backup Compliance Policy.
+          computed_optional_required: computed_optional
+          tf_schema_name: restore_window_days
+          tf_model_name: RestoreWindowDays
+          api_name: restoreWindowDays
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - int64: {}
+                      description: |-
+                        Number that indicates the frequency interval for a set of Snapshots. A value of `1` specifies the first instance of the corresponding `frequencyType`.
+
+                        - In a yearly policy item, `1` indicates that the yearly Snapshot occurs on the first day of January and `12` indicates the first day of December.
+
+                        - In a monthly policy item, `1` indicates that the monthly Snapshot occurs on the first day of the month and `40` indicates the last day of the month.
+
+                        - In a weekly policy item, `1` indicates that the weekly Snapshot occurs on Monday and `7` indicates Sunday.
+
+                        - In an hourly policy item, you can set the frequency interval to `1`, `2`, `4`, `6`, `8`, or `12`. For hourly policy items for NVMe clusters, MongoDB Cloud accepts only `12` as the frequency interval value.
+
+                         MongoDB Cloud ignores this setting for non-hourly policy items in Backup Compliance Policy settings.
+                      computed_optional_required: required
+                      tf_schema_name: frequency_interval
+                      tf_model_name: FrequencyInterval
+                      api_name: frequencyInterval
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Human-readable label that identifies the frequency type associated with the backup policy.
+                      computed_optional_required: required
+                      tf_schema_name: frequency_type
+                      tf_model_name: FrequencyType
+                      api_name: frequencyType
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unique 24-hexadecimal digit string that identifies this backup policy item.
+                      computed_optional_required: computed
+                      tf_schema_name: id
+                      tf_model_name: Id
+                      api_name: id
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unit of time in which MongoDB Cloud measures Snapshot retention.
+                      computed_optional_required: required
+                      tf_schema_name: retention_unit
+                      tf_model_name: RetentionUnit
+                      api_name: retentionUnit
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - int64: {}
+                      description: |-
+                        Duration in days, weeks, months, or years that MongoDB Cloud retains the Snapshot. For less frequent policy items, MongoDB Cloud requires that you specify a value greater than or equal to the value specified for more frequent policy items.
+
+                        For example: If the hourly policy item specifies a retention of two days, you must specify two days or greater for the retention of the weekly policy item.
+                      computed_optional_required: required
+                      tf_schema_name: retention_value
+                      tf_model_name: RetentionValue
+                      api_name: retentionValue
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: List that contains the specifications for one scheduled policy.
+          custom_type:
+            name: ScheduledPolicyItems
+            model: customtypes.NestedListValue[TFScheduledPolicyItemsModel]
+            schema: customtypes.NewNestedListType[TFScheduledPolicyItemsModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: optional
+          tf_schema_name: scheduled_policy_items
+          tf_model_name: ScheduledPolicyItems
+          api_name: scheduledPolicyItems
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Label that indicates the state of the Backup Compliance Policy settings. MongoDB Cloud ignores this setting when you enable or update the Backup Compliance Policy settings.
+          computed_optional_required: computed
+          tf_schema_name: state
+          tf_model_name: State
+          api_name: state
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: ISO 8601 timestamp format in UTC that indicates when the user updated the Data Protection Policy settings. MongoDB Cloud ignores this setting when you enable or update the Backup Compliance Policy settings.
+          computed_optional_required: computed
+          tf_schema_name: updated_date
+          tf_model_name: UpdatedDate
+          api_name: updatedDate
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Email address that identifies the user who updated the Backup Compliance Policy settings. MongoDB Cloud ignores this email setting when you enable or update the Backup Compliance Policy settings.
+          computed_optional_required: computed
+          tf_schema_name: updated_user
+          tf_model_name: UpdatedUser
+          api_name: updatedUser
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+    expanded_model: true
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{projectId}/backupCompliancePolicy
+    create:
+        http_method: PUT
+        path: /api/atlas/v2/groups/{projectId}/backupCompliancePolicy
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{projectId}/backupCompliancePolicy
+    update:
+        http_method: PUT
+        path: /api/atlas/v2/groups/{projectId}/backupCompliancePolicy
+    version_header: application/vnd.atlas.2023-10-01+json
+data_sources:
+    singular:
+        description: Returns the Backup Compliance Policy settings with the specified project.
+        attributes:
+            - string: {}
+              description: Email address of the user who authorized to update the Backup Compliance Policy  settings.
+              computed_optional_required: computed
+              tf_schema_name: authorized_email
+              tf_model_name: AuthorizedEmail
+              api_name: authorizedEmail
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: First name of the user who authorized to updated the Backup Compliance Policy  settings.
+              computed_optional_required: computed
+              tf_schema_name: authorized_user_first_name
+              tf_model_name: AuthorizedUserFirstName
+              api_name: authorizedUserFirstName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Last name of the user who authorized to updated the Backup Compliance Policy  settings.
+              computed_optional_required: computed
+              tf_schema_name: authorized_user_last_name
+              tf_model_name: AuthorizedUserLastName
+              api_name: authorizedUserLastName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - bool:
+                default: false
+              description: Flag that indicates whether to prevent cluster users from deleting backups copied to other regions, even if those additional snapshot regions are removed. If unspecified, this value defaults to false.
+              computed_optional_required: computed
+              tf_schema_name: copy_protection_enabled
+              tf_model_name: CopyProtectionEnabled
+              api_name: copyProtectionEnabled
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - bool:
+                default: false
+              description: Flag that indicates whether Encryption at Rest using Customer Key  Management is required for all clusters with a Backup Compliance Policy. If unspecified, this value defaults to false.
+              computed_optional_required: computed
+              tf_schema_name: encryption_at_rest_enabled
+              tf_model_name: EncryptionAtRestEnabled
+              api_name: encryptionAtRestEnabled
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - single_nested:
+                nested_object:
+                    attributes:
+                        - int64: {}
+                          description: Number that indicates the frequency interval for a set of snapshots. MongoDB Cloud ignores this setting for non-hourly policy items in Backup Compliance Policy settings.
+                          computed_optional_required: computed
+                          tf_schema_name: frequency_interval
+                          tf_model_name: FrequencyInterval
+                          api_name: frequencyInterval
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Human-readable label that identifies the frequency type associated with the backup policy.
+                          computed_optional_required: computed
+                          tf_schema_name: frequency_type
+                          tf_model_name: FrequencyType
+                          api_name: frequencyType
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-hexadecimal digit string that identifies this backup policy item.
+                          computed_optional_required: computed
+                          tf_schema_name: id
+                          tf_model_name: Id
+                          api_name: id
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unit of time in which MongoDB Cloud measures snapshot retention.
+                          computed_optional_required: computed
+                          tf_schema_name: retention_unit
+                          tf_model_name: RetentionUnit
+                          api_name: retentionUnit
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - int64: {}
+                          description: |-
+                            Duration in days, weeks, months, or years that MongoDB Cloud retains the snapshot. For less frequent policy items, MongoDB Cloud requires that you specify a value greater than or equal to the value specified for more frequent policy items.
+
+                            For example: If the hourly policy item specifies a retention of two days, you must specify two days or greater for the retention of the weekly policy item.
+                          computed_optional_required: computed
+                          tf_schema_name: retention_value
+                          tf_model_name: RetentionValue
+                          api_name: retentionValue
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: Specifications for on-demand policy.
+              custom_type:
+                name: OnDemandPolicyItem
+                model: customtypes.ObjectValue[TFOnDemandPolicyItemModel]
+                schema: customtypes.NewObjectType[TFOnDemandPolicyItemModel](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: on_demand_policy_item
+              tf_model_name: OnDemandPolicyItem
+              api_name: onDemandPolicyItem
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - bool:
+                default: false
+              description: Flag that indicates whether the cluster uses Continuous Cloud Backups with a Backup Compliance Policy. If unspecified, this value defaults to false.
+              computed_optional_required: computed
+              tf_schema_name: pit_enabled
+              tf_model_name: PitEnabled
+              api_name: pitEnabled
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: |-
+                Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+                **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - int64: {}
+              description: Number of previous days that you can restore back to with Continuous Cloud Backup with a Backup Compliance Policy. You must specify a positive, non-zero integer, and the maximum retention window can't exceed the hourly retention time. This parameter applies only to Continuous Cloud Backups with a Backup Compliance Policy.
+              computed_optional_required: computed
+              tf_schema_name: restore_window_days
+              tf_model_name: RestoreWindowDays
+              api_name: restoreWindowDays
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - int64: {}
+                          description: |-
+                            Number that indicates the frequency interval for a set of Snapshots. A value of `1` specifies the first instance of the corresponding `frequencyType`.
+
+                            - In a yearly policy item, `1` indicates that the yearly Snapshot occurs on the first day of January and `12` indicates the first day of December.
+
+                            - In a monthly policy item, `1` indicates that the monthly Snapshot occurs on the first day of the month and `40` indicates the last day of the month.
+
+                            - In a weekly policy item, `1` indicates that the weekly Snapshot occurs on Monday and `7` indicates Sunday.
+
+                            - In an hourly policy item, you can set the frequency interval to `1`, `2`, `4`, `6`, `8`, or `12`. For hourly policy items for NVMe clusters, MongoDB Cloud accepts only `12` as the frequency interval value.
+
+                             MongoDB Cloud ignores this setting for non-hourly policy items in Backup Compliance Policy settings.
+                          computed_optional_required: computed
+                          tf_schema_name: frequency_interval
+                          tf_model_name: FrequencyInterval
+                          api_name: frequencyInterval
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Human-readable label that identifies the frequency type associated with the backup policy.
+                          computed_optional_required: computed
+                          tf_schema_name: frequency_type
+                          tf_model_name: FrequencyType
+                          api_name: frequencyType
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-hexadecimal digit string that identifies this backup policy item.
+                          computed_optional_required: computed
+                          tf_schema_name: id
+                          tf_model_name: Id
+                          api_name: id
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unit of time in which MongoDB Cloud measures Snapshot retention.
+                          computed_optional_required: computed
+                          tf_schema_name: retention_unit
+                          tf_model_name: RetentionUnit
+                          api_name: retentionUnit
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - int64: {}
+                          description: |-
+                            Duration in days, weeks, months, or years that MongoDB Cloud retains the Snapshot. For less frequent policy items, MongoDB Cloud requires that you specify a value greater than or equal to the value specified for more frequent policy items.
+
+                            For example: If the hourly policy item specifies a retention of two days, you must specify two days or greater for the retention of the weekly policy item.
+                          computed_optional_required: computed
+                          tf_schema_name: retention_value
+                          tf_model_name: RetentionValue
+                          api_name: retentionValue
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List that contains the specifications for one scheduled policy.
+              custom_type:
+                name: ScheduledPolicyItems
+                model: customtypes.NestedListValue[TFScheduledPolicyItemsModel]
+                schema: customtypes.NewNestedListType[TFScheduledPolicyItemsModel](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: scheduled_policy_items
+              tf_model_name: ScheduledPolicyItems
+              api_name: scheduledPolicyItems
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Label that indicates the state of the Backup Compliance Policy settings. MongoDB Cloud ignores this setting when you enable or update the Backup Compliance Policy settings.
+              computed_optional_required: computed
+              tf_schema_name: state
+              tf_model_name: State
+              api_name: state
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: ISO 8601 timestamp format in UTC that indicates when the user updated the Data Protection Policy settings. MongoDB Cloud ignores this setting when you enable or update the Backup Compliance Policy settings.
+              computed_optional_required: computed
+              tf_schema_name: updated_date
+              tf_model_name: UpdatedDate
+              api_name: updatedDate
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Email address that identifies the user who updated the Backup Compliance Policy settings. MongoDB Cloud ignores this email setting when you enable or update the Backup Compliance Policy settings.
+              computed_optional_required: computed
+              tf_schema_name: updated_user
+              tf_model_name: UpdatedUser
+              api_name: updatedUser
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+        expanded_model: true
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/backupCompliancePolicy
+        version_header: application/vnd.atlas.2023-10-01+json
+name: backup_compliance_policy
+packageName: backupcompliancepolicy

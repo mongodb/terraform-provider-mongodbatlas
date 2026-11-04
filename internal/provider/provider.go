@@ -55,6 +55,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgratelimit"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelratelimit"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/backupcompliancepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejobcollection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabase"
@@ -359,6 +360,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		orgmaintenancesettings.DataSource,
 		metricintegration.DataSource,
 		metricintegration.PluralDataSource,
+		backupcompliancepolicy.DataSource,
 		cloudbackupcollectionrestorejob.DataSource,
 		cloudbackupcollectionrestorejob.PluralDataSource,
 		cloudbackupcollectionrestorejobcollection.DataSource,
@@ -395,6 +397,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Resource {
 	resources := []func() resource.Resource{
 		metricintegration.Resource,
+		backupcompliancepolicy.Resource,
 		cloudbackupcollectionrestorejob.Resource,
 		project.Resource,
 		logintegration.Resource,

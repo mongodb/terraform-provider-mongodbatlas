@@ -112,7 +112,7 @@ func TestAccBackupCompliancePolicy_withoutRestoreWindowDaysAndOnDemand(t *testin
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "on_demand_policy_item.#", "0"),
+					resource.TestCheckNoResourceAttr(resourceName, "on_demand_policy_item"),
 				),
 			},
 		},
@@ -139,7 +139,7 @@ func TestAccBackupCompliancePolicy_UpdateSetsAllAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "encryption_at_rest_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "copy_protection_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "on_demand_policy_item.0.retention_value", "3"),
+					resource.TestCheckResourceAttr(resourceName, "on_demand_policy_item.retention_value", "3"),
 				),
 			},
 			{
@@ -220,12 +220,13 @@ func configBasic(projectName, orgID, projectOwnerID string, useYearly bool) stri
 	var strYearly string
 	if useYearly {
 		strYearly = `
-			policy_item_yearly {
-				frequency_interval = 1
-				retention_unit     = "years"
-				retention_value    = 1
-			}
-		`
+				{
+					frequency_type    = "yearly"
+					frequency_interval = 1
+					retention_unit     = "years"
+					retention_value    = 1
+				},
+			`
 	}
 
 	return fmt.Sprintf(`
@@ -245,37 +246,40 @@ func configBasic(projectName, orgID, projectOwnerID string, useYearly bool) stri
 
 			restore_window_days = 7
 
-			on_demand_policy_item {
+			on_demand_policy_item = {
+				frequency_type     = "ondemand"
 				frequency_interval = 0
 				retention_unit     = "days"
 				retention_value    = 3
 			}
 
-			policy_item_hourly {
-				frequency_interval = 6
-				retention_unit     = "days"
-				retention_value    = 7
-			}
-
-			policy_item_daily {
-				frequency_interval = 0
-				retention_unit     = "days"
-				retention_value    = 7
-			}
-
-			policy_item_weekly {
-				frequency_interval = 0
-				retention_unit     = "weeks"
-				retention_value    = 4
-			}
-
-			policy_item_monthly {
-				frequency_interval = 0
-				retention_unit     = "months"
-				retention_value    = 12
-			}
-
-			%[4]s
+			scheduled_policy_items = [
+				{
+					frequency_type     = "hourly"
+					frequency_interval = 6
+					retention_unit     = "days"
+					retention_value    = 7
+				},
+				{
+					frequency_type     = "daily"
+					frequency_interval = 0
+					retention_unit     = "days"
+					retention_value    = 7
+				},
+				{
+					frequency_type     = "weekly"
+					frequency_interval = 0
+					retention_unit     = "weeks"
+					retention_value    = 4
+				},
+				{
+					frequency_type     = "monthly"
+					frequency_interval = 0
+					retention_unit     = "months"
+					retention_value    = 12
+				},
+				%[4]s
+			]
 		}
 
 		data "mongodbatlas_backup_compliance_policy" "backup_policy" {
@@ -300,41 +304,45 @@ func configWithoutOptionals(projectName, orgID, projectOwnerID string) string {
 
 			restore_window_days = 7
 
-			on_demand_policy_item {
+			on_demand_policy_item = {
+				frequency_type     = "ondemand"
 				frequency_interval = 0
 				retention_unit     = "days"
 				retention_value    = 3
 			}
 
-			policy_item_hourly {
-				frequency_interval = 6
-				retention_unit     = "days"
-				retention_value    = 7
-			}
-
-			policy_item_daily {
-				frequency_interval = 0
-				retention_unit     = "days"
-				retention_value    = 7
-			}
-
-			policy_item_weekly {
-				frequency_interval = 0
-				retention_unit     = "weeks"
-				retention_value    = 4
-			}
-
-			policy_item_monthly {
-				frequency_interval = 0
-				retention_unit     = "months"
-				retention_value    = 12
-			}
-
-			policy_item_yearly {
-				frequency_interval = 1
-				retention_unit     = "years"
-				retention_value    = 1
-			}
+			scheduled_policy_items = [
+				{
+					frequency_type     = "hourly"
+					frequency_interval = 6
+					retention_unit     = "days"
+					retention_value    = 7
+				},
+				{
+					frequency_type     = "daily"
+					frequency_interval = 0
+					retention_unit     = "days"
+					retention_value    = 7
+				},
+				{
+					frequency_type     = "weekly"
+					frequency_interval = 0
+					retention_unit     = "weeks"
+					retention_value    = 4
+				},
+				{
+					frequency_type     = "monthly"
+					frequency_interval = 0
+					retention_unit     = "months"
+					retention_value    = 12
+				},
+				{
+					frequency_type     = "yearly"
+					frequency_interval = 1
+					retention_unit     = "years"
+					retention_value    = 1
+				}
+			]
 		}
 	`, projectName, orgID, projectOwnerID)
 }
@@ -356,35 +364,38 @@ func configWithoutRestoreDaysAndOnDemand(projectName, orgID, projectOwnerID stri
 			pit_enabled                = false
 			encryption_at_rest_enabled = false
 
-			policy_item_hourly {
-				frequency_interval = 6
-				retention_unit     = "days"
-				retention_value    = 7
-			}
-
-			policy_item_daily {
-				frequency_interval = 0
-				retention_unit     = "days"
-				retention_value    = 7
-			}
-
-			policy_item_weekly {
-				frequency_interval = 0
-				retention_unit     = "weeks"
-				retention_value    = 4
-			}
-
-			policy_item_monthly {
-				frequency_interval = 0
-				retention_unit     = "months"
-				retention_value    = 12
-			}
-
-			policy_item_yearly {
-				frequency_interval = 1
-				retention_unit     = "years"
-				retention_value    = 1
-			}
+			scheduled_policy_items = [
+				{
+					frequency_type     = "hourly"
+					frequency_interval = 6
+					retention_unit     = "days"
+					retention_value    = 7
+				},
+				{
+					frequency_type     = "daily"
+					frequency_interval = 0
+					retention_unit     = "days"
+					retention_value    = 7
+				},
+				{
+					frequency_type     = "weekly"
+					frequency_interval = 0
+					retention_unit     = "weeks"
+					retention_value    = 4
+				},
+				{
+					frequency_type     = "monthly"
+					frequency_interval = 0
+					retention_unit     = "months"
+					retention_value    = 12
+				},
+				{
+					frequency_type     = "yearly"
+					frequency_interval = 1
+					retention_unit     = "years"
+					retention_value    = 1
+				}
+			]
 		}
 	`, projectName, orgID, projectOwnerID)
 }
@@ -424,17 +435,21 @@ func configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectO
 			pit_enabled                = false
 			encryption_at_rest_enabled = false
 
-			on_demand_policy_item {
+			on_demand_policy_item = {
+				frequency_type     = "ondemand"
 				frequency_interval = 1
 				retention_unit     = "days"
 				retention_value    = 1
 			}
 
-			policy_item_daily {
-				frequency_interval = 1
-				retention_unit     = "days"
-				retention_value    = 1
-			}
+			scheduled_policy_items = [
+				{
+					frequency_type     = "daily"
+					frequency_interval = 1
+					retention_unit     = "days"
+					retention_value    = 1
+				}
+			]
 		}
 	`, projectName, orgID, projectOwnerID, info.TerraformStr, info.ResourceName)
 }
@@ -501,35 +516,39 @@ func configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, p
 
 			restore_window_days = %[4]s
 
-			on_demand_policy_item {
+			on_demand_policy_item = {
+				frequency_type     = "ondemand"
 				frequency_interval = 0
 				retention_unit     = "days"
 				retention_value    = 3
 			}
 
-			policy_item_hourly {
-				frequency_interval = 6
-				retention_unit     = "days"
-				retention_value    = 7
-			}
-
-			policy_item_daily {
-				frequency_interval = 0
-				retention_unit     = "days"
-				retention_value    = 7
-			}
-
-			policy_item_weekly {
-				frequency_interval = 0
-				retention_unit     = "weeks"
-				retention_value    = 4
-			}
-
-			policy_item_monthly {
-				frequency_interval = 0
-				retention_unit     = "months"
-				retention_value    = 12
-			}
+			scheduled_policy_items = [
+				{
+					frequency_type     = "hourly"
+					frequency_interval = 6
+					retention_unit     = "days"
+					retention_value    = 7
+				},
+				{
+					frequency_type     = "daily"
+					frequency_interval = 0
+					retention_unit     = "days"
+					retention_value    = 7
+				},
+				{
+					frequency_type     = "weekly"
+					frequency_interval = 0
+					retention_unit     = "weeks"
+					retention_value    = 4
+				},
+				{
+					frequency_type     = "monthly"
+					frequency_interval = 0
+					retention_unit     = "months"
+					retention_value    = 12
+				}
+			]
 		}
 	`, projectName, orgID, projectOwnerID, restreWindowDays)
 }

@@ -145,6 +145,48 @@ resources:
       resets_to_defaults: true
     version_header: application/vnd.atlas.2023-01-01+json
 
+  # Singleton resource per project. The API has no POST: enabling and updating the policy are the same full PUT,
+  # and the DELETE verb disables it (the spec's disable verb-override only renames the SDK method).
+  backup_compliance_policy:
+    read:
+      path: &backup_compliance_policy_item_path /api/atlas/v2/groups/{groupId}/backupCompliancePolicy
+      method: GET
+    create:
+      path: *backup_compliance_policy_item_path
+      method: PUT
+    update:
+      path: *backup_compliance_policy_item_path
+      method: PUT
+    delete:
+      path: *backup_compliance_policy_item_path
+      method: DELETE
+    version_header: application/vnd.atlas.2023-10-01+json
+    schema:
+      expanded_model: true # adds the crafted `id` of the manual resource (base64-encoded project_id)
+      aliases:
+        groupId: projectId
+      ignores:
+        - deletable # readOnly spec field the manual schema never exposed (enabled through a support ticket)
+        # The request/response body also carries `projectId`: ignored (pre-alias) so only the path param
+        # provides `project_id`.
+        - project_id
+      overrides:
+        # Optional in the manual resource, and Atlas returns the current value when the attribute is omitted.
+        restore_window_days:
+          computability:
+            optional: true
+            computed: true
+    datasources:
+      read:
+        path: *backup_compliance_policy_item_path
+        method: GET
+      schema:
+        expanded_model: true # adds the crafted `id` of the manual data source
+        aliases:
+          groupId: projectId
+        ignores:
+          - deletable
+
   # Singleton resource per cluster.
   # Create, update, and delete use PATCH.
   cluster_adaptive_settings:

@@ -11,7 +11,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/accesslistapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/auditing"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/backupcompliancepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupschedule"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshot"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotexportbucket"
@@ -211,7 +210,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_org_invitation":                        orginvitation.DataSource(),
 		"mongodbatlas_organization":                          organization.DataSource(),
 		"mongodbatlas_organizations":                         organization.PluralDataSource(),
-		"mongodbatlas_backup_compliance_policy":              backupcompliancepolicy.DataSource(),
 		"mongodbatlas_cloud_backup_schedule":                 cloudbackupschedule.DataSource(),
 		"mongodbatlas_cloud_backup_snapshot":                 cloudbackupsnapshot.DataSource(),
 		"mongodbatlas_cloud_backup_snapshots":                cloudbackupsnapshot.PluralDataSource(),
@@ -276,7 +274,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_project_invitation":                   projectinvitation.Resource(),
 		"mongodbatlas_org_invitation":                       orginvitation.Resource(),
 		"mongodbatlas_organization":                         organization.Resource(),
-		"mongodbatlas_backup_compliance_policy":             backupcompliancepolicy.Resource(),
 		"mongodbatlas_cloud_backup_schedule":                cloudbackupschedule.Resource(),
 		"mongodbatlas_cloud_backup_snapshot":                cloudbackupsnapshot.Resource(),
 		"mongodbatlas_cloud_backup_snapshot_export_bucket":  cloudbackupsnapshotexportbucket.Resource(),
