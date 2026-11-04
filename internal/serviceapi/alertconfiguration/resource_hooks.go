@@ -98,22 +98,20 @@ func stringAttrWithValidators(base schema.Attribute, validators ...validator.Str
 }
 
 // PostCreateAPICall and PostUpdateAPICall normalize the response the same way the manual resource did
-// (NewTFAlertConfigurationModel), so state matches what a manual-read would have stored.
+// (NewTFAlertConfigurationModel), so state matches what a manual read would have stored.
 func (r *rs) PostCreateAPICall(result autogen.APICallResult) autogen.APICallResult {
-	return normalizeAlertConfigResponse(result)
+	return applyThresholdPrecedence(normalizeAlertConfigResponse(result))
 }
 
 func (r *rs) PostUpdateAPICall(result autogen.APICallResult) autogen.APICallResult {
-	return normalizeAlertConfigResponse(result)
+	return applyThresholdPrecedence(normalizeAlertConfigResponse(result))
 }
 
-// PostReadAPICall also applies the manual threshold precedence: for OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD
-// the API returns both `metricThreshold` and `threshold` for backwards compatibility (HELP-91242), and the
-// manual read keeps only `metric_threshold_config` to avoid an inconsistent state.
+// PostReadAPICall applies the same adaptations; the threshold precedence matters here for
+// OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD, for which the API returns both `metricThreshold` and
+// `threshold` for backwards compatibility (HELP-91242): the manual read keeps only
+// `metric_threshold_config` to avoid an inconsistent state.
 func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
-	if result.Err != nil {
-		return result
-	}
 	return applyThresholdPrecedence(normalizeAlertConfigResponse(result))
 }
 
