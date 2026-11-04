@@ -107,6 +107,12 @@ func TestSplitImportID(t *testing.T) {
 			clusterName: "my-cluster",
 			indexID:     "664619d870c247237f4b86a7",
 		},
+		"valid input legacy with double hyphen in cluster name": {
+			importID:    "664619d870c247237f4b86a6--my--cluster--664619d870c247237f4b86a7",
+			projectID:   "664619d870c247237f4b86a6",
+			clusterName: "my--cluster",
+			indexID:     "664619d870c247237f4b86a7",
+		},
 		"invalid input with more parts": {
 			importID:    "part1/part2/part3/part4",
 			errorString: searchindex.ErrorImportFormat,
@@ -117,6 +123,10 @@ func TestSplitImportID(t *testing.T) {
 		},
 		"invalid input legacy with less parts": {
 			importID:    "664619d870c247237f4b86a6--my-cluster",
+			errorString: searchindex.ErrorImportFormat,
+		},
+		"invalid input legacy with empty part": {
+			importID:    "664619d870c247237f4b86a6--my-cluster--",
 			errorString: searchindex.ErrorImportFormat,
 		},
 		"empty input": {

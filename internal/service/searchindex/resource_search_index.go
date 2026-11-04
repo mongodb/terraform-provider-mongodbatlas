@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strings"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -25,6 +25,8 @@ const (
 	indexDeleteDelayAndMinTimeout = 5 * time.Second
 	ErrorImportFormat             = "import format error: to import a search index, use the format {project_id}/{cluster_name}/{index_id} (recommended) OR {project_id}--{cluster_name}--{index_id}"
 )
+
+var legacyImportIDRegex = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})--(.+)--([0-9a-fA-F]{24})$`)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -236,17 +238,17 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 }
 
 // SplitImportID splits an import ID in the format {project_id}/{cluster_name}/{index_id},
-// or in the legacy format {project_id}--{cluster_name}--{index_id}.
+// or in the legacy format {project_id}--{cluster_name}--{index_id}, where the cluster name can contain hyphens.
 func SplitImportID(id string) (projectID, clusterName, indexID string, err error) {
 	if ok, parts := conversion.ImportSplit(id, 3); ok {
 		return parts[0], parts[1], parts[2], nil
 	}
-	parts := strings.SplitN(id, "--", 3)
-	if len(parts) != 3 {
+	parts := legacyImportIDRegex.FindStringSubmatch(id)
+	if len(parts) != 4 {
 		err = errors.New(ErrorImportFormat)
 		return
 	}
-	return parts[0], parts[1], parts[2], nil
+	return parts[1], parts[2], parts[3], nil
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
