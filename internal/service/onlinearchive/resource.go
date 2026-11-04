@@ -28,6 +28,7 @@ const (
 	errorOnlineArchivesDelete = "error deleting MongoDB Atlas Online Archive: %s archive_id (%s)"
 	scheduleTypeDefault       = "DEFAULT"
 	timeout                   = 1 * time.Minute
+	ErrorImportFormat         = "import format error: to import a MongoDB Atlas Online Archive, use the format {project_id}/{cluster_name}/{archive_id} (recommended) OR {project_id}-{cluster_name}-{archive_id}"
 )
 
 var onlineArchiveImportIDRegex = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.+)-([0-9a-fA-F]{24})$`)
@@ -694,12 +695,15 @@ func mapSchedule(d *schema.ResourceData) *admin.OnlineArchiveSchedule {
 	return scheduleInput
 }
 
-// SplitOnlineArchiveImportID splits an import ID in the format {project_id}-{cluster_name}-{archive_id}.
-// The cluster name can contain hyphens.
+// SplitOnlineArchiveImportID splits an import ID in the format {project_id}/{cluster_name}/{archive_id},
+// or in the legacy format {project_id}-{cluster_name}-{archive_id}, where the cluster name can contain hyphens.
 func SplitOnlineArchiveImportID(id string) (projectID, clusterName, archiveID string, err error) {
+	if ok, parts := conversion.ImportSplit(id, 3); ok {
+		return parts[0], parts[1], parts[2], nil
+	}
 	parts := onlineArchiveImportIDRegex.FindStringSubmatch(id)
 	if len(parts) != 4 {
-		err = errors.New("import format error to import a MongoDB Atlas Online Archive, use the format {project_id}-{cluster_name}-{archive_id}")
+		err = errors.New(ErrorImportFormat)
 		return
 	}
 	return parts[1], parts[2], parts[3], nil

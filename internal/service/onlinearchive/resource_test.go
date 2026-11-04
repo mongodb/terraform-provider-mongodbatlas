@@ -3,11 +3,15 @@ package onlinearchive_test
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/onlinearchive"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func clusterRequest() *acc.ClusterRequest {
@@ -161,7 +165,14 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 			},
 			{
 				ResourceName:            onlineArchiveResourceName,
-				ImportStateIdFunc:       importStateIDFunc(onlineArchiveResourceName),
+				ImportStateIdFunc:       importStateIDFunc(onlineArchiveResourceName, "/"),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"sync_creation", "delete_on_create_timeout", "state"},
+			},
+			{
+				ResourceName:            onlineArchiveResourceName,
+				ImportStateIdFunc:       importStateIDFunc(onlineArchiveResourceName, "-"),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"sync_creation", "delete_on_create_timeout", "state"},
@@ -170,15 +181,15 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 	})
 }
 
-// importStateIDFunc builds the import ID {project_id}-{cluster_name}-{archive_id}. Test cluster names contain hyphens.
-func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+// importStateIDFunc builds the import ID {project_id}{sep}{cluster_name}{sep}{archive_id}. Test cluster names contain hyphens.
+func importStateIDFunc(resourceName, sep string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 		attrs := rs.Primary.Attributes
-		return fmt.Sprintf("%s-%s-%s", attrs["project_id"], attrs["cluster_name"], attrs["archive_id"]), nil
+		return strings.Join([]string{attrs["project_id"], attrs["cluster_name"], attrs["archive_id"]}, sep), nil
 	}
 }
 
@@ -593,4 +604,66 @@ func configWithInvalidDateFormat(clusterTerraformStr, clusterResourceName string
 		}
 	}
 	`, clusterTerraformStr, clusterResourceName)
+}
+
+func TestSplitOnlineArchiveImportID(t *testing.T) {
+	const errorString = onlinearchive.ErrorImportFormat
+	tests := map[string]struct {
+		importID    string
+		projectID   string
+		clusterName string
+		archiveID   string
+		errorString string
+	}{
+		"slash format": {
+			importID:    "664619d870c247237f4b86a6/my-cluster/664619d870c247237f4b86a7",
+			projectID:   "664619d870c247237f4b86a6",
+			clusterName: "my-cluster",
+			archiveID:   "664619d870c247237f4b86a7",
+		},
+		"slash format with more parts": {
+			importID:    "part1/part2/part3/part4",
+			errorString: errorString,
+		},
+		"cluster name without hyphens": {
+			importID:    "664619d870c247237f4b86a6-Cluster0-664619d870c247237f4b86a7",
+			projectID:   "664619d870c247237f4b86a6",
+			clusterName: "Cluster0",
+			archiveID:   "664619d870c247237f4b86a7",
+		},
+		"cluster name with one hyphen": {
+			importID:    "664619d870c247237f4b86a6-my-cluster-664619d870c247237f4b86a7",
+			projectID:   "664619d870c247237f4b86a6",
+			clusterName: "my-cluster",
+			archiveID:   "664619d870c247237f4b86a7",
+		},
+		"cluster name with several hyphens": {
+			importID:    "664619d870c247237f4b86a6-my-prod-cluster-01-664619d870c247237f4b86a7",
+			projectID:   "664619d870c247237f4b86a6",
+			clusterName: "my-prod-cluster-01",
+			archiveID:   "664619d870c247237f4b86a7",
+		},
+		"missing archive ID": {
+			importID:    "664619d870c247237f4b86a6-Cluster0",
+			errorString: errorString,
+		},
+		"empty input": {
+			importID:    "",
+			errorString: errorString,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			projectID, clusterName, archiveID, err := onlinearchive.SplitOnlineArchiveImportID(tc.importID)
+			if tc.errorString != "" {
+				require.EqualError(t, err, tc.errorString)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, tc.projectID, projectID)
+			assert.Equal(t, tc.clusterName, clusterName)
+			assert.Equal(t, tc.archiveID, archiveID)
+		})
+	}
 }

@@ -1,3 +1,7 @@
 ```release-note:bug
 resource/mongodbatlas_online_archive: Supports cluster names with hyphens when importing the resource
 ```
+
+```release-note:enhancement
+resource/mongodbatlas_online_archive: Adds support for import using `{project_id}/{cluster_name}/{archive_id}` format
+```
