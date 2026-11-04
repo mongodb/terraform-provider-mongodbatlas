@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -188,7 +189,7 @@ func TestAccSearchIndex_withVectorAutoEmbed(t *testing.T) {
 			{
 				Config:            configVector(projectID, indexName, clusterName, autoEmbedFieldsJSON),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName, "--"),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -288,7 +289,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config:            configBasic(projectID, clusterName, indexName, "", ""),
 				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportStateIdFunc: importStateIDFunc(resourceName, "/"),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -759,7 +760,7 @@ func checkSearchWithNumPartitions(projectID, indexName, clusterName string, numP
 	return checkAggr(projectID, clusterName, indexName, indexType, mappingsDynamic, checks...)
 }
 
-func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName, separator string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -768,7 +769,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 
-		return fmt.Sprintf("%s--%s--%s", ids["project_id"], ids["cluster_name"], ids["index_id"]), nil
+		return strings.Join([]string{ids["project_id"], ids["cluster_name"], ids["index_id"]}, separator), nil
 	}
 }
 

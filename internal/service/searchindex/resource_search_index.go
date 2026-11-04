@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strings"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -23,7 +23,10 @@ const (
 	vectorSearch                  = "vectorSearch"
 	indexBuildDelayAndMinTimeout  = 1 * time.Minute
 	indexDeleteDelayAndMinTimeout = 5 * time.Second
+	ErrorImportFormat             = "import format error: to import a search index, use the format {project_id}/{cluster_name}/{index_id} (recommended) OR {project_id}--{cluster_name}--{index_id}"
 )
+
+var legacyImportIDRegex = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})--(.+)--([0-9a-fA-F]{24})$`)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -202,17 +205,13 @@ func setMappingsAttributesFromDefinition(d *schema.ResourceData, mappings *admin
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	parts := strings.SplitN(d.Id(), "--", 3)
-	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a search index, use the format {project_id}--{cluster_name}--{index_id}")
+	projectID, clusterName, indexID, err := SplitImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
 
-	projectID := parts[0]
-	clusterName := parts[1]
-	indexID := parts[2]
-
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	_, _, err := connV2.AtlasSearchAPI.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	_, _, err = connV2.AtlasSearchAPI.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import search index (%s) in projectID (%s) and Cluster (%s), error: %s", indexID, projectID, clusterName, err)
 	}
@@ -236,6 +235,20 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+// SplitImportID splits an import ID in the format {project_id}/{cluster_name}/{index_id},
+// or in the legacy format {project_id}--{cluster_name}--{index_id}, where the cluster name can contain hyphens.
+func SplitImportID(id string) (projectID, clusterName, indexID string, err error) {
+	if ok, parts := conversion.ImportSplit(id, 3); ok {
+		return parts[0], parts[1], parts[2], nil
+	}
+	parts := legacyImportIDRegex.FindStringSubmatch(id)
+	if len(parts) != 4 {
+		err = errors.New(ErrorImportFormat)
+		return
+	}
+	return parts[1], parts[2], parts[3], nil
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
