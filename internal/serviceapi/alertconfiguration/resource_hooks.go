@@ -162,6 +162,11 @@ func upgradeManualStateJSON(rawJSON []byte) ([]byte, error) {
 	for _, name := range []string{"metric_threshold_config", "threshold_config"} {
 		unwrapListOfOne(rawMap, name)
 	}
+	// The manual block stored an absent matcher as an empty list; the generated attribute is null when it
+	// is not configured, so an empty list would plan an update.
+	if items, ok := rawMap["matcher"].([]any); ok && len(items) == 0 {
+		delete(rawMap, "matcher")
+	}
 	return json.Marshal(rawMap)
 }
 
@@ -318,6 +323,14 @@ func normalizeAlertConfigResponse(result autogen.APICallResult) autogen.APICallR
 		for _, key := range emptyToNullNotificationKeys {
 			if value, ok := notification[key].(string); ok && value == "" {
 				delete(notification, key)
+				changed = true
+			}
+		}
+		// The manual read stored email_enabled and sms_enabled as false when the API omits them
+		// (types.BoolValue(value != nil && *value)), for example for EMAIL notifications.
+		for _, key := range []string{"emailEnabled", "smsEnabled"} {
+			if _, ok := notification[key]; !ok {
+				notification[key] = false
 				changed = true
 			}
 		}

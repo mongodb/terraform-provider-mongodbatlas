@@ -34,11 +34,11 @@ func TestPostReadAPICall_thresholdPrecedenceAndNormalization(t *testing.T) {
 		},
 		"empty strings are dropped from notifications": {
 			body: `{"notifications":[{"typeName":"GROUP","channelName":"","username":"user"}]}`,
-			want: `{"notifications":[{"typeName":"GROUP","username":"user"}]}`,
+			want: `{"notifications":[{"typeName":"GROUP","username":"user","emailEnabled":false,"smsEnabled":false}]}`,
 		},
 		"non-empty values are kept": {
 			body: `{"notifications":[{"typeName":"GROUP","channelName":"general"}]}`,
-			want: `{"notifications":[{"typeName":"GROUP","channelName":"general"}]}`,
+			want: `{"notifications":[{"typeName":"GROUP","channelName":"general","emailEnabled":false,"smsEnabled":false}]}`,
 		},
 		"body without notifications or thresholds is untouched": {
 			body: `{"enabled":true}`,
@@ -46,7 +46,7 @@ func TestPostReadAPICall_thresholdPrecedenceAndNormalization(t *testing.T) {
 		},
 		"sensitive values returned by the API are dropped": {
 			body: `{"notifications":[{"typeName":"PAGER_DUTY","serviceKey":"echoed-from-integration","intervalMin":10}]}`,
-			want: `{"notifications":[{"typeName":"PAGER_DUTY","intervalMin":10}]}`,
+			want: `{"notifications":[{"typeName":"PAGER_DUTY","intervalMin":10,"emailEnabled":false,"smsEnabled":false}]}`,
 		},
 	}
 	for name, tc := range tests {
@@ -74,7 +74,7 @@ func TestPostCreateAndUpdateAPICall_normalization(t *testing.T) {
 			}
 			require.NoError(t, result.Err)
 			assert.Equal(t, map[string]any{
-				"notifications": []any{map[string]any{"typeName": "GROUP"}},
+				"notifications": []any{map[string]any{"typeName": "GROUP", "emailEnabled": false, "smsEnabled": false}},
 			}, decodeBodyJSON(t, result.Body))
 		})
 	}
@@ -169,6 +169,7 @@ func TestUpgradeManualStateJSON_unwrapsThresholdLists(t *testing.T) {
 		"metric_threshold_config": [{"threshold":99,"metric_name":"ASSERT_REGULAR","operator":"LESS_THAN","units":"RAW","mode":"AVERAGE"}],
 		"threshold_config": []
 	}`
+	rawWithoutMatchers := `{"matcher": [], "notification": [{"type_name":"GROUP"}]}`
 	got, err := alertconfiguration.UpgradeManualStateJSONForTest([]byte(raw))
 	require.NoError(t, err)
 	obj := map[string]any{}
@@ -182,4 +183,11 @@ func TestUpgradeManualStateJSON_unwrapsThresholdLists(t *testing.T) {
 	assert.Len(t, obj["matcher"], 1)
 	assert.Len(t, obj["notification"], 1)
 	assert.Equal(t, "aWQ=:encoded", obj["id"])
+
+	got, err = alertconfiguration.UpgradeManualStateJSONForTest([]byte(rawWithoutMatchers))
+	require.NoError(t, err)
+	obj = map[string]any{}
+	require.NoError(t, json.Unmarshal(got, &obj))
+	_, ok = obj["matcher"]
+	assert.False(t, ok, "empty matcher list must be removed")
 }
