@@ -421,6 +421,74 @@ func TestApplyTransformationsToResource_AliasAttributeTransformation(t *testing.
 				},
 			},
 		},
+		"Alias on a nested collection root rebuilds the CustomType with the aliased model name": {
+			inputConfig: &config.Resource{
+				SchemaOptions: config.SchemaOptions{
+					Aliases: map[string]string{
+						"notifications": "notification",
+					},
+				},
+			},
+			inputResource: &codespec.Resource{
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "notifications",
+							TFModelName:              "Notifications",
+							APIName:                  "notifications",
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomNestedListType("Notifications"),
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: codespec.Attributes{
+										{
+											TFSchemaName:             "type_name",
+											TFModelName:              "TypeName",
+											APIName:                  "typeName",
+											ComputedOptionalRequired: codespec.Required,
+											String:                   &codespec.StringAttribute{},
+											ReqBodyUsage:             codespec.OmitAlways,
+										},
+									},
+								},
+							},
+							ReqBodyUsage: codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{},
+					Read:   &codespec.APIOperation{},
+				},
+			},
+			expectedAttributes: codespec.Attributes{
+				{
+					TFSchemaName:             "notification",
+					TFModelName:              "Notification",
+					APIName:                  "notifications", // preserved for apiname tag
+					ComputedOptionalRequired: codespec.Optional,
+					// Rebuilt so the generated schema references TFNotificationModel, matching the model struct.
+					CustomType: codespec.NewCustomNestedListType("Notification"),
+					CreateOnly: true, // OmitAlways on an optional attribute triggers createOnly
+					ListNested: &codespec.ListNestedAttribute{
+						NestedObject: codespec.NestedAttributeObject{
+							Attributes: codespec.Attributes{
+								{
+									TFSchemaName:             "type_name",
+									TFModelName:              "TypeName",
+									APIName:                  "typeName",
+									ComputedOptionalRequired: codespec.Required,
+									String:                   &codespec.StringAttribute{},
+									ReqBodyUsage:             codespec.OmitAlways,
+									CreateOnly:               true, // OmitAlways on a required attribute triggers createOnly
+								},
+							},
+						},
+					},
+					ReqBodyUsage: codespec.OmitAlways,
+				},
+			},
+		},
 		"Non-dotted alias does NOT rename same-named nested attribute": {
 			inputConfig: &config.Resource{
 				SchemaOptions: config.SchemaOptions{
