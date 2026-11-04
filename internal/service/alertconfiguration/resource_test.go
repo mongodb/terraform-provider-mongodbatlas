@@ -13,8 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -96,8 +94,8 @@ func TestAccConfigRSAlertConfiguration_outsideStreamProcessorMetricThreshold(t *
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "event_type", "OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD"),
-					resource.TestCheckResourceAttr(resourceName, "metric_threshold_config.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "threshold_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "metric_threshold_config.metric_name", "STREAM_PROCESSOR_CHANGE_STREAM_LAG"),
+					resource.TestCheckNoResourceAttr(resourceName, "threshold_config.operator"),
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "0"),
@@ -112,8 +110,8 @@ func TestAccConfigRSAlertConfiguration_outsideStreamProcessorMetricThreshold(t *
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "event_type", "OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD"),
 					resource.TestCheckResourceAttr(resourceName, "notification.0.interval_min", "10"),
-					resource.TestCheckResourceAttr(resourceName, "metric_threshold_config.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "threshold_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "metric_threshold_config.metric_name", "STREAM_PROCESSOR_CHANGE_STREAM_LAG"),
+					resource.TestCheckNoResourceAttr(resourceName, "threshold_config.operator"),
 				),
 			},
 			{
@@ -125,8 +123,8 @@ func TestAccConfigRSAlertConfiguration_outsideStreamProcessorMetricThreshold(t *
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "event_type", "CLUSTER_MONGOS_IS_MISSING"),
-					resource.TestCheckResourceAttr(resourceName, "metric_threshold_config.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "threshold_config.#", "0"),
+					resource.TestCheckNoResourceAttr(resourceName, "metric_threshold_config.metric_name"),
+					resource.TestCheckNoResourceAttr(resourceName, "threshold_config.operator"),
 				),
 			},
 			{
@@ -325,8 +323,8 @@ func TestAccConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "event_type", "CLUSTER_MONGOS_IS_MISSING"),
-					resource.TestCheckResourceAttr(resourceName, "threshold_config.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "metric_threshold_config.#", "0"),
+					resource.TestCheckNoResourceAttr(resourceName, "threshold_config.operator"),
+					resource.TestCheckNoResourceAttr(resourceName, "metric_threshold_config.metric_name"),
 				),
 			},
 			{
@@ -433,7 +431,7 @@ func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 				ResourceName:  resourceName,
 				ImportState:   true,
 				ImportStateId: "incorrect_id_without_project_id_and_dash",
-				ExpectError:   regexp.MustCompile("import format error"),
+				ExpectError:   regexp.MustCompile("expected format: project_id/alert_configuration_id"),
 			},
 		},
 	})
@@ -822,10 +820,10 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().AlertConfigurationsAPI.GetAlertConfig(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
+		alertID := rs.Primary.Attributes["alert_configuration_id"]
+		_, _, err := acc.ConnV2().AlertConfigurationsAPI.GetAlertConfig(context.Background(), rs.Primary.Attributes["project_id"], alertID).Execute()
 		if err != nil {
-			return fmt.Errorf("the Alert Configuration(%s) does not exist", ids[alertconfiguration.EncodedIDKeyAlertID])
+			return fmt.Errorf("the Alert Configuration(%s) does not exist", alertID)
 		}
 		return nil
 	}
@@ -853,10 +851,11 @@ func checkDestroy() resource.TestCheckFunc {
 			if rs.Type != "mongodbatlas_alert_configuration" {
 				continue
 			}
-			ids := conversion.DecodeStateID(rs.Primary.ID)
-			alert, _, err := acc.ConnV2().AlertConfigurationsAPI.GetAlertConfig(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
+			projectID := rs.Primary.Attributes["project_id"]
+			alertID := rs.Primary.Attributes["alert_configuration_id"]
+			alert, _, err := acc.ConnV2().AlertConfigurationsAPI.GetAlertConfig(context.Background(), projectID, alertID).Execute()
 			if alert != nil {
-				return fmt.Errorf("the Project Alert Configuration(%s) still exists %s", ids[alertconfiguration.EncodedIDKeyAlertID], err)
+				return fmt.Errorf("the Project Alert Configuration(%s) still exists %s", alertID, err)
 			}
 		}
 		return nil
@@ -880,30 +879,33 @@ func configBasic(projectID string, enabled bool) string {
 		enabled    = %[2]t
 		event_type = "OUTSIDE_METRIC_THRESHOLD"
 
-		notification {
-			type_name     = "GROUP"
-			interval_min  = 5
-			delay_min     = 0
-			sms_enabled   = false
-			email_enabled = true
-			roles = ["GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER", "GROUP_DATA_ACCESS_ADMIN"]
-		}
+		notification = [
+			{
+				type_name     = "GROUP"
+				interval_min  = 5
+				delay_min     = 0
+				sms_enabled   = false
+				email_enabled = true
+				roles = ["GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER", "GROUP_DATA_ACCESS_ADMIN"]
+			},
+			{
+				type_name     = "ORG"
+				interval_min  = 5
+				delay_min     = 0
+				sms_enabled   = true
+				email_enabled = false
+			}
+		]
 
-		notification {
-			type_name     = "ORG"
-			interval_min  = 5
-			delay_min     = 0
-			sms_enabled   = true
-			email_enabled = false
-		}
+		matcher = [
+			{
+				field_name = "HOSTNAME_AND_PORT"
+				operator   = "EQUALS"
+				value      = "SECONDARY"
+			}
+		]
 
-		matcher {
-			field_name = "HOSTNAME_AND_PORT"
-			operator   = "EQUALS"
-			value      = "SECONDARY"
-		}
-
-		metric_threshold_config {
+		metric_threshold_config = {
 			metric_name = "ASSERT_REGULAR"
 			operator    = "LESS_THAN"
 			threshold   = 99.0
@@ -926,15 +928,17 @@ func configOutsideStreamProcessorMetricThresholdAlert(projectID string, interval
 		enabled    = true
 		event_type = "OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD"
 
-		notification {
-			type_name     = "GROUP"
-			interval_min  = %[2]d
-			delay_min     = 0
-			sms_enabled   = false
-			email_enabled = true
-		}
+		notification = [
+			{
+				type_name     = "GROUP"
+				interval_min  = %[2]d
+				delay_min     = 0
+				sms_enabled   = false
+				email_enabled = true
+			}
+		]
 
-		metric_threshold_config {
+		metric_threshold_config = {
 			metric_name = "STREAM_PROCESSOR_CHANGE_STREAM_LAG"
 			operator    = "GREATER_THAN"
 			threshold   = 0.0
@@ -959,13 +963,15 @@ func configWithoutThresholdAlert(projectID string) string {
 		enabled    = true
 		event_type = "CLUSTER_MONGOS_IS_MISSING"
 
-		notification {
-			type_name     = "GROUP"
-			interval_min  = 5
-			delay_min     = 0
-			sms_enabled   = false
-			email_enabled = true
-		}
+		notification = [
+			{
+				type_name     = "GROUP"
+				interval_min  = 5
+				delay_min     = 0
+				sms_enabled   = false
+				email_enabled = true
+			}
+		]
 	}
 	`, projectID)
 }
@@ -977,22 +983,23 @@ func configWithNotifications(projectID string, enabled, smsEnabled, emailEnabled
 			event_type = "NO_PRIMARY"
 			enabled    = %[2]t
 
-			notification {
-				type_name     = "GROUP"
-				interval_min  = 5
-				delay_min     = 0
-				sms_enabled   = %[3]t
-				email_enabled = %[4]t
-				roles = ["GROUP_DATA_ACCESS_READ_ONLY"]
-			}
-
-			notification {
-				type_name     = "ORG"
-				interval_min  = 5
-				delay_min     = 1
-				sms_enabled   = %[3]t
-				email_enabled = %[4]t
-			}
+			notification = [
+				{
+					type_name     = "GROUP"
+					interval_min  = 5
+					delay_min     = 0
+					sms_enabled   = %[3]t
+					email_enabled = %[4]t
+					roles = ["GROUP_DATA_ACCESS_READ_ONLY"]
+				},
+				{
+					type_name     = "ORG"
+					interval_min  = 5
+					delay_min     = 1
+					sms_enabled   = %[3]t
+					email_enabled = %[4]t
+				}
+			]
 		}
 	`, projectID, enabled, smsEnabled, emailEnabled)
 }
@@ -1004,25 +1011,29 @@ func configWithMatchers(projectID string, enabled, smsEnabled, emailEnabled bool
 			enabled    = %[2]t
 			event_type = "HOST_DOWN"
 
-			notification {
-				type_name     = "GROUP"
-				interval_min  = 5
-				delay_min     = 0
-				sms_enabled   = %[3]t
-				email_enabled = %[4]t
-				roles = ["GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER"]
-			}
+			notification = [
+				{
+					type_name     = "GROUP"
+					interval_min  = 5
+					delay_min     = 0
+					sms_enabled   = %[3]t
+					email_enabled = %[4]t
+					roles = ["GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER"]
+				}
+			]
 
-			matcher {
-				field_name = %[5]q
-				operator   = %[6]q
-				value      = %[7]q
-			}
-			matcher {
-				field_name = %[8]q
-				operator   = %[9]q
-				value      = %[10]q
-			}
+			matcher = [
+				{
+					field_name = %[5]q
+					operator   = %[6]q
+					value      = %[7]q
+				},
+				{
+					field_name = %[8]q
+					operator   = %[9]q
+					value      = %[10]q
+				}
+			]
 		}
 	`, projectID, enabled, smsEnabled, emailEnabled,
 		m1["fieldName"], m1["operator"], m1["value"],
@@ -1036,22 +1047,26 @@ func configWithMetricUpdated(projectID string, enabled bool, threshold float64) 
 			enabled    = %[2]t
 			event_type = "OUTSIDE_METRIC_THRESHOLD"
 
-			notification {
-				type_name     = "GROUP"
-				interval_min  = 5
-				delay_min     = 0
-				sms_enabled   = false
-				email_enabled = true
-				roles = ["GROUP_DATA_ACCESS_READ_ONLY"]
-			}
+			notification = [
+				{
+					type_name     = "GROUP"
+					interval_min  = 5
+					delay_min     = 0
+					sms_enabled   = false
+					email_enabled = true
+					roles = ["GROUP_DATA_ACCESS_READ_ONLY"]
+				}
+			]
 
-			matcher {
-				field_name = "HOSTNAME_AND_PORT"
-				operator   = "EQUALS"
-				value      = "SECONDARY"
-			}
+			matcher = [
+				{
+					field_name = "HOSTNAME_AND_PORT"
+					operator   = "EQUALS"
+					value      = "SECONDARY"
+				}
+			]
 
-			metric_threshold_config {
+			metric_threshold_config = {
 				metric_name = "ASSERT_REGULAR"
 				operator    = "LESS_THAN"
 				threshold   = %[3]f
@@ -1069,22 +1084,26 @@ func configWithoutRoles(projectID string, enabled bool, threshold float64) strin
 			enabled    = %[2]t
 			event_type = "OUTSIDE_METRIC_THRESHOLD"
 
-			notification {
-				type_name     = "EMAIL"
-				email_address = "mongodbatlas.testing@gmail.com"
-				interval_min  = 5
-				delay_min     = 0
-				sms_enabled   = false
-				email_enabled = false
-			}
+			notification = [
+				{
+					type_name     = "EMAIL"
+					email_address = "mongodbatlas.testing@gmail.com"
+					interval_min  = 5
+					delay_min     = 0
+					sms_enabled   = false
+					email_enabled = false
+				}
+			]
 
-			matcher {
-				field_name = "HOSTNAME_AND_PORT"
-				operator   = "EQUALS"
-				value      = "SECONDARY"
-			}
+			matcher = [
+				{
+					field_name = "HOSTNAME_AND_PORT"
+					operator   = "EQUALS"
+					value      = "SECONDARY"
+				}
+			]
 
-			metric_threshold_config {
+			metric_threshold_config = {
 				metric_name = "ASSERT_REGULAR"
 				operator    = "LESS_THAN"
 				threshold   = %[3]f
@@ -1097,24 +1116,24 @@ func configWithoutRoles(projectID string, enabled bool, threshold float64) strin
 
 func configWithDataDog(projectID, dataDogAPIKey, dataDogRegion string, enabled bool, ddNotificationMap, groupNotificationMap map[string]string) string {
 	ddNotificationBlock := fmt.Sprintf(`
-	notification {
-		type_name = %[1]q
-		datadog_api_key = mongodbatlas_third_party_integration.atlas_datadog.api_key
-		datadog_region = mongodbatlas_third_party_integration.atlas_datadog.region
-		interval_min  = %[2]v
-		delay_min     = %[3]v
-	}
+		{
+			type_name = %[1]q
+			datadog_api_key = mongodbatlas_third_party_integration.atlas_datadog.api_key
+			datadog_region = mongodbatlas_third_party_integration.atlas_datadog.region
+			interval_min  = %[2]v
+			delay_min     = %[3]v
+		}
 	`, ddNotificationMap["type_name"], ddNotificationMap["interval_min"], ddNotificationMap["delay_min"])
 
 	groupNotificationBlock := fmt.Sprintf(`
-	notification {
-		type_name     = %[1]q
-		interval_min  = %[2]v
-		delay_min     = %[3]v
-		sms_enabled   = false
-		email_enabled = true
-		roles         = ["GROUP_OWNER"]
-	}
+		{
+			type_name     = %[1]q
+			interval_min  = %[2]v
+			delay_min     = %[3]v
+			sms_enabled   = false
+			email_enabled = true
+			roles         = ["GROUP_OWNER"]
+		}
 	`, groupNotificationMap["type_name"], groupNotificationMap["interval_min"], groupNotificationMap["delay_min"])
 
 	return fmt.Sprintf(`
@@ -1130,17 +1149,20 @@ func configWithDataDog(projectID, dataDogAPIKey, dataDogRegion string, enabled b
 			event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
 			enabled    = %[4]t
 
-			%[5]s
+			notification = [
+				%[5]s,
+				%[6]s
+			]
 
-			%[6]s
+			matcher = [
+				{
+					field_name = "REPLICA_SET_NAME"
+					operator   = "EQUALS"
+					value      = "SECONDARY"
+				}
+			]
 
-			matcher {
-				field_name = "REPLICA_SET_NAME"
-				operator   = "EQUALS"
-				value      = "SECONDARY"
-			}
-
-			threshold_config {
+			threshold_config = {
 				operator    = "LESS_THAN"
 				threshold   = 72
 				units       = "HOURS"
@@ -1156,11 +1178,13 @@ func configWithPagerDuty(projectID, serviceKey string, enabled bool) string {
 			enabled    = %[3]t
 			event_type = "NO_PRIMARY"
 
-			notification {
-				type_name    = "PAGER_DUTY"
-				service_key  = %[2]q
-				delay_min    = 0
-			}
+			notification = [
+				{
+					type_name    = "PAGER_DUTY"
+					service_key  = %[2]q
+					delay_min    = 0
+				}
+			]
 		}
 	`, projectID, serviceKey, enabled)
 }
@@ -1172,11 +1196,13 @@ func configWithEmail(projectID string, enabled bool) string {
 			enabled    = %[2]t
 			event_type = "NO_PRIMARY"
 
-			notification {
-				type_name     = "EMAIL"
-				interval_min  = 60
-				email_address = "test@mongodbtest.com"
-			}
+			notification = [
+				{
+					type_name     = "EMAIL"
+					interval_min  = 60
+					email_address = "test@mongodbtest.com"
+				}
+			]
 		}
 	`, projectID, enabled)
 }
@@ -1199,10 +1225,12 @@ func configWithPagerDutyIntegrationID(orgID, projectName, serviceKey string) str
 			enabled    = true
 			event_type = "USERS_WITHOUT_MULTI_FACTOR_AUTH"
 		  
-			notification {
-				type_name     = "PAGER_DUTY"
-				integration_id = mongodbatlas_third_party_integration.test.id
-			}
+			notification = [
+				{
+					type_name     = "PAGER_DUTY"
+					integration_id = mongodbatlas_third_party_integration.test.id
+				}
+			]
 		}
 
 		data "mongodbatlas_alert_configuration" "test" {
@@ -1223,12 +1251,14 @@ func configWithPagerDutyNotifierID(projectID, notifierID string, delayMin int, s
 			enabled    = true
 			event_type = "NO_PRIMARY"
 
-			notification {
-				type_name    = "PAGER_DUTY"
-				notifier_id  = %[2]q
-				%[3]s
-				delay_min    = %[4]d
-			}
+			notification = [
+				{
+					type_name    = "PAGER_DUTY"
+					notifier_id  = %[2]q
+					%[3]s
+					delay_min    = %[4]d
+				}
+			]
 		}
 	`, projectID, notifierID, serviceKeyString, delayMin)
 }
@@ -1240,12 +1270,14 @@ func configWithOpsGenie(projectID, apiKey string, enabled bool) string {
 			enabled    = %[3]t
 			event_type = "NO_PRIMARY"
 
-			notification {
-				type_name          = "OPS_GENIE"
-				ops_genie_api_key  = %[2]q
-				ops_genie_region   = "US"
-				delay_min          = 0
-			}
+			notification = [
+				{
+					type_name          = "OPS_GENIE"
+					ops_genie_api_key  = %[2]q
+					ops_genie_region   = "US"
+					delay_min          = 0
+				}
+			]
 		}
 	`, projectID, apiKey, enabled)
 }
@@ -1257,12 +1289,14 @@ func configWithVictorOps(projectID, apiKey string, enabled bool) string {
 			enabled    = %[3]t
 			event_type = "NO_PRIMARY"
 
-			notification {
-				type_name              = "VICTOR_OPS"
-				victor_ops_api_key     = %[2]q
-				victor_ops_routing_key = "testing"
-				delay_min              = 0
-			}
+			notification = [
+				{
+					type_name              = "VICTOR_OPS"
+					victor_ops_api_key     = %[2]q
+					victor_ops_routing_key = "testing"
+					delay_min              = 0
+				}
+			]
 		}
 	`, projectID, apiKey, enabled)
 }
@@ -1281,12 +1315,14 @@ func configWithWebhookTemplates(projectID, webhookURL, bodyTemplate, headersTemp
 			enabled    = true
 			event_type = "NO_PRIMARY"
 
-			notification {
-				type_name    = "WEBHOOK"
-				webhook_url  = %[2]q
-				interval_min = 5
-				%[3]s
-			}
+			notification = [
+				{
+					type_name    = "WEBHOOK"
+					webhook_url  = %[2]q
+					interval_min = 5
+					%[3]s
+				}
+			]
 		}
 	`, projectID, webhookURL, templates)
 }
@@ -1303,12 +1339,14 @@ func configWithTeamsNotificationAndIntervalMin(projectID, webhookURL string, ena
 			enabled    = %[3]t
 			event_type = "NO_PRIMARY"
 
-			notification {
-				type_name                   = "MICROSOFT_TEAMS"
-				microsoft_teams_webhook_url = %[2]q
-				interval_min                = 30
-				delay_min                   = 0
-			}
+			notification = [
+				{
+					type_name                   = "MICROSOFT_TEAMS"
+					microsoft_teams_webhook_url = %[2]q
+					interval_min                = 30
+					delay_min                   = 0
+				}
+			]
 		}
 	`, projectID, webhookURL, enabled)
 }
@@ -1320,11 +1358,13 @@ func configWithPagerDutyNotification(projectID, serviceKey string, enabled bool)
 			enabled    = %[3]t
 			event_type = "NO_PRIMARY"
 
-			notification {
-				type_name   = "PAGER_DUTY"
-				service_key = %[2]q
-				delay_min   = 0
-			}
+			notification = [
+				{
+					type_name   = "PAGER_DUTY"
+					service_key = %[2]q
+					delay_min   = 0
+				}
+			]
 		}
 	`, projectID, serviceKey, enabled)
 }
@@ -1336,12 +1376,14 @@ func configWithPagerDutyAndIntervalMin(projectID, serviceKey string, enabled boo
 			enabled    = %[3]t
 			event_type = "NO_PRIMARY"
 
-			notification {
-				type_name   = "PAGER_DUTY"
-				service_key = %[2]q
-				interval_min = 30
-				delay_min   = 0
-			}
+			notification = [
+				{
+					type_name   = "PAGER_DUTY"
+					service_key = %[2]q
+					interval_min = 30
+					delay_min   = 0
+				}
+			]
 		}
 	`, projectID, serviceKey, enabled)
 }
@@ -1353,16 +1395,18 @@ func configWithEmptyMetricThresholdConfig(projectID string, enabled bool) string
 			enabled    = %[2]t
 			event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
 
-			notification {
-				type_name     = "GROUP"
-				interval_min  = 60
-				delay_min     = 0
-				sms_enabled   = true
-				email_enabled = false
-			roles         = ["GROUP_OWNER"]
-			}
+			notification = [
+				{
+					type_name     = "GROUP"
+					interval_min  = 60
+					delay_min     = 0
+					sms_enabled   = true
+					email_enabled = false
+					roles         = ["GROUP_OWNER"]
+				}
+			]
 
-			threshold_config {
+			threshold_config = {
 				operator    = "LESS_THAN"
 				threshold   = 72
 				units       = "HOURS"
@@ -1378,14 +1422,16 @@ resource "mongodbatlas_alert_configuration" "test" {
   enabled    = %[2]t
   event_type = "CLUSTER_MONGOS_IS_MISSING"
 
-  notification {
-    type_name     = "GROUP"
-    interval_min  = 60
-    delay_min     = 0
-    sms_enabled   = true
-    email_enabled = false
-	roles         = ["GROUP_OWNER"]
-  }
+  notification = [
+    {
+      type_name     = "GROUP"
+      interval_min  = 60
+      delay_min     = 0
+      sms_enabled   = true
+      email_enabled = false
+      roles         = ["GROUP_OWNER"]
+    }
+  ]
 }
 	`, projectID, enabled)
 }
@@ -1397,17 +1443,19 @@ func configWithEmptyOptionalAttributes(projectID string) string {
 			project_id = %[1]q
 			event_type = "OUTSIDE_METRIC_THRESHOLD"
 
-			notification {
-			  type_name     = "ORG"
-			  interval_min  = 5
-			  email_enabled   = true
-			}
+			notification = [
+				{
+					type_name     = "ORG"
+					interval_min  = 5
+					email_enabled = true
+				}
+			]
 
-			metric_threshold_config {
-			  metric_name = "ASSERT_REGULAR"
-			  operator    = "LESS_THAN"
-			  units       = "RAW"
-			  mode        = "AVERAGE"
+			metric_threshold_config = {
+				metric_name = "ASSERT_REGULAR"
+				operator    = "LESS_THAN"
+				units       = "RAW"
+				mode        = "AVERAGE"
 			}
 		  }
 	`, projectID)
@@ -1420,14 +1468,16 @@ func configWithEmptyOptionalBlocks(projectID string) string {
 			event_type = "NO_PRIMARY"
 			enabled    = true
 
-			notification {
-				type_name     = "GROUP"
-				interval_min  = 5
-				delay_min     = 0
-				sms_enabled   = true
-				email_enabled = false
-				roles = ["GROUP_DATA_ACCESS_READ_ONLY"]
-			}
+			notification = [
+				{
+					type_name     = "GROUP"
+					interval_min  = 5
+					delay_min     = 0
+					sms_enabled   = true
+					email_enabled = false
+					roles = ["GROUP_DATA_ACCESS_READ_ONLY"]
+				}
+			]
 		}
 	`, projectID)
 }
@@ -1445,11 +1495,13 @@ func configWithSeverityOverride(projectID string, severity *string) string {
 			event_type        = "NO_PRIMARY"
 			%[2]s
 
-			notification {
-				type_name     = "EMAIL"
-				interval_min  = 60
-				email_address = "test@mongodbtest.com"
-			}
+			notification = [
+				{
+					type_name     = "EMAIL"
+					interval_min  = 60
+					email_address = "test@mongodbtest.com"
+				}
+			]
 		}
 
 		data "mongodbatlas_alert_configuration" "test" {
@@ -1599,22 +1651,26 @@ func configWithThreshold(projectID string, enabled bool, threshold float64) stri
 			enabled    = %[2]t
 			event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
 
-			notification {
-				type_name     = "GROUP"
-				interval_min  = 5
-				delay_min     = 0
-				sms_enabled   = false
-				email_enabled = true
-				roles = ["GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER"]
-			}
+			notification = [
+				{
+					type_name     = "GROUP"
+					interval_min  = 5
+					delay_min     = 0
+					sms_enabled   = false
+					email_enabled = true
+					roles = ["GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER"]
+				}
+			]
 
-			matcher {
-				field_name = "REPLICA_SET_NAME"
-				operator   = "EQUALS"
-				value      = "SECONDARY"
-			}
+			matcher = [
+				{
+					field_name = "REPLICA_SET_NAME"
+					operator   = "EQUALS"
+					value      = "SECONDARY"
+				}
+			]
 
-			threshold_config {
+			threshold_config = {
 				operator    = "LESS_THAN"
 				units       = "HOURS"
 				threshold   = %[3]f
@@ -1636,14 +1692,16 @@ func configWithOutputs(projectID, outputLabel string) string {
 			event_type = "NO_PRIMARY"
 			enabled    = true
 
-			notification {
-				type_name     = "GROUP"
-				interval_min  = 5
-				delay_min     = 0
-				sms_enabled   = true
-				email_enabled = false
-				roles = ["GROUP_DATA_ACCESS_READ_ONLY"]
-			}
+			notification = [
+				{
+					type_name     = "GROUP"
+					interval_min  = 5
+					delay_min     = 0
+					sms_enabled   = true
+					email_enabled = false
+					roles = ["GROUP_DATA_ACCESS_READ_ONLY"]
+				}
+			]
 		}
 
 		data "mongodbatlas_alert_configuration" "test" {
@@ -1669,11 +1727,13 @@ func configWithPagerDutyDS(projectID, serviceKey string, enabled bool) string {
 			enabled    = "%[3]t"
 			event_type = "NO_PRIMARY"
 
-			notification {
-				type_name    = "PAGER_DUTY"
-				service_key  = %[2]q
-				delay_min    = 0
-			}
+			notification = [
+				{
+					type_name    = "PAGER_DUTY"
+					service_key  = %[2]q
+					delay_min    = 0
+				}
+			]
 		}
 
 		data "mongodbatlas_alert_configuration" "test" {
@@ -1725,8 +1785,7 @@ func checkCount(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		projectID := ids["project_id"]
+		projectID := rs.Primary.Attributes["project_id"]
 
 		alertResp, _, err := acc.ConnV2().AlertConfigurationsAPI.ListAlertConfigs(context.Background(), projectID).Execute()
 
@@ -1762,7 +1821,7 @@ func configAddNotification(projectID string, twoNotifications bool) string {
 	secondNotification := ""
 	if twoNotifications {
 		secondNotification = `
-			notification {
+			{
 				type_name     = "EMAIL"
 				email_address = "ops-team@example.com"
 			}`
@@ -1773,18 +1832,19 @@ func configAddNotification(projectID string, twoNotifications bool) string {
 			event_type = "CPS_SNAPSHOT_BEHIND"
 			enabled    = true
 
-			notification {
-				type_name     = "EMAIL"
-				email_address = "test@mongodb.com"
-			}
+			notification = [
+				{
+					type_name     = "EMAIL"
+					email_address = "test@mongodb.com"
+				},
+				%[2]s
+			]
 
-			threshold_config {
+			threshold_config = {
 				operator  = "GREATER_THAN"
 				threshold = 48
 				units     = "HOURS"
 			}
-
-			%[2]s
 		}
 	`, projectID, secondNotification)
 }

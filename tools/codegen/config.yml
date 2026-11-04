@@ -1285,61 +1285,123 @@ resources:
           results.config:
             description: *kafka_config_description
 
-  alert_configuration_api:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
+  # Lift-and-shift of the handwritten Terraform Plugin Framework mongodbatlas_alert_configuration (spike pilot).
+  # The two handwritten data sources stay in internal/service/alertconfiguration: their provider-only `output`
+  # attribute renders HCL/import strings with data from the config (see the pilot's run summary).
+  alert_configuration:
+    read: &alert_configuration_read_op
+      path: &alert_configuration_item_path /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
       method: GET
     create:
-      path: /api/atlas/v2/groups/{groupId}/alertConfigs
+      path: &alert_configuration_collection_path /api/atlas/v2/groups/{groupId}/alertConfigs
       method: POST
     update:
-      path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
+      path: *alert_configuration_item_path
       method: PUT
     delete:
-      path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
+      path: *alert_configuration_item_path
       method: DELETE
-    datasources:
-      read:
-        path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
-        method: GET
-      list:
-        path: /api/atlas/v2/groups/{groupId}/alertConfigs
-        method: GET
-      schema:
-        ignores: ["links", "results.links"]
-        aliases:
-          alertConfigId: id
-    schema:
+    schema: &alert_configuration_schema
+      expanded_model: true # adds the `id` attribute (the API id, formerly the encoded manual id)
       aliases:
-        alertConfigId: id # path param name does not match the API response property
+        groupId: project_id
+        alertConfigId: alert_configuration_id # path param name does not match the API response property
+        id: alert_configuration_id
+        eventTypeName: event_type
+        matchers: matcher
+        metricThreshold: metric_threshold_config
+        threshold: threshold_config
+        notifications: notification
+      ignores:
+        # Not exposed by the manual resource (deprecated HipChat notification fields and the PagerDuty
+        # `region` twin of `ops_genie_region`), so exposing them is out of scope for the lift-and-shift.
+        - notification.notification_token
+        - notification.room_name
+        - notification.region
+        # The manual `threshold_config` has no `metric_name`/`mode` (they belong to `metric_threshold_config`).
+        - threshold_config.metric_name
+        - threshold_config.mode
       overrides:
-        notifications.notifier_id:
+        project_id:
+          description: *project_id_description
+        # Required in the manual resource (the generated PATCH body declares it optional).
+        event_type:
+          computability:
+            required: true
+        # The manual `notification` block is required (listvalidator.IsRequired).
+        notification:
+          computability:
+            required: true
+        # Server-generated and stable after creation (the manual resource used UseStateForUnknown).
+        created:
+          immutable_computed: true
+        enabled:
+          immutable_computed: true
+        notification.notifier_id:
           computability:
             optional: true
             computed: true
-        notifications.delay_min:
+        notification.interval_min:
           computability:
             optional: true
             computed: true
-        notifications.integration_id:
+        # Required in the manual resource.
+        notification.type_name:
+          computability:
+            required: true
+        notification.delay_min:
           computability:
             optional: true
             computed: true
-        notifications.datadog_api_key:
+        notification.integration_id:
+          computability:
+            optional: true
+            computed: true
+        notification.email_enabled:
+          computability:
+            optional: true
+            computed: true
+        notification.sms_enabled:
+          computability:
+            optional: true
+            computed: true
+        notification.team_name:
+          computability:
+            computed: true
+        # Optional only in the manual resource: the API does not return a value when they are omitted.
+        notification.datadog_region:
+          computability:
+            optional: true
+        notification.ops_genie_region:
+          computability:
+            optional: true
+        metric_threshold_config.threshold:
+          computability:
+            optional: true
+            computed: true
+        metric_threshold_config.units:
+          computability:
+            optional: true
+        threshold_config.threshold:
+          computability:
+            optional: true
+            computed: true
+        threshold_config.units:
+          computability:
+            optional: true
+        notification.datadog_api_key:
           sensitive: true
-        notifications.service_key:
+        notification.service_key:
           sensitive: true
-        notifications.api_token:
+        notification.api_token:
           sensitive: true
-        notifications.victor_ops_api_key:
+        notification.victor_ops_api_key:
           sensitive: true
-        notifications.notification_token:
+        notification.microsoft_teams_webhook_url:
           sensitive: true
-        notifications.microsoft_teams_webhook_url:
+        notification.webhook_url:
           sensitive: true
-        notifications.webhook_url:
-          sensitive: true
-        notifications.ops_genie_api_key:
+        notification.ops_genie_api_key:
           sensitive: true
 
   control_plane_ip_addresses_api:

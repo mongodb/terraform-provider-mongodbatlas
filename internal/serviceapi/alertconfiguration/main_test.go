@@ -1,4 +1,4 @@
-package alertconfigurationapi_test
+package alertconfiguration_test
 
 import (
 	"os"

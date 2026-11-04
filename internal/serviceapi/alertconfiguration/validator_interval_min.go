@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-// IntervalMinValidator validates that interval_min is not set for notification types
-// that don't support it (PAGER_DUTY, OPS_GENIE, VICTOR_OPS).
+// IntervalMinValidator is ported as-is from the manual resource: validates that interval_min is not set
+// for notification types that don't support it (PAGER_DUTY, OPS_GENIE, VICTOR_OPS).
 //
 // API-level validation cannot catch this error because when the notification type
 // doesn't support interval_min, the nested_type in the API payload omits the field,
@@ -33,16 +33,16 @@ func (v IntervalMinValidator) ValidateInt64(ctx context.Context, req validator.I
 	}
 	// Path format: notification[0].interval_min
 	notificationPath := req.Path.ParentPath()
-	var notification TfNotificationModel
+	var notification TFNotificationModel
 	diags := req.Config.GetAttribute(ctx, notificationPath, &notification)
 	if diags.HasError() {
 		return
 	}
 	typeNameValue := notification.TypeName.ValueString()
 	// Check if the type_name is one of the unsupported types
-	if strings.EqualFold(typeNameValue, pagerDuty) ||
-		strings.EqualFold(typeNameValue, opsGenie) ||
-		strings.EqualFold(typeNameValue, victorOps) {
+	if strings.EqualFold(typeNameValue, "PAGER_DUTY") ||
+		strings.EqualFold(typeNameValue, "OPS_GENIE") ||
+		strings.EqualFold(typeNameValue, "VICTOR_OPS") {
 		resp.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
 			req.Path,
 			v.Description(ctx),

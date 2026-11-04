@@ -330,7 +330,6 @@ jobs:
             - 'internal/serviceapi/aimodelorgapikey/*.go'
             - 'internal/serviceapi/aimodelorgratelimit/*.go'
             - 'internal/serviceapi/aimodelratelimit/*.go'
-            - 'internal/serviceapi/alertconfigurationapi/*.go'
             - 'internal/serviceapi/auditingapi/*.go'
             - 'internal/serviceapi/customdbroleapi/*.go'
             - 'internal/serviceapi/databaseuserapi/*.go'
@@ -388,6 +387,7 @@ jobs:
           config:
             - 'internal/config/*.go'
             - 'internal/service/alertconfiguration/*.go'
+            - 'internal/serviceapi/alertconfiguration/*.go'
             - 'internal/service/apikey/*.go'
             - 'internal/service/apikeyprojectassignment/*.go'
             - 'internal/service/atlasuser/*.go'
@@ -691,7 +691,6 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/serviceapi/aimodelapikey
             ./internal/serviceapi/aimodelratelimit
-            ./internal/serviceapi/alertconfigurationapi
             ./internal/serviceapi/auditingapi
             ./internal/serviceapi/customdbroleapi
             ./internal/serviceapi/databaseuserapi
@@ -910,6 +909,7 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/config
             ./internal/service/alertconfiguration
+            ./internal/serviceapi/alertconfiguration
             ./internal/service/atlasuser
             ./internal/service/cloudprovideraccess
             ./internal/service/customdbrole
@@ -980,6 +980,7 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/config
             ./internal/service/alertconfiguration
+            ./internal/serviceapi/alertconfiguration
             ./internal/service/atlasuser
             ./internal/service/cloudprovideraccess
             ./internal/service/customdbrole
