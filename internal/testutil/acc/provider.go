@@ -166,12 +166,14 @@ func ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID stri
 // ConfigAzureTags returns the tags attribute that every Azure resource supporting tags must set, indented by indent.
 // azurerm does not support provider-level default_tags, so Azure resources set tags individually: https://github.com/hashicorp/terraform-provider-azurerm/issues/13776.
 func ConfigAzureTags(indent string) string {
-	return FormatToHCLMap(tagValues(), indent, "tags")
+	tags := tagValues()
+	tags["createDate"] = azureCreateDate
+	return FormatToHCLMap(tags, indent, "tags")
 }
 
-// createDate is a future timestamp, which makes the Atlas leaked-item detector skip the resource while the test runs.
+// azureCreateDate is a future timestamp, which makes the Atlas leaked-item detector skip the resource while the test runs.
 // It is computed once per process so every test step renders the same tag, and 6h ahead covers the GitHub Actions job limit.
-var createDate = strconv.FormatInt(time.Now().Add(6*time.Hour).UnixMilli(), 10)
+var azureCreateDate = strconv.FormatInt(time.Now().Add(6*time.Hour).UnixMilli(), 10)
 
 func ConfigDefaultTags() string {
 	return fmt.Sprintf(`
@@ -181,12 +183,11 @@ func ConfigDefaultTags() string {
 	`, FormatToHCLMap(tagValues(), "\t\t\t", "tags"))
 }
 
-// tagValues returns the Cloud Tag Policy tags and createDate applied to the resources created by tests.
+// tagValues returns the Cloud Tag Policy tags applied to the resources created by tests.
 func tagValues() map[string]string {
 	return map[string]string{
 		"mongodb-owner": tagValue(tagOwnerEnvVar),
 		"mongodb-env":   tagValue(tagEnvEnvVar),
-		"createDate":    createDate,
 	}
 }
 

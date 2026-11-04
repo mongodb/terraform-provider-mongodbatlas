@@ -45,10 +45,10 @@
 
 ### Cloud provider resources
 
-Tests that create AWS or Azure resources must tag them. Besides the required tags, the helpers set a `createDate` tag 6 hours after the test process starts, which makes the Atlas leaked-item detector skip the resource while the test runs. Without it, the detector can add an `isleakeditem` tag mid-test, and the refresh plan after apply is then not empty.
+Tests that create AWS or Azure resources must tag them:
 
 - AWS: use [`acc.ConfigAWSProviderWithTags`](../internal/testutil/acc/provider.go), which sets the tags as provider `default_tags`.
-- Azure: `azurerm` has no provider-level default tags, so add [`acc.ConfigAzureTags`](../internal/testutil/acc/provider.go) to every Azure resource that supports tags.
+- Azure: `azurerm` has no provider-level default tags, so add [`acc.ConfigAzureTags`](../internal/testutil/acc/provider.go) to every Azure resource that supports tags. Besides the required tags, it sets a `createDate` tag 6 hours after the test process starts, which makes the Atlas leaked-item detector skip the resource while the test runs. Without it, the detector can add an `isleakeditem` tag mid-test, and the refresh plan after apply is then not empty.
 
 ## Migration tests
 
