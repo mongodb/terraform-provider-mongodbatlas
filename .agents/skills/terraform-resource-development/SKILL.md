@@ -9,4 +9,4 @@ The single source of truth for resource and data source development best practic
 
 For new development, favour the autogeneration tooling over manual implementations, as described in the doc.
 
-Core autogen logic (`tools/codegen`, `internal/common/autogen`) assumes IPA-compliant APIs. Do not add API-specific special cases there. Capture deviations in the resource's `config.yml` entry or custom hooks, following "IPA Compliance Boundary" in the doc.
+Core autogen logic (`tools/codegen`, `internal/common/autogen`) assumes [IPA](https://mongodb.github.io/ipa/)-compliant APIs. Do not add API-specific special cases there. Capture deviations in the resource's `config.yml` entry or custom hooks, following "IPA Compliance Boundary" in the doc.

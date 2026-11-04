@@ -222,7 +222,7 @@ Core autogen logic (`tools/codegen` and `internal/common/autogen`) targets APIs 
 
 Customizations fall into two categories:
 
-- **IPA deviation workarounds**: compensate for an API that does not follow IPA or lacks the spec annotation IPA requires. Examples: `type: set` without `x-xgen-array-semantic: set`, a `PostReadAPICallHook` that maps a 400 on a missing parent to `autogen.ErrNotFound`. Each one must be reported to the owning API team, linked in the PR description, and removed once the API or spec is fixed.
+- **IPA deviation workarounds**: compensate for an API that does not follow IPA or lacks the spec annotation IPA requires. Examples: `type: set` without `x-xgen-array-semantic: set` ([IPA-124](https://mongodb.github.io/ipa/124#list-vs-set)), a `PostReadAPICallHook` that maps a 400 on a missing parent to `autogen.ErrNotFound`. Each one must be reported to the owning API team, linked in the PR description, and removed once the API or spec is fixed.
 - **Terraform conventions**: deliberate provider choices independent of IPA compliance. Examples: `aliases` such as `groupId: projectId`, `ignores` for fields not useful to Terraform users. These need no upstream report.
 
 When a deviation workaround is a hook, add a comment stating the deviation and the upstream ticket.
