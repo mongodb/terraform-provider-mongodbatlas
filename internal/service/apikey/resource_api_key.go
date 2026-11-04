@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -152,9 +154,9 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	apiKeyID := ids["api_key_id"]
 
 	// The API returns 400 API_KEY_NOT_FOUND instead of 404 when the key is already gone,
-	// so handling a 404 here would be a no-op.
-	_, err := connV2.ProgrammaticAPIKeysAPI.DeleteOrgApiKey(ctx, orgID, apiKeyID).Execute()
-	if err != nil {
+	// so that error code is also treated as a successful delete.
+	httpResp, err := connV2.ProgrammaticAPIKeysAPI.DeleteOrgApiKey(ctx, orgID, apiKeyID).Execute()
+	if err != nil && !deletenotfound.IsNotFoundOrErrorCode(ctx, httpResp, err, constant.ErrorCodeAPIKeyNotFound) {
 		return diag.FromErr(fmt.Errorf("error API Key: %s", err))
 	}
 	return nil

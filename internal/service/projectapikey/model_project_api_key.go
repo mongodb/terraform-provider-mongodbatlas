@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/rolesorgid"
 	"go.mongodb.org/atlas-sdk/v20250312027/admin"
@@ -74,7 +75,7 @@ func getKeyDetails(ctx context.Context, connV2 *admin.APIClient, apiKeyID string
 	}
 	key, _, err := connV2.ProgrammaticAPIKeysAPI.GetOrgApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
-		if admin.IsErrorCode(err, "API_KEY_NOT_FOUND") {
+		if admin.IsErrorCode(err, constant.ErrorCodeAPIKeyNotFound) {
 			return nil, orgID, nil
 		}
 		return nil, orgID, fmt.Errorf("error getting api key information: %s", err)
