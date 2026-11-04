@@ -1,5 +1,13 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* resource/mongodbatlas_online_archive: Adds support for import using `{project_id}/{cluster_name}/{archive_id}` format ([#4855](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4855))
+
+BUG FIXES:
+
+* resource/mongodbatlas_online_archive: Supports cluster names with hyphens when importing the resource ([#4855](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4855))
+
 ## 2.21.0 (October 28, 2026)
 
 ENHANCEMENTS:
