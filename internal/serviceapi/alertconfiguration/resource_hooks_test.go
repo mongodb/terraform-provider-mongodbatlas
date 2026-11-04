@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/alertconfiguration"
 )
 
@@ -124,4 +125,50 @@ func TestPreImport_rewritesLegacyDashFormat(t *testing.T) {
 			assert.Equal(t, tc.want, got)
 		})
 	}
+}
+
+func TestFillManualZeroValues(t *testing.T) {
+	body := `{"enabled":true,"eventTypeName":"OUTSIDE_METRIC_THRESHOLD","notifications":[{"typeName":"EMAIL","emailAddress":"a@b.com"}],"metricThreshold":{"metricName":"ASSERT_REGULAR","operator":"LESS_THAN","units":"RAW","mode":"AVERAGE"}}`
+	params, got := alertconfiguration.Resource().(autogen.PreCreateAPICallHook).PreCreateAPICall(config.APICallParams{Method: "POST"}, []byte(body))
+	require.Equal(t, "POST", params.Method)
+	obj := decodeBodyJSON(t, got)
+	notification := obj["notifications"].([]any)[0].(map[string]any)
+	// Zero values the manual resource sent for unknown optional+computed attributes (ValueXPointer on
+	// unknown returns 0/false/""), plus the always-sent delayMin/notifierId/integrationId.
+	assert.InDelta(t, 0, notification["intervalMin"], 0)
+	assert.InDelta(t, 0, notification["delayMin"], 0)
+	assert.Equal(t, false, notification["smsEnabled"])
+	assert.Equal(t, false, notification["emailEnabled"])
+	assert.Empty(t, notification["notifierId"])
+	assert.Empty(t, notification["integrationId"])
+	// metric threshold: the API requires the `threshold` key (manual sent 0 for unknown).
+	assert.InDelta(t, 0, obj["metricThreshold"].(map[string]any)["threshold"], 0)
+	// configured values are kept.
+	assert.Equal(t, true, obj["enabled"])
+	assert.Equal(t, "a@b.com", notification["emailAddress"])
+}
+
+func TestUpgradeManualStateJSON_unwrapsThresholdLists(t *testing.T) {
+	raw := `{
+		"id": "aWQ=:encoded",
+		"project_id": "64e3d2d9a25b07293b8f5e21",
+		"event_type": "OUTSIDE_METRIC_THRESHOLD",
+		"matcher": [{"field_name":"HOSTNAME_AND_PORT","operator":"EQUALS","value":"SECONDARY"}],
+		"notification": [{"type_name":"GROUP","interval_min":5}],
+		"metric_threshold_config": [{"threshold":99,"metric_name":"ASSERT_REGULAR","operator":"LESS_THAN","units":"RAW","mode":"AVERAGE"}],
+		"threshold_config": []
+	}`
+	got, err := alertconfiguration.UpgradeManualStateJSONForTest([]byte(raw))
+	require.NoError(t, err)
+	obj := map[string]any{}
+	require.NoError(t, json.Unmarshal(got, &obj))
+	// list-of-one becomes the object; empty list is removed (null object); lists and the rest are kept.
+	metricThreshold, ok := obj["metric_threshold_config"].(map[string]any)
+	require.True(t, ok, "metric_threshold_config must be an object after the upgrade")
+	assert.InDelta(t, 99, metricThreshold["threshold"], 0.001)
+	_, ok = obj["threshold_config"]
+	assert.False(t, ok, "empty threshold_config list must be removed")
+	assert.Len(t, obj["matcher"], 1)
+	assert.Len(t, obj["notification"], 1)
+	assert.Equal(t, "aWQ=:encoded", obj["id"])
 }
