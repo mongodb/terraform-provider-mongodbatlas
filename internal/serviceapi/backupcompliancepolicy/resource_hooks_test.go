@@ -40,20 +40,34 @@ func decodeBody(t *testing.T, body []byte) map[string]any {
 	return obj
 }
 
-func TestPreCreateAPICall_setsOverwriteBackupPoliciesFalse(t *testing.T) {
+func TestPreCreateAPICall_preparesPutBody(t *testing.T) {
 	hook, ok := backupcompliancepolicy.Resource().(autogen.PreCreateAPICallHook)
 	require.True(t, ok)
-	params, body := hook.PreCreateAPICall(config.APICallParams{}, []byte(`{}`))
+	params, body := hook.PreCreateAPICall(config.APICallParams{
+		PathParams: map[string]string{"projectId": hookProjectID},
+	}, []byte(`{"authorizedEmail":"test@example.com"}`))
 	assert.Equal(t, "false", params.QueryParams["overwriteBackupPolicies"])
-	assert.Equal(t, []byte(`{}`), body)
+	obj := decodeBody(t, body)
+	assert.Equal(t, hookProjectID, obj["projectId"])
+	assert.Equal(t, "test@example.com", obj["authorizedEmail"])
 }
 
-func TestPreUpdateAPICall_setsOverwriteBackupPoliciesFalse(t *testing.T) {
+func TestPreUpdateAPICall_preparesPutBody(t *testing.T) {
 	hook, ok := backupcompliancepolicy.Resource().(autogen.PreUpdateAPICallHook)
 	require.True(t, ok)
-	params, body := hook.PreUpdateAPICall(config.APICallParams{}, []byte(`{}`))
+	params, body := hook.PreUpdateAPICall(config.APICallParams{
+		PathParams: map[string]string{"projectId": hookProjectID},
+	}, []byte(`{"authorizedEmail":"test@example.com"}`))
 	assert.Equal(t, "false", params.QueryParams["overwriteBackupPolicies"])
-	assert.Equal(t, []byte(`{}`), body)
+	obj := decodeBody(t, body)
+	assert.Equal(t, hookProjectID, obj["projectId"])
+}
+
+func TestPreDeleteAPICall_pinsDeleteVersion(t *testing.T) {
+	hook, ok := backupcompliancepolicy.Resource().(autogen.PreDeleteAPICallHook)
+	require.True(t, ok)
+	params := hook.PreDeleteAPICall(config.APICallParams{VersionHeader: "application/vnd.atlas.2023-10-01+json"})
+	assert.Equal(t, "application/vnd.atlas.2024-11-13+json", params.VersionHeader)
 }
 
 func TestPostCreateAPICall_craftsIDFromRequestPath(t *testing.T) {

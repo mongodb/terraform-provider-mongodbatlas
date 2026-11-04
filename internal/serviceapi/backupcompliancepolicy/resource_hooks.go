@@ -33,6 +33,10 @@ const (
 	// The manual resource always sends overwriteBackupPolicies=false: the API default (true) would silently
 	// overwrite the non-complying backup policies of every cluster in the project.
 	overwriteBackupPoliciesParam = "overwriteBackupPolicies"
+
+	// The disable (DELETE) operation only supports the 2024-11-13 version (which GET/PUT reject), so the
+	// delete call overrides the resource version header with it.
+	deleteVersionHeader = "application/vnd.atlas.2024-11-13+json"
 )
 
 // Create and update responses may not include the project id, it is taken from the request path.
@@ -41,6 +45,7 @@ var projectIDPathRegex = regexp.MustCompile(`/groups/([0-9a-f]{24})/backupCompli
 var (
 	_ autogen.PreCreateAPICallHook  = (*rs)(nil)
 	_ autogen.PreUpdateAPICallHook  = (*rs)(nil)
+	_ autogen.PreDeleteAPICallHook  = (*rs)(nil)
 	_ autogen.PostCreateAPICallHook = (*rs)(nil)
 	_ autogen.PostReadAPICallHook   = (*rs)(nil)
 	_ autogen.PostUpdateAPICallHook = (*rs)(nil)
@@ -70,11 +75,41 @@ func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schem
 }
 
 func (r *rs) PreCreateAPICall(callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte) {
-	return withOverwriteBackupPoliciesFalse(callParams), bodyReq
+	return preparePutBody(callParams, bodyReq)
 }
 
 func (r *rs) PreUpdateAPICall(callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte) {
-	return withOverwriteBackupPoliciesFalse(callParams), bodyReq
+	return preparePutBody(callParams, bodyReq)
+}
+
+// PreDeleteAPICall pins the delete call to the only version the disable operation supports.
+func (r *rs) PreDeleteAPICall(callParams config.APICallParams) config.APICallParams {
+	callParams.VersionHeader = deleteVersionHeader
+	return callParams
+}
+
+// preparePutBody applies the manual resource's PUT conventions: overwriteBackupPolicies=false, and the
+// project id in the body (the API requires it, the path param also carries it).
+func preparePutBody(callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte) {
+	if callParams.QueryParams == nil {
+		callParams.QueryParams = map[string]string{}
+	}
+	callParams.QueryParams[overwriteBackupPoliciesParam] = "false"
+
+	projectID := callParams.PathParams["projectId"]
+	if projectID == "" || len(bodyReq) == 0 {
+		return callParams, bodyReq
+	}
+	var obj map[string]any
+	if err := autogen.Decode(bodyReq, &obj); err != nil {
+		return callParams, bodyReq
+	}
+	obj["projectId"] = projectID
+	body, err := json.Marshal(obj)
+	if err != nil {
+		return callParams, bodyReq
+	}
+	return callParams, body
 }
 
 func (r *rs) PostCreateAPICall(result autogen.APICallResult) autogen.APICallResult {
@@ -91,14 +126,6 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 
 func (r *rs) PostUpdateAPICall(result autogen.APICallResult) autogen.APICallResult {
 	return adaptResponse(result, projectIDFromRequest(result))
-}
-
-func withOverwriteBackupPoliciesFalse(callParams config.APICallParams) config.APICallParams {
-	if callParams.QueryParams == nil {
-		callParams.QueryParams = map[string]string{}
-	}
-	callParams.QueryParams[overwriteBackupPoliciesParam] = "false"
-	return callParams
 }
 
 func projectIDFromRequest(result autogen.APICallResult) string {
