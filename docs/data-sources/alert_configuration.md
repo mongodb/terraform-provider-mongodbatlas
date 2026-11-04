@@ -15,21 +15,25 @@ resource "mongodbatlas_alert_configuration" "test" {
   event_type = "OUTSIDE_METRIC_THRESHOLD"
   enabled    = true
 
-  notification {
-    type_name     = "GROUP"
-    interval_min  = 5
-    delay_min     = 0
-    sms_enabled   = false
-    email_enabled = true
-  }
+  notification = [
+    {
+      type_name     = "GROUP"
+      interval_min  = 5
+      delay_min     = 0
+      sms_enabled   = false
+      email_enabled = true
+    }
+  ]
 
-  matcher {
-    field_name = "HOSTNAME_AND_PORT"
-    operator   = "EQUALS"
-    value      = "SECONDARY"
-  }
+  matcher = [
+    {
+      field_name = "HOSTNAME_AND_PORT"
+      operator   = "EQUALS"
+      value      = "SECONDARY"
+    }
+  ]
 
-  metric_threshold_config {
+  metric_threshold_config = {
     metric_name = "ASSERT_REGULAR"
     operator    = "LESS_THAN"
     threshold   = 99.0
@@ -53,22 +57,26 @@ resource "mongodbatlas_alert_configuration" "test" {
   event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
   enabled    = true
 
-  notification {
-    type_name     = "GROUP"
-    interval_min  = 5
-    delay_min     = 0
-    sms_enabled   = false
-    email_enabled = true
-    roles         = ["GROUP_CLUSTER_MANAGER"]
-  }
+  notification = [
+    {
+      type_name     = "GROUP"
+      interval_min  = 5
+      delay_min     = 0
+      sms_enabled   = false
+      email_enabled = true
+      roles         = ["GROUP_CLUSTER_MANAGER"]
+    }
+  ]
 
-  matcher {
-    field_name = "HOSTNAME_AND_PORT"
-    operator   = "EQUALS"
-    value      = "SECONDARY"
-  }
+  matcher = [
+    {
+      field_name = "HOSTNAME_AND_PORT"
+      operator   = "EQUALS"
+      value      = "SECONDARY"
+    }
+  ]
 
-  threshold_config {
+  threshold_config = {
     operator    = "LESS_THAN"
     threshold   = 1
     units       = "HOURS"
