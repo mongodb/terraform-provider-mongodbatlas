@@ -67,9 +67,10 @@ func migTestCase(t *testing.T, configBlocks, config, configUpdate string) {
 	}
 	checks := checkExists(migResourceName)
 
+	// No CheckDestroy: disabling a Backup Compliance Policy requires MongoDB Support approval (the manual
+	// suite has none either), the scratch project is discarded whole instead.
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
-		CheckDestroy: checkDestroy,
+		PreCheck: func() { mig.PreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				// Step 1: the released provider (manual SDKv2 implementation) enables the policy with block syntax.
@@ -121,20 +122,6 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		return nil
 	}
-}
-
-func checkDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_backup_compliance_policy" {
-			continue
-		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		policy, _, err := acc.ConnV2().CloudBackupsAPI.GetCompliancePolicy(context.Background(), ids["project_id"]).Execute()
-		if err == nil && policy.GetState() != "DISABLING" {
-			return fmt.Errorf("backup compliance policy (project %s) still exists with state %s", ids["project_id"], policy.GetState())
-		}
-	}
-	return nil
 }
 
 // Old block syntax (released provider, manual SDKv2 implementation).
