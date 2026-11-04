@@ -74,5 +74,5 @@ func ConfigAzureStorageResources(prefix, resourceGroupName, storageAccountName, 
 			role_definition_name = "Storage Blob Data Contributor"
 			principal_id         = %[5]q
 		}
-	`, prefix, resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID, ConfigTags("\t\t\t"))
+	`, prefix, resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID, ConfigAzureTags("\t\t\t"))
 }
