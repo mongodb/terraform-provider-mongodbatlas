@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312027/admin"
 )
 
-const ErrorImportFormat = "import format error: to import a snapshot export job, use the format {project_id}/{cluster_name}/{export_job_id}"
+const ErrorImportFormat = "import format error: to import a snapshot export job, use the format {project_id}/{cluster_name}/{export_job_id} (recommended) OR {project_id}--{cluster_name}--{export_job_id}"
 
 func Resource() *schema.Resource {
 	return &schema.Resource{

@@ -23,7 +23,7 @@ const (
 	vectorSearch                  = "vectorSearch"
 	indexBuildDelayAndMinTimeout  = 1 * time.Minute
 	indexDeleteDelayAndMinTimeout = 5 * time.Second
-	ErrorImportFormat             = "import format error: to import a search index, use the format {project_id}/{cluster_name}/{index_id}"
+	ErrorImportFormat             = "import format error: to import a search index, use the format {project_id}/{cluster_name}/{index_id} (recommended) OR {project_id}--{cluster_name}--{index_id}"
 )
 
 func Resource() *schema.Resource {
