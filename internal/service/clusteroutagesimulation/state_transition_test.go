@@ -35,7 +35,7 @@ func TestWaitForDeletableStatePollsUntilDeletable(t *testing.T) {
 	m.EXPECT().GetOutageSimulationExecute(mock.Anything).Return(simulationInState("STARTING"), nil, nil).Twice()
 	m.EXPECT().GetOutageSimulationExecute(mock.Anything).Return(simulationInState("SIMULATING"), nil, nil).Once()
 
-	result, err := clusteroutagesimulation.WaitForDeletableStateWithMinTimeout(t.Context(), m, testProjectID, testClusterName, testWaitTimeout, testMinTimeout)
+	result, err := clusteroutagesimulation.WaitForDeletableState(t.Context(), m, testProjectID, testClusterName, testWaitTimeout, testMinTimeout)
 
 	require.NoError(t, err)
 	assert.Equal(t, "SIMULATING", result.GetState())
@@ -48,7 +48,7 @@ func TestWaitForDeletableStateSimulationAlreadyGone(t *testing.T) {
 	m.EXPECT().GetOutageSimulation(mock.Anything, testProjectID, testClusterName).Return(admin.GetOutageSimulationApiRequest{ApiService: m}).Once()
 	m.EXPECT().GetOutageSimulationExecute(mock.Anything).Return(nil, &http.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).Once()
 
-	result, err := clusteroutagesimulation.WaitForDeletableStateWithMinTimeout(t.Context(), m, testProjectID, testClusterName, testWaitTimeout, testMinTimeout)
+	result, err := clusteroutagesimulation.WaitForDeletableState(t.Context(), m, testProjectID, testClusterName, testWaitTimeout, testMinTimeout)
 
 	require.NoError(t, err)
 	assert.Equal(t, "DELETED", result.GetState())
@@ -64,7 +64,7 @@ func TestEndOutageSimulationAndWaitPollsUntilDeleted(t *testing.T) {
 	m.EXPECT().GetOutageSimulationExecute(mock.Anything).Return(simulationInState("RECOVERING"), nil, nil).Once()
 	m.EXPECT().GetOutageSimulationExecute(mock.Anything).Return(simulationInState("DELETED"), nil, nil).Once()
 
-	err := clusteroutagesimulation.EndOutageSimulationAndWaitWithMinTimeout(t.Context(), m, testProjectID, testClusterName, testWaitTimeout, testMinTimeout)
+	err := clusteroutagesimulation.EndOutageSimulationAndWait(t.Context(), m, testProjectID, testClusterName, testWaitTimeout, testMinTimeout)
 
 	require.NoError(t, err)
 }
