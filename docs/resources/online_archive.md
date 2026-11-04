@@ -169,8 +169,14 @@ The only field required for criteria type `CUSTOM`
 
 ## Import 
 
+You can import online archives using `project_id`, `cluster_name`, and `archive_id` in one of the following formats:
+
+1. `project_id`/`cluster_name`/`archive_id` (recommended)
+2. `project_id`-`cluster_name`-`archive_id` (legacy)
+
 ```bash
-terraform import mongodbatlas_online_archive.users_archive <project_id>-<cluster_name>-<archive_id>
+terraform import mongodbatlas_online_archive.users_archive <project_id>/<cluster_name>/<archive_id> # (1)
+terraform import mongodbatlas_online_archive.users_archive <project_id>-<cluster_name>-<archive_id> # (2)
 ```
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api/online-archive-create-one/) Documentation for more information.
