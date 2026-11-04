@@ -54,10 +54,12 @@ func TestMigAlertConfiguration_minimal(t *testing.T) {
 
 func migTestCase(t *testing.T, configBlocks, config, configUpdate string) {
 	t.Helper()
-	sameID := statecheck.CompareValue(compare.ValuesSame())
+	// alert_configuration_id (the API id) is compared across steps: `id` cannot be compared from the
+	// released-provider step, whose encoded id changes to the API id during the step 2 refresh.
 	// AddStateValue registers one value per call, so each step needs its own checks.
+	sameID := statecheck.CompareValue(compare.ValuesSame())
 	stateChecks := func() []statecheck.StateCheck {
-		return []statecheck.StateCheck{sameID.AddStateValue(migResourceName, tfjsonpath.New("id"))}
+		return []statecheck.StateCheck{sameID.AddStateValue(migResourceName, tfjsonpath.New("alert_configuration_id"))}
 	}
 	checks := resource.ComposeAggregateTestCheckFunc(checkExists(migResourceName))
 
@@ -80,6 +82,7 @@ func migTestCase(t *testing.T, configBlocks, config, configUpdate string) {
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
 				},
+				// From this step on the autogen id is the API id and must equal alert_configuration_id.
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checks,
 					resource.TestCheckResourceAttrPair(migResourceName, "id", migResourceName, "alert_configuration_id"),
