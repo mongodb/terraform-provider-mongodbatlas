@@ -8,3 +8,5 @@ description: Best practices for developing Terraform resources and data sources 
 The single source of truth for resource and data source development best practices is [contributing/development-best-practices.md](../../../contributing/development-best-practices.md). Read it before creating or modifying resources, data sources, schema definitions, CRUD operations, or state handling, and follow its guidance.
 
 For new development, favour the autogeneration tooling over manual implementations, as described in the doc.
+
+Core autogen logic (`tools/codegen`, `internal/common/autogen`) assumes [IPA](https://mongodb.github.io/ipa/)-compliant APIs. Do not add API-specific special cases there. Capture deviations in the resource's `config.yml` entry or custom hooks, following "IPA Compliance Boundary" in the doc.
