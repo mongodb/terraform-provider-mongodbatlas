@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_cluster_outage_simulation: Fixes the create-timeout cleanup and the delete operation to poll the simulation state instead of checking it only at the end of the timeout, which could leave the cluster in an active outage simulation that blocks cluster termination
+```
