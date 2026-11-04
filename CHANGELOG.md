@@ -2,7 +2,9 @@
 
 ENHANCEMENTS:
 
+* resource/mongodbatlas_cloud_backup_snapshot_export_job: Adds support for import using `{project_id}/{cluster_name}/{export_job_id}` format ([#4854](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4854))
 * resource/mongodbatlas_online_archive: Adds support for import using `{project_id}/{cluster_name}/{archive_id}` format ([#4855](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4855))
+* resource/mongodbatlas_search_index: Adds support for import using `{project_id}/{cluster_name}/{index_id}` format ([#4854](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4854))
 
 BUG FIXES:
 
