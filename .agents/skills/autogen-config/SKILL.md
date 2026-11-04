@@ -62,7 +62,7 @@ Remaining override fields, one line each — read the struct comments in `config
 
 ### Overrides are stopgaps — pair each with an upstream flag
 
-The codegen consumes spec annotations natively (`tools/codegen/codespec/api_spec_schema.go`), so the durable fix is the annotation, not the override. Whenever an override compensates for missing spec information, report to the owning API team that the spec should carry the annotation, and surface the report in the PR description. Once the spec is fixed, the override should be dropped on the next regeneration.
+Core autogen logic handles IPA-compliant APIs only (see "IPA Compliance Boundary" in `contributing/development-best-practices.md`). A deviation is fixed in this resource's config entry or hooks, never by changing `tools/codegen` or `internal/common/autogen`. The codegen reads spec annotations natively (`tools/codegen/codespec/api_spec_schema.go`), so the lasting fix is the annotation, not the override. When an override compensates for missing spec information, report it to the owning API team and put the report in the PR description. Drop the override on the next regeneration after the spec is fixed. `aliases` and `ignores` are Terraform conventions, not deviations, and need no report.
 
 | Local override | Spec annotation to request | Reference |
 |---|---|---|
