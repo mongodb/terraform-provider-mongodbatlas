@@ -363,7 +363,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 As of version 1.23.0, enabled `compute` auto-scaling (either `auto_scaling` or `analytics_auto_scaling`) will scale the `instance_size` of each shard independently. Each shard must be represented with a unique `replication_specs` element and `num_shards` must not be used.
 
-~> **IMPORTANT:** For clusters with more than one `replication_specs` entry, `use_effective_fields = true` currently has no effect. Use `lifecycle.ignore_changes` as shown below to prevent Terraform from reverting Atlas-managed auto-scaling changes. To learn more, see [Multi-shard clusters and topology changes](../resources/advanced_cluster.md#multi-shard-clusters-and-topology-changes).
+~> **IMPORTANT:** For clusters with more than one `replication_specs` entry, `use_effective_fields = true` currently has no effect. Use `lifecycle.ignore_changes` as shown below to prevent Terraform from reverting Atlas-managed auto-scaling changes. To learn more, see [Multi-shard clusters and topology changes](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#multi-shard-clusters-and-topology-changes).
 
 The following example uses `lifecycle.ignore_changes` to ignore Atlas-managed changes to `instance_size`, `disk_size_gb`, and `disk_iops` in each shard:
 
@@ -440,7 +440,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-The `ignore_changes` entries reference each shard by its list index. Keep existing `replication_specs` entries in the same order, add new shards only after the existing entries, and add the matching entries to `ignore_changes` for each new shard. Before removing a shard, review [Multi-shard clusters and topology changes](../resources/advanced_cluster.md#multi-shard-clusters-and-topology-changes).
+The `ignore_changes` entries reference each shard by its list index. Keep existing `replication_specs` entries in the same order, add new shards only after the existing entries, and add the matching entries to `ignore_changes` for each new shard. Before removing a shard, review [Multi-shard clusters and topology changes](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#multi-shard-clusters-and-topology-changes).
 
 While the example initially defines two symmetric shards, auto-scaling can lead to asymmetric shards due to changes in `instance_size`, `disk_size_gb`, and `disk_iops`. When either compute or disk auto-scaling is enabled, Atlas may adjust any of these resources to maintain optimal cluster performance.
 
