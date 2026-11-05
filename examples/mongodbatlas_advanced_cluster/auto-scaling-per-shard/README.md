@@ -6,7 +6,7 @@ This example creates a Sharded Cluster with 2 shards defining electable and anal
 
 Atlas adjusts `instance_size`, `disk_size_gb`, and `disk_iops` of each shard independently when auto-scaling is enabled. This example uses a `lifecycle.ignore_changes` block so that Terraform does not revert those Atlas-managed changes.
 
-For clusters with more than one `replication_specs` entry, `use_effective_fields = true` currently has no effect, so this example does not use it. The `ignore_changes` entries reference each shard by its list index. Keep existing `replication_specs` entries in the same order and add new shards only after the existing entries. To learn more, see [Multi-shard clusters and topology changes](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#multi-shard-clusters-and-topology-changes).
+For clusters with more than one `replication_specs` entry, `use_effective_fields = true` currently has no effect, so this example does not use it. The `ignore_changes` entries reference each shard by its list index, so they might not preserve Atlas-managed values when the shard topology changes. Before adding, removing, or reordering shards, review [Multi-shard clusters and topology changes](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#multi-shard-clusters-and-topology-changes).
 
 ## Migrating from v1.x to v2.0.0 or later
 If you are migrating from v1.x of our provider to v2.0.0 or later, the `v1.x.x/` sub-directory shows how your current configuration might look like (with added inline comments to demonstrate what has changed in v2.0.0+ for migration reference).

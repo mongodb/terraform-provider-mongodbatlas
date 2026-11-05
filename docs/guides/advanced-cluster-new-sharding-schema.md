@@ -440,7 +440,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-The `ignore_changes` entries reference each shard by its list index. Keep existing `replication_specs` entries in the same order, add new shards only after the existing entries, and add the matching entries to `ignore_changes` for each new shard. Before removing a shard, review [Multi-shard clusters and topology changes](../resources/advanced_cluster#multi-shard-clusters-and-topology-changes).
+The `ignore_changes` entries reference each shard by its list index, so they might not preserve Atlas-managed values when the shard topology changes. Before adding, removing, or reordering shards, review [Multi-shard clusters and topology changes](../resources/advanced_cluster#multi-shard-clusters-and-topology-changes).
 
 While the example initially defines two symmetric shards, auto-scaling can lead to asymmetric shards due to changes in `instance_size`, `disk_size_gb`, and `disk_iops`. When either compute or disk auto-scaling is enabled, Atlas may adjust any of these resources to maintain optimal cluster performance.
 
