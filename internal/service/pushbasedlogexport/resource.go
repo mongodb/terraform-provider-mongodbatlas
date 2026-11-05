@@ -13,6 +13,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -25,6 +26,8 @@ const (
 	minTimeoutDelete       time.Duration = 30 * time.Second
 	retryTimeDelay         time.Duration = 10 * time.Second
 )
+
+const errorCodeAlreadyUnconfigured = "PUSH_BASED_LOG_EXPORT_ALREADY_UNCONFIGURED"
 
 var _ resource.ResourceWithConfigure = &pushBasedLogExportRS{}
 var _ resource.ResourceWithImportState = &pushBasedLogExportRS{}
@@ -76,10 +79,10 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 
 	err = cleanup.HandleCreateTimeout(tfPlan.DeleteOnCreateTimeout.ValueBool(), err, func(ctx context.Context) error {
 		cleanResp, cleanErr := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute()
-		if validate.StatusNotFound(cleanResp) {
-			return nil
+		if cleanErr != nil && !deletenotfound.IsNotFoundOrErrorCode(ctx, cleanResp, cleanErr, errorCodeAlreadyUnconfigured) {
+			return cleanErr
 		}
-		return cleanErr
+		return nil
 	})
 
 	if err != nil {
@@ -162,9 +165,9 @@ func (r *pushBasedLogExportRS) Delete(ctx context.Context, req resource.DeleteRe
 	connV2 := r.Client.AtlasV2
 	projectID := tfState.ProjectID.ValueString()
 	// The API returns 400 PUSH_BASED_LOG_EXPORT_ALREADY_UNCONFIGURED instead of 404 when the
-	// configuration is already gone, so handling a 404 here would be a no-op.
-	_, err := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute()
-	if err != nil {
+	// configuration is already gone, so that error code is also treated as a successful delete.
+	httpResp, err := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute()
+	if err != nil && !deletenotfound.IsNotFoundOrErrorCode(ctx, httpResp, err, errorCodeAlreadyUnconfigured) {
 		resp.Diagnostics.AddError("Error when deleting push-based log export configuration", err.Error())
 		return
 	}
@@ -199,7 +202,8 @@ func unconfigureFailedPushBasedLog(ctx context.Context, connV2 *admin.APIClient,
 	logConfig, _, _ := connV2.PushBasedLogExportAPI.GetLogExport(ctx, projectID).Execute()
 	if logConfig != nil && slices.Contains(failureStates, *logConfig.State) {
 		log.Printf("[INFO] Unconfiguring push-based log export for project due to create failure: %s", projectID)
-		if _, err := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute(); err != nil {
+		httpResp, err := connV2.PushBasedLogExportAPI.DeleteLogExport(ctx, projectID).Execute()
+		if err != nil && !deletenotfound.IsNotFoundOrErrorCode(ctx, httpResp, err, errorCodeAlreadyUnconfigured) {
 			return err
 		}
 	}

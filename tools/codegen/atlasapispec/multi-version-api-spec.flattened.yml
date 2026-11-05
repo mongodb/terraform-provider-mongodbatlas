@@ -925,7 +925,7 @@ components:
           writeOnly: true
         name:
           description: A name for the new API key that will be created.
-          maxLength: 250
+          maxLength: 50
           minLength: 1
           type: string
       required:
@@ -1004,7 +1004,7 @@ components:
       properties:
         name:
           description: A new name for the API key.
-          maxLength: 250
+          maxLength: 50
           minLength: 1
           type: string
       required:
@@ -1279,6 +1279,7 @@ components:
             - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRED
             - ACTIVE_LEGACY_TLS_CONNECTIONS
             - WEBHOOK_TEMPLATE_RENDER_FAILED
+            - ENCRYPTION_AT_REST_CONFIG_UPDATE_STALLED
             - MONGOTUNE_ALERT
             - CLUSTER_INSTANCE_STOP_START
             - CLUSTER_INSTANCE_RESYNC_REQUESTED
@@ -1365,6 +1366,10 @@ components:
             - HOST_SECURITY_CHECKUP_NOT_MET
             - ALERT_HOST_SSH_SESSION_STARTED
             - PROFILER_CONFIGURED_TOO_WIDELY
+            - PROACTIVE_REMEDIATION_NEEDED
+            - STREAMS_PRIVATE_LINK_ENDPOINT_UNUSED_FIRST_WARNING
+            - STREAMS_PRIVATE_LINK_ENDPOINT_UNUSED_SECOND_WARNING
+            - STREAMS_PRIVATE_LINK_ENDPOINT_UNUSED_DELETED
         groupId:
           description: Unique 24-hexadecimal digit string that identifies the project that owns this alert.
           example: 32b6e34b3d91647abb20e7b8
@@ -3529,7 +3534,7 @@ components:
           format: date-time
           type: string
         adaptiveCapacity:
-          description: Governs adaptive capacity behavior of Azure nodes in single-cloud Azure clusters or multi-cloud clusters that include Azure nodes. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; Azure clusters use adaptive capacity by default when the feature is enabled at the group level. Setting this field for single-cloud AWS or GCP clusters is a no-op.
+          description: Governs adaptive capacity behavior of nodes in clusters on providers that support fallback hardware, including those providers' nodes in multi-cloud clusters. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; clusters use adaptive capacity by default on a provider that supports it.
           enum:
             - ENABLED
             - DISABLED
@@ -3538,11 +3543,15 @@ components:
         advancedConfiguration:
           $ref: "#/components/schemas/ApiAtlasClusterAdvancedConfigurationView"
         backupEnabled:
-          default: false
-          description: Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.
+          description: |-
+            Flag that indicates whether Atlas backs up the cluster.
+
+            On Atlas Core clusters, dedicated clusters use [Cloud Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/) and Flex clusters use [Flex Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/). Default value is `false`. For clusters that use local [NVMe SSDs](https://www.mongodb.com/docs/atlas/manage-clusters/#nvme-storage) for storage, you can't disable backup, so you must set `backupEnabled` to `true`.
+
+            On Atlas Infinite clusters, the `backupEnabled` flag controls Additional Backup Retention, not whether backups run. To retain snapshots beyond the 24-hour window, set `backupEnabled` to `true`. For Atlas Infinite clusters, continuous cloud backups are enabled by default, always run, and include a 24-hour window in which you can restore to any point in time. Atlas then applies your snapshot retention policies. To keep only the included window under an Atlas-managed retention policy that you can't edit, set `backupEnabled` to `false`. A cluster covered by a Data Protection policy has this flag set to `true` regardless of the requested value. Default value is `true`.
           externalDocs:
             description: Cloud Backups
-            url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
+            url: https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/
           type: boolean
         biConnector:
           $ref: "#/components/schemas/BiConnector"
@@ -3709,10 +3718,13 @@ components:
           description: Flag that indicates whether the cluster is paused.
           type: boolean
         pitEnabled:
-          description: Flag that indicates whether the cluster uses continuous cloud backups.
+          description: |-
+            Flag that indicates whether the cluster uses continuous cloud backups.
+
+            For Atlas Infinite clusters, continuous cloud backups always run. Omit this field or set it to `true`. Setting it to `false` returns an invalid attribute error.
           externalDocs:
             description: Continuous Cloud Backups
-            url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
+            url: https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/
           type: boolean
         redactClientLogData:
           description: |-
@@ -3867,6 +3879,110 @@ components:
           readOnly: true
           type: string
       readOnly: true
+      type: object
+    AutoEmbeddingConfiguredInferenceScope:
+      description: Configured cloud and geographic dimensions. Both values are AUTO when Atlas selects the scope.
+      properties:
+        cloud:
+          description: Configured cloud provider scope.
+          enum:
+            - AUTO
+            - ANY
+            - AWS
+          type: string
+        geography:
+          description: Configured geographic scope.
+          enum:
+            - AUTO
+            - ANY
+            - EU
+            - US
+          type: string
+      required:
+        - cloud
+        - geography
+      type: object
+    AutoEmbeddingEffectiveInferenceScope:
+      description: Cloud and geographic dimensions that Atlas applies to this cluster.
+      properties:
+        cloud:
+          description: Effective cloud provider scope.
+          enum:
+            - ANY
+            - AWS
+          readOnly: true
+          type: string
+        geography:
+          description: Effective geographic scope.
+          enum:
+            - ANY
+            - EU
+            - US
+          readOnly: true
+          type: string
+      readOnly: true
+      required:
+        - cloud
+        - geography
+      type: object
+    AutoEmbeddingInferenceScopeResponse:
+      description: Configured and effective inference scope for Auto-Embedding indexes on one cluster.
+      properties:
+        configured:
+          $ref: "#/components/schemas/AutoEmbeddingConfiguredInferenceScope"
+        effective:
+          $ref: "#/components/schemas/AutoEmbeddingEffectiveInferenceScope"
+        mutable:
+          description: Flag that indicates whether the inference scope can be configured.
+          readOnly: true
+          type: boolean
+        reason:
+          description: Reason code that explains why the inference scope cannot be configured.
+          enum:
+            - UNSUPPORTED_QUERY_TIER
+            - UNSUPPORTED_CLUSTER_TYPE
+          nullable: true
+          readOnly: true
+          type: string
+        source:
+          description: Source from which Atlas derived the effective inference scope.
+          enum:
+            - DEFAULT
+            - CONFIGURED
+          readOnly: true
+          type: string
+      required:
+        - configured
+        - effective
+        - mutable
+        - source
+      type: object
+    AutoEmbeddingInferenceScopeUpdateRequest:
+      properties:
+        configured:
+          $ref: "#/components/schemas/AutoEmbeddingInferenceScopeUpdateRequestConfigured"
+      type: object
+    AutoEmbeddingInferenceScopeUpdateRequestConfigured:
+      description: Cloud and geographic dimensions to configure atomically.
+      properties:
+        cloud:
+          description: Cloud provider scope.
+          enum:
+            - AUTO
+            - ANY
+            - AWS
+          type: string
+        geography:
+          description: Geographic scope.
+          enum:
+            - AUTO
+            - ANY
+            - EU
+            - US
+          type: string
+      required:
+        - cloud
+        - geography
       type: object
     AutoExportPolicyView:
       description: Policy for automatically exporting Cloud Backup Snapshots.
@@ -5044,6 +5160,7 @@ components:
         - EUROPE_WEST1
         - US_EAST4
         - US_WEST1
+        - ASIA_SOUTH1
     BasicDBObject:
       additionalProperties:
         type: object
@@ -7121,7 +7238,7 @@ components:
           format: date-time
           type: string
         adaptiveCapacity:
-          description: Governs adaptive capacity behavior of Azure nodes in single-cloud Azure clusters or multi-cloud clusters that include Azure nodes. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; Azure clusters use adaptive capacity by default when the feature is enabled at the group level. Setting this field for single-cloud AWS or GCP clusters is a no-op.
+          description: Governs adaptive capacity behavior of nodes in clusters on providers that support fallback hardware, including those providers' nodes in multi-cloud clusters. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; clusters use adaptive capacity by default on a provider that supports it.
           enum:
             - ENABLED
             - DISABLED
@@ -7130,11 +7247,15 @@ components:
         advancedConfiguration:
           $ref: "#/components/schemas/ApiAtlasClusterAdvancedConfigurationView"
         backupEnabled:
-          default: false
-          description: Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.
+          description: |-
+            Flag that indicates whether Atlas backs up the cluster.
+
+            On Atlas Core clusters, dedicated clusters use [Cloud Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/) and Flex clusters use [Flex Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/). Default value is `false`. For clusters that use local [NVMe SSDs](https://www.mongodb.com/docs/atlas/manage-clusters/#nvme-storage) for storage, you can't disable backup, so you must set `backupEnabled` to `true`.
+
+            On Atlas Infinite clusters, the `backupEnabled` flag controls Additional Backup Retention, not whether backups run. To retain snapshots beyond the 24-hour window, set `backupEnabled` to `true`. For Atlas Infinite clusters, continuous cloud backups are enabled by default, always run, and include a 24-hour window in which you can restore to any point in time. Atlas then applies your snapshot retention policies. To keep only the included window under an Atlas-managed retention policy that you can't edit, set `backupEnabled` to `false`. A cluster covered by a Data Protection policy has this flag set to `true` regardless of the requested value. Default value is `true`.
           externalDocs:
             description: Cloud Backups
-            url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
+            url: https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/
           type: boolean
         biConnector:
           $ref: "#/components/schemas/BiConnector"
@@ -7301,10 +7422,13 @@ components:
           description: Flag that indicates whether the cluster is paused.
           type: boolean
         pitEnabled:
-          description: Flag that indicates whether the cluster uses continuous cloud backups.
+          description: |-
+            Flag that indicates whether the cluster uses continuous cloud backups.
+
+            For Atlas Infinite clusters, continuous cloud backups always run. Omit this field or set it to `true`. Setting it to `false` returns an invalid attribute error.
           externalDocs:
             description: Continuous Cloud Backups
-            url: https://docs.atlas.mongodb.com/backup/cloud-backup/overview/
+            url: https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/
           type: boolean
         redactClientLogData:
           description: |-
@@ -8181,6 +8305,55 @@ components:
           type: boolean
       title: Serverless Backup Options
       type: object
+    ClusterShardMeasurementsResponse:
+      description: Measurement time series for every shard of one sharded cluster over the requested window, one series per shard and measurement.
+      properties:
+        clusterName:
+          description: Human-readable label that identifies the cluster.
+          readOnly: true
+          type: string
+        end:
+          description: Date and time at which the window ends. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+          format: date-time
+          readOnly: true
+          type: string
+        granularity:
+          description: Interval between consecutive data points, in ISO 8601 duration format. Either the requested `granularity` or, when none was requested, the resolution MongoDB Cloud chose for the width of the window.
+          enum:
+            - PT30S
+            - PT1M
+            - PT3M
+            - PT15M
+            - PT1H
+            - PT3H
+          readOnly: true
+          type: string
+        groupId:
+          description: Unique 24-hexadecimal digit string that identifies the project.
+          example: 32b6e34b3d91647abb20e7b8
+          pattern: ^([a-f0-9]{24})$
+          readOnly: true
+          type: string
+        measurements:
+          description: One time series per requested measurement on each shard of the cluster, ordered by measurement and then by `replicaSetName`. A shard that MongoDB Cloud has no readings for is still listed, with `null` data point values.
+          items:
+            $ref: "#/components/schemas/ShardMeasurement"
+          maxItems: 11000
+          readOnly: true
+          type: array
+        start:
+          description: Date and time of the first data point. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+          format: date-time
+          readOnly: true
+          type: string
+      required:
+        - clusterName
+        - end
+        - granularity
+        - groupId
+        - measurements
+        - start
+      type: object
     ClusterStatus:
       properties:
         changeStatus:
@@ -8654,6 +8827,7 @@ components:
               - AI Model APIs
               - Automated Embedding
               - Native Reranking
+              - Agent Engine
               - Flex Consulting
               - Support
               - Credits
@@ -12546,6 +12720,8 @@ components:
         - ACTIVE_LEGACY_TLS_CONNECTIONS
         - NO_ACTIVE_LEGACY_TLS_CONNECTIONS
         - WEBHOOK_TEMPLATE_RENDER_FAILED
+        - ENCRYPTION_AT_REST_CONFIG_UPDATE_NO_LONGER_STALLED
+        - ENCRYPTION_AT_REST_CONFIG_UPDATE_STALLED
         - INTEGRATION_CONFIGURED
         - INTEGRATION_REMOVED
         - ATTEMPT_KILLOP_AUDIT
@@ -12849,6 +13025,8 @@ components:
         - STREAM_TENANT_OPERATIONAL_LOGS
         - STREAM_TENANT_AUDIT_LOGS
         - STREAM_TENANT_AUDIT_LOGS_DELETED
+        - STREAM_WORKSPACE_PRIVATE_ENDPOINT_CREATED
+        - STREAM_WORKSPACE_PRIVATE_ENDPOINT_DELETED
         - QUEUED_ADMIN_ACTION_CREATED
         - QUEUED_ADMIN_ACTION_COMPLETED
         - QUEUED_ADMIN_ACTION_CANCELLED
@@ -12901,6 +13079,7 @@ components:
         - VOLUME_IMPAIRED_RESOLVED
         - SQL_INTERFACE_ENABLED
         - SQL_INTERFACE_DISABLED
+        - AUTO_EMBEDDING_INFERENCE_SCOPE_UPDATED
         - CLUSTER_OVERLOAD_PROTECTION_SIMULATION_REQUESTED
         - CLUSTER_OVERLOAD_PROTECTION_SIMULATION_STARTED
         - CLUSTER_OVERLOAD_PROTECTION_SIMULATION_FAILED_TO_START
@@ -13042,6 +13221,10 @@ components:
         - TENANT_RESTORE_REQUESTED_AUDIT
         - TENANT_RESTORE_COMPLETED_AUDIT
         - TENANT_SNAPSHOT_DOWNLOAD_REQUESTED_AUDIT
+        - M0_BACKUP_SUBSCRIPTION_ENABLED
+        - M0_BACKUP_SUBSCRIPTION_CANCELLED
+        - M0_BACKUP_SUBSCRIPTION_PAUSED
+        - M0_BACKUP_SUBSCRIPTION_RESUMED
         - JOINED_GROUP
         - REMOVED_FROM_GROUP
         - INVITED_TO_GROUP
@@ -13081,6 +13264,10 @@ components:
         - AI_MODELS_APIS_RATE_LIMIT_UPDATED
         - AI_MODELS_APIS_RATE_LIMIT_RESET
         - AI_MODELS_APIS_RATE_LIMIT_ADMIN_OVERRIDE
+        - PROACTIVE_REMEDIATION_NEEDED
+        - STREAMS_PRIVATE_LINK_ENDPOINT_UNUSED_FIRST_WARNING
+        - STREAMS_PRIVATE_LINK_ENDPOINT_UNUSED_SECOND_WARNING
+        - STREAMS_PRIVATE_LINK_ENDPOINT_UNUSED_DELETED
     EventTypeForOrg:
       type: string
       enum:
@@ -13246,6 +13433,7 @@ components:
         - SHADOW_CLUSTER_ORG_OPT_IN
         - SHADOW_CLUSTER_ORG_OPT_OUT
         - ATLAS_MAINTENANCE_FLEET_ACTIVE_WAVE_CLOSED_BY_ADMIN
+        - ATLAS_MAINTENANCE_FLEET_ACTIVE_WAVE_AUTO_CLOSED
         - MAINTENANCE_WAVE_ASSIGNMENT_ADDED
         - MAINTENANCE_WAVE_ASSIGNMENT_MODIFIED
         - MAINTENANCE_WAVE_ASSIGNMENT_REMOVED
@@ -15270,7 +15458,7 @@ components:
           description: Flag that indicates whether someone enabled this alert configuration for the specified project.
           type: boolean
         eventTypeName:
-          $ref: "#/components/schemas/StreamProcessorEventTypeViewAlertableWithThreshold"
+          $ref: "#/components/schemas/StreamsPrivateLinkEndpointEventTypeViewForNdsGroupAlertable"
           description: Incident that triggered this alert.
         groupId:
           description: Unique 24-hexadecimal digit string that identifies the project that owns this alert configuration.
@@ -15296,7 +15484,8 @@ components:
         matchers:
           description: List of rules that determine whether MongoDB Cloud checks an object for the alert configuration.
           items:
-            $ref: "#/components/schemas/StreamsMatcher"
+            $ref: "#/components/schemas/StreamsPrivateLinkEndpointMatcher"
+          maxItems: 100
           type: array
         notifications:
           description: List that contains the targets that MongoDB Cloud sends notifications.
@@ -15803,7 +15992,6 @@ components:
         withoutInitialSecret:
           default: false
           description: "If true, creates the Service Account without generating an initial secret. `secretExpiresAfterHours` must not be set when this is true. Defaults to false, which preserves existing behavior: a secret is generated and returned in the response. Use the `CreateGroupServiceAccountSecret` endpoint to add a secret later."
-          nullable: true
           type: boolean
       required:
         - description
@@ -15898,6 +16086,9 @@ components:
           type: boolean
         isClusterAiAssistantEnabled:
           description: Flag that indicates whether the AI Cluster Assistant is enabled for the specified project.
+          type: boolean
+        isClusterAiQuickStartEnabled:
+          description: Flag that indicates whether to enable Cluster AI Quick Start for the specified project.
           type: boolean
         isCollectDatabaseSpecificsStatisticsEnabled:
           description: Flag that indicates whether to collect database-specific metrics for the specified project.
@@ -18095,6 +18286,7 @@ components:
         - SHARD_NAME
         - INSTANCE_NAME
         - PROCESSOR_NAME
+        - ENDPOINT_ID
         - RULE_ID
         - SOFTWARE_TYPE
     MdbAvailableVersion:
@@ -19213,6 +19405,138 @@ components:
               - endMinute
               - startHour
               - startMinute
+    OperationError:
+      description: Details about a failed operation.
+      properties:
+        code:
+          description: Machine-readable error code.
+          type: string
+        details:
+          additionalProperties:
+            description: Additional error details.
+            type: object
+          description: Additional error details.
+          nullable: true
+          type: object
+        message:
+          description: Human-readable error message.
+          type: string
+        retryStrategy:
+          description: Recommended strategy for retrying the operation.
+          enum:
+            - IMMEDIATE
+            - BACKOFF
+            - NONE
+          nullable: true
+          type: string
+        retryable:
+          description: Flag that indicates whether the operation can be retried.
+          type: boolean
+      readOnly: true
+      required:
+        - code
+        - message
+        - retryable
+      type: object
+    OperationProgress:
+      description: Progress made by an active operation.
+      properties:
+        completed:
+          description: Number of completed units.
+          format: int32
+          type: integer
+        total:
+          description: Total number of units.
+          format: int32
+          type: integer
+        unit:
+          description: Unit measured by completed and total.
+          type: string
+      readOnly: true
+      type: object
+    OperationResponse:
+      description: Status of a long-running operation.
+      properties:
+        createdAt:
+          description: Creation time in ISO 8601 timestamp format in UTC.
+          format: date-time
+          readOnly: true
+          type: string
+        customMethod:
+          description: Name of a custom operation. Required for CUSTOM operations.
+          nullable: true
+          readOnly: true
+          type: string
+        error:
+          $ref: "#/components/schemas/OperationError"
+        estimatedCompletionTime:
+          description: Estimated completion time in ISO 8601 timestamp format in UTC.
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
+        expiresAt:
+          description: Expiration time in ISO 8601 timestamp format in UTC.
+          format: date-time
+          readOnly: true
+          type: string
+        operationId:
+          description: Unique identifier of the operation.
+          readOnly: true
+          type: string
+        operationType:
+          description: Type of mutation performed by the operation.
+          enum:
+            - CREATE
+            - UPDATE
+            - DELETE
+            - CUSTOM
+          readOnly: true
+          type: string
+        progress:
+          $ref: "#/components/schemas/OperationProgress"
+        resultHref:
+          description: URI of the affected resource. Required when status is SUCCEEDED.
+          format: uri
+          nullable: true
+          readOnly: true
+          type: string
+        retryAfterSeconds:
+          description: Recommended polling delay. Required while the operation is active.
+          format: int32
+          minimum: 1
+          nullable: true
+          readOnly: true
+          type: integer
+        status:
+          description: State of the operation.
+          enum:
+            - PENDING
+            - IN_PROGRESS
+            - SUCCEEDED
+            - FAILED
+            - CANCELED
+            - SUPERSEDED
+          readOnly: true
+          type: string
+        statusMessage:
+          description: Human-readable operation status.
+          nullable: true
+          readOnly: true
+          type: string
+        updatedAt:
+          description: Last update time in ISO 8601 timestamp format in UTC.
+          format: date-time
+          readOnly: true
+          type: string
+      required:
+        - createdAt
+        - expiresAt
+        - operationId
+        - operationType
+        - status
+        - updatedAt
+      type: object
     OrgAssociatedInvoiceResponse:
       description: Response containing associated invoices for an organization.
       properties:
@@ -19720,7 +20044,6 @@ components:
         withoutInitialSecret:
           default: false
           description: "If true, creates the Service Account without generating an initial secret. `secretExpiresAfterHours` must not be set when this is true. Defaults to false, which preserves existing behavior: a secret is generated and returned in the response. Use the `CreateOrgServiceAccountSecret` endpoint to add a secret later."
-          nullable: true
           type: boolean
       required:
         - description
@@ -21891,6 +22214,33 @@ components:
       required:
         - results
       type: object
+    PaginatedOperationResponse:
+      description: Paginated Auto-Embedding inference scope operations.
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        results:
+          description: List of returned documents that MongoDB Cloud provides when completing this request.
+          items:
+            $ref: "#/components/schemas/OperationResponse"
+          readOnly: true
+          type: array
+        totalCount:
+          description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+      required:
+        - results
+      type: object
     PaginatedOrgGroupView:
       properties:
         links:
@@ -22354,6 +22704,84 @@ components:
           description: List of returned documents that MongoDB Cloud provides when completing this request.
           items:
             $ref: "#/components/schemas/ServiceAccountIPAccessListEntry"
+          readOnly: true
+          type: array
+        totalCount:
+          description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+      required:
+        - results
+      type: object
+    PaginatedShardKeyAnalysisOperationResponse:
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        results:
+          description: List of returned documents that MongoDB Cloud provides when completing this request.
+          items:
+            $ref: "#/components/schemas/ShardKeyAnalysisOperationResponse"
+          readOnly: true
+          type: array
+        totalCount:
+          description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+      required:
+        - results
+      type: object
+    PaginatedShardKeyAnalysisResponse:
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        results:
+          description: List of returned documents that MongoDB Cloud provides when completing this request.
+          items:
+            $ref: "#/components/schemas/ShardKeyAnalysisResponse"
+          readOnly: true
+          type: array
+        totalCount:
+          description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+      required:
+        - results
+      type: object
+    PaginatedShardMetricsResponse:
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        results:
+          description: List of returned documents that MongoDB Cloud provides when completing this request.
+          items:
+            $ref: "#/components/schemas/ShardMetricsResponse"
           readOnly: true
           type: array
         totalCount:
@@ -22858,6 +23286,35 @@ components:
           $ref: "#/components/schemas/Principal"
       readOnly: true
       type: object
+    PrivateEndpointConnectionStringCreateRequest:
+      description: Private endpoint connection string to create for one cluster.
+      properties:
+        name:
+          description: Human-readable label of at most 64 characters that identifies this private endpoint connection string. You can change this label without changing the connection string.
+          example: reporting-vpc
+          maxLength: 64
+          minLength: 1
+          type: string
+        optimizedModeEnabled:
+          default: false
+          description: Flag that indicates whether this private endpoint connection string uses the optimized load-balanced mode. This mode requires a sharded cluster and a private endpoint selection that satisfies the optimized connection string requirements.
+          type: boolean
+        privateEndpointIds:
+          description: Set of private endpoints that this connection string covers. MongoDB Cloud stores this set as a snapshot of your selection and never adds newly created private endpoints to it. The set accepts at most one private endpoint per cloud provider region, and can include private endpoints that the cluster does not use yet. Order is not significant and MongoDB Cloud rejects duplicate values.
+          items:
+            description: "Unique string of at most 512 characters that identifies one private endpoint. The format depends on the cloud provider: for Amazon Web Services, this value is a private endpoint ID; for Azure, this value is a resource ID; for Google Cloud, this value is either the forwarding rule name of a port mapped Private Service Connect endpoint or the endpoint group name of a legacy Private Service Connect endpoint group."
+            maxLength: 512
+            type: string
+          maxItems: 50
+          minItems: 1
+          type: array
+          uniqueItems: true
+          x-xgen-array-semantic: set
+      required:
+        - name
+        - privateEndpointIds
+      title: Private Endpoint Connection String Create Request
+      type: object
     PrivateEndpointConnectionStringResponse:
       description: Private endpoint connection string for one cluster.
       properties:
@@ -22907,10 +23364,6 @@ components:
           type: array
           uniqueItems: true
           x-xgen-array-semantic: set
-        selectiveMongosEnabled:
-          default: false
-          description: Flag that indicates whether this private endpoint connection string routes clients to a subset of the `mongos` processes of the cluster.
-          type: boolean
         slug:
           description: Short generated pin of at most 64 characters, unique per project. Present only when `managementType` is `SELF_MANAGED`. A self-managed connection string embeds this value in its DNS names, and its replica set horizon name is `cs-` plus this value.
           example: ztevkhxb
@@ -22942,6 +23395,28 @@ components:
         - privateEndpointIds
         - status
       title: Private Endpoint Connection String
+      type: object
+    PrivateEndpointConnectionStringUpdateRequest:
+      description: Private endpoint connection string fields to update for one cluster. Only `name` and `privateEndpointIds` can change; a request that carries any other field, including the connection method property `optimizedModeEnabled`, is rejected with a 400 naming the offending fields.
+      properties:
+        name:
+          description: Human-readable label of at most 64 characters that identifies this private endpoint connection string. You can change this label without changing the connection string.
+          example: reporting-vpc
+          maxLength: 64
+          minLength: 1
+          type: string
+        privateEndpointIds:
+          description: Set of private endpoints that this connection string covers. MongoDB Cloud replaces the stored snapshot with this set and never adds newly created private endpoints to it. The set accepts at most one private endpoint per cloud provider region, and can include private endpoints that the cluster does not use yet. Order is not significant and MongoDB Cloud rejects duplicate values.
+          items:
+            description: "Unique string of at most 512 characters that identifies one private endpoint. The format depends on the cloud provider: for Amazon Web Services, this value is a private endpoint ID; for Azure, this value is a resource ID; for Google Cloud, this value is either the forwarding rule name of a port mapped Private Service Connect endpoint or the endpoint group name of a legacy Private Service Connect endpoint group."
+            maxLength: 512
+            type: string
+          maxItems: 50
+          minItems: 1
+          type: array
+          uniqueItems: true
+          x-xgen-array-semantic: set
+      title: Private Endpoint Connection String Update Request
       type: object
     PrivateEndpointHostname:
       description: Set of Private endpoint and hostnames.
@@ -23246,6 +23721,68 @@ components:
           readOnly: true
           type: string
       type: object
+    QuerySamplingCreateRequest:
+      description: Namespace on which to start query sampling.
+      properties:
+        namespace:
+          description: Human-readable label that identifies the namespace (`<database>.<collection>`) on which to sample queries.
+          example: sales.orders
+          minLength: 1
+          type: string
+      required:
+        - namespace
+      type: object
+    QuerySamplingResponse:
+      description: Query sampling state for one namespace of one cluster. Sampled queries feed the shard key analysis for the namespace.
+      properties:
+        active:
+          description: Flag that indicates whether query sampling is observably running on the namespace. May still be `false` in the response to a successful create request; it becomes `true` asynchronously once the cluster applies the sampling configuration.
+          readOnly: true
+          type: boolean
+        namespace:
+          description: Human-readable label that identifies the namespace (`<database>.<collection>`) on which queries are sampled.
+          example: sales.orders
+          type: string
+        sampledReadsBytes:
+          description: Total size in bytes of the read operations sampled on the namespace.
+          format: int64
+          nullable: true
+          readOnly: true
+          type: integer
+        sampledReadsCount:
+          description: Number of read operations sampled on the namespace.
+          format: int64
+          nullable: true
+          readOnly: true
+          type: integer
+        sampledWritesBytes:
+          description: Total size in bytes of the write operations sampled on the namespace.
+          format: int64
+          nullable: true
+          readOnly: true
+          type: integer
+        sampledWritesCount:
+          description: Number of write operations sampled on the namespace.
+          format: int64
+          nullable: true
+          readOnly: true
+          type: integer
+        samplesPerSecond:
+          description: Maximum number of queries sampled per second on the namespace. MongoDB Cloud sets this rate.
+          format: double
+          nullable: true
+          readOnly: true
+          type: number
+        startTime:
+          description: Date and time when query sampling started on the namespace. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
+      required:
+        - active
+        - namespace
+      type: object
     QueryShapeResponse:
       description: Response containing the details and status of a query shape. The query shape field may be null if the user lacks PII view access.
       properties:
@@ -23366,8 +23903,12 @@ components:
     QueryStatsSummary:
       description: A summary of execution statistics for a given query shape.
       properties:
+        avgTimeToResponseMicros:
+          description: "Average time in microseconds from the beginning of query processing to the first server response, per execution of queries with the given query shape. Calculated as `totalTimeToResponseMicros` divided by `execCount` over the requested time range. As a duration it can be longer or shorter than `avgWorkingMillis` (reported in milliseconds, so convert before comparing): longer when executions spent time blocked on locks or flow control rather than working, shorter when they kept working after the first batch to return later `getMore` batches."
+          format: double
+          type: number
         avgWorkingMillis:
-          description: Average total time in milliseconds spent running queries with the given query shape. If the query resulted in `getMore` commands, this metric includes the time spent processing the `getMore` requests. This metric does not include time spent waiting for the client.
+          description: Average active execution time in milliseconds per execution of queries with the given query shape, calculated as `totalWorkingMillis` divided by `execCount` over the requested time range. Excludes intentional pauses such as time waiting on locks or flow control.
           format: double
           type: number
         bytesRead:
@@ -23481,11 +24022,11 @@ components:
           description: Indicates whether this query shape represents a system-initiated query.
           type: boolean
         totalTimeToResponseMicros:
-          description: Time in microseconds spent from the beginning of query processing to the first server response.
+          description: Total time in microseconds from the beginning of query processing to the first server response, summed across executions of queries with the given query shape. Includes time spent waiting on locks or flow control. Stops at the first batch of results, so time spent serving later `getMore` batches is not counted.
           format: double
           type: number
         totalWorkingMillis:
-          description: Total time in milliseconds spent running queries with the given query shape. If the query resulted in `getMore` commands, this metric includes the time spent processing the `getMore` requests. This metric does not include time spent waiting for the client.
+          description: Total time in milliseconds that queries with the given query shape spent actively executing, summed across executions, including time spent processing `getMore` requests. Excludes intentional pauses such as time waiting on locks or flow control, and time spent waiting for the client.
           format: double
           type: number
       type: object
@@ -24748,6 +25289,60 @@ components:
       required:
         - secretExpiresAfterHours
       type: object
+    ShardAlert:
+      description: Open alert on one of the shard's nodes.
+      properties:
+        message:
+          description: Human-readable description of the condition that triggered this alert.
+          readOnly: true
+          type: string
+        severity:
+          description: Severity that MongoDB Cloud assigned to this alert.
+          enum:
+            - INFO
+            - WARNING
+            - ERROR
+            - CRITICAL
+          readOnly: true
+          type: string
+      required:
+        - message
+        - severity
+      type: object
+    ShardCacheThroughput:
+      description: Bytes per second that the shard moved in and out of the cache over the last hour.
+      properties:
+        readIntoBytesPerSecond:
+          description: Average bytes per second read into the cache, across the shard's nodes over the last hour.
+          format: double
+          readOnly: true
+          type: number
+        writtenFromBytesPerSecond:
+          description: Average bytes per second written from the cache, across the shard's nodes over the last hour.
+          format: double
+          readOnly: true
+          type: number
+      required:
+        - readIntoBytesPerSecond
+        - writtenFromBytesPerSecond
+      type: object
+    ShardCpuUtilization:
+      description: CPU utilization of the shard's nodes over the last hour, as a percentage.
+      properties:
+        averagePercent:
+          description: Average CPU utilization across the shard's nodes over the last hour.
+          format: double
+          readOnly: true
+          type: number
+        maximumPercent:
+          description: Highest CPU utilization that any one of the shard's nodes reached over the last hour.
+          format: double
+          readOnly: true
+          type: number
+      required:
+        - averagePercent
+        - maximumPercent
+      type: object
     ShardEntry:
       description: Sharding configuration for a collection to be sharded on the destination cluster.
       properties:
@@ -24766,6 +25361,379 @@ components:
         - database
         - shardCollection
       type: object
+    ShardKeyAnalysisError:
+      description: Details of the failure that ended the shard key analysis operation.
+      properties:
+        code:
+          description: Reason that the shard key analysis failed. MongoDB Cloud may report additional values in the future without a new resource version, so treat a value this description does not list as a generic failure.
+          enum:
+            - NAMESPACE_NOT_FOUND
+            - COLLECTION_EMPTY
+            - SHARD_KEY_MISSING_SUPPORTING_INDEX
+            - INSUFFICIENT_CARDINALITY_FOR_DISTRIBUTION
+            - SHARD_KEY_CONTAINS_ARRAY_FIELD
+            - SUPPORTING_INDEX_NOT_ASCENDING
+            - SUPPORTING_INDEX_AMBIGUOUS
+            - SHARD_KEY_ANALYSIS_TIMED_OUT
+            - SHARD_KEY_ANALYSIS_FAILED
+          readOnly: true
+          type: string
+        message:
+          description: Human-readable explanation of the failure. This message describes the classified failure and is not the raw error text from the cluster.
+          readOnly: true
+          type: string
+        retryStrategy:
+          description: How to retry a failed shard key analysis. `BACKOFF` indicates that resubmitting the same request after a delay may succeed. `NONE` indicates that the failure describes the collection or the candidate shard key and that resubmitting the same request will fail the same way.
+          enum:
+            - BACKOFF
+            - NONE
+          readOnly: true
+          type: string
+        retryable:
+          description: Flag that indicates whether submitting the same request again may succeed. This flag is `false` when the failure describes the collection or the candidate shard key, because the same request then fails the same way.
+          readOnly: true
+          type: boolean
+      readOnly: true
+      required:
+        - code
+        - message
+        - retryable
+      type: object
+    ShardKeyAnalysisOperationResponse:
+      description: Progress of one shard key analysis. Poll this resource until `status` reaches a terminal value, then follow `resultHref` to read the analysis.
+      properties:
+        createdAt:
+          description: Date and time when MongoDB Cloud accepted this operation (ISO 8601 format in UTC).
+          format: date-time
+          readOnly: true
+          type: string
+        error:
+          $ref: "#/components/schemas/ShardKeyAnalysisError"
+        expiresAt:
+          description: Date and time when MongoDB Cloud stops returning this operation (ISO 8601 format in UTC). Reads after this time return an HTTP 404 status. This value derives from `updatedAt`, so it advances with each state change while the operation is running and settles only once the operation is terminal.
+          format: date-time
+          readOnly: true
+          type: string
+        operationId:
+          description: Unique 24-hexadecimal digit string that identifies this operation. When the operation succeeds, the analysis it created carries the same identifier.
+          example: 32b6e34b3d91647abb20e7b8
+          pattern: ^([a-f0-9]{24})$
+          readOnly: true
+          type: string
+        operationType:
+          description: Kind of change the operation makes. Submitting a shard key analysis creates an analysis resource, so the operation type is always `CREATE`.
+          enum:
+            - CREATE
+          readOnly: true
+          type: string
+        resultHref:
+          description: URI of the analysis this operation created. MongoDB Cloud returns this parameter only when `status` is `SUCCEEDED`.
+          readOnly: true
+          type: string
+        retryAfterSeconds:
+          description: Number of seconds to wait before polling this operation again. MongoDB Cloud returns this parameter only while `status` is not terminal.
+          format: int32
+          minimum: 1
+          readOnly: true
+          type: integer
+        status:
+          description: State of the shard key analysis operation. `PENDING` and `IN_PROGRESS` are non-terminal; `SUCCEEDED`, `FAILED`, `CANCELED` and `SUPERSEDED` are terminal. MongoDB Cloud currently reports only `PENDING`, `SUCCEEDED` and `FAILED`. The remaining values are reserved and may be reported in the future without a new resource version.
+          enum:
+            - PENDING
+            - IN_PROGRESS
+            - SUCCEEDED
+            - FAILED
+            - CANCELED
+            - SUPERSEDED
+          readOnly: true
+          type: string
+        updatedAt:
+          description: Date and time when this operation last changed state (ISO 8601 format in UTC). Once the operation is terminal, this is when it finished.
+          format: date-time
+          readOnly: true
+          type: string
+      required:
+        - createdAt
+        - expiresAt
+        - operationId
+        - operationType
+        - status
+        - updatedAt
+      type: object
+    ShardKeyAnalysisRequest:
+      description: Shard key to analyze for one collection.
+      properties:
+        includeKeyCharacteristics:
+          default: true
+          description: Flag that indicates whether to return the cardinality, frequency and monotonicity of the candidate shard key.
+          type: boolean
+          writeOnly: true
+        includeReadWriteDistribution:
+          default: false
+          description: Flag that indicates whether to return how reads and writes would be routed across shards under the candidate shard key. This requires query sampling to have collected operations for the namespace.
+          type: boolean
+          writeOnly: true
+        namespace:
+          description: Combination of the database and collection to analyze, written as `<database>.<collection>`.
+          example: sales.orders
+          type: string
+        shardKey:
+          description: 'Candidate shard key, given as one object per shard key field in the order the fields form the key. Field order is significant: `[{"a": "1"}, {"b": "1"}]` and `[{"b": "1"}, {"a": "1"}]` are different shard keys. At most one field may be `hashed`.'
+          items:
+            additionalProperties:
+              description: Key-value pair that sets one shard key field as the key and how to index it as its value. Use `1` for an ascending range-based field and `hashed` for a hashed field. MongoDB rejects any other value.
+              maxProperties: 1
+              minProperties: 1
+              type: string
+            description: Key-value pair that sets one shard key field as the key and how to index it as its value. Use `1` for an ascending range-based field and `hashed` for a hashed field. MongoDB rejects any other value.
+            maxProperties: 1
+            minProperties: 1
+            type: object
+          maxItems: 32
+          type: array
+          uniqueItems: true
+      required:
+        - namespace
+        - shardKey
+      type: object
+    ShardKeyAnalysisResponse:
+      description: Completed analysis of one candidate shard key, describing how well the key would distribute the collection's documents and operations across shards.
+      properties:
+        avgDocSizeBytes:
+          description: Average size of one document in the collection, in bytes.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+        correlationCoefficient:
+          description: Correlation between the candidate shard key and the order in which documents were inserted, from `-1` to `1`. Values near `1` or `-1` indicate a monotonically changing key, which directs all inserts to one shard. This parameter is absent when the shard key has no supporting index or the collection is clustered, in which case MongoDB Cloud does not compute it.
+          format: double
+          maximum: 1
+          minimum: -1
+          readOnly: true
+          type: number
+        createdAt:
+          description: Date and time when this shard key analysis was requested (ISO 8601 format in UTC). This is when the analysis was submitted, not when it completed; the completion time is the `updatedAt` of the operation that produced it.
+          format: date-time
+          readOnly: true
+          type: string
+        expiresAt:
+          description: Date and time when MongoDB Cloud stops returning this shard key analysis (ISO 8601 format in UTC). Reads after this time return an HTTP 404 status.
+          format: date-time
+          readOnly: true
+          type: string
+        id:
+          description: Unique 24-hexadecimal digit string that identifies this shard key analysis. This is the same identifier as the `operationId` of the operation that produced it.
+          example: 32b6e34b3d91647abb20e7b8
+          pattern: ^([a-f0-9]{24})$
+          readOnly: true
+          type: string
+        isUnique:
+          description: Flag that indicates whether the index supporting the candidate shard key enforces a uniqueness constraint.
+          readOnly: true
+          type: boolean
+        monotonicity:
+          description: Whether the shard key value increases or decreases with the order in which documents were inserted. A monotonically changing shard key directs all inserts to one shard. `UNKNOWN` indicates that MongoDB Cloud could not determine monotonicity, which happens when the shard key has no supporting index or the collection is clustered.
+          enum:
+            - MONOTONIC
+            - NOT_MONOTONIC
+            - UNKNOWN
+          readOnly: true
+          type: string
+        mostCommonValues:
+          description: Shard key values that occur most frequently in the sampled documents, with how often each occurs. MongoDB Cloud returns this parameter only to callers that can read the collection's data, because it carries values out of the collection rather than statistics about them.
+          items:
+            $ref: "#/components/schemas/ShardKeyMostCommonValue"
+          maxItems: 100
+          readOnly: true
+          type: array
+        namespace:
+          description: Combination of the database and collection that was analyzed, written as `<database>.<collection>`.
+          type: string
+        note:
+          description: Guidance from MongoDB on how to interpret the metrics in this analysis. This parameter is absent when the analysis carries no guidance.
+          readOnly: true
+          type: string
+        numDistinctValues:
+          description: Number of distinct values that the candidate shard key takes across the sampled documents. A value close to `numDocsSampled` indicates high cardinality, which distributes documents well.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+        numDocsSampled:
+          description: Number of documents that MongoDB Cloud sampled to compute these metrics.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+        numDocsTotal:
+          description: Number of documents in the collection.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+        numOrphanDocs:
+          description: Number of orphaned documents in the collection. This parameter is absent for collections that have none.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+        percentageOfMultiShardReads:
+          description: Percentage of sampled reads that the candidate shard key would route to more than one shard but not to every shard.
+          format: double
+          maximum: 100
+          minimum: 0
+          readOnly: true
+          type: number
+        percentageOfMultiShardWrites:
+          description: Percentage of sampled writes that the candidate shard key would route to more than one shard but not to every shard.
+          format: double
+          maximum: 100
+          minimum: 0
+          readOnly: true
+          type: number
+        percentageOfScatterGatherReads:
+          description: Percentage of sampled reads that the candidate shard key would broadcast to every shard. Lower is better.
+          format: double
+          maximum: 100
+          minimum: 0
+          readOnly: true
+          type: number
+        percentageOfScatterGatherWrites:
+          description: Percentage of sampled writes that the candidate shard key would broadcast to every shard. Lower is better.
+          format: double
+          maximum: 100
+          minimum: 0
+          readOnly: true
+          type: number
+        percentageOfSingleShardReads:
+          description: Percentage of sampled reads that the candidate shard key would route to exactly one shard. Higher is better.
+          format: double
+          maximum: 100
+          minimum: 0
+          readOnly: true
+          type: number
+        percentageOfSingleShardWrites:
+          description: Percentage of sampled writes that the candidate shard key would route to exactly one shard. Higher is better.
+          format: double
+          maximum: 100
+          minimum: 0
+          readOnly: true
+          type: number
+        rawOutput:
+          description: Unmodified result of the `analyzeShardKey` command, as a JSON string. Its content tracks the MongoDB server version of the analyzed cluster rather than the version of this resource, so members outside the parameters above may appear or change without a new resource version. Do not parse it as a stable contract. `mostCommonValues` is removed from it for callers that cannot read the collection's data. This parameter is absent if MongoDB Cloud could not serialize the command result, which costs the raw view but not the analysis.
+          readOnly: true
+          type: string
+        readSampleSize:
+          $ref: "#/components/schemas/ShardKeyReadSampleSize"
+        shardKey:
+          description: Candidate shard key that was analyzed, given as one object per shard key field in the order the fields form the key. This parameter is absent when MongoDB Cloud has no shard key recorded for the analysis.
+          items:
+            additionalProperties:
+              description: "Key-value pair that sets one shard key field as the key and how it was indexed as its value: `1` for an ascending range-based field, `hashed` for a hashed field."
+              maxProperties: 1
+              minProperties: 1
+              type: string
+            description: "Key-value pair that sets one shard key field as the key and how it was indexed as its value: `1` for an ascending range-based field, `hashed` for a hashed field."
+            maxProperties: 1
+            minProperties: 1
+            type: object
+          maxItems: 32
+          type: array
+        writeSampleSize:
+          $ref: "#/components/schemas/ShardKeyWriteSampleSize"
+      required:
+        - createdAt
+        - expiresAt
+        - id
+        - namespace
+      type: object
+    ShardKeyMostCommonValue:
+      description: Shard key value that occurs frequently in the sampled documents, with the number of sampled documents that carry it.
+      properties:
+        frequency:
+          description: Number of sampled documents that carry this shard key value.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+        truncated:
+          description: Flag that indicates whether MongoDB Cloud omitted `value` because it was too large to return. When this flag is `true`, `frequency` still describes a real shard key value even though the value itself is absent.
+          readOnly: true
+          type: boolean
+        value:
+          additionalProperties:
+            description: Shard key value, given as one field-value pair per shard key field. This parameter is absent when `truncated` is `true`.
+            readOnly: true
+            type: object
+          description: Shard key value, given as one field-value pair per shard key field. This parameter is absent when `truncated` is `true`.
+          readOnly: true
+          type: object
+      type: object
+    ShardKeyReadSampleSize:
+      description: Number of sampled read operations that MongoDB Cloud used to compute the read distribution, broken down by the command that issued them.
+      properties:
+        aggregate:
+          description: Number of sampled `aggregate` operations.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+        count:
+          description: Number of sampled `count` operations.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+        distinct:
+          description: Number of sampled `distinct` operations.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+        find:
+          description: Number of sampled `find` operations.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+        total:
+          description: Total number of sampled read operations.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+      readOnly: true
+      type: object
+    ShardKeyWriteSampleSize:
+      description: Number of sampled write operations that MongoDB Cloud used to compute the write distribution, broken down by the command that issued them.
+      properties:
+        delete:
+          description: Number of sampled `delete` operations.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+        findAndModify:
+          description: Number of sampled `findAndModify` operations.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+        total:
+          description: Total number of sampled write operations.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+        update:
+          description: Number of sampled `update` operations.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+      readOnly: true
+      type: object
     ShardKeys:
       description: Document that configures the shard key on the destination cluster.
       properties:
@@ -24782,6 +25750,416 @@ components:
         - key
       type: object
       writeOnly: true
+    ShardMeasurement:
+      description: Time series of one measurement on one shard of the cluster.
+      properties:
+        dataPoints:
+          description: Data points of the measurement at `granularity` intervals, starting at `start` and not passing `end`, in ascending time order.
+          items:
+            $ref: "#/components/schemas/ShardMeasurementDataPoint"
+          maxItems: 1000
+          readOnly: true
+          type: array
+        name:
+          description: Measurement that the data points quantify.
+          enum:
+            - SYSTEM_CPU
+            - SYSTEM_MEMORY
+            - SYSTEM_NETWORK
+            - DISK_IOPS
+            - DISK_LATENCY
+            - DISK_THROUGHPUT
+            - DISK_SPACE
+            - CONNECTIONS
+            - OPCOUNTERS
+            - QUEUES
+            - REPLICATION_LAG
+          readOnly: true
+          type: string
+        replicaSetName:
+          description: Human-readable label that identifies the shard, as the replica set name of its members.
+          example: atlas-12vorz-shard-0
+          readOnly: true
+          type: string
+        units:
+          description: Unit in which the data points express the measurement.
+          enum:
+            - BYTES
+            - BYTES_PER_SECOND
+            - GIGABYTES
+            - GIGABYTES_PER_HOUR
+            - MEGABYTES_PER_SECOND
+            - MICROSECONDS
+            - MILLISECONDS
+            - PERCENT
+            - SCALAR
+            - SCALAR_PER_SECOND
+          readOnly: true
+          type: string
+      required:
+        - dataPoints
+        - name
+        - replicaSetName
+        - units
+      type: object
+    ShardMeasurementDataPoint:
+      description: Value of one measurement at one moment in time. The `value` is `null` when no reading exists for that moment.
+      properties:
+        timestamp:
+          description: Date and time of the data point. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+          format: date-time
+          readOnly: true
+          type: string
+        value:
+          description: Value of the measurement at this moment, in the `units` of the measurement. `null` when no reading exists for this moment, including the period after a cluster or shard is created before MongoDB Cloud starts collecting its metrics.
+          format: double
+          nullable: true
+          readOnly: true
+          type: number
+      required:
+        - timestamp
+        - value
+      type: object
+    ShardMeasurementSeries:
+      description: Time series of one measurement on the shard named by the enclosing response.
+      properties:
+        dataPoints:
+          description: Data points of the measurement at `granularity` intervals, starting at `start` and not passing `end`, in ascending time order.
+          items:
+            $ref: "#/components/schemas/ShardMeasurementDataPoint"
+          maxItems: 1000
+          readOnly: true
+          type: array
+        name:
+          description: Measurement that the data points quantify.
+          enum:
+            - SYSTEM_CPU
+            - SYSTEM_MEMORY
+            - SYSTEM_NETWORK
+            - DISK_IOPS
+            - DISK_LATENCY
+            - DISK_THROUGHPUT
+            - DISK_SPACE
+            - CONNECTIONS
+            - OPCOUNTERS
+            - QUEUES
+            - REPLICATION_LAG
+          readOnly: true
+          type: string
+        units:
+          description: Unit in which the data points express the measurement.
+          enum:
+            - BYTES
+            - BYTES_PER_SECOND
+            - GIGABYTES
+            - GIGABYTES_PER_HOUR
+            - MEGABYTES_PER_SECOND
+            - MICROSECONDS
+            - MILLISECONDS
+            - PERCENT
+            - SCALAR
+            - SCALAR_PER_SECOND
+          readOnly: true
+          type: string
+      required:
+        - dataPoints
+        - name
+        - units
+      type: object
+    ShardMeasurementsResponse:
+      description: Measurement time series of one shard over the requested window.
+      properties:
+        clusterName:
+          description: Human-readable label that identifies the cluster.
+          readOnly: true
+          type: string
+        end:
+          description: Date and time at which the window ends. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+          format: date-time
+          readOnly: true
+          type: string
+        granularity:
+          description: Interval between consecutive data points, in ISO 8601 duration format. Either the requested `granularity` or, when none was requested, the resolution MongoDB Cloud chose for the width of the window.
+          enum:
+            - PT30S
+            - PT1M
+            - PT3M
+            - PT15M
+            - PT1H
+            - PT3H
+          readOnly: true
+          type: string
+        groupId:
+          description: Unique 24-hexadecimal digit string that identifies the project.
+          example: 32b6e34b3d91647abb20e7b8
+          pattern: ^([a-f0-9]{24})$
+          readOnly: true
+          type: string
+        measurements:
+          description: One time series per requested measurement, in the order of the measurement names. A measurement MongoDB Cloud has no readings for is still listed, with `null` data point values.
+          items:
+            $ref: "#/components/schemas/ShardMeasurementSeries"
+          maxItems: 11
+          readOnly: true
+          type: array
+        replicaSetName:
+          description: Human-readable label that identifies the shard, as the replica set name of its members.
+          example: atlas-12vorz-shard-0
+          readOnly: true
+          type: string
+        start:
+          description: Date and time of the first data point. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+          format: date-time
+          readOnly: true
+          type: string
+      required:
+        - clusterName
+        - end
+        - granularity
+        - groupId
+        - measurements
+        - replicaSetName
+        - start
+      type: object
+    ShardMetricsResponse:
+      description: Metrics for one shard of a sharded cluster, covering its size, its load, and any alerts open on its nodes.
+      properties:
+        alerts:
+          description: Alerts open on this shard's nodes, sorted by creation date with the most recently created first. MongoDB Cloud returns this property when you request a single shard, and returns at most 100 alerts.
+          items:
+            $ref: "#/components/schemas/ShardAlert"
+          maxItems: 100
+          readOnly: true
+          type: array
+        cacheThroughput:
+          $ref: "#/components/schemas/ShardCacheThroughput"
+        cpuUtilization:
+          $ref: "#/components/schemas/ShardCpuUtilization"
+        dataSizeBytes:
+          description: Total size of the user data stored on this shard. The resource expresses this value in bytes.
+          format: int64
+          minimum: 0
+          readOnly: true
+          type: integer
+        rangeDeleterTasks:
+          description: Average number of range deletion tasks queued across the shard's nodes, measured at the time of the request.
+          format: double
+          minimum: 0
+          readOnly: true
+          type: number
+        readLatencyMicroseconds:
+          description: Average latency of the read operations this shard served over the last hour, in microseconds.
+          format: double
+          minimum: 0
+          readOnly: true
+          type: number
+        readOperationsPerSecond:
+          $ref: "#/components/schemas/ShardOperations"
+        replicaSetName:
+          description: Name of the shard's replica set. This is the name that identifies the same shard on the processes, alerts, events, and backup resources.
+          example: atlas-abcdef-shard-0
+          readOnly: true
+          type: string
+        shardedCollections:
+          description: Number of sharded collections with data on this shard.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+        warnings:
+          description: Conditions that MongoDB Cloud observed on this shard relative to the rest of the cluster. `HOTSPOT` means this shard's average CPU utilization is more than twice the average across all shards of the cluster. This is a cluster-scoped comparison, so its value depends on how loaded the other shards are and not only on this shard.
+          items:
+            enum:
+              - HOTSPOT
+            type: string
+          maxItems: 100
+          readOnly: true
+          type: array
+        writeOperationsPerSecond:
+          $ref: "#/components/schemas/ShardOperations"
+      required:
+        - cpuUtilization
+        - dataSizeBytes
+        - readOperationsPerSecond
+        - replicaSetName
+        - shardedCollections
+        - warnings
+        - writeOperationsPerSecond
+      type: object
+    ShardOperations:
+      description: Operations per second that the shard served over the last hour.
+      properties:
+        average:
+          description: Average operations per second across the shard's nodes over the last hour.
+          format: double
+          readOnly: true
+          type: number
+        maximum:
+          description: Highest operations per second that any one of the shard's nodes reached over the last hour.
+          format: double
+          readOnly: true
+          type: number
+      required:
+        - average
+        - maximum
+      type: object
+    ShardingInsightsBalancingWindow:
+      description: Balancing window configured on the sharded cluster. When configured, the balancer moves data only during the daily interval between `startTime` and `endTime`.
+      properties:
+        endTime:
+          description: Time of day at which the balancing window ends, in 24-hour `HH:MM` format as configured on the cluster. Present only when `status` is `CONFIGURED`.
+          example: 06:00
+          nullable: true
+          pattern: ^([01]?\d|2[0-3]):[0-5]\d$
+          readOnly: true
+          type: string
+        startTime:
+          description: Time of day at which the balancing window starts, in 24-hour `HH:MM` format as configured on the cluster. Present only when `status` is `CONFIGURED`.
+          example: 02:00
+          nullable: true
+          pattern: ^([01]?\d|2[0-3]):[0-5]\d$
+          readOnly: true
+          type: string
+        status:
+          description: State of the balancing window. `CONFIGURED` means the cluster restricts balancing to the interval between `startTime` and `endTime`. `NOT_CONFIGURED` means the balancer may run at any time. `FAILED_INITIAL_METRIC_PENDING` means MongoDB Cloud has not yet collected balancer metrics for a recently created or converted cluster. `FAILED_TO_DETERMINE` means the window could not be resolved.
+          enum:
+            - CONFIGURED
+            - NOT_CONFIGURED
+            - FAILED_TO_DETERMINE
+            - FAILED_INITIAL_METRIC_PENDING
+          readOnly: true
+          type: string
+      required:
+        - status
+      type: object
+    ShardingInsightsResponse:
+      description: "Cluster-level sharding state of one sharded cluster: shard count, balancer state, config server availability, and the configured balancing window."
+      properties:
+        balancerState:
+          description: State of the cluster balancer. `BALANCING` means a balancer round is in progress. `IDLE` means the balancer is enabled and no round is in progress. `DISABLED` means the balancer is turned off. `FAILED_TO_DETERMINE` means the balancer state could not be resolved.
+          enum:
+            - BALANCING
+            - IDLE
+            - DISABLED
+            - FAILED_TO_DETERMINE
+          readOnly: true
+          type: string
+        balancingWindow:
+          $ref: "#/components/schemas/ShardingInsightsBalancingWindow"
+        configServerStatus:
+          description: Availability of the cluster's config servers. `AVAILABLE` means at least one config server reported recently. `UNAVAILABLE` means config servers exist but none has reported recently. `FAILED_TO_DETERMINE` means availability could not be resolved.
+          enum:
+            - AVAILABLE
+            - UNAVAILABLE
+            - FAILED_TO_DETERMINE
+          readOnly: true
+          type: string
+        totalShards:
+          description: Number of shards in the cluster.
+          format: int32
+          readOnly: true
+          type: integer
+      required:
+        - balancerState
+        - balancingWindow
+        - configServerStatus
+        - totalShards
+      type: object
+    ShardingRecommendation:
+      description: One sharding recommendation for the cluster or one of its collections.
+      properties:
+        triggers:
+          description: Monitored conditions that fired and produced this recommendation.
+          items:
+            $ref: "#/components/schemas/ShardingRecommendationTrigger"
+          maxItems: 100
+          readOnly: true
+          type: array
+        type:
+          description: Recommendation type that produced this recommendation.
+          enum:
+            - SHARD_CLUSTER
+          readOnly: true
+          type: string
+        recommendedShardCount:
+          description: Recommended total number of shards for the cluster.
+          format: int32
+          readOnly: true
+          type: integer
+        namespace:
+          description: Namespace of the collection to shard, in `<database>.<collection>` form.
+          readOnly: true
+          type: string
+      required:
+        - triggers
+        - type
+      type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          ADD_SHARDS:
+            properties:
+              - recommendedShardCount
+            required:
+              - recommendedShardCount
+          SHARD_CLUSTER:
+            properties: []
+          SHARD_COLLECTION:
+            properties:
+              - namespace
+            required:
+              - namespace
+    ShardingRecommendationTrigger:
+      description: One monitored condition that fired, observed on one entity.
+      properties:
+        name:
+          description: Identifier of the monitored condition that fired.
+          example: HIGH_DISK_SPACE_PERCENT_USED
+          readOnly: true
+          type: string
+        target:
+          description: "Entity the condition was observed on: a namespace in `<database>.<collection>` form, a host name, or a replica set (shard) name, as identified by `targetType`. Present if and only if `targetType` is present; both are absent for cluster-wide conditions, such as `UNSHARDED_COLLECTION_COUNT`, which are not tied to a single entity. The cluster is already identified in the request path."
+          readOnly: true
+          type: string
+        targetType:
+          description: Kind of entity that `target` identifies. Present if and only if `target` is present; both are absent for cluster-wide conditions.
+          enum:
+            - REPLICA_SET
+            - HOST
+            - NAMESPACE
+          readOnly: true
+          type: string
+        unit:
+          description: Unit of the measured trigger value.
+          enum:
+            - BYTES
+            - PERCENT
+            - SCALAR
+            - MICROSECONDS
+          readOnly: true
+          type: string
+        value:
+          description: Measured value of the trigger metric for this entity. This parameter is absent when no finite measurement was available.
+          format: double
+          readOnly: true
+          type: number
+      required:
+        - name
+        - unit
+      type: object
+    ShardingRecommendationsResponse:
+      description: Sharding recommendations generated for one cluster.
+      properties:
+        recommendations:
+          description: Sharding recommendations for the cluster. Each recommendation identifies the recommendation type that produced it in its `type` property.
+          items:
+            $ref: "#/components/schemas/ShardingRecommendation"
+          maxItems: 100
+          readOnly: true
+          type: array
+      required:
+        - recommendations
+      type: object
     ShardingRequest:
       description: Document that configures sharding on the destination cluster when migrating from a replica set source to a sharded cluster destination on MongoDB 6.0 or higher. If you don't wish to shard any collections on the destination cluster, leave this empty.
       properties:
@@ -24941,16 +26319,6 @@ components:
           title: Stream Workspace Tier
           type: string
       type: object
-    StreamProcessorEventTypeViewAlertableWithThreshold:
-      description: Event type that triggers an alert.
-      enum:
-        - OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD
-      example: OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD
-      externalDocs:
-        description: Atlas Alert Event Types
-        url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
-      title: Stream Processor Event Types
-      type: string
     StreamProcessorMetricThreshold:
       description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
       properties:
@@ -25046,14 +26414,15 @@ components:
             - SP2
           nullable: true
           type: string
+          x-xgen-server-computed-when-client-omitted: true
         minTier:
           description: |-
             Tier floor for autoscaling (scale-down limit).
 
             - **Omitted:**
-              - On `CREATE`: falls back to the workspace default tier (there is no current bound to preserve).
+              - On `CREATE`: defaults to the lower of the processor `tier` and the workspace default tier (there is no current bound to preserve).
               - On `MODIFY` or `:startWith`: the current bound is preserved.
-            - **`null`** on `CREATE`, `MODIFY`, or `:startWith`: resets the bound to the workspace default tier.
+            - **`null`** on `CREATE`, `MODIFY`, or `:startWith`: resets the bound to the lower of the processor `tier` and the workspace default tier.
             - **A tier value** on `CREATE`, `MODIFY`, or `:startWith`: sets the bound to that tier.
           enum:
             - SP50
@@ -25063,6 +26432,7 @@ components:
             - SP2
           nullable: true
           type: string
+          x-xgen-server-computed-when-client-omitted: true
       type: object
     StreamsConnection:
       description: Settings that define a connection to an external data store.
@@ -25497,40 +26867,6 @@ components:
           description: Describes the transport type. Can be either `SASL_PLAINTEXT`, `SASL_SSL`, or `SSL`.
           type: string
       type: object
-    StreamsMatcher:
-      description: Rules to apply when comparing a stream processing workspace or stream processor against this alert configuration.
-      properties:
-        fieldName:
-          $ref: "#/components/schemas/StreamsMatcherField"
-        operator:
-          description: Comparison operator to apply when checking the current metric value against **matcher[n].value**. The `REGEX` operator only supports inclusive matches. Use the `NOT_CONTAINS` operator to exclude values.
-          enum:
-            - EQUALS
-            - CONTAINS
-            - STARTS_WITH
-            - ENDS_WITH
-            - NOT_EQUALS
-            - NOT_CONTAINS
-            - REGEX
-          type: string
-        value:
-          description: Value to match or exceed using the specified `matchers.operator`.
-          example: event-replica-set
-          type: string
-      required:
-        - fieldName
-        - operator
-        - value
-      title: Matchers
-      type: object
-    StreamsMatcherField:
-      description: Name of the parameter in the target object that MongoDB Cloud checks. The parameter must match all rules for MongoDB Cloud to check for alert configurations.
-      enum:
-        - INSTANCE_NAME
-        - PROCESSOR_NAME
-      example: INSTANCE_NAME
-      title: Streams Matcher Fields
-      type: string
     StreamsModifyStreamProcessor:
       description: A request to modify an existing stream processor.
       properties:
@@ -25560,14 +26896,13 @@ components:
             $ref: "#/components/schemas/Document"
           type: array
         tier:
-          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          description: Baseline processing tier requested by the user.
           enum:
             - SP50
             - SP30
             - SP10
             - SP5
             - SP2
-          title: Stream Workspace Tier
           type: string
       type: object
     StreamsModifyStreamProcessorOptions:
@@ -25726,6 +27061,51 @@ components:
           description: The domain hostname for the AWS Confluent Serverless Private Link connection. Allowed only when no domain is currently set, or when the connection is in `IDLE` state.
           type: string
       type: object
+    StreamsPrivateLinkEndpointEventTypeViewForNdsGroupAlertable:
+      description: Event type that triggers an alert.
+      enum:
+        - STREAMS_PRIVATE_LINK_ENDPOINT_UNUSED_FIRST_WARNING
+        - STREAMS_PRIVATE_LINK_ENDPOINT_UNUSED_SECOND_WARNING
+        - STREAMS_PRIVATE_LINK_ENDPOINT_UNUSED_DELETED
+      example: STREAMS_PRIVATE_LINK_ENDPOINT_UNUSED_FIRST_WARNING
+      externalDocs:
+        description: Atlas Alert Event Types
+        url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
+      title: Stream Processing Private Link Endpoint Event Types
+      type: string
+    StreamsPrivateLinkEndpointMatcher:
+      description: Rules to apply when comparing a private link endpoint against this alert configuration.
+      properties:
+        fieldName:
+          $ref: "#/components/schemas/StreamsPrivateLinkEndpointMatcherField"
+        operator:
+          description: Comparison operator to apply when checking the current metric value against **matcher[n].value**. The `REGEX` operator only supports inclusive matches. Use the `NOT_CONTAINS` operator to exclude values.
+          enum:
+            - EQUALS
+            - CONTAINS
+            - STARTS_WITH
+            - ENDS_WITH
+            - NOT_EQUALS
+            - NOT_CONTAINS
+            - REGEX
+          type: string
+        value:
+          description: Value to match or exceed using the specified `matchers.operator`.
+          example: event-replica-set
+          type: string
+      required:
+        - fieldName
+        - operator
+        - value
+      title: Matchers
+      type: object
+    StreamsPrivateLinkEndpointMatcherField:
+      description: Name of the parameter in the target object that MongoDB Cloud checks. The parameter must match all rules for MongoDB Cloud to check for alert configurations.
+      enum:
+        - ENDPOINT_ID
+      example: ENDPOINT_ID
+      title: Streams Private Link Endpoint Matcher Fields
+      type: string
     StreamsProcessor:
       description: An atlas stream processor.
       properties:
@@ -25736,7 +27116,7 @@ components:
           readOnly: true
           type: string
         effectiveTier:
-          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          description: Tier the stream processor is currently running on. The server sets this value from `tier` on create and on every start or restart, may move it within [`minTier`, `maxTier`] while autoscaling is enabled, and restores it to `tier` when autoscaling is disabled. Patching `tier` does not change it directly; the new tier takes effect at the next start or restart.
           enum:
             - SP50
             - SP30
@@ -25744,7 +27124,6 @@ components:
             - SP5
             - SP2
           readOnly: true
-          title: Stream Workspace Tier
           type: string
         failoverEnabled:
           description: Flag that enables or disables failover for the stream processor.
@@ -25772,15 +27151,47 @@ components:
             $ref: "#/components/schemas/Document"
           type: array
         tier:
-          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          description: Baseline tier of the stream processor. The processor starts or restarts on this tier; `effectiveTier` reports the tier it is currently running.
           enum:
             - SP50
             - SP30
             - SP10
             - SP5
             - SP2
-          title: Stream Workspace Tier
           type: string
+      type: object
+    StreamsProcessorRequest:
+      description: Details to create a stream processor.
+      properties:
+        failoverEnabled:
+          description: Flag that enables or disables failover for the stream processor.
+          type: boolean
+        name:
+          description: Human-readable name of the stream processor.
+          type: string
+        options:
+          $ref: "#/components/schemas/StreamsOptions"
+        pipeline:
+          description: Stream aggregation pipeline you want to apply to your streaming data.
+          externalDocs:
+            description: Supported Aggregation Pipeline Stages
+            url: https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation
+          items:
+            $ref: "#/components/schemas/Document"
+          minItems: 1
+          type: array
+        tier:
+          description: Baseline processing tier requested by the user.
+          enum:
+            - SP50
+            - SP30
+            - SP10
+            - SP5
+            - SP2
+          type: string
+      required:
+        - name
+        - pipeline
       type: object
     StreamsProcessorStatus:
       description: Desired status change to apply to a tenant's stream processors.
@@ -25825,7 +27236,7 @@ components:
           readOnly: true
           type: string
         effectiveTier:
-          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          description: Tier the stream processor is currently running on. The server sets this value from `tier` on create and on every start or restart, may move it within [`minTier`, `maxTier`] while autoscaling is enabled, and restores it to `tier` when autoscaling is disabled. Patching `tier` does not change it directly; the new tier takes effect at the next start or restart.
           enum:
             - SP50
             - SP30
@@ -25833,7 +27244,6 @@ components:
             - SP5
             - SP2
           readOnly: true
-          title: Stream Workspace Tier
           type: string
         eligibleForFailover:
           description: Flag that indicates whether the stream processor is eligible for failover.
@@ -25885,14 +27295,13 @@ components:
           readOnly: true
           type: object
         tier:
-          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          description: Baseline tier of the stream processor. The processor starts or restarts on this tier; `effectiveTier` reports the tier it is currently running.
           enum:
             - SP50
             - SP30
             - SP10
             - SP5
             - SP2
-          title: Stream Workspace Tier
           type: string
       required:
         - _id
@@ -26007,14 +27416,13 @@ components:
           format: date-time
           type: string
         tier:
-          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          description: Baseline processing tier requested by the user.
           enum:
             - SP50
             - SP30
             - SP10
             - SP5
             - SP2
-          title: Stream Workspace Tier
           type: string
       type: object
     StreamsTenant:
@@ -26749,6 +28157,7 @@ components:
               - AI Model APIs
               - Automated Embedding
               - Native Reranking
+              - Agent Engine
               - Flex Consulting
               - Support
               - Credits
@@ -27647,7 +29056,7 @@ info:
   termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
   title: MongoDB Atlas Administration API
   version: "2.0"
-  x-xgen-sha: d7a00f00333b964140d2cb4417e7d209287f8046
+  x-xgen-sha: 2a27ef5141b5040880842c6f9b489232776984b0
 openapi: 3.0.1
 paths:
   /api/atlas/v2:
@@ -32315,6 +33724,8 @@ paths:
       x-rolesRequirements:
         - Project Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/deleteGroupCluster
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: deleteCluster
     get:
       description: |-
@@ -32740,6 +34151,304 @@ paths:
         - Project Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/updateGroupClusterAdaptiveSettings
       x-xgen-operation-id-override: updateClusterAdaptiveSettings
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/autoEmbeddingInference:
+    get:
+      description: Returns the configured and effective inference scope for Auto-Embedding indexes on the specified cluster.
+      operationId: getGroupClusterAutoEmbeddingInference
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Name of the cluster for which to return the inference scope.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/AutoEmbeddingInferenceScopeResponse"
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return the Auto-Embedding Inference Scope for One Cluster
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Read Only
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getGroupClusterAutoEmbeddingInference
+      x-xgen-method-verb-override:
+        customMethod: false
+        verb: get
+      x-xgen-operation-id-override: getAutoEmbeddingInference
+    patch:
+      description: Updates the explicit inference scope for Auto-Embedding indexes on the specified cluster.
+      operationId: updateGroupClusterAutoEmbeddingInference
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Name of the cluster for which to update the inference scope.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/AutoEmbeddingInferenceScopeUpdateRequest"
+            x-xgen-preview:
+              public: "true"
+            x-xgen-version: preview
+        description: Auto-Embedding inference scope update.
+        required: true
+      responses:
+        "202":
+          content:
+            application/vnd.atlas.preview+json:
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: Accepted
+          headers:
+            Location:
+              description: URI of the Operation resource to poll.
+              required: true
+              schema:
+                description: URI of the Operation resource to poll.
+                format: uri
+                type: string
+              style: simple
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Update the Auto-Embedding Inference Scope for One Cluster
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Search Index Editor
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/updateGroupClusterAutoEmbeddingInference
+      x-xgen-long-running-operation:
+        legacy: false
+      x-xgen-method-verb-override:
+        customMethod: false
+        verb: update
+      x-xgen-operation-id-override: updateAutoEmbeddingInference
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/autoEmbeddingInference/operations:
+    get:
+      description: Returns tracked Auto-Embedding inference scope operations for one cluster.
+      operationId: listGroupClusterAutoEmbeddingInferenceOperations
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/includeCount"
+        - $ref: "#/components/parameters/pageNum"
+        - $ref: "#/components/parameters/pretty"
+        - description: Name of the cluster for which to return operations.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedOperationResponse"
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return Auto-Embedding Inference Scope Operations for One Cluster
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Read Only
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/listGroupClusterAutoEmbeddingInferenceOperations
+      x-xgen-method-verb-override:
+        customMethod: false
+        verb: list
+      x-xgen-operation-id-override: listAutoEmbeddingOperations
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/autoEmbeddingInference/operations/{operationId}:
+    get:
+      description: Returns one tracked Auto-Embedding inference scope operation.
+      operationId: getGroupClusterAutoEmbeddingInferenceOperation
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Name of the cluster for which to return an operation.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+        - description: Unique identifier of the operation.
+          in: path
+          name: operationId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/OperationResponse"
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return One Auto-Embedding Inference Scope Operation
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Read Only
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getGroupClusterAutoEmbeddingInferenceOperation
+      x-xgen-method-verb-override:
+        customMethod: false
+        verb: get
+      x-xgen-operation-id-override: getAutoEmbeddingOperation
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/autoEmbeddingInference:reset:
+    post:
+      description: Resets the explicit inference scope so that Atlas manages the Auto-Embedding scope.
+      operationId: resetGroupClusterAutoEmbeddingInference
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Name of the cluster for which to reset the inference scope.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+      responses:
+        "202":
+          content:
+            application/vnd.atlas.preview+json:
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: Accepted
+          headers:
+            Location:
+              description: URI of the Operation resource to poll.
+              required: true
+              schema:
+                description: URI of the Operation resource to poll.
+                format: uri
+                type: string
+              style: simple
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Reset the Auto-Embedding Inference Scope for One Cluster
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Search Index Editor
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/resetGroupClusterAutoEmbeddingInference
+      x-xgen-long-running-operation:
+        legacy: false
+      x-xgen-method-verb-override:
+        customMethod: true
+        verb: reset
+      x-xgen-operation-id-override: resetAutoEmbeddingInference
   /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/autoScalingConfiguration:
     get:
       deprecated: true
@@ -35589,7 +37298,10 @@ paths:
       x-xgen-changelog:
         2025-05-08: Corrects an issue where the endpoint would allow a rolling index build to be initiated while there was already an index build in progress. The endpoint now returns 400 if an index build is already in progress.
         2026-04-06: Corrects an issue where index creation was throwing a 500 error instead of a 409 error when there was an existing index with the same name.
+        2026-09-29: Indexes created with a collation and no explicit name now receive a default name with a collation-derived suffix, so that indexes over the same keys with different collations do not conflict.
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rolling-Index/operation/createGroupClusterIndexRollingIndex
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-method-verb-override:
         customMethod: false
         verb: createRollingIndex
@@ -36286,6 +37998,8 @@ paths:
       x-rolesRequirements:
         - Project Cluster Manager
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Overload-Protection-Simulation/operation/deleteGroupClusterOverloadSimulation
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: deleteClusterOverloadSimulation
     get:
       description: Returns the overload protection simulation for one cluster.
@@ -36597,6 +38311,65 @@ paths:
         - Project Read Only
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/listGroupClusterPrivateEndpointConnectionStrings
       x-xgen-operation-id-override: listEndpointConnectionStrings
+    post:
+      description: Creates one private endpoint connection string for the specified cluster. The new record is returned with `status = PENDING`; MongoDB Cloud publishes the DNS records asynchronously, so poll the record until it reports `AVAILABLE` before connecting with it.
+      operationId: createGroupClusterPrivateEndpointConnectionString
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Human-readable label that identifies the cluster.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/PrivateEndpointConnectionStringCreateRequest"
+            x-xgen-preview:
+              name: private-endpoint-connection-strings
+            x-xgen-version: preview
+        description: Private endpoint connection string to create.
+        required: true
+      responses:
+        "201":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PrivateEndpointConnectionStringResponse"
+              x-xgen-preview:
+                name: private-endpoint-connection-strings
+              x-xgen-version: preview
+          description: Created
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Create One Private Endpoint Connection String for One Cluster
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Owner
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createGroupClusterPrivateEndpointConnectionString
+      x-xgen-operation-id-override: createEndpointConnectionString
   /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/privateEndpointConnectionStrings/{connectionStringId}:
     delete:
       description: Deletes one private endpoint connection string from the specified cluster.
@@ -36700,6 +38473,74 @@ paths:
         - Project Read Only
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getGroupClusterPrivateEndpointConnectionString
       x-xgen-operation-id-override: getEndpointConnectionString
+    patch:
+      description: Updates one private endpoint connection string. Accepted while the record reports `PENDING`, `AVAILABLE`, or `FAILED`, and returns it with `status = PENDING` while MongoDB Cloud publishes the new DNS records. Only `name` and `privateEndpointIds` can change, and each one you omit keeps its current value. An imported record cannot be updated, and a request that carries a connection method property, a published field, or a lifecycle field is rejected.
+      operationId: updateGroupClusterPrivateEndpointConnectionString
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Human-readable label that identifies the cluster.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            type: string
+        - description: Unique 24-hexadecimal digit string that identifies this private endpoint connection string.
+          in: path
+          name: connectionStringId
+          required: true
+          schema:
+            pattern: ^([a-f0-9]{24})$
+            type: string
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/PrivateEndpointConnectionStringUpdateRequest"
+            x-xgen-preview:
+              name: private-endpoint-connection-strings
+            x-xgen-version: preview
+        description: Private endpoint connection string fields to update.
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PrivateEndpointConnectionStringResponse"
+              x-xgen-preview:
+                name: private-endpoint-connection-strings
+              x-xgen-version: preview
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "405":
+          $ref: "#/components/responses/methodNotAllowed"
+        "409":
+          $ref: "#/components/responses/conflict"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Update One Private Endpoint Connection String for One Cluster
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Owner
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/updateGroupClusterPrivateEndpointConnectionString
+      x-xgen-operation-id-override: updateEndpointConnectionString
   /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs:
     get:
       description: Returns the advanced configuration details for one cluster in the specified project. Clusters contain a group of hosts that maintain the same data set. Advanced configuration details include the read/write concern, index and oplog limits, and other database settings. This feature isn't available for `M0` free clusters, `M2` and `M5` shared-tier clusters, flex clusters, or serverless clusters.
@@ -36821,6 +38662,174 @@ paths:
         - Project Cluster Manager
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/updateGroupClusterProcessArgs
       x-xgen-operation-id-override: updateProcessArgs
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/querySampling:
+    post:
+      description: "Starts query sampling on one namespace of the specified cluster. Sampled queries feed the shard key analysis for the namespace. The response reports the observed sampling state, in which `active` may still be false: the cluster applies the sampling configuration asynchronously."
+      operationId: createGroupClusterQuerySampling
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Human-readable label that identifies the cluster.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+      requestBody:
+        content:
+          application/vnd.atlas.2025-03-12+json:
+            schema:
+              $ref: "#/components/schemas/QuerySamplingCreateRequest"
+            x-xgen-version: 2025-03-12
+        description: Namespace on which to start query sampling.
+        required: true
+      responses:
+        "201":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/QuerySamplingResponse"
+              x-xgen-version: 2025-03-12
+          description: Created
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Create Query Sampling for One Namespace
+      tags:
+        - Query Sampling
+      x-rolesRequirements:
+        - Project Data Access Admin
+        - Project Data Access Read Only
+        - Project Data Access Read Write
+        - Project Stream Processing Owner
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Query-Sampling/operation/createGroupClusterQuerySampling
+      x-xgen-operation-id-override: createClusterQuerySampling
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/querySampling/{namespace}:
+    delete:
+      description: Stops query sampling on one namespace of the specified cluster.
+      operationId: deleteGroupClusterQuerySampling
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Human-readable label that identifies the cluster.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+        - description: Human-readable label that identifies the namespace (`<database>.<collection>`) on which queries are sampled.
+          in: path
+          name: namespace
+          required: true
+          schema:
+            example: sales.orders
+            type: string
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+      responses:
+        "204":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              x-xgen-version: 2025-03-12
+          description: No Content
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Remove Query Sampling from One Namespace
+      tags:
+        - Query Sampling
+      x-rolesRequirements:
+        - Project Data Access Admin
+        - Project Data Access Read Only
+        - Project Data Access Read Write
+        - Project Stream Processing Owner
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Query-Sampling/operation/deleteGroupClusterQuerySampling
+      x-xgen-operation-id-override: deleteClusterQuerySampling
+    get:
+      description: Returns the query sampling state of one namespace of the specified cluster, including counters for the operations sampled so far. Returns 404 if query sampling is not configured on the namespace. `active` becomes true asynchronously after query sampling starts.
+      operationId: getGroupClusterQuerySampling
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Human-readable label that identifies the cluster.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+        - description: Human-readable label that identifies the namespace (`<database>.<collection>`) on which queries are sampled.
+          in: path
+          name: namespace
+          required: true
+          schema:
+            example: sales.orders
+            type: string
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/QuerySamplingResponse"
+              x-xgen-version: 2025-03-12
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return Query Sampling State for One Namespace
+      tags:
+        - Query Sampling
+      x-rolesRequirements:
+        - Project Read Only
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Query-Sampling/operation/getGroupClusterQuerySampling
+      x-xgen-operation-id-override: getClusterQuerySampling
   /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/queryShapeInsights/{queryShapeHash}/details:
     get:
       description: Returns the metadata and statistics summary for a given query shape hash.
@@ -37003,6 +39012,7 @@ paths:
                 - DOCS_EXAMINED
                 - DOCS_RETURNED
                 - TOTAL_TIME_TO_RESPONSE
+                - AVG_TIME_TO_RESPONSE
                 - BYTES_READ
                 - CPU_TIME
                 - KEYS_EXAMINED_RETURNED
@@ -37019,7 +39029,7 @@ paths:
                 - KEYS_INSERTED
                 - KEYS_DELETED
               type: string
-            maxItems: 22
+            maxItems: 23
             type: array
             uniqueItems: true
           style: form
@@ -38316,6 +40326,691 @@ paths:
         - Project Search Index Editor
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Atlas-Search/operation/updateGroupClusterSearchIndex
       x-xgen-operation-id-override: updateClusterSearchIndex
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/shardKeyAnalyses:
+    get:
+      description: Returns all completed shard key analyses for the specified cluster, newest first. An analysis appears here only once the operation that produced it has succeeded, so attempts that failed or are still running are absent; read the operations sub-resource to see those. MongoDB Cloud retains an analysis for 30 days.
+      operationId: listGroupClusterShardKeyAnalyses
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/includeCount"
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/pageNum"
+        - $ref: "#/components/parameters/pretty"
+        - description: Human-readable label that identifies the cluster with the shard key analyses you want to return.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedShardKeyAnalysisResponse"
+              x-xgen-version: 2025-03-12
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return All Shard Key Analyses for One Cluster
+      tags:
+        - Shard Key Analyzer
+      x-rolesRequirements:
+        - Project Data Access Admin
+        - Project Data Access Read Only
+        - Project Data Access Read Write
+        - Project Stream Processing Owner
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Shard-Key-Analyzer/operation/listGroupClusterShardKeyAnalyses
+      x-xgen-operation-id-override: listShardKeyAnalyses
+    post:
+      description: "Analyzes how well one candidate shard key would distribute one collection across the shards of the specified cluster. This endpoint accepts the request and returns immediately: the `Location` header carries the URI of the operation that tracks the analysis. Poll that operation until its `status` is terminal, then follow its `resultHref` to read the analysis. MongoDB Cloud validates and authorizes the request before accepting it, so a rejected submission returns a `4xx` status and never an operation in a failed state. A namespace that is well formed but absent cannot be detected before the analysis runs and surfaces as a failed operation."
+      operationId: createGroupClusterShardKeyAnalysis
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Human-readable label that identifies the cluster that contains the collection to analyze.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+      requestBody:
+        content:
+          application/vnd.atlas.2025-03-12+json:
+            schema:
+              $ref: "#/components/schemas/ShardKeyAnalysisRequest"
+            x-xgen-version: 2025-03-12
+        description: Shard key to analyze, and which metrics to compute for it.
+        required: true
+      responses:
+        "202":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              x-xgen-version: 2025-03-12
+          description: Accepted
+          headers:
+            Location:
+              description: URI of the operation that tracks this analysis. Absent when the request sets `envelope=true`, which returns the URI in the envelope's `locations` parameter instead.
+              schema:
+                description: URI of the operation that tracks this analysis.
+                format: uri
+                type: string
+              style: simple
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Create One Shard Key Analysis for One Cluster
+      tags:
+        - Shard Key Analyzer
+      x-rolesRequirements:
+        - Project Data Access Admin
+        - Project Data Access Read Only
+        - Project Data Access Read Write
+        - Project Stream Processing Owner
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Shard-Key-Analyzer/operation/createGroupClusterShardKeyAnalysis
+      x-xgen-long-running-operation:
+        legacy: false
+      x-xgen-operation-id-override: createShardKeyAnalysis
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/shardKeyAnalyses/{analysisId}:
+    get:
+      description: Returns one completed shard key analysis for the specified cluster. This resource exists only once the operation that produced it has succeeded and reports no operation status of its own. MongoDB Cloud retains an analysis for 30 days.
+      operationId: getGroupClusterShardKeyAnalysis
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Human-readable label that identifies the cluster with the shard key analysis you want to return.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+        - description: Unique 24-hexadecimal digit string that identifies the shard key analysis to return.
+          in: path
+          name: analysisId
+          required: true
+          schema:
+            pattern: ^([a-f0-9]{24})$
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/ShardKeyAnalysisResponse"
+              x-xgen-version: 2025-03-12
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return One Shard Key Analysis for One Cluster
+      tags:
+        - Shard Key Analyzer
+      x-rolesRequirements:
+        - Project Data Access Admin
+        - Project Data Access Read Only
+        - Project Data Access Read Write
+        - Project Stream Processing Owner
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Shard-Key-Analyzer/operation/getGroupClusterShardKeyAnalysis
+      x-xgen-operation-id-override: getShardKeyAnalysis
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/shardKeyAnalyses/operations:
+    get:
+      description: Returns every shard key analysis attempt for the specified cluster, newest first, including attempts that are still running and attempts that failed. Neither of those produces an analysis, so this sub-resource is the only place they appear. MongoDB Cloud retains an operation for 30 days past its terminal state.
+      operationId: listGroupClusterShardKeyAnalysisOperations
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/includeCount"
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/pageNum"
+        - $ref: "#/components/parameters/pretty"
+        - description: Human-readable label that identifies the cluster with the shard key analysis operations you want to return.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedShardKeyAnalysisOperationResponse"
+              x-xgen-version: 2025-03-12
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return All Shard Key Analysis Operations for One Cluster
+      tags:
+        - Shard Key Analyzer
+      x-rolesRequirements:
+        - Project Data Access Admin
+        - Project Data Access Read Only
+        - Project Data Access Read Write
+        - Project Stream Processing Owner
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Shard-Key-Analyzer/operation/listGroupClusterShardKeyAnalysisOperations
+      x-xgen-operation-id-override: listAnalysisOperations
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/shardKeyAnalyses/operations/{operationId}:
+    get:
+      description: Returns the progress of one shard key analysis for the specified cluster. Poll this resource until `status` reaches a terminal value. On success it carries `resultHref`, the URI of the analysis it created; on failure it carries `error`. While the status is not terminal it carries `retryAfterSeconds`, how long to wait before polling again. MongoDB Cloud retains an operation for 30 days past its terminal state.
+      operationId: getGroupClusterShardKeyAnalysisOperation
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/pretty"
+        - description: Human-readable label that identifies the cluster with the shard key analysis operation you want to return.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+        - description: Unique 24-hexadecimal digit string that identifies the shard key analysis operation to return.
+          in: path
+          name: operationId
+          required: true
+          schema:
+            pattern: ^([a-f0-9]{24})$
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/ShardKeyAnalysisOperationResponse"
+              x-xgen-version: 2025-03-12
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return One Shard Key Analysis Operation for One Cluster
+      tags:
+        - Shard Key Analyzer
+      x-rolesRequirements:
+        - Project Data Access Admin
+        - Project Data Access Read Only
+        - Project Data Access Read Write
+        - Project Stream Processing Owner
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Shard-Key-Analyzer/operation/getGroupClusterShardKeyAnalysisOperation
+      x-xgen-operation-id-override: getAnalysisOperation
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/shardMetrics:
+    get:
+      description: Returns the size and load of every shard in one sharded cluster. Each shard reports the data it stores, the CPU utilization of its nodes, the read and write operations it served, and any conditions that MongoDB Cloud observed relative to the rest of the cluster. To retrieve more details about a shard such as the latency, cache throughput and open alerts, request with an exact replica set name.
+      operationId: listGroupClusterShardMetrics
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Human-readable label that identifies the cluster.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/includeCount"
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/pageNum"
+        - $ref: "#/components/parameters/pretty"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedShardMetricsResponse"
+              x-xgen-version: 2025-03-12
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return All Shards in One Cluster
+      tags:
+        - Sharding Insights
+      x-rolesRequirements:
+        - Project Read Only
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Sharding-Insights/operation/listGroupClusterShardMetrics
+      x-xgen-operation-id-override: listClusterShardMetrics
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/shardMetrics/{replicaSetName}:
+    get:
+      description: Returns the size, load and open alerts of one shard in one sharded cluster. Returns everything the list method returns for this shard, plus its read latency, its WiredTiger cache throughput, its queued range deletion tasks, and the alerts open on its nodes.
+      operationId: getGroupClusterShardMetric
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Human-readable label that identifies the cluster.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+        - description: Name of the replica set that identifies the shard.
+          in: path
+          name: replicaSetName
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/ShardMetricsResponse"
+              x-xgen-version: 2025-03-12
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return One Shard in One Cluster
+      tags:
+        - Sharding Insights
+      x-rolesRequirements:
+        - Project Read Only
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Sharding-Insights/operation/getGroupClusterShardMetric
+      x-xgen-operation-id-override: getClusterShardMetric
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/shardMetrics/{replicaSetName}/measurements:
+    get:
+      description: Returns time series of the requested measurements for one shard of the specified sharded cluster. The series average the readings of the shard's member processes selected by `nodeType`. Responds with a 404 only when no shard with the given `replicaSetName` exists in the cluster; a shard that exists but has no readings yet returns series of `null` data points. Each series carries one data point per `granularity` interval, starting at `start` and not passing `end`. A data point's `value` is `null` when MongoDB Cloud has no reading for that interval; this includes the first minutes after a cluster or shard is created, before its metrics are collected, so `null` must not be read as zero load. Set `period`, or set both `start` and `end`; when neither is set, the response covers the last hour. A request whose window and `granularity` would produce more than 1000 data points per series is rejected.
+      operationId: getGroupClusterShardMetricMeasurements
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Human-readable label that identifies the cluster.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+        - description: Human-readable label that identifies the shard, as the replica set name of its members.
+          in: path
+          name: replicaSetName
+          required: true
+          schema:
+            example: atlas-12vorz-shard-0
+            pattern: ^[A-Za-z0-9][A-Za-z0-9_-]*$
+            type: string
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+        - description: One or more measurements to return. If omitted, the resource returns all measurements. To specify multiple values for `m`, repeat the `m` parameter for each value.
+          in: query
+          name: m
+          schema:
+            items:
+              description: One measurement to return.
+              enum:
+                - SYSTEM_CPU
+                - SYSTEM_MEMORY
+                - SYSTEM_NETWORK
+                - DISK_IOPS
+                - DISK_LATENCY
+                - DISK_THROUGHPUT
+                - DISK_SPACE
+                - CONNECTIONS
+                - OPCOUNTERS
+                - QUEUES
+                - REPLICATION_LAG
+              type: string
+            maxItems: 20
+            minItems: 1
+            type: array
+            uniqueItems: true
+          style: form
+        - description: Interval between consecutive data points, in ISO 8601 duration format. If omitted, MongoDB Cloud chooses the resolution from the width of the window.
+          in: query
+          name: granularity
+          schema:
+            enum:
+              - PT30S
+              - PT1M
+              - PT3M
+              - PT15M
+              - PT1H
+              - PT3H
+            example: PT1M
+            type: string
+        - $ref: "#/components/parameters/period"
+        - $ref: "#/components/parameters/start"
+        - $ref: "#/components/parameters/end"
+        - description: Members of the shard whose readings are averaged into the shard's series.
+          in: query
+          name: nodeType
+          schema:
+            default: ALL
+            enum:
+              - ALL
+              - PRIMARIES
+              - SECONDARIES
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/ShardMeasurementsResponse"
+              x-xgen-version: 2025-03-12
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return Measurements for One Shard
+      tags:
+        - Sharding Insights
+      x-rolesRequirements:
+        - Project Read Only
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Sharding-Insights/operation/getGroupClusterShardMetricMeasurements
+      x-xgen-operation-id-override: getShardMetricMeasurements
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/shardMetrics:listMeasurements:
+    get:
+      description: Returns time series of the requested measurements for every shard of the specified sharded cluster, one series per shard and measurement. Each shard's series averages the readings of its member processes selected by `nodeType`. Each series carries one data point per `granularity` interval, starting at `start` and not passing `end`. A data point's `value` is `null` when MongoDB Cloud has no reading for that interval; this includes the first minutes after a cluster or shard is created, before its metrics are collected, so `null` must not be read as zero load. Set `period`, or set both `start` and `end`; when neither is set, the response covers the last hour. A request whose window and `granularity` would produce more than 1000 data points per series is rejected.
+      operationId: listGroupClusterShardMetricMeasurements
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Human-readable label that identifies the cluster.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+        - description: One or more measurements to return. If omitted, the resource returns all measurements. To specify multiple values for `m`, repeat the `m` parameter for each value.
+          in: query
+          name: m
+          schema:
+            items:
+              description: One measurement to return.
+              enum:
+                - SYSTEM_CPU
+                - SYSTEM_MEMORY
+                - SYSTEM_NETWORK
+                - DISK_IOPS
+                - DISK_LATENCY
+                - DISK_THROUGHPUT
+                - DISK_SPACE
+                - CONNECTIONS
+                - OPCOUNTERS
+                - QUEUES
+                - REPLICATION_LAG
+              type: string
+            maxItems: 20
+            minItems: 1
+            type: array
+            uniqueItems: true
+          style: form
+        - description: Interval between consecutive data points, in ISO 8601 duration format. If omitted, MongoDB Cloud chooses the resolution from the width of the window.
+          in: query
+          name: granularity
+          schema:
+            enum:
+              - PT30S
+              - PT1M
+              - PT3M
+              - PT15M
+              - PT1H
+              - PT3H
+            example: PT1M
+            type: string
+        - $ref: "#/components/parameters/period"
+        - $ref: "#/components/parameters/start"
+        - $ref: "#/components/parameters/end"
+        - description: Members of each shard whose readings are averaged into the shard's series.
+          in: query
+          name: nodeType
+          schema:
+            default: ALL
+            enum:
+              - ALL
+              - PRIMARIES
+              - SECONDARIES
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/ClusterShardMeasurementsResponse"
+              x-xgen-version: 2025-03-12
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return Measurements for All Shards of One Cluster
+      tags:
+        - Sharding Insights
+      x-rolesRequirements:
+        - Project Read Only
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Sharding-Insights/operation/listGroupClusterShardMetricMeasurements
+      x-xgen-operation-id-override: listShardMetricMeasurements
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/shardingInsights:
+    get:
+      description: "Returns the cluster-level sharding state of one sharded cluster: the number of shards, the balancer state, the availability of the config servers, and the configured balancing window."
+      operationId: getGroupClusterShardingInsights
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Human-readable label that identifies the cluster.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/ShardingInsightsResponse"
+              x-xgen-version: 2025-03-12
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return Sharding Insights for One Cluster
+      tags:
+        - Sharding Insights
+      x-rolesRequirements:
+        - Project Read Only
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Sharding-Insights/operation/getGroupClusterShardingInsights
+      x-xgen-operation-id-override: getClusterShardingInsights
+  /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/shardingRecommendations:
+    get:
+      description: Returns the active Sharding Advisor recommendations for one cluster. Recommendations describe changes that may improve the cluster's data distribution, such as adding shards or sharding a collection, together with the monitored conditions that produced them.
+      operationId: getGroupClusterShardingRecommendations
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: Human-readable label that identifies the cluster.
+          in: path
+          name: clusterName
+          required: true
+          schema:
+            pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+            type: string
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/ShardingRecommendationsResponse"
+              x-xgen-version: 2025-03-12
+          description: OK
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return Sharding Recommendations for One Cluster
+      tags:
+        - Sharding Recommendations
+      x-rolesRequirements:
+        - Project Read Only
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Sharding-Recommendations/operation/getGroupClusterShardingRecommendations
+      x-xgen-operation-id-override: getClusterShardingRecommendations
   /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/snapshotSchedule:
     get:
       deprecated: true
@@ -38685,7 +41380,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SqlInterfaceStatusResponse"
               x-xgen-preview:
-                name: sql-interface
+                public: "true"
               x-xgen-version: preview
           description: SQL Interface status successfully retrieved.
           headers:
@@ -38731,7 +41426,7 @@ paths:
             schema:
               $ref: "#/components/schemas/SqlInterfaceStatusUpdateRequest"
             x-xgen-preview:
-              name: sql-interface
+              public: "true"
             x-xgen-version: preview
         description: Desired SQL Interface status for the cluster.
         required: true
@@ -38742,7 +41437,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SqlInterfaceStatusResponse"
               x-xgen-preview:
-                name: sql-interface
+                public: "true"
               x-xgen-version: preview
           description: SQL Interface status successfully updated.
           headers:
@@ -39703,6 +42398,8 @@ paths:
         - Project Database Access Admin
         - Project Stream Processing Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Custom-Database-Roles/operation/createGroupCustomDbRoleRole
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: createCustomDbRole
   /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}:
     delete:
@@ -41275,6 +43972,8 @@ paths:
       x-rolesRequirements:
         - Project Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Encryption-at-Rest-using-Customer-Key-Management/operation/createGroupEncryptionAtRestPrivateEndpoint
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: createRestPrivateEndpoint
   /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}:
     delete:
@@ -42242,6 +44941,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/MeasurementsIndexes"
               x-xgen-version: 2023-01-01
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/MeasurementsIndexes"
+              x-xgen-preview:
+                name: search-tiered-storage-metrics
+              x-xgen-version: preview
           description: OK
           headers:
             RateLimit-Limit:
@@ -42311,6 +45016,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/MeasurementsIndexes"
               x-xgen-version: 2023-01-01
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/MeasurementsIndexes"
+              x-xgen-preview:
+                name: search-tiered-storage-metrics
+              x-xgen-version: preview
           description: OK
           headers:
             RateLimit-Limit:
@@ -43448,6 +46159,8 @@ paths:
       x-rolesRequirements:
         - Organization Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Migration-Service/operation/cutoverGroupLiveMigration
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-method-verb-override:
         customMethod: true
       x-xgen-operation-id-override: cutoverMigration
@@ -44245,6 +46958,8 @@ paths:
           $ref: "#/components/responses/forbidden"
         "404":
           $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
         "429":
           $ref: "#/components/responses/tooManyRequests"
         "500":
@@ -44342,6 +47057,8 @@ paths:
           $ref: "#/components/responses/forbidden"
         "404":
           $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
         "429":
           $ref: "#/components/responses/tooManyRequests"
         "500":
@@ -44390,6 +47107,8 @@ paths:
           $ref: "#/components/responses/forbidden"
         "404":
           $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
         "429":
           $ref: "#/components/responses/tooManyRequests"
         "500":
@@ -44550,6 +47269,8 @@ paths:
           $ref: "#/components/responses/forbidden"
         "404":
           $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
         "429":
           $ref: "#/components/responses/tooManyRequests"
         "500":
@@ -45075,6 +47796,8 @@ paths:
       x-rolesRequirements:
         - Project Network Access Manager
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Network-Peering/operation/deleteGroupPeer
+      x-xgen-long-running-operation:
+        legacy: true
     get:
       description: Returns details about one specified network peering connection in the specified project.
       operationId: getGroupPeer
@@ -47005,7 +49728,7 @@ paths:
                 - OPLOG_MASTER_TIME
                 - OPLOG_RATE_GB_PER_HOUR
                 - OPLOG_SLAVE_LAG_MASTER_TIME
-                - OPLOG_REPLICATION_LAG
+                - OPLOG_REPLICATION_LAG_TIME
                 - PROCESS_CPU_CHILDREN_KERNEL
                 - PROCESS_CPU_CHILDREN_USER
                 - PROCESS_CPU_KERNEL
@@ -49134,6 +51857,8 @@ paths:
       x-xgen-changelog:
         2023-09-11: The MongoDB Atlas Streams Processing API is now exposed as part of private preview, but is subject to change until GA.
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamWorkspace
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-method-verb-override:
         customMethod: false
         verb: deleteWorkspace
@@ -49491,6 +52216,8 @@ paths:
         - Organization Stream Processing Admin
         - Project Stream Processing Manager
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamConnection
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: deleteStreamConnection
     get:
       description: Returns the details of one stream connection within the specified stream workspace.
@@ -49918,7 +52645,7 @@ paths:
         content:
           application/vnd.atlas.2024-05-30+json:
             schema:
-              $ref: "#/components/schemas/StreamsProcessor"
+              $ref: "#/components/schemas/StreamsProcessorRequest"
         description: Details to create an Atlas Streams Processor.
         required: true
       responses:
@@ -50629,6 +53356,8 @@ paths:
       x-xgen-changelog:
         2024-10-02: The MongoDB Atlas Streams Processing Private Link API is now exposed as part of private preview, but is subject to change until GA.
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamPrivateLinkConnection
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: deletePrivateLinkConnection
     get:
       description: Returns the details of one Private Link connection within the project.
@@ -50816,6 +53545,8 @@ paths:
         - Organization Stream Processing Admin
         - Project Stream Processing Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamVpcPeeringConnection
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: deleteVpcPeeringConnection
   /api/atlas/v2/groups/{groupId}/streams/vpcPeeringConnections/{id}:accept:
     post:
@@ -50865,6 +53596,8 @@ paths:
         - Organization Stream Processing Admin
         - Project Stream Processing Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/acceptGroupStreamVpcPeeringConnection
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: acceptVpcPeeringConnection
   /api/atlas/v2/groups/{groupId}/streams/vpcPeeringConnections/{id}:reject:
     post:
@@ -50907,6 +53640,8 @@ paths:
         - Organization Stream Processing Admin
         - Project Stream Processing Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/rejectGroupStreamVpcPeeringConnection
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: rejectVpcPeeringConnection
   /api/atlas/v2/groups/{groupId}/streams:withSampleConnections:
     post:
@@ -50971,11 +53706,16 @@ paths:
       responses:
         "200":
           content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedStreamsWorkspacePrivateEndpointResponse"
+              x-xgen-version: 2025-03-12
             application/vnd.atlas.preview+json:
               schema:
                 $ref: "#/components/schemas/PaginatedStreamsWorkspacePrivateEndpointResponse"
+              x-sunset: 2026-11-12
               x-xgen-preview:
-                name: streams-workspace-private-endpoint
+                public: "true"
               x-xgen-version: preview
           description: OK
           headers:
@@ -51012,20 +53752,28 @@ paths:
         - $ref: "#/components/parameters/pretty"
       requestBody:
         content:
+          application/vnd.atlas.2025-03-12+json:
+            schema:
+              $ref: "#/components/schemas/StreamsWorkspacePrivateEndpointRequest"
+            x-xgen-version: 2025-03-12
           application/vnd.atlas.preview+json:
             schema:
               $ref: "#/components/schemas/StreamsWorkspacePrivateEndpointRequest"
+            x-sunset: 2026-11-12
             x-xgen-preview:
-              name: streams-workspace-private-endpoint
+              public: "true"
             x-xgen-version: preview
         description: Customer VPC endpoint to register for Atlas Stream Processing.
         required: true
       responses:
         "202":
           content:
+            application/vnd.atlas.2025-03-12+json:
+              x-xgen-version: 2025-03-12
             application/vnd.atlas.preview+json:
+              x-sunset: 2026-11-12
               x-xgen-preview:
-                name: streams-workspace-private-endpoint
+                public: "true"
               x-xgen-version: preview
           description: Accepted
           headers:
@@ -51061,8 +53809,60 @@ paths:
         - Organization Stream Processing Admin
         - Project Stream Processing Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createGroupStreamsWorkspacePrivateEndpoint
+      x-xgen-long-running-operation:
+        legacy: false
       x-xgen-operation-id-override: createWorkspacePrivateEndpoint
   /api/atlas/v2/groups/{groupId}/streamsWorkspacePrivateEndpoints/{endpointId}:
+    delete:
+      description: Removes one private endpoint registered for Atlas Stream Processing in the specified project.
+      operationId: deleteGroupStreamsWorkspacePrivateEndpoint
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+        - description: Unique identifier of the customer's VPC endpoint.
+          in: path
+          name: endpointId
+          required: true
+          schema:
+            example: vpce-0abc123def4567890
+            pattern: ^vpce-[a-z0-9]{17}$
+            type: string
+      responses:
+        "204":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              x-xgen-version: 2025-03-12
+            application/vnd.atlas.preview+json:
+              x-sunset: 2026-11-12
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: No Content
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Remove One Workspace Private Endpoint for Atlas Stream Processing
+      tags:
+        - Streams
+      x-rolesRequirements:
+        - Organization Stream Processing Admin
+        - Project Stream Processing Owner
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamsWorkspacePrivateEndpoint
+      x-xgen-operation-id-override: deleteWorkspacePrivateEndpoint
     get:
       description: Returns one private endpoint registered for Atlas Stream Processing in the specified project.
       operationId: getGroupStreamsWorkspacePrivateEndpoint
@@ -51080,11 +53880,16 @@ paths:
       responses:
         "200":
           content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/StreamsWorkspacePrivateEndpointResponse"
+              x-xgen-version: 2025-03-12
             application/vnd.atlas.preview+json:
               schema:
                 $ref: "#/components/schemas/StreamsWorkspacePrivateEndpointResponse"
+              x-sunset: 2026-11-12
               x-xgen-preview:
-                name: streams-workspace-private-endpoint
+                public: "true"
               x-xgen-version: preview
           description: OK
           headers:
@@ -51442,6 +54247,8 @@ paths:
       x-rolesRequirements:
         - Project Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/LDAP-Configuration/operation/updateGroupUserSecurity
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: updateUserSecurity
   /api/atlas/v2/groups/{groupId}/userSecurity/customerX509:
     delete:
@@ -51482,6 +54289,8 @@ paths:
       x-rolesRequirements:
         - Project Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/X.509-Authentication/operation/disableGroupUserSecurityCustomerX509
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-method-verb-override:
         customMethod: "True"
         verb: disable
@@ -51523,6 +54332,8 @@ paths:
       x-rolesRequirements:
         - Project Owner
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/LDAP-Configuration/operation/deleteGroupUserSecurityLdapUserToDnMapping
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-operation-id-override: deleteLdapUserMapping
   /api/atlas/v2/groups/{groupId}/userSecurity/ldap/verify:
     post:
@@ -53209,6 +56020,8 @@ paths:
       x-rolesRequirements:
         - Organization Billing Viewer
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Invoices/operation/createOrgBillingCostExplorerUsageProcess
+      x-xgen-long-running-operation:
+        legacy: true
       x-xgen-method-verb-override:
         customMethod: false
         verb: createProcess
@@ -54839,13 +57652,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/OrganizationMaintenanceSettingsResponse"
               x-xgen-version: 2025-03-12
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/OrganizationMaintenanceSettingsResponse"
-              x-sunset: 2026-10-12
-              x-xgen-preview:
-                name: organization-maintenance
-              x-xgen-version: preview
           description: OK
           headers:
             RateLimit-Limit:
@@ -54883,13 +57689,6 @@ paths:
             schema:
               $ref: "#/components/schemas/OrganizationMaintenanceSettingsUpdateRequest"
             x-xgen-version: 2025-03-12
-          application/vnd.atlas.preview+json:
-            schema:
-              $ref: "#/components/schemas/OrganizationMaintenanceSettingsUpdateRequest"
-            x-sunset: 2026-10-12
-            x-xgen-preview:
-              name: organization-maintenance
-            x-xgen-version: preview
         description: Maintenance settings to update for the specified organization.
         required: true
       responses:
@@ -54899,13 +57698,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/OrganizationMaintenanceSettingsResponse"
               x-xgen-version: 2025-03-12
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/OrganizationMaintenanceSettingsResponse"
-              x-sunset: 2026-10-12
-              x-xgen-preview:
-                name: organization-maintenance
-              x-xgen-version: preview
           description: OK
           headers:
             RateLimit-Limit:
@@ -54945,13 +57737,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/OrganizationMaintenanceSettingsResponse"
               x-xgen-version: 2025-03-12
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/OrganizationMaintenanceSettingsResponse"
-              x-sunset: 2026-10-12
-              x-xgen-preview:
-                name: organization-maintenance
-              x-xgen-version: preview
           description: OK
           headers:
             RateLimit-Limit:
@@ -55103,6 +57888,8 @@ paths:
           $ref: "#/components/responses/forbidden"
         "404":
           $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
         "429":
           $ref: "#/components/responses/tooManyRequests"
         "500":
@@ -55200,6 +57987,8 @@ paths:
           $ref: "#/components/responses/forbidden"
         "404":
           $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
         "429":
           $ref: "#/components/responses/tooManyRequests"
         "500":
@@ -55248,6 +58037,8 @@ paths:
           $ref: "#/components/responses/forbidden"
         "404":
           $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
         "429":
           $ref: "#/components/responses/tooManyRequests"
         "500":
@@ -55408,6 +58199,8 @@ paths:
           $ref: "#/components/responses/forbidden"
         "404":
           $ref: "#/components/responses/notFound"
+        "409":
+          $ref: "#/components/responses/conflict"
         "429":
           $ref: "#/components/responses/tooManyRequests"
         "500":
@@ -58329,6 +61122,8 @@ tags:
     name: Projects
   - description: You can continually export mongod, mongos, and audit logs to an AWS S3 bucket. The new `/logIntegrations` API provides 1-minute log export on a best-effort basis. The existing `/pushBasedLogExport` API provides 5-minute log export and will be deprecated in the future. The log export integrations are managed at the project level.
     name: Push-Based Log Export
+  - description: Starts, returns, and stops query sampling on one namespace of one cluster. Sampled queries feed the shard key analysis for the namespace.
+    name: Query Sampling
   - description: Returns details about rate limit policies for the Atlas Administration API.
     externalDocs:
       description: Atlas API Rate Limits documentation
@@ -58356,6 +61151,12 @@ tags:
       description: Get Started with the Atlas Administration API
       url: https://www.mongodb.com/docs/atlas/configure-api-access/
     name: Service Accounts
+  - description: "Analyzes how well a candidate shard key would distribute a collection across the shards of a cluster. Analyzing a shard key samples documents on a live cluster and does not finish within one request, so it is submitted as a long-running operation: the request returns an operation to poll, and the completed analysis is a separate resource that the operation links to. To receive the most common shard key values, you must have the Project Data Access Read Only role or higher. Otherwise, MongoDB Cloud omits those values, because they come from the collection's data rather than from statistics about it."
+    name: Shard Key Analyzer
+  - description: Returns the cluster-level sharding state of one sharded cluster, including the balancer state, config server availability, and the configured balancing window.
+    name: Sharding Insights
+  - description: Returns Sharding Advisor recommendations for one cluster. Recommendations describe changes that may improve the cluster's data distribution, such as adding shards or sharding a collection, together with the monitored conditions that produced them.
+    name: Sharding Recommendations
   - description: Returns, adds, edits, and removes standby links between clusters for disaster recovery within a specified project.
     name: Standby Links
   - description: Returns, adds, edits, and removes Streams Workspaces. This resource requires your project ID.

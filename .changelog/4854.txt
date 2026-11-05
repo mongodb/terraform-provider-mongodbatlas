@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/mongodbatlas_search_index: Adds support for import using `{project_id}/{cluster_name}/{index_id}` format
+```
+
+```release-note:enhancement
+resource/mongodbatlas_cloud_backup_snapshot_export_job: Adds support for import using `{project_id}/{cluster_name}/{export_job_id}` format
+```

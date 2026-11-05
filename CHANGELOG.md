@@ -1,5 +1,16 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* resource/mongodbatlas_cloud_backup_snapshot_export_job: Adds support for import using `{project_id}/{cluster_name}/{export_job_id}` format ([#4854](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4854))
+* resource/mongodbatlas_online_archive: Adds support for import using `{project_id}/{cluster_name}/{archive_id}` format ([#4855](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4855))
+* resource/mongodbatlas_search_index: Adds support for import using `{project_id}/{cluster_name}/{index_id}` format ([#4854](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4854))
+
+BUG FIXES:
+
+* provider: Fixes delete operations failing when the resource is already gone from Atlas and the API returns an error code other than 404. The delete now succeeds and the resource is removed from state instead of erroring. Affects mongodbatlas_api_key, mongodbatlas_project_api_key, mongodbatlas_access_list_api_key, mongodbatlas_api_key_project_assignment, mongodbatlas_push_based_log_export ([#4856](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4856))
+* resource/mongodbatlas_online_archive: Supports cluster names with hyphens when importing the resource ([#4855](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4855))
+
 ## 2.21.0 (October 28, 2026)
 
 ENHANCEMENTS:
