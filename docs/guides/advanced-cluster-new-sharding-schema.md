@@ -363,94 +363,9 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 As of version 1.23.0, enabled `compute` auto-scaling (either `auto_scaling` or `analytics_auto_scaling`) will scale the `instance_size` of each shard independently. Each shard must be represented with a unique `replication_specs` element and `num_shards` must not be used.
 
-### Recommended Approach: Using use_effective_fields
+~> **IMPORTANT:** For clusters with more than one `replication_specs` entry, `use_effective_fields = true` currently has no effect. Use `lifecycle.ignore_changes` as shown below to prevent Terraform from reverting Atlas-managed auto-scaling changes. To learn more, see [Multi-shard clusters and topology changes](../resources/advanced_cluster.md#multi-shard-clusters-and-topology-changes).
 
-The following example shows the recommended approach using `use_effective_fields = true` to manage auto-scaling without `lifecycle.ignore_changes` blocks:
-
-```
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id            = var.project_id
-  name                  = "AutoScalingCluster"
-  cluster_type          = "SHARDED"
-  use_effective_fields  = true
-
-  replication_specs = [{ # first shard
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
-        node_count    = 3
-      }
-      analytics_specs = {
-        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
-        node_count = 1
-      }
-      auto_scaling = {
-        compute_enabled = true
-        compute_max_instance_size = "M60"
-      }
-      analytics_auto_scaling = {
-        compute_enabled = true
-        compute_max_instance_size = "M60"
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-    zone_name = "Zone 1"
-  },
-  { # second shard
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
-        node_count    = 3
-      }
-      analytics_specs = {
-        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
-        node_count = 1
-      }
-      auto_scaling = {
-        compute_enabled = true
-        compute_max_instance_size = "M60"
-      }
-      analytics_auto_scaling = {
-        compute_enabled = true
-        compute_max_instance_size = "M60"
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-    zone_name = "Zone 1"
-  }]
-}
-
-# Read effective values to see what Atlas has scaled to
-data "mongodbatlas_advanced_cluster" "test" {
-  project_id           = mongodbatlas_advanced_cluster.test.project_id
-  name                 = mongodbatlas_advanced_cluster.test.name
-  use_effective_fields = true
-  depends_on           = [mongodbatlas_advanced_cluster.test]
-}
-
-output "shard_sizes" {
-  value = [
-    for idx, spec in data.mongodbatlas_advanced_cluster.test.replication_specs : {
-      shard_index           = idx
-      configured_size       = spec.region_configs[0].electable_specs.instance_size
-      actual_electable_size = spec.region_configs[0].effective_electable_specs.instance_size
-      actual_analytics_size = spec.region_configs[0].effective_analytics_specs.instance_size
-    }
-  ]
-}
-```
-
-To learn more about `use_effective_fields`, see [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields).
-
-**For module authors:** `use_effective_fields` is particularly valuable for reusable Terraform modules, enabling a single module to handle both auto-scaling and non-auto-scaling clusters without requiring lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.21.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
-
-### Legacy Approach: Using lifecycle.ignore_changes
-
-If you need to maintain the legacy approach without using `use_effective_fields`, you can use `lifecycle.ignore_changes`:
+The following example uses `lifecycle.ignore_changes` to ignore Atlas-managed changes to `instance_size`, `disk_size_gb`, and `disk_iops` in each shard:
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -525,7 +440,9 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-While the examples initially define two symmetric shards, auto-scaling can lead to asymmetric shards due to changes in `instance_size`, `disk_size_gb`, and `disk_iops`. When either compute or disk auto-scaling is enabled, Atlas may adjust any of these resources to maintain optimal cluster performance.
+The `ignore_changes` entries reference each shard by its list index. Keep existing `replication_specs` entries in the same order, add new shards only after the existing entries, and add the matching entries to `ignore_changes` for each new shard. Before removing a shard, review [Multi-shard clusters and topology changes](../resources/advanced_cluster.md#multi-shard-clusters-and-topology-changes).
+
+While the example initially defines two symmetric shards, auto-scaling can lead to asymmetric shards due to changes in `instance_size`, `disk_size_gb`, and `disk_iops`. When either compute or disk auto-scaling is enabled, Atlas may adjust any of these resources to maintain optimal cluster performance.
 
 -> **NOTE:** In the following scenarios, a `mongodbatlas_advanced_cluster` using the new sharding configuration (single `replication_specs` per shard) might not have shard-level auto-scaling enabled: <br/>1. Configuration was defined prior to version 1.23.0 when auto-scaling per shard feature was released.<br/>2. Cluster was imported from a legacy schema (For example, `mongodbatlas_cluster` or `mongodbatlas_advanced_cluster` using `num_shards` > 1).
 <br/>3. Configuration is updated directly from a v1.x version of our provider directly to v2.0.0+ as no update is triggered.
