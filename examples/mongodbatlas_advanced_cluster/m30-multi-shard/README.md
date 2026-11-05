@@ -13,8 +13,6 @@ The cluster distributes data across two shards as follows:
 
 Compute and disk auto-scaling are enabled for each shard. A `lifecycle.ignore_changes` block prevents Terraform from reverting Atlas-managed changes to `instance_size`, `disk_size_gb`, and `disk_iops`. For clusters with more than one `replication_specs` entry, `use_effective_fields = true` currently has no effect, so this example does not use it. To learn more, see [Multi-shard clusters and topology changes](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#multi-shard-clusters-and-topology-changes).
 
- **Tip:** To add a third shard, append another `replication_specs` block with the same shape as shards 1 and 2, after the existing entries, and add the matching `replication_specs[2]` entries to `lifecycle.ignore_changes`. Atlas performs a live online shard addition with no downtime.
-
 ## Prerequisites
 
 To run this example, ensure you have the following tools:
