@@ -648,7 +648,7 @@ func AdvancedConfigurationSchema() schema.SingleNestedAttribute {
 				Computed:            true,
 				MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
 				PlanModifiers: []planmodifier.Int64{
-					PlanMustUseMongoDBVersion(7.0, EqualOrHigher),
+					changeStreamOptionsVersionGate,
 				},
 			},
 			"default_write_concern": schema.StringAttribute{
@@ -704,7 +704,7 @@ func AdvancedConfigurationSchema() schema.SingleNestedAttribute {
 				Optional:            true,
 				MarkdownDescription: "Default time limit in milliseconds for individual read operations to complete. This parameter is supported only for MongoDB version 8.0 and above.",
 				PlanModifiers: []planmodifier.Int64{
-					PlanMustUseMongoDBVersion(8.0, EqualOrHigher),
+					defaultMaxTimeMSVersionGate,
 				},
 			},
 			"custom_openssl_cipher_config_tls12": schema.SetAttribute{

@@ -129,6 +129,10 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		diags.AddError(errorInvalidAttributeConfiguration, errorInfiniteShardedEdition)
 		return
 	}
+	ValidateMongoDBVersionAtApply(ctx, diags, &req.Config, plan.MongoDBMajorVersion, types.StringNull())
+	if diags.HasError() {
+		return
+	}
 	latestReq := newAtlasReq(ctx, &plan, diags)
 	if diags.HasError() {
 		return
@@ -250,6 +254,12 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	// INFINITE cluster, e.g. switching an INFINITE replica set to sharded after dropping the attribute.
 	if isDatabaseEditionInfiniteSharded(plan.ClusterType.ValueString(), plan.DatabaseEdition.ValueString(), state.EffectiveDatabaseEdition.ValueString()) {
 		diags.AddError(errorInvalidAttributeConfiguration, errorInfiniteShardedEdition)
+		return
+	}
+	// Runs before the cluster PATCH, which can change mongo_db_major_version, so an incompatible combination fails
+	// before anything is applied.
+	ValidateMongoDBVersionAtApply(ctx, diags, &req.Config, plan.MongoDBMajorVersion, state.MongoDBMajorVersion)
+	if diags.HasError() {
 		return
 	}
 	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationUpdate)
