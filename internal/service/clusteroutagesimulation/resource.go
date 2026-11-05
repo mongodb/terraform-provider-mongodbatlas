@@ -279,11 +279,12 @@ func resourceRefreshFunc(ctx context.Context, clusterName, projectID string, cli
 			return nil, "", err
 		}
 
-		if *outageSimulation.State != "" {
-			log.Printf("[DEBUG] status for MongoDB cluster outage simulation: %s: %s", clusterName, *outageSimulation.State)
+		state := outageSimulation.GetState()
+		if state != "" {
+			log.Printf("[DEBUG] status for MongoDB cluster outage simulation: %s: %s", clusterName, state)
 		}
 
-		return outageSimulation, *outageSimulation.State, nil
+		return outageSimulation, state, nil
 	}
 }
 
