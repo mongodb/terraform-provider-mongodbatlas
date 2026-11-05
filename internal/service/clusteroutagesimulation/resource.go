@@ -23,7 +23,7 @@ const (
 	errorClusterOutageSimulationDelete  = "error ending MongoDB Atlas Cluster Outage Simulation for Project (%s), Cluster (%s): %s"
 	errorClusterOutageSimulationSetting = "error setting `%s` for MongoDB Atlas Cluster Outage Simulation: %s"
 	defaultOutageFilterType             = "REGION"
-	timeout                             = 1 * time.Minute
+	defaultMinTimeout                   = 1 * time.Minute
 )
 
 func Resource() *schema.Resource {
@@ -105,10 +105,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"START_REQUESTED", "STARTING"},
 		Target:     []string{"SIMULATING"},
-		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
+		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2.ClusterOutageSimulationAPI),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
-		MinTimeout: timeout,
-		Delay:      timeout,
+		MinTimeout: defaultMinTimeout,
+		Delay:      defaultMinTimeout,
 	}
 
 	_, errWait := stateConf.WaitForStateContext(ctx)
@@ -119,7 +119,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
 		return deleteOutageSimulationWithCleanup(
 			ctxCleanup,
-			connV2,
+			connV2.ClusterOutageSimulationAPI,
 			projectID,
 			clusterName,
 			20*time.Minute, // wait timeout for reaching SIMULATING before trying to delete
@@ -182,14 +182,14 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 // waitForDeletableState waits for the outage simulation to reach a deletable state
-func waitForDeletableState(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, timeout time.Duration) (*admin.ClusterOutageSimulation, error) {
+func waitForDeletableState(ctx context.Context, client admin.ClusterOutageSimulationAPI, projectID, clusterName string, waitTimeout, minTimeout time.Duration) (*admin.ClusterOutageSimulation, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"START_REQUESTED", "STARTING"},
 		Target:     []string{"SIMULATING", "FAILED", "DELETED"},
-		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
-		Timeout:    timeout,
-		MinTimeout: timeout,
-		Delay:      timeout,
+		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, client),
+		Timeout:    waitTimeout,
+		MinTimeout: minTimeout,
+		Delay:      minTimeout,
 	}
 
 	result, err := stateConf.WaitForStateContext(ctx)
@@ -206,8 +206,8 @@ func waitForDeletableState(ctx context.Context, connV2 *admin.APIClient, project
 }
 
 // deleteOutageSimulationWithCleanup waits for SIMULATING state and then deletes the simulation
-func deleteOutageSimulationWithCleanup(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, waitTimeout, deleteTimeout time.Duration) error {
-	simulation, err := waitForDeletableState(ctx, connV2, projectID, clusterName, waitTimeout)
+func deleteOutageSimulationWithCleanup(ctx context.Context, client admin.ClusterOutageSimulationAPI, projectID, clusterName string, waitTimeout, deleteTimeout time.Duration) error {
+	simulation, err := waitForDeletableState(ctx, client, projectID, clusterName, waitTimeout, defaultMinTimeout)
 	if err != nil {
 		return nil // Don't fail cleanup if we can't reach a deletable state
 	}
@@ -215,7 +215,7 @@ func deleteOutageSimulationWithCleanup(ctx context.Context, connV2 *admin.APICli
 	finalState := simulation.GetState()
 	switch finalState {
 	case "SIMULATING": // If this isn't the state when triggering the delete, the API returns a 400 error: "INVALID_CLUSTER_OUTAGE_SIMULATION_STATE") Detail: Invalid cluster outage simulation state: START_REQUESTED, expected state: SIMULATING
-		return endOutageSimulationAndWait(ctx, connV2, projectID, clusterName, deleteTimeout)
+		return endOutageSimulationAndWait(ctx, client, projectID, clusterName, deleteTimeout, defaultMinTimeout)
 	case "FAILED", "DELETED":
 		return nil
 	default:
@@ -224,8 +224,8 @@ func deleteOutageSimulationWithCleanup(ctx context.Context, connV2 *admin.APICli
 }
 
 // endOutageSimulationAndWait ends the outage simulation and waits for it to complete
-func endOutageSimulationAndWait(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, timeout time.Duration) error {
-	_, httpResponse, err := connV2.ClusterOutageSimulationAPI.EndOutageSimulation(ctx, projectID, clusterName).Execute()
+func endOutageSimulationAndWait(ctx context.Context, client admin.ClusterOutageSimulationAPI, projectID, clusterName string, deleteTimeout, minTimeout time.Duration) error {
+	_, httpResponse, err := client.EndOutageSimulation(ctx, projectID, clusterName).Execute()
 	if err != nil && !deletenotfound.IsNotFound(ctx, httpResponse, err) {
 		return fmt.Errorf(errorClusterOutageSimulationDelete, projectID, clusterName, err)
 	}
@@ -235,10 +235,10 @@ func endOutageSimulationAndWait(ctx context.Context, connV2 *admin.APIClient, pr
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"RECOVERY_REQUESTED", "RECOVERING", "COMPLETE"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
-		Timeout:    timeout,
-		MinTimeout: timeout,
-		Delay:      timeout,
+		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, client),
+		Timeout:    deleteTimeout,
+		MinTimeout: minTimeout,
+		Delay:      minTimeout,
 	}
 
 	_, err = stateConf.WaitForStateContext(ctx)
@@ -256,7 +256,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	err := endOutageSimulationAndWait(ctx, connV2, projectID, clusterName, d.Timeout(schema.TimeoutDelete))
+	err := endOutageSimulationAndWait(ctx, connV2.ClusterOutageSimulationAPI, projectID, clusterName, d.Timeout(schema.TimeoutDelete), defaultMinTimeout)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -268,22 +268,23 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return diag.FromErr(fmt.Errorf("updating a Cluster Outage Simulation is not supported"))
 }
 
-func resourceRefreshFunc(ctx context.Context, clusterName, projectID string, client *admin.APIClient) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, clusterName, projectID string, client admin.ClusterOutageSimulationAPI) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		outageSimulation, resp, err := client.ClusterOutageSimulationAPI.GetOutageSimulation(ctx, projectID, clusterName).Execute()
+		outageSimulation, resp, err := client.GetOutageSimulation(ctx, projectID, clusterName).Execute()
 
 		if err != nil {
 			if validate.StatusNotFound(resp) {
-				return "", "DELETED", nil
+				return &admin.ClusterOutageSimulation{State: conversion.StringPtr("DELETED")}, "DELETED", nil
 			}
 			return nil, "", err
 		}
 
-		if *outageSimulation.State != "" {
-			log.Printf("[DEBUG] status for MongoDB cluster outage simulation: %s: %s", clusterName, *outageSimulation.State)
+		state := outageSimulation.GetState()
+		if state != "" {
+			log.Printf("[DEBUG] status for MongoDB cluster outage simulation: %s: %s", clusterName, state)
 		}
 
-		return outageSimulation, *outageSimulation.State, nil
+		return outageSimulation, state, nil
 	}
 }
 
