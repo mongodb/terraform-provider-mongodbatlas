@@ -433,6 +433,12 @@ func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 				ImportStateId: "incorrect_id_without_project_id_and_dash",
 				ExpectError:   regexp.MustCompile("expected format: project_id/alert_configuration_id"),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: importStateLegacyDashIDFunc(resourceName),
+				ExpectError:       regexp.MustCompile("expected format: project_id/alert_configuration_id"),
+			},
 		},
 	})
 }
@@ -863,6 +869,17 @@ func checkDestroy() resource.TestCheckFunc {
 }
 
 func importStateProjectIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["alert_configuration_id"]), nil
+	}
+}
+
+// importStateLegacyDashIDFunc builds the 2.x import ID ({project_id}-{alert_configuration_id}), which 3.0 no longer accepts.
+func importStateLegacyDashIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

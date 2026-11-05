@@ -101,32 +101,6 @@ func TestPostHooks_errorAndEmptyBodyUnchanged(t *testing.T) {
 	}
 }
 
-func TestPreImport_rewritesLegacyDashFormat(t *testing.T) {
-	hook, ok := alertconfiguration.Resource().(autogen.PreImportHook)
-	require.True(t, ok)
-
-	tests := map[string]struct {
-		id   string
-		want string
-	}{
-		"legacy dash format is rewritten": {
-			id:   "64e3d2d9a25b07293b8f5e21-651dd9336afac13e1c112222",
-			want: "64e3d2d9a25b07293b8f5e21/651dd9336afac13e1c112222",
-		},
-		"slash format passes through": {
-			id:   "64e3d2d9a25b07293b8f5e21/651dd9336afac13e1c112222",
-			want: "64e3d2d9a25b07293b8f5e21/651dd9336afac13e1c112222",
-		},
-	}
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			got, err := hook.PreImport(tc.id)
-			require.NoError(t, err)
-			assert.Equal(t, tc.want, got)
-		})
-	}
-}
-
 func TestPreCreateAPICall_fillsRequiredZeroValues(t *testing.T) {
 	body := `{"enabled":true,"eventTypeName":"OUTSIDE_METRIC_THRESHOLD","notifications":[{"typeName":"EMAIL","emailAddress":"a@b.com"}],"metricThreshold":{"metricName":"ASSERT_REGULAR","operator":"LESS_THAN","units":"RAW","mode":"AVERAGE"}}`
 	params, got := alertconfiguration.Resource().(autogen.PreCreateAPICallHook).PreCreateAPICall(config.APICallParams{Method: "POST"}, []byte(body))
