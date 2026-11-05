@@ -55,6 +55,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgratelimit"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelratelimit"
+	autogenalertconfiguration "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupcollectionrestorejobcollection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/cloudbackupsnapshotdatabase"
@@ -402,7 +403,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		orgmaintenancesettings.Resource,
 		encryptionatrest.Resource,
 		databaseuser.Resource,
-		alertconfiguration.Resource,
+		autogenalertconfiguration.Resource,
 		projectipaccesslist.Resource,
 		searchdeployment.Resource,
 		pushbasedlogexport.Resource,

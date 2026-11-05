@@ -261,6 +261,18 @@ func aliasTransformation(attr *Attribute, paths *attrPaths, schemaOptions config
 		// will be generated when TFModelName doesn't derive to the correct API name.
 		attr.TFSchemaName = stringcase.ToSnakeCase(aliasCamel)
 		attr.TFModelName = stringcase.Capitalize(aliasCamel)
+		// Rebuild the custom type so the generated schema references the model struct with the
+		// aliased name (the generated model structs use TFModelName).
+		if attr.CustomType != nil && attr.CustomType.Name != "" {
+			switch {
+			case attr.SingleNested != nil:
+				attr.CustomType = NewCustomObjectType(attr.TFModelName)
+			case attr.ListNested != nil:
+				attr.CustomType = NewCustomNestedListType(attr.TFModelName)
+			case attr.SetNested != nil:
+				attr.CustomType = NewCustomNestedSetType(attr.TFModelName)
+			}
+		}
 		// Update the schema path to reflect the new schema name
 		parts := strings.Split(paths.schemaPath, ".")
 		if len(parts) > 0 {

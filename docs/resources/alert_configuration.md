@@ -14,22 +14,26 @@ resource "mongodbatlas_alert_configuration" "test" {
   event_type = "OUTSIDE_METRIC_THRESHOLD"
   enabled    = true
 
-  notification {
-    type_name     = "GROUP"
-    interval_min  = 5
-    delay_min     = 0
-    sms_enabled   = false
-    email_enabled = true
-    roles         = ["GROUP_CLUSTER_MANAGER"]
-  }
+  notification = [
+    {
+      type_name     = "GROUP"
+      interval_min  = 5
+      delay_min     = 0
+      sms_enabled   = false
+      email_enabled = true
+      roles         = ["GROUP_CLUSTER_MANAGER"]
+    }
+  ]
 
-  matcher {
-    field_name = "HOSTNAME_AND_PORT"
-    operator   = "EQUALS"
-    value      = "SECONDARY"
-  }
+  matcher = [
+    {
+      field_name = "HOSTNAME_AND_PORT"
+      operator   = "EQUALS"
+      value      = "SECONDARY"
+    }
+  ]
 
-  metric_threshold_config {
+  metric_threshold_config = {
     metric_name = "ASSERT_REGULAR"
     operator    = "LESS_THAN"
     threshold   = 99.0
@@ -48,22 +52,26 @@ resource "mongodbatlas_alert_configuration" "test" {
   event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
   enabled    = true
 
-  notification {
-    type_name     = "GROUP"
-    interval_min  = 5
-    delay_min     = 0
-    sms_enabled   = false
-    email_enabled = true
-    roles         = ["GROUP_CLUSTER_MANAGER"]
-  }
+  notification = [
+    {
+      type_name     = "GROUP"
+      interval_min  = 5
+      delay_min     = 0
+      sms_enabled   = false
+      email_enabled = true
+      roles         = ["GROUP_CLUSTER_MANAGER"]
+    }
+  ]
 
-  matcher {
-    field_name = "CLUSTER_NAME"
-    operator   = "EQUALS"
-    value      = "my-cluster"
-  }
+  matcher = [
+    {
+      field_name = "CLUSTER_NAME"
+      operator   = "EQUALS"
+      value      = "my-cluster"
+    }
+  ]
 
-  threshold_config {
+  threshold_config = {
     operator    = "LESS_THAN"
     threshold   = 1
     units       = "HOURS"
@@ -80,30 +88,33 @@ resource "mongodbatlas_alert_configuration" "test" {
   event_type = "OUTSIDE_METRIC_THRESHOLD"
   enabled    = true
 
-  notification {
-    type_name     = "GROUP"
-    interval_min  = 5
-    delay_min     = 0
-    sms_enabled   = false
-    email_enabled = true
-    roles = ["GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER", "GROUP_DATA_ACCESS_ADMIN"]
-  }
+  notification = [
+    {
+      type_name     = "GROUP"
+      interval_min  = 5
+      delay_min     = 0
+      sms_enabled   = false
+      email_enabled = true
+      roles = ["GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER", "GROUP_DATA_ACCESS_ADMIN"]
+    },
+    {
+      type_name     = "ORG"
+      interval_min  = 5
+      delay_min     = 0
+      sms_enabled   = true
+      email_enabled = false
+    }
+  ]
 
-  notification {
-    type_name     = "ORG"
-    interval_min  = 5
-    delay_min     = 0
-    sms_enabled   = true
-    email_enabled = false
-  }
+  matcher = [
+    {
+      field_name = "HOSTNAME_AND_PORT"
+      operator   = "EQUALS"
+      value      = "SECONDARY"
+    }
+  ]
 
-  matcher {
-    field_name = "HOSTNAME_AND_PORT"
-    operator   = "EQUALS"
-    value      = "SECONDARY"
-  }
-
-  metric_threshold_config {
+  metric_threshold_config = {
     metric_name = "ASSERT_REGULAR"
     operator    = "LESS_THAN"
     threshold   = 99.0
@@ -127,10 +138,12 @@ resource "mongodbatlas_alert_configuration" "test" {
   enabled    = true
   event_type = "USERS_WITHOUT_MULTI_FACTOR_AUTH"
 
-  notification {
-    type_name     = "PAGER_DUTY"
-    integration_id = data.mongodbatlas_third_party_integration.test.id
-  }
+  notification = [
+    {
+      type_name      = "PAGER_DUTY"
+      integration_id = data.mongodbatlas_third_party_integration.test.id
+    }
+  ]
 }
 ```
 
@@ -142,12 +155,14 @@ resource "mongodbatlas_alert_configuration" "test" {
   enabled    = true
   event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
 
-  notification {
-    type_name                = "WEBHOOK"
-    webhook_url              = "https://example.com/webhook"
-    webhook_body_template    = jsonencode({ alert = "$${eventType}", project = "$${groupId}" })
-    webhook_headers_template = jsonencode({ "X-Custom-Header" = "static-value" })
-  }
+  notification = [
+    {
+      type_name                = "WEBHOOK"
+      webhook_url              = "https://example.com/webhook"
+      webhook_body_template    = jsonencode({ alert = "$${eventType}", project = "$${groupId}" })
+      webhook_headers_template = jsonencode({ "X-Custom-Header" = "static-value" })
+    }
+  ]
 }
 ```
 
@@ -286,7 +301,7 @@ List of notifications to send when an alert condition is detected.
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - Unique identifier used for terraform for internal manages and can be used to import.
+* `id` - Unique 24-hexadecimal digit string that identifies this alert configuration (in 2.x releases this was an encoded `project_id`/`alert_configuration_id` value).
 * `alert_configuration_id` - Unique identifier for the alert configuration.
 * `group_id` - Unique identifier of the project that owns this alert configuration.
 * `created` - Timestamp in ISO 8601 date and time format in UTC when this alert configuration was created.
@@ -294,11 +309,13 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Alert Configuration can be imported using the `project_id-alert_configuration_id`, e.g.
+Alert Configuration can be imported using the `project_id`/`alert_configuration_id`, e.g.
 
 ```
-terraform import mongodbatlas_alert_configuration.test 5d0f1f74cf09a29120e123cd-5d0f1f74cf09a29120e1fscg
+terraform import mongodbatlas_alert_configuration.test 5d0f1f74cf09a29120e123cd/5d0f1f74cf09a29120e1fscg
 ```
+
+**NOTE:** In 2.x releases the import format was `project_id-alert_configuration_id` (dash-separated); that legacy format is still accepted and rewritten to `project_id`/`alert_configuration_id` on import.
 
 **NOTE**: Third-party notifications will not contain their respective credentials as these are sensitive attributes. If you wish to perform updates on these notifications without providing the original credentials, the corresponding `notifier_id` attribute must be provided instead.
 
