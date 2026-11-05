@@ -802,7 +802,7 @@ replication_specs = [
 
   For the list of AWS regions that support [Gen2](https://www.mongodb.com/docs/atlas/manage-clusters/#gen2-dedicated-clusters) instance sizes, see [Supported AWS Regions](https://www.mongodb.com/docs/atlas/reference/amazon-aws/#supported-regions). For the list of GCP regions that support Gen2 instance sizes, see [Supported GCP Regions](https://www.mongodb.com/docs/atlas/reference/google-gcp/#supported-regions).
 
-  Gen2 clusters can span regions only if every region you deploy to supports Gen2 instance sizes on the cluster's cloud provider. Gen2 clusters don't support multi-cloud deployments.
+  Gen2 clusters can span regions only if every region you deploy to supports Gen2 instance sizes. Gen2 clusters support multi-cloud deployments across AWS and GCP only.
 
 ### electable_specs
 
