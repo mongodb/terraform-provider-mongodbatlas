@@ -12,6 +12,8 @@ import (
 
 var commonIgnoredAttributes = []string{"total_count", "envelope", "items_per_page", "page_num", "links", "pretty", "include_count"}
 
+const pluralResultsPrefix = "results."
+
 const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. " +
 	"When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for " +
 	"deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a " +
@@ -45,9 +47,7 @@ func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSou
 	if ds == nil {
 		return nil
 	}
-	singularOptions := dsConfig.SchemaOptions
-	singularOptions.Overrides = mergeOverrides(dsConfig.SchemaOptions.Overrides, dsConfig.SingularOverrides)
-	if err := applyDSSchemaTransformations(singularOptions, ds.Singular); err != nil {
+	if err := applyDSSchemaTransformations(dsConfig.SchemaOptions, ds.Singular); err != nil {
 		return fmt.Errorf("failed to apply transformations for singular data source: %w", err)
 	}
 	pluralOptions := dsConfig.SchemaOptions
@@ -465,30 +465,22 @@ func setCreateOnlyValue(attr *Attribute) {
 	}
 }
 
-const pluralResultsPrefix = "results."
-
-// mergeOverrides returns a new map with base overlaid by scoped. A scoped key replaces the whole base entry for that path.
-func mergeOverrides(base, scoped map[string]config.Override) map[string]config.Override {
-	merged := make(map[string]config.Override, len(base)+len(scoped))
-	maps.Copy(merged, base)
-	maps.Copy(merged, scoped)
-	return merged
-}
-
 // pluralOverrides builds the exact-path override map for a plural data source. A shared key also covers the same
 // path under `results`, so one key describes a singular attribute and its plural list-item counterpart. An explicit
 // shared `results.` key takes precedence over that copy, and scoped plural keys take precedence over both.
 func pluralOverrides(shared, scoped map[string]config.Override) map[string]config.Override {
-	expanded := mergeOverrides(shared, nil)
+	result := make(map[string]config.Override, 2*len(shared)+len(scoped))
+	maps.Copy(result, shared)
 	for path := range shared {
 		if strings.HasPrefix(path, pluralResultsPrefix) {
 			continue
 		}
 		if _, explicit := shared[pluralResultsPrefix+path]; !explicit {
-			expanded[pluralResultsPrefix+path] = shared[path]
+			result[pluralResultsPrefix+path] = shared[path]
 		}
 	}
-	return mergeOverrides(expanded, scoped)
+	maps.Copy(result, scoped)
+	return result
 }
 
 // applyAliasesToNestedDiscriminators recursively walks attributes and applies alias renames

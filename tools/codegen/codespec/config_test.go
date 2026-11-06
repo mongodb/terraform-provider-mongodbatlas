@@ -1501,13 +1501,13 @@ func TestApplyTransformationsToDataSources_OverrideScoping(t *testing.T) {
 			expectedSingular: map[string]string{"provider_type": "shared"},
 			expectedPlural:   map[string]string{"provider_type": "shared", "results.provider_type": "plural results"},
 		},
-		"singular override applies only to the singular data source": {
+		"empty plural overrides opt the plural out so a shared key applies to the singular only": {
 			inputConfig: config.DataSources{
-				SchemaOptions:     config.SchemaOptions{Overrides: map[string]config.Override{"provider_type": desc("shared")}},
-				SingularOverrides: map[string]config.Override{"provider_type": desc("singular")},
+				SchemaOptions:   config.SchemaOptions{Overrides: map[string]config.Override{"provider_type": desc("singular only")}},
+				PluralOverrides: map[string]config.Override{"provider_type": {}, "results.provider_type": {}},
 			},
-			expectedSingular: map[string]string{"provider_type": "singular"},
-			expectedPlural:   map[string]string{"provider_type": "shared", "results.provider_type": "shared"},
+			expectedSingular: map[string]string{"provider_type": "singular only"},
+			expectedPlural:   map[string]string{"provider_type": orig, "results.provider_type": orig},
 		},
 	}
 
