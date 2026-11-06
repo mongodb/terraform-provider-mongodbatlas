@@ -27,12 +27,9 @@ const (
 	`
 )
 
-// TestAccStreamWorkspacePrivateEndpoint_basic registers a real customer VPC endpoint, checks the
-// singular and plural data sources, then imports. Requires a pre-created AWS interface endpoint
-// whose DNS name belongs to that endpoint and region.
+// TestAccStreamWorkspacePrivateEndpoint_basic registers a workspace private endpoint, checks the
+// singular and plural data sources, then imports. The AWS_VPC_ENDPOINT_* values may be synthetic.
 func TestAccStreamWorkspacePrivateEndpoint_basic(t *testing.T) {
-	acc.SkipTestForCI(t) // needs a real AWS VPC endpoint
-
 	var (
 		projectID  = acc.ProjectIDExecution(t)
 		endpointID = os.Getenv("AWS_VPC_ENDPOINT_ID")
