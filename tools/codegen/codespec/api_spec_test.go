@@ -116,10 +116,22 @@ func TestBuildSchema(t *testing.T) {
 			expectedDescription: "override description",
 			expectedReadOnly:    true,
 		},
-		"Single-ref allOf with other siblings is not unwrapped": {
+		"Single-ref allOf with format sibling is not unwrapped": {
 			schemaDefinition: `      allOf:
         - $ref: '#/components/schemas/Referenced'
-      deprecated: true`,
+      format: password`,
+			errorContains: "type cannot be inferred",
+		},
+		"Single-ref allOf with extension sibling is not unwrapped": {
+			schemaDefinition: `      allOf:
+        - $ref: '#/components/schemas/Referenced'
+      x-xgen-server-computed-when-client-omitted: true`,
+			errorContains: "type cannot be inferred",
+		},
+		"$ref with extension sibling is not unwrapped": {
+			schemaDefinition: `      $ref: '#/components/schemas/Referenced'
+      description: override description
+      x-xgen-server-computed-when-client-omitted: true`,
 			errorContains: "type cannot be inferred",
 		},
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"path"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -191,9 +192,7 @@ func matchSiblingRefAllOf(schema *base.Schema) (refBranch *base.SchemaProxy, ann
 		if schema.AllOf[0].GetReference() == "" {
 			return nil, nil
 		}
-		rest := *schema
-		rest.AllOf, rest.Nullable, rest.ReadOnly = nil, nil, nil
-		if !isDescriptionOnlyCarrier(&rest) {
+		if !hasOnlyKeys(schema, "allOf", "description", "nullable", "readOnly") {
 			return nil, nil
 		}
 		return schema.AllOf[0], schema
@@ -211,7 +210,7 @@ func matchSiblingRefAllOf(schema *base.Schema) (refBranch *base.SchemaProxy, ann
 			continue
 		}
 		carrier, err := branch.BuildSchema()
-		if err != nil || !isDescriptionOnlyCarrier(carrier) {
+		if err != nil || !hasOnlyKeys(carrier, "description") {
 			return nil, nil
 		}
 		annotations = carrier
@@ -222,18 +221,20 @@ func matchSiblingRefAllOf(schema *base.Schema) (refBranch *base.SchemaProxy, ann
 	return refBranch, annotations
 }
 
-// isDescriptionOnlyCarrier reports whether s is the inline branch libopenapi emits in a
-// sibling-ref wrapper: at most a description, with no structural or override fields.
-func isDescriptionOnlyCarrier(s *base.Schema) bool {
-	return len(s.Type) == 0 &&
-		(s.Properties == nil || s.Properties.Len() == 0) &&
-		len(s.Required) == 0 &&
-		len(s.AllOf) == 0 && len(s.OneOf) == 0 && len(s.AnyOf) == 0 &&
-		len(s.Enum) == 0 &&
-		s.Items == nil && s.AdditionalProperties == nil &&
-		s.Deprecated == nil && s.ReadOnly == nil && s.WriteOnly == nil && s.Nullable == nil &&
-		s.Default == nil && s.Example == nil &&
-		s.Title == ""
+// hasOnlyKeys reports whether the schema's YAML node defines no keys beyond allowed, so any
+// unrecognized sibling (format, extensions, validations, ...) is rejected rather than dropped.
+func hasOnlyKeys(s *base.Schema, allowed ...string) bool {
+	low := s.GoLow()
+	if low == nil || low.RootNode == nil {
+		return false
+	}
+	content := low.RootNode.Content
+	for i := 0; i < len(content); i += 2 {
+		if !slices.Contains(allowed, content[i].Value) {
+			return false
+		}
+	}
+	return true
 }
 
 // getSchemaName extracts a human-readable schema name from the proxy reference or schema title.
