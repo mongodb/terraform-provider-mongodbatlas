@@ -32,6 +32,7 @@ func TestBuildSchema(t *testing.T) {
 		errorContains       string
 		expectedType        string
 		expectedDescription string
+		expectedReadOnly    bool
 	}{
 		"Explicit object type": {
 			schemaDefinition: `      type: object
@@ -104,6 +105,23 @@ func TestBuildSchema(t *testing.T) {
       deprecated: true`,
 			errorContains: "type cannot be inferred",
 		},
+		"Single-ref allOf with annotation siblings is unwrapped": {
+			// OpenAPI 3.0 idiom to annotate a $ref, e.g. AutoScaling.storageConfig.
+			schemaDefinition: `      allOf:
+        - $ref: '#/components/schemas/Referenced'
+      description: override description
+      nullable: true
+      readOnly: true`,
+			expectedType:        "string",
+			expectedDescription: "override description",
+			expectedReadOnly:    true,
+		},
+		"Single-ref allOf with other siblings is not unwrapped": {
+			schemaDefinition: `      allOf:
+        - $ref: '#/components/schemas/Referenced'
+      deprecated: true`,
+			errorContains: "type cannot be inferred",
+		},
 	}
 
 	for name, tc := range tests {
@@ -123,6 +141,12 @@ func TestBuildSchema(t *testing.T) {
 				if tc.expectedDescription != "" {
 					assert.Equal(t, tc.expectedDescription, result.Schema.Description)
 				}
+				assert.Equal(t, tc.expectedReadOnly, conversion.SafeValue(result.Schema.ReadOnly))
+				// Overrides must not leak into the shared referenced schema.
+				referenced, err := model.Model.Components.Schemas.GetOrZero("Referenced").BuildSchema()
+				require.NoError(t, err)
+				assert.Equal(t, "original description", referenced.Description)
+				assert.Nil(t, referenced.ReadOnly)
 			} else {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), tc.errorContains)
