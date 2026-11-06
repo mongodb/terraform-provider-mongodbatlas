@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"path"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -24,14 +25,22 @@ func BuildSchema(proxy *base.SchemaProxy) (*APISpecSchema, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to build schema from proxy: %w", err)
 	}
-	if refBranch, description := matchSiblingRefAllOf(schema); refBranch != nil {
+	if refBranch, annotations := matchSiblingRefAllOf(schema); refBranch != nil {
 		inner, err := BuildSchema(refBranch)
 		if err != nil {
 			return nil, err
 		}
-		if description != "" {
-			inner.Schema.Description = description
+		merged := *inner.Schema // copy so overrides don't leak into the shared referenced schema
+		if annotations.Description != "" {
+			merged.Description = annotations.Description
 		}
+		if annotations.ReadOnly != nil {
+			merged.ReadOnly = annotations.ReadOnly
+		}
+		if annotations.Nullable != nil {
+			merged.Nullable = annotations.Nullable
+		}
+		inner.Schema = &merged
 		return inner, nil
 	}
 	switch {
@@ -169,51 +178,63 @@ func buildSchemaFromResponse(op *high.Operation, configuredVersion *string) (*AP
 	return nil, errSchemaNotFound
 }
 
-// matchSiblingRefAllOf detects the 2-branch allOf wrapper libopenapi (>= v0.36.4) emits when
-// a `$ref` carries a `description` sibling, returning the referenced proxy and the override
-// description. Real allOf composition is left to the flattened API spec; any other wrapper
-// shape returns a nil refBranch so the existing "type cannot be inferred" error surfaces
-// unsupported shapes loudly. Detection only — the caller resolves the ref so any underlying
-// BuildSchema failure propagates instead of being hidden behind the wrapper's generic error.
-func matchSiblingRefAllOf(schema *base.Schema) (refBranch *base.SchemaProxy, description string) {
-	if len(schema.AllOf) != 2 ||
-		len(schema.Type) > 0 ||
-		(schema.Properties != nil && schema.Properties.Len() > 0) {
-		return nil, ""
+// matchSiblingRefAllOf detects allOf wrappers that only annotate a single `$ref` and returns the ref
+// plus the schema holding the annotations. Supported shapes: the 2-branch wrapper libopenapi emits for
+// a `$ref` with a `description` sibling, and `allOf: [$ref]` with `description`, `nullable` or `readOnly`
+// siblings. Other shapes return nil so the "type cannot be inferred" error surfaces them.
+// The spec flattener only resolves polymorphic allOf (inheritance under a oneOf parent), so these wrappers reach codegen.
+func matchSiblingRefAllOf(schema *base.Schema) (refBranch *base.SchemaProxy, annotations *base.Schema) {
+	if len(schema.Type) > 0 || (schema.Properties != nil && schema.Properties.Len() > 0) {
+		return nil, nil
 	}
 
+	if len(schema.AllOf) == 1 {
+		if schema.AllOf[0].GetReference() == "" {
+			return nil, nil
+		}
+		if !hasOnlyKeys(schema, "allOf", "description", "nullable", "readOnly") {
+			return nil, nil
+		}
+		return schema.AllOf[0], schema
+	}
+
+	if len(schema.AllOf) != 2 {
+		return nil, nil
+	}
 	for _, branch := range schema.AllOf {
 		if branch.GetReference() != "" {
 			if refBranch != nil {
-				return nil, ""
+				return nil, nil
 			}
 			refBranch = branch
 			continue
 		}
 		carrier, err := branch.BuildSchema()
-		if err != nil || !isDescriptionOnlyCarrier(carrier) {
-			return nil, ""
+		if err != nil || !hasOnlyKeys(carrier, "description") {
+			return nil, nil
 		}
-		description = carrier.Description
+		annotations = carrier
 	}
 	if refBranch == nil {
-		return nil, ""
+		return nil, nil
 	}
-	return refBranch, description
+	return refBranch, annotations
 }
 
-// isDescriptionOnlyCarrier reports whether s is the inline branch libopenapi emits in a
-// sibling-ref wrapper: at most a description, with no structural or override fields.
-func isDescriptionOnlyCarrier(s *base.Schema) bool {
-	return len(s.Type) == 0 &&
-		(s.Properties == nil || s.Properties.Len() == 0) &&
-		len(s.Required) == 0 &&
-		len(s.AllOf) == 0 && len(s.OneOf) == 0 && len(s.AnyOf) == 0 &&
-		len(s.Enum) == 0 &&
-		s.Items == nil && s.AdditionalProperties == nil &&
-		s.Deprecated == nil && s.ReadOnly == nil && s.WriteOnly == nil && s.Nullable == nil &&
-		s.Default == nil && s.Example == nil &&
-		s.Title == ""
+// hasOnlyKeys reports whether the schema's YAML node defines no keys beyond allowed, so any
+// unrecognized sibling (format, extensions, validations, ...) is rejected rather than dropped.
+func hasOnlyKeys(s *base.Schema, allowed ...string) bool {
+	low := s.GoLow()
+	if low == nil || low.RootNode == nil {
+		return false
+	}
+	content := low.RootNode.Content
+	for i := 0; i < len(content); i += 2 {
+		if !slices.Contains(allowed, content[i].Value) {
+			return false
+		}
+	}
+	return true
 }
 
 // getSchemaName extracts a human-readable schema name from the proxy reference or schema title.
