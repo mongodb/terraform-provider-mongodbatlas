@@ -82,12 +82,17 @@ func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClien
 		}
 
 		projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams)
-		if err == nil { // if the project is still valid, e.g. could have just been deleted
-			projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, projectProps)
-			diagnostics = append(diagnostics, diags...)
-			if projectModel != nil {
-				results = append(results, projectModel)
+		if err != nil {
+			if admin.IsErrorCode(err, "GROUP_NOT_FOUND") { // the project was deleted after it was listed
+				continue
 			}
+			diagnostics.AddError(fmt.Sprintf("error getting properties of project %s", project.GetId()), err.Error())
+			return diagnostics
+		}
+		projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, projectProps)
+		diagnostics = append(diagnostics, diags...)
+		if projectModel != nil {
+			results = append(results, projectModel)
 		}
 	}
 	stateModel.Results = results
