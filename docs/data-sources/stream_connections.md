@@ -39,7 +39,7 @@ In addition to all arguments above, it also exports the following attributes:
 * `project_id` - Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `workspace_name` - Label that identifies the stream processing workspace.
 * `connection_name` - Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - Type of connection. `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
+* `type` - Type of connection. `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `DataCatalog`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -81,6 +81,12 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
 * `schema_registry_provider` - The Schema Registry provider. Must be set to `CONFLUENT`.
 * `schema_registry_urls` - List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
 * `schema_registry_authentication` - Authentication configuration for Schema Registry. See [Schema Registry Authentication](#schema-registry-authentication).
+
+If `type` is of value `DataCatalog` the following additional attributes are defined:
+* `catalog_provider` - Catalog system the connection points at. Can be `DATABRICKS_UNITY` or `SNOWFLAKE_HORIZON`.
+* `catalog_url` - Base HTTPS URL of the catalog on the provider's domain.
+* `databricks` - Databricks settings for the connection. Only set when `catalog_provider` is `DATABRICKS_UNITY`. The write-only `client_secret_wo` is never returned by the API, so it is `null` in the data source.
+* `snowflake` - Snowflake settings for the connection. Only set when `catalog_provider` is `SNOWFLAKE_HORIZON`. The write-only `private_key_wo` is never returned by the API, so it is `null` in the data source.
 
 ### Authentication
 
