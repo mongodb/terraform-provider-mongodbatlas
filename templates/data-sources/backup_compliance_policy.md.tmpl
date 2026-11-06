@@ -1,0 +1,19 @@
+---
+subcategory: "Cloud Backups"
+---
+
+# Data Source: {{.Name}}
+
+`{{.Name}}` provides an Atlas Backup Compliance Policy. An Atlas Backup Compliance Policy contains the current protection policy settings for a project. A compliance policy prevents any user, regardless of role, from modifying or deleting specific cluster configurations and backups. To disable a Backup Compliance Policy, you must contact MongoDB support. Backup Compliance Policies are only supported for clusters M10 and higher and are applied as the minimum policy for all clusters.
+
+-> **NOTE:** Once you enable a Backup Compliance Policy, no user, regardless of role, can disable the Backup Compliance Policy via Terraform, or any other method, without contacting MongoDB support. This means that, once enabled, some resources defined in Terraform can not be modified. To learn more, see the full list of [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy). To delete an Atlas cluster that has an associated `mongodbatlas_cloud_backup_schedule` resource and an enabled Backup Compliance Policy, first instruct Terraform to remove the `mongodbatlas_cloud_backup_schedule` resource from the state and then use Terraform to delete the cluster. To learn more, see [Delete a Cluster with a Backup Compliance Policy](../guides/delete-cluster-with-backup-compliance-policy.md).
+
+## Example Usage
+
+```terraform
+data "mongodbatlas_backup_compliance_policy" "test" {
+  project_id = "<PROJECT_ID>"
+}
+```
+
+{{ .SchemaMarkdown | trimspace }}

@@ -13,16 +13,20 @@ resource "mongodbatlas_backup_compliance_policy" "this" {
   encryption_at_rest_enabled = false
 
   restore_window_days = 7
-  on_demand_policy_item {
+  on_demand_policy_item = {
+    frequency_type     = "ondemand"
     frequency_interval = 0
     retention_unit     = "days"
     retention_value    = 1
   }
-  policy_item_daily {
-    frequency_interval = 0
-    retention_unit     = "days"
-    retention_value    = 1
-  }
+  scheduled_policy_items = [
+    {
+      frequency_type     = "daily"
+      frequency_interval = 0
+      retention_unit     = "days"
+      retention_value    = 1
+    }
+  ]
 }
 
 resource "mongodbatlas_advanced_cluster" "this" {

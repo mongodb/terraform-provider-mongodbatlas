@@ -420,6 +420,7 @@ jobs:
             - 'internal/service/auditing/*.go'
             - 'internal/service/backupcompliancepolicy/*.go'
             - 'internal/service/x509authenticationdatabaseuser/*.go'  
+            - 'internal/serviceapi/backupcompliancepolicy/*.go'
           global_cluster_config:
             - 'internal/service/globalclusterconfig/*.go'
           ldap:
@@ -1114,6 +1115,7 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/service/auditing
             ./internal/service/backupcompliancepolicy
+            ./internal/serviceapi/backupcompliancepolicy
             ./internal/service/x509authenticationdatabaseuser
         run: make testacc
 
