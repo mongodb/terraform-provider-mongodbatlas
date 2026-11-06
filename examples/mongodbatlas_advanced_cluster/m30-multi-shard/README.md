@@ -11,7 +11,7 @@ The cluster distributes data across two shards as follows:
 - Shard 1 — `US_EAST_1` (AWS), 3 electable nodes, instance size M30
 - Shard 2 — `US_EAST_1` (AWS), 3 electable nodes, instance size M30
 
-Compute and disk auto-scaling are enabled for each shard. A `lifecycle.ignore_changes` block prevents Terraform from reverting Atlas-managed changes to `instance_size`, `disk_size_gb`, and `disk_iops`. For clusters with more than one `replication_specs` entry, `use_effective_fields = true` currently has no effect, so this example does not use it. To learn more, see [Multi-shard clusters and topology changes](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#multi-shard-clusters-and-topology-changes).
+Compute and disk auto-scaling are enabled for each shard. A `lifecycle.ignore_changes` block prevents Terraform from reverting Atlas-managed changes to `instance_size`, `disk_size_gb`, and `disk_iops`. For clusters with more than one `replication_specs` entry, `use_effective_fields = true` currently has no effect, so this example does not use it. The `ignore_changes` entries reference each shard by its list index, so they might not preserve Atlas-managed values when the shard topology changes. Before adding, removing, or reordering shards, review [Multi-shard clusters and topology changes](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#multi-shard-clusters-and-topology-changes).
 
 ## Prerequisites
 
