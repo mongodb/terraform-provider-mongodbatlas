@@ -3,7 +3,9 @@ package streamworkspaceprivateendpoint_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -52,7 +54,7 @@ func TestAccStreamWorkspacePrivateEndpoint_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "status"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "status", resourceName, "status"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "cloud_provider", resourceName, "cloud_provider"),
-					resource.TestCheckResourceAttrSet(pluralDataSourceName, "results.#"),
+					checkPluralDataSourceContainsEndpoint(),
 				),
 			},
 			{
@@ -113,10 +115,37 @@ func checkDestroy(state *terraform.State) error {
 			continue
 		}
 		a := rs.Primary.Attributes
-		_, _, err := acc.ConnV2().StreamsAPI.GetWorkspacePrivateEndpoint(context.Background(), a["project_id"], a["endpoint_id"]).Execute()
+		_, resp, err := acc.ConnV2().StreamsAPI.GetWorkspacePrivateEndpoint(context.Background(), a["project_id"], a["endpoint_id"]).Execute()
 		if err == nil {
 			return fmt.Errorf("workspace private endpoint (%s) still exists", a["endpoint_id"])
 		}
+		if resp == nil || resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("unexpected error checking workspace private endpoint (%s): %w", a["endpoint_id"], err)
+		}
 	}
 	return nil
+}
+
+func checkPluralDataSourceContainsEndpoint() resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		dataSource, ok := s.RootModule().Resources[pluralDataSourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", pluralDataSourceName)
+		}
+		resourceState, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		endpointID := resourceState.Primary.Attributes["endpoint_id"]
+		count, err := strconv.Atoi(dataSource.Primary.Attributes["results.#"])
+		if err != nil {
+			return fmt.Errorf("invalid results count: %w", err)
+		}
+		for i := range count {
+			if dataSource.Primary.Attributes[fmt.Sprintf("results.%d.endpoint_id", i)] == endpointID {
+				return nil
+			}
+		}
+		return fmt.Errorf("plural data source results do not contain endpoint %s", endpointID)
+	}
 }

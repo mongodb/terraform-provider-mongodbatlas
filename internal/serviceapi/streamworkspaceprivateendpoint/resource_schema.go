@@ -17,12 +17,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"customer_dns_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "DNS name of the customer's VPC endpoint.",
+				MarkdownDescription: "DNS name of your VPC endpoint.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"endpoint_service_name": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Name of the Atlas endpoint service the customer's VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.",
+				MarkdownDescription: "Name of the Atlas endpoint service your VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.",
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
@@ -31,16 +31,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"endpoint_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique identifier of the customer's VPC endpoint.",
+				MarkdownDescription: "Unique identifier of your VPC endpoint.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"cloud_provider": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Cloud provider hosting the customer's VPC endpoint.",
+				MarkdownDescription: "Cloud provider hosting the VPC endpoint.",
 			},
 			"region": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Human-readable label identifying the region of the customer's VPC endpoint.",
+				MarkdownDescription: "Human-readable label identifying the region of your VPC endpoint.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"status": schema.StringAttribute{

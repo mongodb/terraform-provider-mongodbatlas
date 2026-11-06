@@ -1,4 +1,4 @@
-# Registers an existing AWS interface endpoint from the customer's VPC for
+# Registers an existing AWS interface endpoint from your VPC for
 # inbound private connectivity to Atlas Stream Processing in the project.
 resource "mongodbatlas_stream_workspace_private_endpoint" "example" {
   project_id        = var.project_id

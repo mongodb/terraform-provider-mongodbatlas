@@ -4,15 +4,16 @@ subcategory: "Streams"
 
 # Data Source: mongodbatlas_stream_workspace_private_endpoint
 
-`mongodbatlas_stream_workspace_private_endpoint` describes a customer VPC interface endpoint registered for inbound private connectivity to Atlas Stream Processing in a project, identified by the customer's VPC endpoint `id`.
+`mongodbatlas_stream_workspace_private_endpoint` describes a VPC interface endpoint registered for inbound private connectivity to Atlas Stream Processing in a project, identified by the `endpoint_id` of your VPC endpoint.
 
 ## Example Usages
 
 ```terraform
 # Reads a single registered workspace private endpoint by its ID.
 data "mongodbatlas_stream_workspace_private_endpoint" "example" {
-  project_id  = var.project_id
-  endpoint_id = var.vpc_endpoint_id
+  project_id  = mongodbatlas_stream_workspace_private_endpoint.example.project_id
+  endpoint_id = mongodbatlas_stream_workspace_private_endpoint.example.endpoint_id
+  depends_on  = [mongodbatlas_stream_workspace_private_endpoint.example]
 }
 
 output "endpoint_status" {
@@ -25,15 +26,15 @@ output "endpoint_status" {
 
 ### Required
 
-- `endpoint_id` (String) Unique identifier of the customer's VPC endpoint.
+- `endpoint_id` (String) Unique identifier of your VPC endpoint.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Read-Only
 
-- `cloud_provider` (String) Cloud provider hosting the customer's VPC endpoint.
-- `customer_dns_name` (String) DNS name of the customer's VPC endpoint.
-- `endpoint_service_name` (String) Name of the Atlas endpoint service the customer's VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
-- `region` (String) Human-readable label identifying the region of the customer's VPC endpoint.
+- `cloud_provider` (String) Cloud provider hosting the VPC endpoint.
+- `customer_dns_name` (String) DNS name of your VPC endpoint.
+- `endpoint_service_name` (String) Name of the Atlas endpoint service your VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
+- `region` (String) Human-readable label identifying the region of your VPC endpoint.
 - `status` (String) Status of the endpoint registration.
 
 For more information see: [MongoDB Atlas API - Streams](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-streams) Documentation.

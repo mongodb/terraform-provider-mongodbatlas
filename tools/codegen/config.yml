@@ -1319,10 +1319,19 @@ resources:
       overrides:
         project_id:
           description: *project_id_description
+        customer_dns_name:
+          description: DNS name of your VPC endpoint.
+        endpoint_id:
+          description: Unique identifier of your VPC endpoint.
         # Absent in the response when no endpoint service exists for the endpoint's region.
         endpoint_service_name:
+          description: Name of the Atlas endpoint service your VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
           computability:
             computed: true
+        cloud_provider:
+          description: Cloud provider hosting the VPC endpoint.
+        region:
+          description: Human-readable label identifying the region of your VPC endpoint.
     datasources:
       read:
         path: /api/atlas/v2/groups/{groupId}/streamsWorkspacePrivateEndpoints/{endpointId}
@@ -1340,6 +1349,28 @@ resources:
         overrides:
           project_id:
             description: *project_id_description
+          customer_dns_name:
+            description: DNS name of your VPC endpoint.
+          endpoint_id:
+            description: Unique identifier of your VPC endpoint.
+          endpoint_service_name:
+            description: Name of the Atlas endpoint service your VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
+          cloud_provider:
+            description: Cloud provider hosting the VPC endpoint.
+          region:
+            description: Human-readable label identifying the region of your VPC endpoint.
+          results:
+            description: List of returned documents that MongoDB provides when completing this request.
+          results.customer_dns_name:
+            description: DNS name of your VPC endpoint.
+          results.endpoint_id:
+            description: Unique identifier of your VPC endpoint.
+          results.endpoint_service_name:
+            description: Name of the Atlas endpoint service your VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
+          results.cloud_provider:
+            description: Cloud provider hosting the VPC endpoint.
+          results.region:
+            description: Human-readable label identifying the region of your VPC endpoint.
 
   alert_configuration_api:
     read:

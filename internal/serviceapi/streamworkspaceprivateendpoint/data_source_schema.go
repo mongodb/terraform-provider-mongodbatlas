@@ -15,19 +15,19 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 		Attributes: map[string]dsschema.Attribute{
 			"cloud_provider": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Cloud provider hosting the customer's VPC endpoint.",
+				MarkdownDescription: "Cloud provider hosting the VPC endpoint.",
 			},
 			"customer_dns_name": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "DNS name of the customer's VPC endpoint.",
+				MarkdownDescription: "DNS name of your VPC endpoint.",
 			},
 			"endpoint_id": dsschema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique identifier of the customer's VPC endpoint.",
+				MarkdownDescription: "Unique identifier of your VPC endpoint.",
 			},
 			"endpoint_service_name": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Name of the Atlas endpoint service the customer's VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.",
+				MarkdownDescription: "Name of the Atlas endpoint service your VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.",
 			},
 			"project_id": dsschema.StringAttribute{
 				Required:            true,
@@ -35,7 +35,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"region": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Human-readable label identifying the region of the customer's VPC endpoint.",
+				MarkdownDescription: "Human-readable label identifying the region of your VPC endpoint.",
 			},
 			"status": dsschema.StringAttribute{
 				Computed:            true,

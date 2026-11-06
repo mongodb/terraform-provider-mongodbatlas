@@ -4,18 +4,19 @@ subcategory: "Streams"
 
 # Data Source: mongodbatlas_stream_workspace_private_endpoints
 
-`mongodbatlas_stream_workspace_private_endpoints` describes all customer VPC interface endpoints registered for inbound private connectivity to Atlas Stream Processing in a project.
+`mongodbatlas_stream_workspace_private_endpoints` describes all the VPC interface endpoints registered for inbound private connectivity to Atlas Stream Processing in a project.
 
 ## Example Usages
 
 ```terraform
 # Lists all workspace private endpoints registered in a project.
 data "mongodbatlas_stream_workspace_private_endpoints" "example" {
-  project_id = var.project_id
+  project_id = mongodbatlas_stream_workspace_private_endpoint.example.project_id
+  depends_on = [mongodbatlas_stream_workspace_private_endpoint.example]
 }
 
 output "endpoint_ids" {
-  value = [for e in data.mongodbatlas_stream_workspace_private_endpoints.example.results : e.id]
+  value = [for e in data.mongodbatlas_stream_workspace_private_endpoints.example.results : e.endpoint_id]
 }
 ```
 
@@ -28,18 +29,18 @@ output "endpoint_ids" {
 
 ### Read-Only
 
-- `results` (Attributes List) List of returned documents that MongoDB Cloud provides when completing this request. (see [below for nested schema](#nestedatt--results))
+- `results` (Attributes List) List of returned documents that MongoDB provides when completing this request. (see [below for nested schema](#nestedatt--results))
 
 <a id="nestedatt--results"></a>
 ### Nested Schema for `results`
 
 Read-Only:
 
-- `cloud_provider` (String) Cloud provider hosting the customer's VPC endpoint.
-- `customer_dns_name` (String) DNS name of the customer's VPC endpoint.
-- `endpoint_id` (String) Unique identifier of the customer's VPC endpoint.
-- `endpoint_service_name` (String) Name of the Atlas endpoint service the customer's VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
-- `region` (String) Human-readable label identifying the region of the customer's VPC endpoint.
+- `cloud_provider` (String) Cloud provider hosting the VPC endpoint.
+- `customer_dns_name` (String) DNS name of your VPC endpoint.
+- `endpoint_id` (String) Unique identifier of your VPC endpoint.
+- `endpoint_service_name` (String) Name of the Atlas endpoint service your VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
+- `region` (String) Human-readable label identifying the region of your VPC endpoint.
 - `status` (String) Status of the endpoint registration.
 
 For more information see: [MongoDB Atlas API - Streams](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-streams) Documentation.
