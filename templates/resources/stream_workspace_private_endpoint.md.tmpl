@@ -6,7 +6,9 @@ subcategory: "Streams"
 
 `{{.Name}}` registers a customer VPC interface endpoint for inbound private connectivity to Atlas Stream Processing in a project.
 
-Registering the endpoint makes it available to the stream workspaces in the project: once Atlas approves the endpoint, workspace connection strings can resolve privately over the customer's VPC. The resource is project-scoped, identified by the customer's VPC endpoint `id` (AWS interface endpoint id, e.g. `vpce-0abc123def4567890`), and the endpoint's registration is applied asynchronously — the computed `status` attribute reports its readiness. AWS is the only supported provider.
+This resource is unrelated to `mongodbatlas_stream_privatelink_endpoint`, which configures the endpoint service that stream connections use to reach external systems (outbound). This resource registers a customer VPC endpoint for inbound connectivity to Atlas Stream Processing.
+
+Registering the endpoint makes it available to the stream workspaces in the project: once Atlas approves the endpoint, workspace connection strings can resolve privately over the customer's VPC. The resource is project-scoped, identified by the customer's VPC endpoint `endpoint_id` (AWS interface endpoint id, e.g. `vpce-0abc123def4567890`), and the endpoint's registration is applied asynchronously — the computed `status` attribute reports its readiness. AWS is the only supported provider.
 
 ## Example Usages
 

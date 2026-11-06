@@ -22,7 +22,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"endpoint_service_name": schema.StringAttribute{
 				Computed:            true,
-				Optional:            true,
 				MarkdownDescription: "Name of the Atlas endpoint service the customer's VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.",
 			},
 			"project_id": schema.StringAttribute{
@@ -30,7 +29,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
-			"id": schema.StringAttribute{
+			"endpoint_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique identifier of the customer's VPC endpoint.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
@@ -65,7 +64,7 @@ type TFModel struct {
 	CustomerDnsName       types.String   `tfsdk:"customer_dns_name" autogen:"omitjsonupdate"`
 	EndpointServiceName   types.String   `tfsdk:"endpoint_service_name" autogen:"omitjson"`
 	ProjectId             types.String   `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Id                    types.String   `tfsdk:"id" autogen:"omitjsonupdate"`
+	EndpointId            types.String   `tfsdk:"endpoint_id" apiname:"id" autogen:"omitjsonupdate"`
 	Cloud_provider        types.String   `tfsdk:"cloud_provider" apiname:"provider" autogen:"omitjson"`
 	Region                types.String   `tfsdk:"region" autogen:"omitjsonupdate"`
 	Status                types.String   `tfsdk:"status" autogen:"omitjson"`

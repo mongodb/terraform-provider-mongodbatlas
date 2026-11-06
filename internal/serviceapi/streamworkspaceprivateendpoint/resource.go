@@ -115,19 +115,19 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	idAttributes := []string{"project_id", "id"}
+	idAttributes := []string{"project_id", "endpoint_id"}
 	autogen.HandleImport(ctx, idAttributes, req, resp, r)
 }
 
 func readAPICallParams(model any) *config.APICallParams {
 	m := model.(*TFModel)
 	pathParams := map[string]string{
-		"projectId": m.ProjectId.ValueString(),
-		"id":        m.Id.ValueString(),
+		"projectId":  m.ProjectId.ValueString(),
+		"endpointId": m.EndpointId.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints/{id}",
+		RelativePath:  "/api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints/{endpointId}",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
@@ -135,16 +135,16 @@ func readAPICallParams(model any) *config.APICallParams {
 
 func formatIDAttributes(model any) string {
 	m := model.(*TFModel)
-	return fmt.Sprintf("project_id=%q, id=%q",
+	return fmt.Sprintf("project_id=%q, endpoint_id=%q",
 		m.ProjectId.ValueString(),
-		m.Id.ValueString(),
+		m.EndpointId.ValueString(),
 	)
 }
 
 func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
-		"projectId": model.ProjectId.ValueString(),
-		"id":        model.Id.ValueString(),
+		"projectId":  model.ProjectId.ValueString(),
+		"endpointId": model.EndpointId.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
 		Hooks:  r,
@@ -153,7 +153,7 @@ func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *d
 		Diags:  diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
-			RelativePath:  "/api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints/{id}",
+			RelativePath:  "/api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints/{endpointId}",
 			PathParams:    pathParams,
 			Method:        "DELETE",
 		},

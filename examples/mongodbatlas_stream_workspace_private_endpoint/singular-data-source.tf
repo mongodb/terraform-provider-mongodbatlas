@@ -1,7 +1,7 @@
 # Reads a single registered workspace private endpoint by its ID.
 data "mongodbatlas_stream_workspace_private_endpoint" "example" {
-  project_id = var.project_id
-  id         = var.vpc_endpoint_id
+  project_id  = var.project_id
+  endpoint_id = var.vpc_endpoint_id
 }
 
 output "endpoint_status" {

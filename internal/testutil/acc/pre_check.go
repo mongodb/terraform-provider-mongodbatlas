@@ -408,6 +408,15 @@ func PreCheckAwsMsk(tb testing.TB) {
 	}
 }
 
+func PreCheckStreamWorkspacePrivateEndpoint(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("AWS_VPC_ENDPOINT_ID") == "" ||
+		os.Getenv("AWS_VPC_ENDPOINT_DNS_NAME") == "" ||
+		os.Getenv("AWS_VPC_ENDPOINT_REGION") == "" {
+		tb.Skip("`AWS_VPC_ENDPOINT_ID`, `AWS_VPC_ENDPOINT_DNS_NAME`, and `AWS_VPC_ENDPOINT_REGION` must be set for stream workspace private endpoint acceptance testing")
+	}
+}
+
 func PreCheckAccessToken(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_ACCESS_TOKEN") == "" {

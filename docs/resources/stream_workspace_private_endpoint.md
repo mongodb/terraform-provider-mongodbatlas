@@ -6,7 +6,9 @@ subcategory: "Streams"
 
 `mongodbatlas_stream_workspace_private_endpoint` registers a customer VPC interface endpoint for inbound private connectivity to Atlas Stream Processing in a project.
 
-Registering the endpoint makes it available to the stream workspaces in the project: once Atlas approves the endpoint, workspace connection strings can resolve privately over the customer's VPC. The resource is project-scoped, identified by the customer's VPC endpoint `id` (AWS interface endpoint id, e.g. `vpce-0abc123def4567890`), and the endpoint's registration is applied asynchronously — the computed `status` attribute reports its readiness. AWS is the only supported provider.
+This resource is unrelated to `mongodbatlas_stream_privatelink_endpoint`, which configures the endpoint service that stream connections use to reach external systems (outbound). This resource registers a customer VPC endpoint for inbound connectivity to Atlas Stream Processing.
+
+Registering the endpoint makes it available to the stream workspaces in the project: once Atlas approves the endpoint, workspace connection strings can resolve privately over the customer's VPC. The resource is project-scoped, identified by the customer's VPC endpoint `endpoint_id` (AWS interface endpoint id, e.g. `vpce-0abc123def4567890`), and the endpoint's registration is applied asynchronously — the computed `status` attribute reports its readiness. AWS is the only supported provider.
 
 ## Example Usages
 
@@ -15,7 +17,7 @@ Registering the endpoint makes it available to the stream workspaces in the proj
 # inbound private connectivity to Atlas Stream Processing in the project.
 resource "mongodbatlas_stream_workspace_private_endpoint" "example" {
   project_id        = var.project_id
-  id                = var.vpc_endpoint_id
+  endpoint_id       = var.vpc_endpoint_id
   region            = "US_EAST_1"
   customer_dns_name = var.vpc_endpoint_dns_name
 }
@@ -27,19 +29,19 @@ resource "mongodbatlas_stream_workspace_private_endpoint" "example" {
 ### Required
 
 - `customer_dns_name` (String) DNS name of the customer's VPC endpoint.
-- `id` (String) Unique identifier of the customer's VPC endpoint.
+- `endpoint_id` (String) Unique identifier of the customer's VPC endpoint.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `region` (String) Human-readable label identifying the region of the customer's VPC endpoint.
 
 ### Optional
 
 - `delete_on_create_timeout` (Boolean) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
-- `endpoint_service_name` (String) Name of the Atlas endpoint service the customer's VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
 - `cloud_provider` (String) Cloud provider hosting the customer's VPC endpoint.
+- `endpoint_service_name` (String) Name of the Atlas endpoint service the customer's VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
 - `status` (String) Status of the endpoint registration.
 
 <a id="nestedatt--timeouts"></a>

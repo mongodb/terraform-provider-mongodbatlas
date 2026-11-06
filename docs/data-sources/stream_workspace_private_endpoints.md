@@ -37,8 +37,8 @@ Read-Only:
 
 - `cloud_provider` (String) Cloud provider hosting the customer's VPC endpoint.
 - `customer_dns_name` (String) DNS name of the customer's VPC endpoint.
+- `endpoint_id` (String) Unique identifier of the customer's VPC endpoint.
 - `endpoint_service_name` (String) Name of the Atlas endpoint service the customer's VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
-- `id` (String) Unique identifier of the customer's VPC endpoint.
 - `region` (String) Human-readable label identifying the region of the customer's VPC endpoint.
 - `status` (String) Status of the endpoint registration.
 

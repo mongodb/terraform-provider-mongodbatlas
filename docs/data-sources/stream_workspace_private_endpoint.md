@@ -11,8 +11,8 @@ subcategory: "Streams"
 ```terraform
 # Reads a single registered workspace private endpoint by its ID.
 data "mongodbatlas_stream_workspace_private_endpoint" "example" {
-  project_id = var.project_id
-  id         = var.vpc_endpoint_id
+  project_id  = var.project_id
+  endpoint_id = var.vpc_endpoint_id
 }
 
 output "endpoint_status" {
@@ -25,7 +25,7 @@ output "endpoint_status" {
 
 ### Required
 
-- `id` (String) Unique identifier of the customer's VPC endpoint.
+- `endpoint_id` (String) Unique identifier of the customer's VPC endpoint.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Read-Only

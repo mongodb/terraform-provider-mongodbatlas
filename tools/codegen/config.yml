@@ -1311,8 +1311,9 @@ resources:
     schema:
       aliases:
         groupId: projectId
-        # The path param endpointId is the customer-supplied vpce id, exposed as the `id` attribute.
-        endpointId: id
+        # The API's `id` is the customer-supplied VPC endpoint id; the path param endpointId maps
+        # to the same attribute.
+        id: endpointId
         # `provider` is a reserved root attribute name in Terraform.
         provider: cloud_provider
       overrides:
@@ -1321,7 +1322,6 @@ resources:
         # Absent in the response when no endpoint service exists for the endpoint's region.
         endpoint_service_name:
           computability:
-            optional: true
             computed: true
     datasources:
       read:
@@ -1333,8 +1333,9 @@ resources:
       schema:
         aliases:
           groupId: projectId
-          endpointId: id
+          id: endpointId
           provider: cloud_provider
+          results.id: endpointId
           results.provider: cloud_provider
         overrides:
           project_id:

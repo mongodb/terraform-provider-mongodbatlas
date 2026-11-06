@@ -21,13 +21,13 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				Computed:            true,
 				MarkdownDescription: "DNS name of the customer's VPC endpoint.",
 			},
+			"endpoint_id": dsschema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Unique identifier of the customer's VPC endpoint.",
+			},
 			"endpoint_service_name": dsschema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Name of the Atlas endpoint service the customer's VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.",
-			},
-			"id": dsschema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Unique identifier of the customer's VPC endpoint.",
 			},
 			"project_id": dsschema.StringAttribute{
 				Required:            true,
@@ -48,8 +48,8 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 type TFDSModel struct {
 	Cloud_provider      types.String `tfsdk:"cloud_provider" apiname:"provider" autogen:"omitjson"`
 	CustomerDnsName     types.String `tfsdk:"customer_dns_name" autogen:"omitjson"`
+	EndpointId          types.String `tfsdk:"endpoint_id" autogen:"omitjson"`
 	EndpointServiceName types.String `tfsdk:"endpoint_service_name" autogen:"omitjson"`
-	Id                  types.String `tfsdk:"id" apiname:"endpointId" autogen:"omitjson"`
 	ProjectId           types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	Region              types.String `tfsdk:"region" autogen:"omitjson"`
 	Status              types.String `tfsdk:"status" autogen:"omitjson"`

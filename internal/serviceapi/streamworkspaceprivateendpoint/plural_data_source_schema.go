@@ -32,7 +32,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Name of the Atlas endpoint service the customer's VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.",
 						},
-						"id": dsschema.StringAttribute{
+						"endpoint_id": dsschema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Unique identifier of the customer's VPC endpoint.",
 						},
@@ -62,7 +62,7 @@ type TFPluralDSModel struct {
 type TFPluralDSResultsModel struct {
 	CustomerDnsName     types.String `tfsdk:"customer_dns_name" autogen:"omitjson"`
 	EndpointServiceName types.String `tfsdk:"endpoint_service_name" autogen:"omitjson"`
-	Id                  types.String `tfsdk:"id" autogen:"omitjson"`
+	EndpointId          types.String `tfsdk:"endpoint_id" apiname:"id" autogen:"omitjson"`
 	Cloud_provider      types.String `tfsdk:"cloud_provider" apiname:"provider" autogen:"omitjson"`
 	Region              types.String `tfsdk:"region" autogen:"omitjson"`
 	Status              types.String `tfsdk:"status" autogen:"omitjson"`

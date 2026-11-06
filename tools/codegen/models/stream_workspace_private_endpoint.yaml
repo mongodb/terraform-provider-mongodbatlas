@@ -14,7 +14,7 @@ schema:
           request_only_required_on_create: false
         - string: {}
           description: Name of the Atlas endpoint service the customer's VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
-          computed_optional_required: computed_optional
+          computed_optional_required: computed
           tf_schema_name: endpoint_service_name
           tf_model_name: EndpointServiceName
           api_name: endpointServiceName
@@ -37,8 +37,8 @@ schema:
         - string: {}
           description: Unique identifier of the customer's VPC endpoint.
           computed_optional_required: required
-          tf_schema_name: id
-          tf_model_name: Id
+          tf_schema_name: endpoint_id
+          tf_model_name: EndpointId
           api_name: id
           req_body_usage: omit_in_update_body
           sensitive: false
@@ -103,7 +103,7 @@ schema:
 operations:
     delete:
         http_method: DELETE
-        path: /api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints/{id}
+        path: /api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints/{endpointId}
     create:
         wait:
             state_property: status
@@ -118,7 +118,7 @@ operations:
         path: /api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints
     read:
         http_method: GET
-        path: /api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints/{id}
+        path: /api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints/{endpointId}
     version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
     singular:
@@ -147,22 +147,22 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Name of the Atlas endpoint service the customer's VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
-              computed_optional_required: computed
-              tf_schema_name: endpoint_service_name
-              tf_model_name: EndpointServiceName
-              api_name: endpointServiceName
+              description: Unique identifier of the customer's VPC endpoint.
+              computed_optional_required: required
+              tf_schema_name: endpoint_id
+              tf_model_name: EndpointId
+              api_name: endpointId
               req_body_usage: omit_always
               sensitive: false
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Unique identifier of the customer's VPC endpoint.
-              computed_optional_required: required
-              tf_schema_name: id
-              tf_model_name: Id
-              api_name: endpointId
+              description: Name of the Atlas endpoint service the customer's VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
+              computed_optional_required: computed
+              tf_schema_name: endpoint_service_name
+              tf_model_name: EndpointServiceName
+              api_name: endpointServiceName
               req_body_usage: omit_always
               sensitive: false
               create_only: false
@@ -243,8 +243,8 @@ data_sources:
                         - string: {}
                           description: Unique identifier of the customer's VPC endpoint.
                           computed_optional_required: computed
-                          tf_schema_name: id
-                          tf_model_name: Id
+                          tf_schema_name: endpoint_id
+                          tf_model_name: EndpointId
                           api_name: id
                           req_body_usage: omit_always
                           sensitive: false
@@ -303,7 +303,7 @@ data_sources:
     operations:
         read:
             http_method: GET
-            path: /api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints/{id}
+            path: /api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints/{endpointId}
         list:
             http_method: GET
             path: /api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints
