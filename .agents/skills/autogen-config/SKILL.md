@@ -35,7 +35,10 @@ Add `wait` blocks only when the API is async (the operation returns before compl
 
 ## Overrides
 
-The `Override` struct in `tools/codegen/config/config_model.go` is the source of truth for the available set; config.yml has real examples of each. Overrides go under `schema.overrides` (resource) and `datasources.schema.overrides` (data sources), and an override can hit the same attribute on more than one surface.
+The `Override` struct in `tools/codegen/config/config_model.go` is the source of truth for the available set; config.yml has real examples of each. Overrides go under `schema.overrides` (resource) and `datasources.schema.overrides` (data sources). Keys are exact snake_case paths, with one convenience on the plural data source:
+
+- A `datasources.schema.overrides` key is shared: `foo` applies to the singular `foo`, the plural root `foo`, and the plural `results.foo`. An explicit `results.foo` key takes precedence for the list items.
+- When one surface needs different text or settings, use `datasources.singular_overrides` or `datasources.plural_overrides` (siblings of `schema`). A scoped key replaces the shared entry for that path as a whole and matches its exact path only, so `plural_overrides.foo` targets the plural root attribute (typically a filter query param) and never `results.foo`. Example: a plural filter that shares its name with an output attribute, like `provider_type` on `metric_integration`.
 
 Evaluate these two first — they are the easiest to miss and the most impactful when wrong:
 
