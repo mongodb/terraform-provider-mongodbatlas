@@ -181,6 +181,7 @@ func buildSchemaFromResponse(op *high.Operation, configuredVersion *string) (*AP
 // plus the schema holding the annotations. Supported shapes: the 2-branch wrapper libopenapi emits for
 // a `$ref` with a `description` sibling, and `allOf: [$ref]` with `description`, `nullable` or `readOnly`
 // siblings. Other shapes return nil so the "type cannot be inferred" error surfaces them.
+// The spec flattener only resolves polymorphic allOf (inheritance under a oneOf parent), so these wrappers reach codegen.
 func matchSiblingRefAllOf(schema *base.Schema) (refBranch *base.SchemaProxy, annotations *base.Schema) {
 	if len(schema.Type) > 0 || (schema.Properties != nil && schema.Properties.Len() > 0) {
 		return nil, nil
