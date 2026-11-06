@@ -187,8 +187,7 @@ func matchSiblingRefAllOf(schema *base.Schema) (refBranch *base.SchemaProxy, ann
 		return nil, nil
 	}
 
-	switch len(schema.AllOf) {
-	case 1:
+	if len(schema.AllOf) == 1 {
 		if schema.AllOf[0].GetReference() == "" {
 			return nil, nil
 		}
@@ -198,28 +197,29 @@ func matchSiblingRefAllOf(schema *base.Schema) (refBranch *base.SchemaProxy, ann
 			return nil, nil
 		}
 		return schema.AllOf[0], schema
-	case 2:
-		for _, branch := range schema.AllOf {
-			if branch.GetReference() != "" {
-				if refBranch != nil {
-					return nil, nil
-				}
-				refBranch = branch
-				continue
-			}
-			carrier, err := branch.BuildSchema()
-			if err != nil || !isDescriptionOnlyCarrier(carrier) {
-				return nil, nil
-			}
-			annotations = carrier
-		}
-		if refBranch == nil {
-			return nil, nil
-		}
-		return refBranch, annotations
-	default:
+	}
+
+	if len(schema.AllOf) != 2 {
 		return nil, nil
 	}
+	for _, branch := range schema.AllOf {
+		if branch.GetReference() != "" {
+			if refBranch != nil {
+				return nil, nil
+			}
+			refBranch = branch
+			continue
+		}
+		carrier, err := branch.BuildSchema()
+		if err != nil || !isDescriptionOnlyCarrier(carrier) {
+			return nil, nil
+		}
+		annotations = carrier
+	}
+	if refBranch == nil {
+		return nil, nil
+	}
+	return refBranch, annotations
 }
 
 // isDescriptionOnlyCarrier reports whether s is the inline branch libopenapi emits in a
