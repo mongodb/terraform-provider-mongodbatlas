@@ -1,0 +1,312 @@
+schema:
+    description: Registers one customer VPC endpoint for Atlas Stream Processing in the specified project.
+    attributes:
+        - string: {}
+          description: DNS name of your VPC endpoint.
+          computed_optional_required: required
+          tf_schema_name: customer_dns_name
+          tf_model_name: CustomerDnsName
+          api_name: customerDnsName
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Name of the Atlas endpoint service your VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
+          computed_optional_required: computed
+          tf_schema_name: endpoint_service_name
+          tf_model_name: EndpointServiceName
+          api_name: endpointServiceName
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+          computed_optional_required: required
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique identifier of your VPC endpoint.
+          computed_optional_required: required
+          tf_schema_name: endpoint_id
+          tf_model_name: EndpointId
+          api_name: id
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Cloud provider hosting the VPC endpoint.
+          computed_optional_required: computed
+          tf_schema_name: cloud_provider
+          tf_model_name: Cloud_provider
+          api_name: provider
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Human-readable label identifying the region of your VPC endpoint.
+          computed_optional_required: required
+          tf_schema_name: region
+          tf_model_name: Region
+          api_name: region
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Status of the endpoint registration.
+          computed_optional_required: computed
+          tf_schema_name: status
+          tf_model_name: Status
+          api_name: status
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - bool:
+            default: true
+          description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
+          computed_optional_required: computed_optional
+          tf_schema_name: delete_on_create_timeout
+          tf_model_name: DeleteOnCreateTimeout
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - timeouts:
+            configurable_timeouts:
+                - create
+          computed_optional_required: ""
+          tf_schema_name: timeouts
+          tf_model_name: Timeouts
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints/{endpointId}
+    create:
+        wait:
+            state_property: status
+            pending_states:
+                - PENDING
+            target_states:
+                - OK
+            timeout_seconds: 600
+            min_timeout_seconds: 10
+            delay_seconds: 10
+        http_method: POST
+        path: /api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints/{endpointId}
+    version_header: application/vnd.atlas.2025-03-12+json
+data_sources:
+    singular:
+        description: Returns one private endpoint registered for Atlas Stream Processing in the specified project.
+        attributes:
+            - string: {}
+              description: Cloud provider hosting the VPC endpoint.
+              computed_optional_required: computed
+              tf_schema_name: cloud_provider
+              tf_model_name: Cloud_provider
+              api_name: provider
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: DNS name of your VPC endpoint.
+              computed_optional_required: computed
+              tf_schema_name: customer_dns_name
+              tf_model_name: CustomerDnsName
+              api_name: customerDnsName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique identifier of your VPC endpoint.
+              computed_optional_required: required
+              tf_schema_name: endpoint_id
+              tf_model_name: EndpointId
+              api_name: endpointId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Name of the Atlas endpoint service your VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
+              computed_optional_required: computed
+              tf_schema_name: endpoint_service_name
+              tf_model_name: EndpointServiceName
+              api_name: endpointServiceName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Human-readable label identifying the region of your VPC endpoint.
+              computed_optional_required: computed
+              tf_schema_name: region
+              tf_model_name: Region
+              api_name: region
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Status of the endpoint registration.
+              computed_optional_required: computed
+              tf_schema_name: status
+              tf_model_name: Status
+              api_name: status
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    plural:
+        description: Returns all private endpoints registered for Atlas Stream Processing in the specified project.
+        attributes:
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: DNS name of your VPC endpoint.
+                          computed_optional_required: computed
+                          tf_schema_name: customer_dns_name
+                          tf_model_name: CustomerDnsName
+                          api_name: customerDnsName
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Name of the Atlas endpoint service your VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
+                          computed_optional_required: computed
+                          tf_schema_name: endpoint_service_name
+                          tf_model_name: EndpointServiceName
+                          api_name: endpointServiceName
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique identifier of your VPC endpoint.
+                          computed_optional_required: computed
+                          tf_schema_name: endpoint_id
+                          tf_model_name: EndpointId
+                          api_name: id
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Cloud provider hosting the VPC endpoint.
+                          computed_optional_required: computed
+                          tf_schema_name: cloud_provider
+                          tf_model_name: Cloud_provider
+                          api_name: provider
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Human-readable label identifying the region of your VPC endpoint.
+                          computed_optional_required: computed
+                          tf_schema_name: region
+                          tf_model_name: Region
+                          api_name: region
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Status of the endpoint registration.
+                          computed_optional_required: computed
+                          tf_schema_name: status
+                          tf_model_name: Status
+                          api_name: status
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of returned documents that MongoDB provides when completing this request.
+              custom_type:
+                name: Results
+                model: customtypes.NestedListValue[TFResultsModel]
+                schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: results
+              tf_model_name: Results
+              api_name: results
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints/{endpointId}
+        list:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/streamsWorkspacePrivateEndpoints
+        version_header: application/vnd.atlas.2025-03-12+json
+name: stream_workspace_private_endpoint
+packageName: streamworkspaceprivateendpoint

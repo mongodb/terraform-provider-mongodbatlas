@@ -1,0 +1,15 @@
+---
+subcategory: "Streams"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes a VPC interface endpoint registered for inbound private connectivity to Atlas Stream Processing in a project, identified by the `endpoint_id` of your VPC endpoint.
+
+## Example Usages
+
+{{ tffile "examples/mongodbatlas_stream_workspace_private_endpoint/main.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Streams](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-streams) Documentation.

@@ -344,6 +344,7 @@ jobs:
             - 'internal/serviceapi/resourcepolicyapi/*.go'
             - 'internal/serviceapi/streamconnectionapi/*.go'
             - 'internal/serviceapi/streamconnectionfailover/*.go'
+            - 'internal/serviceapi/streamworkspaceprivateendpoint/*.go'
             - 'internal/serviceapi/logintegration/*.go'
             - 'internal/serviceapi/metricintegration/*.go'
             - 'internal/serviceapi/mcpconfig/*.go'
@@ -674,6 +675,10 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_KMS_KEY_ID: ${{ secrets.aws_kms_key_id }}
+          # Synthetic values; registration validates the endpoint id format and region only.
+          AWS_VPC_ENDPOINT_ID: vpce-0123456789abcdef0
+          AWS_VPC_ENDPOINT_DNS_NAME: vpce-0123456789abcdef0-abcdefgh.vpce-svc-0123456789abcdef0.us-east-1.vpce.amazonaws.com
+          AWS_VPC_ENDPOINT_REGION: US_EAST_1
           MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME: ${{ secrets.mongodb_atlas_private_endpoint_dns_name }}
           MONGODB_ATLAS_PRIVATE_ENDPOINT_ID: ${{ secrets.mongodb_atlas_private_endpoint_id }}
           MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_REPLACE: ${{ secrets.mongodb_atlas_private_endpoint_id_replace }}
@@ -709,6 +714,7 @@ jobs:
             ./internal/serviceapi/projectsettingsapi
             ./internal/serviceapi/streamconnectionapi
             ./internal/serviceapi/streamconnectionfailover
+            ./internal/serviceapi/streamworkspaceprivateendpoint
         run: make testacc
       - name: Acceptance Tests (Resource Policy API)
         env:
