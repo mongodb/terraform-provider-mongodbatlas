@@ -177,16 +177,10 @@ func buildSchemaFromResponse(op *high.Operation, configuredVersion *string) (*AP
 	return nil, errSchemaNotFound
 }
 
-// matchSiblingRefAllOf detects allOf wrappers that only annotate a single `$ref`, returning the
-// referenced proxy and the schema carrying the annotation overrides. Two shapes are supported:
-//   - 2-branch wrapper libopenapi (>= v0.36.4) emits when a `$ref` carries a `description` sibling.
-//   - 1-branch `allOf: [$ref]` with `description`, `nullable` or `readOnly` siblings, the OpenAPI 3.0
-//     idiom to annotate a `$ref` (e.g. AutoScaling.storageConfig).
-//
-// Real allOf composition is left to the flattened API spec; any other wrapper shape returns a nil
-// refBranch so the existing "type cannot be inferred" error surfaces unsupported shapes loudly.
-// Detection only — the caller resolves the ref so any underlying BuildSchema failure propagates
-// instead of being hidden behind the wrapper's generic error.
+// matchSiblingRefAllOf detects allOf wrappers that only annotate a single `$ref` and returns the ref
+// plus the schema holding the annotations. Supported shapes: the 2-branch wrapper libopenapi emits for
+// a `$ref` with a `description` sibling, and `allOf: [$ref]` with `description`, `nullable` or `readOnly`
+// siblings. Other shapes return nil so the "type cannot be inferred" error surfaces them.
 func matchSiblingRefAllOf(schema *base.Schema) (refBranch *base.SchemaProxy, annotations *base.Schema) {
 	if len(schema.Type) > 0 || (schema.Properties != nil && schema.Properties.Len() > 0) {
 		return nil, nil
