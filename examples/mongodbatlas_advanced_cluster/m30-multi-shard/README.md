@@ -11,7 +11,7 @@ The cluster distributes data across two shards as follows:
 - Shard 1 — `US_EAST_1` (AWS), 3 electable nodes, instance size M30
 - Shard 2 — `US_EAST_1` (AWS), 3 electable nodes, instance size M30
 
- **Tip:** To add a third shard, append another `replication_specs` block with the same shape as shards 1 and 2. Atlas performs a live online shard addition with no downtime.
+Compute and disk auto-scaling are enabled for each shard. A `lifecycle.ignore_changes` block prevents Terraform from reverting Atlas-managed changes to `instance_size`, `disk_size_gb`, and `disk_iops`. For clusters with more than one `replication_specs` entry, `use_effective_fields = true` currently has no effect, so this example does not use it. The `ignore_changes` entries reference each shard by its list index, so they might not preserve Atlas-managed values when the shard topology changes. Before adding, removing, or reordering shards, review [Multi-shard clusters and topology changes](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#multi-shard-clusters-and-topology-changes).
 
 ## Prerequisites
 
@@ -48,7 +48,7 @@ To run this example, perform the following steps:
 
    - `name`: Name of the cluster (default: `"m30-multi-shard"`)
    - `cluster_type`: Type of cluster. Must be `"SHARDED"`
-   - `instance_size`: Instance size for all nodes. Set to `"M30"`
+   - `instance_size`: Initial instance size for all nodes. Set to `"M30"`. Auto-scaling can change it between `"M30"` and `"M50"`
    - `node_count`: Number of electable nodes per shard. Set to `3`
    - `provider_name`: Cloud service provider hosting the cluster. Set to `"AWS"`
    - `region_name`: Cloud region where the cluster is deployed. Set to `"US_EAST_1"`

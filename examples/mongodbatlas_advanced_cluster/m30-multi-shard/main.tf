@@ -4,11 +4,10 @@ provider "mongodbatlas" {
 }
 
 resource "mongodbatlas_advanced_cluster" "cluster" {
-  project_id           = mongodbatlas_project.project.id
-  name                 = var.cluster_name
-  cluster_type         = "SHARDED"
-  backup_enabled       = true
-  use_effective_fields = true
+  project_id     = mongodbatlas_project.project.id
+  name           = var.cluster_name
+  cluster_type   = "SHARDED"
+  backup_enabled = true
 
   replication_specs = [
     {
@@ -61,6 +60,17 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
   tags = {
     environment = "production"
+  }
+
+  lifecycle { # avoids future non-empty plans when auto-scaling adjusts cluster resources
+    ignore_changes = [
+      replication_specs[0].region_configs[0].electable_specs.instance_size,
+      replication_specs[0].region_configs[0].electable_specs.disk_size_gb,
+      replication_specs[0].region_configs[0].electable_specs.disk_iops,
+      replication_specs[1].region_configs[0].electable_specs.instance_size,
+      replication_specs[1].region_configs[0].electable_specs.disk_size_gb,
+      replication_specs[1].region_configs[0].electable_specs.disk_iops
+    ]
   }
 }
 
