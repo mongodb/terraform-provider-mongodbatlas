@@ -34,6 +34,18 @@ func TestIsAliasOnlyTransition(t *testing.T) {
 		},
 	}
 
+	azureState := streamconnection.TFStreamConnectionModel{
+		TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+			ID:             types.StringValue("workspace-project-connection"),
+			InstanceName:   types.StringValue("workspace"),
+			WorkspaceName:  types.StringNull(),
+			ProjectID:      types.StringValue("project"),
+			ConnectionName: types.StringValue("connection"),
+			Type:           types.StringValue("AzureBlobStorage"),
+			Azure:          azureObject(t, types.StringValue("principal"), types.StringValue("storage"), types.StringValue("eastus2")),
+		},
+	}
+
 	testCases := map[string]struct {
 		plan                streamconnection.TFStreamConnectionModel
 		state               streamconnection.TFStreamConnectionModel
@@ -77,6 +89,34 @@ func TestIsAliasOnlyTransition(t *testing.T) {
 				},
 			},
 			aliasOnlyTransition: true,
+		},
+		"azure_storage_account_changed_with_unknown_region": {
+			state: azureState,
+			plan: streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ID:             types.StringUnknown(),
+					InstanceName:   types.StringNull(),
+					WorkspaceName:  types.StringValue("workspace"),
+					ProjectID:      types.StringValue("project"),
+					ConnectionName: types.StringValue("connection"),
+					Type:           types.StringValue("AzureBlobStorage"),
+					Azure:          azureObject(t, types.StringValue("principal"), types.StringValue("other-storage"), types.StringUnknown()),
+				},
+			},
+		},
+		"azure_service_principal_changed_with_unknown_region": {
+			state: azureState,
+			plan: streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ID:             types.StringUnknown(),
+					InstanceName:   types.StringNull(),
+					WorkspaceName:  types.StringValue("workspace"),
+					ProjectID:      types.StringValue("project"),
+					ConnectionName: types.StringValue("connection"),
+					Type:           types.StringValue("AzureBlobStorage"),
+					Azure:          azureObject(t, types.StringValue("other-principal"), types.StringValue("storage"), types.StringUnknown()),
+				},
+			},
 		},
 		"different_workspace": {
 			state: legacyState,
