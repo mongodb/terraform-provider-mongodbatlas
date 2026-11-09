@@ -2,6 +2,7 @@ package codespec
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
@@ -10,6 +11,8 @@ import (
 )
 
 var commonIgnoredAttributes = []string{"total_count", "envelope", "items_per_page", "page_num", "links", "pretty", "include_count"}
+
+const pluralResultsPrefix = "results."
 
 const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. " +
 	"When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for " +
@@ -47,7 +50,9 @@ func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSou
 	if err := applyDSSchemaTransformations(dsConfig.SchemaOptions, ds.Singular); err != nil {
 		return fmt.Errorf("failed to apply transformations for singular data source: %w", err)
 	}
-	if err := applyDSSchemaTransformations(dsConfig.SchemaOptions, ds.Plural); err != nil {
+	pluralOptions := dsConfig.SchemaOptions
+	pluralOptions.Overrides = pluralOverrides(dsConfig.SchemaOptions.Overrides, dsConfig.PluralOverrides)
+	if err := applyDSSchemaTransformations(pluralOptions, ds.Plural); err != nil {
 		return fmt.Errorf("failed to apply transformations for plural data source: %w", err)
 	}
 	applyAliasToPathParams(&ds.Operations, dsConfig.SchemaOptions.Aliases)
@@ -275,7 +280,7 @@ func aliasTransformation(attr *Attribute, paths *attrPaths, schemaOptions config
 
 func commonRSAndDSOverridesTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
 	// Overrides use the snake_case schemaPath
-	override, ok := schemaOptions.Overrides[attrPathForOverrides(paths.schemaPath)]
+	override, ok := schemaOptions.Overrides[paths.schemaPath]
 	if !ok {
 		return nil
 	}
@@ -305,7 +310,7 @@ func commonRSAndDSOverridesTransformation(attr *Attribute, paths *attrPaths, sch
 }
 
 func immutableComputedOverrideTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
-	override, ok := schemaOptions.Overrides[attrPathForOverrides(paths.schemaPath)]
+	override, ok := schemaOptions.Overrides[paths.schemaPath]
 	if !ok {
 		return nil
 	}
@@ -460,8 +465,22 @@ func setCreateOnlyValue(attr *Attribute) {
 	}
 }
 
-func attrPathForOverrides(attrPathName string) string {
-	return strings.TrimPrefix(attrPathName, "results.")
+// pluralOverrides builds the exact-path override map for a plural data source. A shared key also covers the same
+// path under `results`, so one key describes a singular attribute and its plural list-item counterpart. An explicit
+// shared `results.` key takes precedence over that copy, and scoped plural keys take precedence over both.
+func pluralOverrides(shared, scoped map[string]config.Override) map[string]config.Override {
+	result := make(map[string]config.Override, 2*len(shared)+len(scoped))
+	maps.Copy(result, shared)
+	for path := range shared {
+		if strings.HasPrefix(path, pluralResultsPrefix) {
+			continue
+		}
+		if _, explicit := shared[pluralResultsPrefix+path]; !explicit {
+			result[pluralResultsPrefix+path] = shared[path]
+		}
+	}
+	maps.Copy(result, scoped)
+	return result
 }
 
 // applyAliasesToNestedDiscriminators recursively walks attributes and applies alias renames
@@ -521,8 +540,7 @@ func applyIgnoreValidatorsToDiscriminator(disc *Discriminator, schemaOptions con
 	if disc == nil {
 		return
 	}
-	overridePath := attrPathForOverrides(buildPath(parentSchemaPath, disc.PropertyName.TFSchemaName))
-	override, ok := schemaOptions.Overrides[overridePath]
+	override, ok := schemaOptions.Overrides[buildPath(parentSchemaPath, disc.PropertyName.TFSchemaName)]
 	if !ok {
 		return
 	}
