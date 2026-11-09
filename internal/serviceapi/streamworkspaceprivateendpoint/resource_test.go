@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"testing"
 
@@ -17,7 +16,11 @@ const (
 	resourceName         = "mongodbatlas_stream_workspace_private_endpoint.test"
 	dataSourceName       = "data.mongodbatlas_stream_workspace_private_endpoint.test"
 	pluralDataSourceName = "data.mongodbatlas_stream_workspace_private_endpoints.test"
-	datasourcesConfig    = `
+	// Synthetic endpoint values: registration only validates the AWS id format and region.
+	endpointID        = "vpce-0123456789abcdef0"
+	endpointDNSName   = "vpce-0123456789abcdef0-abcdefgh.vpce-svc-0123456789abcdef0.us-east-1.vpce.amazonaws.com"
+	endpointRegion    = "US_EAST_1"
+	datasourcesConfig = `
 		data "mongodbatlas_stream_workspace_private_endpoint" "test" {
 			project_id  = mongodbatlas_stream_workspace_private_endpoint.test.project_id
 			endpoint_id = mongodbatlas_stream_workspace_private_endpoint.test.endpoint_id
@@ -30,27 +33,22 @@ const (
 )
 
 // TestAccStreamWorkspacePrivateEndpoint_basic registers a workspace private endpoint, checks the
-// singular and plural data sources, then imports. The AWS_VPC_ENDPOINT_* values may be synthetic.
+// singular and plural data sources, then imports.
 func TestAccStreamWorkspacePrivateEndpoint_basic(t *testing.T) {
-	var (
-		projectID  = acc.ProjectIDExecution(t)
-		endpointID = os.Getenv("AWS_VPC_ENDPOINT_ID")
-		dnsName    = os.Getenv("AWS_VPC_ENDPOINT_DNS_NAME")
-		region     = os.Getenv("AWS_VPC_ENDPOINT_REGION")
-	)
+	projectID := acc.ProjectIDExecution(t)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckStreamWorkspacePrivateEndpoint(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configEndpoint(projectID, endpointID, region, dnsName) + datasourcesConfig,
+				Config: configEndpoint(projectID, endpointID, endpointRegion, endpointDNSName) + datasourcesConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(resourceName, "region", region),
-					resource.TestCheckResourceAttr(resourceName, "customer_dns_name", dnsName),
+					resource.TestCheckResourceAttr(resourceName, "region", endpointRegion),
+					resource.TestCheckResourceAttr(resourceName, "customer_dns_name", endpointDNSName),
 					resource.TestCheckResourceAttrSet(resourceName, "status"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "status", resourceName, "status"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "cloud_provider", resourceName, "cloud_provider"),
