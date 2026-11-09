@@ -24,26 +24,22 @@ func azureObject(t *testing.T, servicePrincipalID, storageAccountName, region ty
 
 func TestIsAliasOnlyTransition(t *testing.T) {
 	legacyState := streamconnection.TFStreamConnectionModel{
-		TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
-			ID:             types.StringValue("workspace-project-connection"),
-			InstanceName:   types.StringValue("workspace"),
-			WorkspaceName:  types.StringNull(),
-			ProjectID:      types.StringValue("project"),
-			ConnectionName: types.StringValue("connection"),
-			Type:           types.StringValue("Sample"),
-		},
+		ID:             types.StringValue("workspace-project-connection"),
+		InstanceName:   types.StringValue("workspace"),
+		WorkspaceName:  types.StringNull(),
+		ProjectID:      types.StringValue("project"),
+		ConnectionName: types.StringValue("connection"),
+		Type:           types.StringValue("Sample"),
 	}
 
 	azureState := streamconnection.TFStreamConnectionModel{
-		TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
-			ID:             types.StringValue("workspace-project-connection"),
-			InstanceName:   types.StringValue("workspace"),
-			WorkspaceName:  types.StringNull(),
-			ProjectID:      types.StringValue("project"),
-			ConnectionName: types.StringValue("connection"),
-			Type:           types.StringValue("AzureBlobStorage"),
-			Azure:          azureObject(t, types.StringValue("principal"), types.StringValue("storage"), types.StringValue("eastus2")),
-		},
+		ID:             types.StringValue("workspace-project-connection"),
+		InstanceName:   types.StringValue("workspace"),
+		WorkspaceName:  types.StringNull(),
+		ProjectID:      types.StringValue("project"),
+		ConnectionName: types.StringValue("connection"),
+		Type:           types.StringValue("AzureBlobStorage"),
+		Azure:          azureObject(t, types.StringValue("principal"), types.StringValue("storage"), types.StringValue("eastus2")),
 	}
 
 	testCases := map[string]struct {
@@ -161,31 +157,29 @@ func TestUpdateAliasOnlyTransitionMakesNoAtlasRequests(t *testing.T) {
 
 	newModel := func(id, instanceName, workspaceName, region types.String) streamconnection.TFStreamConnectionModel {
 		return streamconnection.TFStreamConnectionModel{
-			TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
-				ID:             id,
-				InstanceName:   instanceName,
-				WorkspaceName:  workspaceName,
-				ProjectID:      types.StringValue("project"),
-				ConnectionName: types.StringValue("connection"),
-				Type:           types.StringValue("AzureBlobStorage"),
-				Azure:          azureObject(t, types.StringValue("principal"), types.StringValue("storage"), region),
+			ID:             id,
+			InstanceName:   instanceName,
+			WorkspaceName:  workspaceName,
+			ProjectID:      types.StringValue("project"),
+			ConnectionName: types.StringValue("connection"),
+			Type:           types.StringValue("AzureBlobStorage"),
+			Azure:          azureObject(t, types.StringValue("principal"), types.StringValue("storage"), region),
 
-				ClusterName:                  types.StringNull(),
-				ClusterProjectID:             types.StringNull(),
-				Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
-				BootstrapServers:             types.StringNull(),
-				Config:                       types.MapNull(types.StringType),
-				Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
-				DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
-				Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
-				AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
-				GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
-				Headers:                      types.MapNull(types.StringType),
-				URL:                          types.StringNull(),
-				SchemaRegistryProvider:       types.StringNull(),
-				SchemaRegistryURLs:           types.ListNull(types.StringType),
-				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
-			},
+			ClusterName:                  types.StringNull(),
+			ClusterProjectID:             types.StringNull(),
+			Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+			BootstrapServers:             types.StringNull(),
+			Config:                       types.MapNull(types.StringType),
+			Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+			DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+			Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+			AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+			GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+			Headers:                      types.MapNull(types.StringType),
+			URL:                          types.StringNull(),
+			SchemaRegistryProvider:       types.StringNull(),
+			SchemaRegistryURLs:           types.ListNull(types.StringType),
+			SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 			Timeouts: timeouts.Value{Object: types.ObjectNull(map[string]attr.Type{
 				"create": types.StringType, "update": types.StringType, "delete": types.StringType,
 			})},
