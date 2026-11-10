@@ -58,6 +58,7 @@ data "mongodbatlas_projects" "test" {
 * `is_realtime_performance_panel_enabled` - Flag that indicates whether to enable Real Time Performance Panel for the project. If enabled, you can see real time metrics from your MongoDB database.
 * `is_schema_advisor_enabled` - Flag that indicates whether to enable Schema Advisor for the project. If enabled, you receive customized recommendations to optimize your data model and enhance performance. Disable this setting to disable schema suggestions in the [Performance Advisor](https://www.mongodb.com/docs/atlas/performance-advisor/#std-label-performance-advisor) and the [Data Explorer](https://www.mongodb.com/docs/atlas/atlas-ui/#std-label-atlas-ui).
 * `is_cluster_ai_assistant_enabled` - Flag that indicates whether the AI Assistant is enabled for the project's clusters.
+* `is_atlas_home_page_ai_assistant_enabled` - Flag that indicates whether the MongoDB Assistant on the Atlas Home Page is enabled for the project.
 * `is_data_explorer_gen_ai_features_enabled` - Flag that indicates whether generative AI features are enabled in the Data Explorer for the project.
 * `is_data_explorer_gen_ai_sample_document_passing_enabled` - Flag that indicates whether passing sample documents to generative AI features in the Data Explorer is enabled for the project.
 * `is_native_reranking_enabled` - Flag that indicates whether Native Reranking with Voyage AI models in the Aggregation Pipeline is enabled for the project.
