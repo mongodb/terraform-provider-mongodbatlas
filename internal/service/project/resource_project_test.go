@@ -748,6 +748,16 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 				Check:  projectSettingsChecks(orgID, projectOwnerID, projectName, true),
 			},
 			{
+				// Cluster and Home Page AI assistants are controlled independently.
+				Config: configProjectWithAIAssistants(projectName, orgID, projectOwnerID, false, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "is_cluster_ai_assistant_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_atlas_home_page_ai_assistant_enabled", "true"),
+					resource.TestCheckResourceAttr(dataSourceNameByID, "is_cluster_ai_assistant_enabled", "false"),
+					resource.TestCheckResourceAttr(dataSourceNameByID, "is_atlas_home_page_ai_assistant_enabled", "true"),
+				),
+			},
+			{
 				Config: configProjectWithSettings(projectName, orgID, projectOwnerID, false),
 				Check:  projectSettingsChecks(orgID, projectOwnerID, projectName, false),
 			},
@@ -771,6 +781,22 @@ func configProjectBasic(projectName, orgID, projectOwnerID string) string {
 			project_id = mongodbatlas_project.test.id
 		}
 	`, projectName, orgID, projectOwnerID)
+}
+
+func configProjectWithAIAssistants(projectName, orgID, projectOwnerID string, clusterAI, homePageAI bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name             = %[1]q
+			org_id           = %[2]q
+			project_owner_id = %[3]q
+			is_cluster_ai_assistant_enabled         = %[4]t
+			is_atlas_home_page_ai_assistant_enabled = %[5]t
+		}
+
+		data "mongodbatlas_project" "test" {
+			project_id = mongodbatlas_project.test.id
+		}
+	`, projectName, orgID, projectOwnerID, clusterAI, homePageAI)
 }
 
 func configProjectWithSettings(projectName, orgID, projectOwnerID string, value bool) string {
