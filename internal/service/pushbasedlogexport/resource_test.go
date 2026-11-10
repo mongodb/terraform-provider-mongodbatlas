@@ -21,9 +21,9 @@ const (
 )
 
 // Push-based log export acceptance tests do not run in CI:
-//   * PBLE is deprecated in favor of log_integration and will be removed in the next major version.
-// 	 * Atlas no longer accepts new PBLE configurations.
-// You may run these locally passing a project ID via env vars.
+//  * PBLE is deprecated in favor of log_integration and will be removed in the next major version.
+//  * Atlas no longer accepts new PBLE configurations.
+// You may run these locally passing an allowlisted project ID via env vars.
 
 func TestAccPushBasedLogExport_basic(t *testing.T) {
 	acc.SkipTestForCI(t)
