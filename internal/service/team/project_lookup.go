@@ -14,7 +14,7 @@ import (
 // It reads every page of the organization's projects, so teams assigned to projects beyond the first page are found.
 func GetProjectIDByTeamID(ctx context.Context, orgsAPI admin20241113.OrganizationsApi, teamsAPI admin20241113.TeamsApi, orgID, teamID string) (string, error) {
 	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin20241113.Group], *http.Response, error) {
-		return orgsAPI.ListOrganizationProjects(ctx, orgID).PageNum(pageNum).Execute()
+		return orgsAPI.ListOrganizationProjectsWithParams(ctx, &admin20241113.ListOrganizationProjectsApiParams{OrgId: orgID, PageNum: &pageNum}).Execute()
 	})
 	if err != nil {
 		return "", fmt.Errorf("error getting projects information: %s", err)
