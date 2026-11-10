@@ -829,35 +829,6 @@ resources:
       aliases:
         groupId: id # path param name does not match the API response property
 
-  push_based_log_export_api:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-      method: GET
-    create:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-      method: POST
-      wait: &pble-create-wait
-        state_property: "state"
-        pending_states: ["INITIATING", "BUCKET_VERIFIED"]
-        target_states: ["ACTIVE"]
-        timeout_seconds: 900 # 15 minutes
-        min_timeout_seconds: 60
-        delay_seconds: 10
-    update:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-      method: PATCH
-      wait: *pble-create-wait
-    delete:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-      method: DELETE
-      wait:
-        <<: *pble-create-wait
-        pending_states: ["ACTIVE", "INITIATING", "BUCKET_VERIFIED"]
-        target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404
-    version_header: application/vnd.atlas.2023-01-01+json
-    schema:
-      ignores: ["links"]
-
   resource_policy_api:
     read:
       path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
