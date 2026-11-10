@@ -178,7 +178,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		_, _, err := connV2.TeamsApi.DeleteTeam(ctx, orgID, id).Execute()
 		if err != nil {
 			if admin20241113.IsErrorCode(err, "CANNOT_DELETE_TEAM_ASSIGNED_TO_PROJECT") {
-				projectID, err := getProjectIDByTeamID(ctx, connV2, id)
+				projectID, err := GetProjectIDByTeamID(ctx, connV2.OrganizationsApi, connV2.TeamsApi, orgID, id)
 				if err != nil {
 					return retry.NonRetryableError(err)
 				}
@@ -229,28 +229,6 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}))
 
 	return []*schema.ResourceData{d}, nil
-}
-
-func getProjectIDByTeamID(ctx context.Context, connV2 *admin20241113.APIClient, teamID string) (string, error) {
-	projects, _, err := connV2.ProjectsApi.ListProjects(ctx).Execute()
-	if err != nil {
-		return "", fmt.Errorf("error getting projects information: %s", err)
-	}
-
-	for _, project := range projects.GetResults() {
-		teams, _, err := connV2.TeamsApi.ListProjectTeams(ctx, project.GetId()).Execute()
-		if err != nil {
-			return "", fmt.Errorf("error getting teams from project information: %s", err)
-		}
-
-		for _, team := range teams.GetResults() {
-			if team.GetTeamId() == teamID {
-				return project.GetId(), nil
-			}
-		}
-	}
-
-	return "", nil
 }
 
 func listAllTeamUsers(ctx context.Context, connV2 *admin20241113.APIClient, orgID, teamID string) ([]admin20241113.CloudAppUser, error) {
