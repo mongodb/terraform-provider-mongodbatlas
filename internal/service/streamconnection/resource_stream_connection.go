@@ -301,7 +301,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	if IsAliasOnlyTransition(&streamConnectionPlan, &streamConnectionState) {
+	if IsAliasOnlyTransition(ctx, &streamConnectionPlan, &streamConnectionState) {
 		streamConnectionState.InstanceName = streamConnectionPlan.InstanceName
 		streamConnectionState.WorkspaceName = streamConnectionPlan.WorkspaceName
 		resp.Diagnostics.Append(resp.State.Set(ctx, streamConnectionState)...)
