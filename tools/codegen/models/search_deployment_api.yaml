@@ -1,6 +1,164 @@
 schema:
     description: Creates Search Nodes for the specified cluster.
     attributes:
+        - single_nested:
+            nested_object:
+                attributes:
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - bool:
+                                    default: false
+                                  description: Flag that indicates whether Atlas raises the Search Node tier when the nodes are under sustained load. If set to `true`, you must also set `maxInstanceTier`.
+                                  computed_optional_required: computed_optional
+                                  tf_schema_name: enabled
+                                  tf_model_name: Enabled
+                                  api_name: enabled
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Highest Search Node tier that Atlas can scale up to. Required when `enabled` is `true`.
+                                  computed_optional_required: optional
+                                  tf_schema_name: max_instance_tier
+                                  tf_model_name: MaxInstanceTier
+                                  api_name: maxInstanceTier
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Lowest Search Node tier that Atlas can scale down to. Required when `scaleDownEnabled` is `true`. Scaling down is not supported yet, so setting this returns an error.
+                                  computed_optional_required: optional
+                                  tf_schema_name: min_instance_tier
+                                  tf_model_name: MinInstanceTier
+                                  api_name: minInstanceTier
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - bool:
+                                    default: false
+                                  description: Flag that indicates whether Atlas lowers the Search Node tier when load drops. Takes effect only when `enabled` is `true`. If set to `true`, you must also set `minInstanceTier`. Scaling down is not supported yet, so setting this to `true` returns an error.
+                                  computed_optional_required: computed_optional
+                                  tf_schema_name: scale_down_enabled
+                                  tf_model_name: ScaleDownEnabled
+                                  api_name: scaleDownEnabled
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: Settings that control Search Node tier scaling based on load.
+                      custom_type:
+                        name: AutoScalingCompute
+                        model: customtypes.ObjectValue[TFAutoScalingComputeModel]
+                        schema: customtypes.NewObjectType[TFAutoScalingComputeModel](ctx)
+                        packages:
+                            - customtypes
+                      computed_optional_required: optional
+                      tf_schema_name: compute
+                      tf_model_name: Compute
+                      api_name: compute
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Settings that let Atlas change the Search Node tier on its own. Bounds apply to the whole deployment, and Atlas scales each region and shard independently within them. Omit to keep autoscaling off.
+          custom_type:
+            name: AutoScaling
+            model: customtypes.ObjectValue[TFAutoScalingModel]
+            schema: customtypes.NewObjectType[TFAutoScalingModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: optional
+          tf_schema_name: auto_scaling
+          tf_model_name: AutoScaling
+          api_name: autoScaling
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Cloud service provider on which Search Nodes are provisioned.
+                      computed_optional_required: computed
+                      tf_schema_name: cloud_provider
+                      tf_model_name: CloudProvider
+                      api_name: cloudProvider
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Hardware specification for the Search Node instance sizes.
+                      computed_optional_required: computed
+                      tf_schema_name: instance_size
+                      tf_model_name: InstanceSize
+                      api_name: instanceSize
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - int64: {}
+                      description: Number of Search Nodes for this configuration.
+                      computed_optional_required: computed
+                      tf_schema_name: node_count
+                      tf_model_name: NodeCount
+                      api_name: nodeCount
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Cloud provider region where Search Nodes are provisioned.
+                      computed_optional_required: computed
+                      tf_schema_name: region_name
+                      tf_model_name: RegionName
+                      api_name: regionName
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Shard that owns this Search Node configuration.
+                      computed_optional_required: computed
+                      tf_schema_name: shard_id
+                      tf_model_name: ShardId
+                      api_name: shardId
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: List of starting settings for the Search Nodes in each cluster region.
+          custom_type:
+            name: BaselineSpecs
+            model: customtypes.NestedListValue[TFBaselineSpecsModel]
+            schema: customtypes.NewNestedListType[TFBaselineSpecsModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: computed
+          tf_schema_name: baseline_specs
+          tf_model_name: BaselineSpecs
+          api_name: baselineSpecs
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Label that identifies the cluster to create Search Nodes for.
           computed_optional_required: required
@@ -49,7 +207,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - int64: {}
-                      description: Number of Search Nodes in this region.
+                      description: Number of Search Nodes for this configuration.
                       computed_optional_required: computed
                       tf_schema_name: node_count
                       tf_model_name: NodeCount
@@ -70,7 +228,18 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
-          description: List of settings that configure the Search Nodes for your cluster, with per-region detail including the region name and cloud provider.
+                    - string: {}
+                      description: Shard that owns this Search Node configuration.
+                      computed_optional_required: computed
+                      tf_schema_name: shard_id
+                      tf_model_name: ShardId
+                      api_name: shardId
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: List of settings that configure the Search Nodes for your cluster. Each entry describes one region or, when `shardId` is present, one shard in one region.
           custom_type:
             name: EffectiveSpecs
             model: customtypes.NestedListValue[TFEffectiveSpecsModel]

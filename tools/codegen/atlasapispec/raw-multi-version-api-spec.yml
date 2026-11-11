@@ -209,6 +209,31 @@ components:
                     schema:
                         $ref: '#/components/schemas/ApiError'
             description: Forbidden.
+        forbiddenOrResourcePolicyViolation:
+            content:
+                application/json:
+                    examples:
+                        forbidden:
+                            summary: Forbidden
+                            value:
+                                detail: (This is just an example, the exception may not be related to this endpoint)
+                                error: 403
+                                errorCode: CANNOT_CHANGE_GROUP_NAME
+                                reason: Forbidden
+                        resourcePolicyViolation:
+                            summary: Atlas Resource Policy violation
+                            value:
+                                detail: Invalid Configuration. Contains selections that are unavailable due to your organization's resource policies.
+                                error: 403
+                                errorCode: ATLAS_RESOURCE_POLICIES_VIOLATION_NOT_AUTHORIZED
+                                parameters: []
+                                policiesCausingDecision:
+                                    - id: 32b6e34b3d91647abb20e7b8
+                                      name: forbid-aws-clusters
+                                reason: Forbidden
+                    schema:
+                        $ref: '#/components/schemas/ApiError'
+            description: Forbidden. Atlas Resource Policy details are returned only when an Atlas Resource Policy denies the request.
         gone:
             content:
                 application/json:
@@ -2236,6 +2261,7 @@ components:
                 - $ref: '#/components/schemas/GroupNotification'
                 - $ref: '#/components/schemas/HipChatNotification'
                 - $ref: '#/components/schemas/MicrosoftTeamsNotification'
+                - $ref: '#/components/schemas/OperationsContactNotification'
                 - $ref: '#/components/schemas/OpsGenieNotification'
                 - $ref: '#/components/schemas/OrgNotification'
                 - $ref: '#/components/schemas/PagerDutyNotification'
@@ -2397,10 +2423,8 @@ components:
                     maxItems: 4
                     type: array
                 minimumEnabledTlsProtocol:
-                    description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.
+                    description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections.
                     enum:
-                        - TLS1_0
-                        - TLS1_1
                         - TLS1_2
                         - TLS1_3
                     externalDocs:
@@ -3245,6 +3269,44 @@ components:
                     type: string
             readOnly: true
             type: object
+        ApiClusterScaleView:
+            description: Information on scaling the cluster to a tier that supports the requested feature. Present only when the feature is unavailable on the cluster's current tier.
+            properties:
+                docsUrl:
+                    description: Documentation page describing feature availability by cluster tier.
+                    nullable: true
+                    readOnly: true
+                    type: string
+                minimumTier:
+                    description: Lowest cluster tier that supports the requested feature.
+                    example: M10
+                    readOnly: true
+                    type: string
+                scaleUrl:
+                    description: Link to the Atlas UI page that scales the cluster, with the minimum supported tier pre-selected.
+                    readOnly: true
+                    type: string
+            readOnly: true
+            type: object
+        ApiClusterScaleView_Atlas:
+            description: Information on scaling the cluster to a tier that supports the requested feature. Present only when the feature is unavailable on the cluster's current tier.
+            properties:
+                docsUrl:
+                    description: Documentation page describing feature availability by cluster tier.
+                    nullable: true
+                    readOnly: true
+                    type: string
+                minimumTier:
+                    description: Lowest cluster tier that supports the requested feature.
+                    example: M10
+                    readOnly: true
+                    type: string
+                scaleUrl:
+                    description: Link to the Atlas UI page that scales the cluster, with the minimum supported tier pre-selected.
+                    readOnly: true
+                    type: string
+            readOnly: true
+            type: object
         ApiError:
             properties:
                 badRequestDetail:
@@ -3270,6 +3332,14 @@ components:
                         type: object
                     readOnly: true
                     type: array
+                policiesCausingDecision:
+                    description: Atlas Resource Policies that caused the request to be denied. Returned only when `errorCode` is `ATLAS_RESOURCE_POLICIES_VIOLATION_NOT_AUTHORIZED`.
+                    items:
+                        $ref: '#/components/schemas/ResourcePolicyReference'
+                    maxItems: 100
+                    readOnly: true
+                    type: array
+                    x-xgen-array-semantic: set
                 reason:
                     description: Application error message returned with this error.
                     nullable: true
@@ -3476,6 +3546,10 @@ components:
                         $ref: '#/components/schemas/MetricsMeasurement_Atlas'
                     readOnly: true
                     type: array
+                message:
+                    description: Explanation of measurement availability limitations on the current tier.
+                    readOnly: true
+                    type: string
                 partitionName:
                     description: Human-readable label of the disk or partition to which the measurements apply.
                     readOnly: true
@@ -3486,6 +3560,8 @@ components:
                     pattern: ^([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-f]{1,4}\:){7}([0-9a-f]{1,4})|(([a-z0-9]+\.){1,10}[a-z]+)?(\:[0-9]{4,5})$
                     readOnly: true
                     type: string
+                scale:
+                    $ref: '#/components/schemas/ApiClusterScaleView_Atlas'
                 start:
                     description: Date and time that specifies when to start retrieving measurements. If you set **start**, you must set **end**. You can't set this parameter and **period** in the same request. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
                     format: date-time
@@ -3635,6 +3711,66 @@ components:
                     type: string
                 shardId:
                     description: Shard that owns this Search Node configuration.
+                    readOnly: true
+                    type: string
+            type: object
+        ApiSearchDeploymentPreviewResponseView:
+            properties:
+                autoScaling:
+                    allOf:
+                        - $ref: '#/components/schemas/ApiSearchAutoScalingView'
+                    description: Autoscaling settings configured for this Search deployment.
+                    readOnly: true
+                baselineSpecs:
+                    description: List of starting settings for the Search Nodes in each cluster region.
+                    items:
+                        $ref: '#/components/schemas/ApiSearchDeploymentEffectiveSpecView'
+                    readOnly: true
+                    type: array
+                effectiveSpecs:
+                    description: List of settings that configure the Search Nodes for your cluster. Each entry describes one region or, when `shardId` is present, one shard in one region.
+                    items:
+                        $ref: '#/components/schemas/ApiSearchDeploymentEffectiveSpecView'
+                    readOnly: true
+                    type: array
+                encryptionAtRestProvider:
+                    description: Cloud service provider that manages your customer keys to provide an additional layer of Encryption At Rest for the cluster.
+                    enum:
+                        - NONE
+                        - AWS
+                        - AZURE
+                        - GCP
+                    externalDocs:
+                        description: Encryption at Rest using Customer Key Management
+                        url: https://www.mongodb.com/docs/atlas/security-kms-encryption/
+                    nullable: true
+                    readOnly: true
+                    type: string
+                groupId:
+                    description: Unique 24-hexadecimal character string that identifies the project.
+                    example: 32b6e34b3d91647abb20e7b8
+                    pattern: ^([a-f0-9]{24})$
+                    readOnly: true
+                    type: string
+                id:
+                    description: Unique 24-hexadecimal digit string that identifies the search deployment.
+                    example: 32b6e34b3d91647abb20e7b8
+                    pattern: ^([a-f0-9]{24})$
+                    readOnly: true
+                    type: string
+                specs:
+                    deprecated: true
+                    description: Deprecated. `specs` will be removed in a future release. We strongly recommend that you use `effectiveSpecs` instead.
+                    items:
+                        $ref: '#/components/schemas/ApiSearchDeploymentSpecView'
+                    readOnly: true
+                    type: array
+                stateName:
+                    description: Human-readable label that indicates the current operating condition of this search deployment.
+                    enum:
+                        - IDLE
+                        - PAUSED
+                        - UPDATING
                     readOnly: true
                     type: string
             type: object
@@ -5409,6 +5545,8 @@ components:
                     enum:
                         - ISRGROOTX1
                     type: string
+                searchAutoMigration:
+                    $ref: '#/components/schemas/SearchAutoMigration'
                 stateName:
                     description: |-
                         Human-readable label that indicates any current activity being taken on this cluster by the Atlas control plane. With the exception of CREATING and DELETING states, clusters should always be available and have a Primary node even when in states indicating ongoing activity.
@@ -10478,30 +10616,34 @@ components:
             properties:
                 awsPrivateLink:
                     additionalProperties:
-                        description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names.
+                        deprecated: true
+                        description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
                         externalDocs:
-                            description: Network Peering Connection
-                            url: https://docs.atlas.mongodb.com/security-vpc-peering/#std-label-vpc-peering/
+                            description: Private Endpoints
+                            url: https://www.mongodb.com/docs/atlas/security-private-endpoint
                         readOnly: true
                         type: string
-                    description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names.
+                    deprecated: true
+                    description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
                     externalDocs:
-                        description: Network Peering Connection
-                        url: https://docs.atlas.mongodb.com/security-vpc-peering/#std-label-vpc-peering/
+                        description: Private Endpoints
+                        url: https://www.mongodb.com/docs/atlas/security-private-endpoint
                     readOnly: true
                     type: object
                 awsPrivateLinkSrv:
                     additionalProperties:
-                        description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present.
+                        deprecated: true
+                        description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
                         externalDocs:
-                            description: Network Peering Connection
-                            url: https://docs.atlas.mongodb.com/security-vpc-peering/#std-label-vpc-peering/
+                            description: Private Endpoints
+                            url: https://www.mongodb.com/docs/atlas/security-private-endpoint
                         readOnly: true
                         type: string
-                    description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present.
+                    deprecated: true
+                    description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
                     externalDocs:
-                        description: Network Peering Connection
-                        url: https://docs.atlas.mongodb.com/security-vpc-peering/#std-label-vpc-peering/
+                        description: Private Endpoints
+                        url: https://www.mongodb.com/docs/atlas/security-private-endpoint
                     readOnly: true
                     type: object
                 private:
@@ -10512,7 +10654,11 @@ components:
                     readOnly: true
                     type: string
                 privateEndpoint:
-                    description: List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes.
+                    deprecated: true
+                    description: List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+                    externalDocs:
+                        description: Private Endpoints
+                        url: https://www.mongodb.com/docs/atlas/security-private-endpoint
                     items:
                         $ref: '#/components/schemas/ClusterDescriptionConnectionStringsPrivateEndpoint'
                     readOnly: true
@@ -10785,6 +10931,8 @@ components:
                     enum:
                         - ISRGROOTX1
                     type: string
+                searchAutoMigration:
+                    $ref: '#/components/schemas/SearchAutoMigration'
                 stateName:
                     description: |-
                         Human-readable label that indicates any current activity being taken on this cluster by the Atlas control plane. With the exception of CREATING and DELETING states, clusters should always be available and have a Primary node even when in states indicating ongoing activity.
@@ -10974,10 +11122,8 @@ components:
                         url: https://docs.mongodb.com/upcoming/reference/configuration-options/#mongodb-setting-security.javascriptEnabled
                     type: boolean
                 minimumEnabledTlsProtocol:
-                    description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.
+                    description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections.
                     enum:
-                        - TLS1_0
-                        - TLS1_1
                         - TLS1_2
                         - TLS1_3
                     externalDocs:
@@ -11108,10 +11254,8 @@ components:
                         url: https://docs.mongodb.com/upcoming/reference/configuration-options/#mongodb-setting-security.javascriptEnabled
                     type: boolean
                 minimumEnabledTlsProtocol:
-                    description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.
+                    description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections.
                     enum:
-                        - TLS1_0
-                        - TLS1_1
                         - TLS1_2
                         - TLS1_3
                     externalDocs:
@@ -11980,10 +12124,6 @@ components:
                     nullable: true
                     pattern: ^([a-f0-9]{20})$
                     type: string
-                instantUserProvisioningDisabled:
-                    description: Flag that indicates whether instant user provisioning is disabled for this connected organization.
-                    nullable: true
-                    type: boolean
                 orgId:
                     description: Unique 24-hexadecimal digit string that identifies the connected organization configuration.
                     example: 32b6e34b3d91647abb20e7b8
@@ -12196,29 +12336,6 @@ components:
                 services:
                     description: The list of SKU services to be included in the Cost Explorer Query.
                     items:
-                        enum:
-                            - Atlas
-                            - Clusters
-                            - Storage
-                            - Serverless Instances
-                            - Backup
-                            - Data Transfer
-                            - BI Connector
-                            - Premium Features
-                            - Atlas Data Federation
-                            - Atlas Stream Processing
-                            - App Services
-                            - Charts
-                            - Cloud Manager
-                            - Cloud Manager Standard/Premium
-                            - Legacy Backup
-                            - AI Model APIs
-                            - Automated Embedding
-                            - Native Reranking
-                            - Agent Engine
-                            - Flex Consulting
-                            - Support
-                            - Credits
                         type: string
                     type: array
                 startDate:
@@ -15052,6 +15169,12 @@ components:
                           title: FTS Index Audit Types
                           type: string
                         - enum:
+                            - SEARCH_AUTO_MIGRATION_ADVISORY
+                            - SEARCH_AUTO_MIGRATION_STARTED
+                            - SEARCH_AUTO_MIGRATION_FAILED
+                          title: Search Auto Migration Event Types
+                          type: string
+                        - enum:
                             - USERS_WITHOUT_MULTI_FACTOR_AUTH
                             - ENCRYPTION_AT_REST_KMS_NETWORK_ACCESS_DENIED
                             - ENCRYPTION_AT_REST_CONFIG_NO_LONGER_VALID
@@ -15321,6 +15444,12 @@ components:
                             - FTS_INDEXES_RESTORE_FAILED
                             - FTS_INDEXES_SYNONYM_MAPPING_INVALID
                           title: FTS Index Audit Types
+                          type: string
+                        - enum:
+                            - SEARCH_AUTO_MIGRATION_ADVISORY
+                            - SEARCH_AUTO_MIGRATION_STARTED
+                            - SEARCH_AUTO_MIGRATION_FAILED
+                          title: Search Auto Migration Event Types
                           type: string
                         - enum:
                             - USERS_WITHOUT_MULTI_FACTOR_AUTH
@@ -15684,6 +15813,11 @@ components:
                           title: Encryption Event Types
                           type: string
                         - enum:
+                            - ENCRYPTION_KEY_TRANSITION_STARTED
+                            - ENCRYPTION_KEY_TRANSITION_COMPLETED
+                          title: Encryption Key Transition Event Types
+                          type: string
+                        - enum:
                             - BUCKET_CREATED_AUDIT
                             - BUCKET_DELETED_AUDIT
                           title: Export Bucket Audit Types
@@ -15810,6 +15944,16 @@ components:
                             - ONLINE_ARCHIVE_DATA_EXPIRATION_RESOLVED
                             - ONLINE_ARCHIVE_MAX_CONSECUTIVE_OFFLOAD_WINDOWS_CHECK
                           title: Online Archive Event Types
+                          type: string
+                        - enum:
+                            - PRIVATE_ENDPOINT_CONNECTION_STRING_AVAILABLE
+                            - PRIVATE_ENDPOINT_CONNECTION_STRING_CREATED
+                            - PRIVATE_ENDPOINT_CONNECTION_STRING_DELETED
+                            - PRIVATE_ENDPOINT_CONNECTION_STRING_MISCONFIGURED
+                            - PRIVATE_ENDPOINT_CONNECTION_STRING_OPT_IN
+                            - PRIVATE_ENDPOINT_CONNECTION_STRING_OPT_OUT
+                            - PRIVATE_ENDPOINT_CONNECTION_STRING_UPDATED
+                          title: Private Endpoint Connection String Audit Types
                           type: string
                         - enum:
                             - CROSS_REGION_SUPPORTED_REGION_MODIFIED
@@ -15946,6 +16090,12 @@ components:
                             - STREAMS_PRIVATE_LINK_ENDPOINT_UNUSED_DELETED
                           title: Stream Processing Private Link Endpoint Event Types
                           type: string
+                        - enum:
+                            - SEARCH_AUTO_MIGRATION_ADVISORY
+                            - SEARCH_AUTO_MIGRATION_STARTED
+                            - SEARCH_AUTO_MIGRATION_FAILED
+                          title: Search Auto Migration Event Types
+                          type: string
                     type: object
                 groupId:
                     description: Unique 24-hexadecimal digit string that identifies the project in which the event occurred. The `eventId` identifies the specific event.
@@ -16054,6 +16204,7 @@ components:
                             - ORG_SETTINGS_CONFIGURED
                             - ORG_SETTINGS_UPDATED
                             - ORG_SETTINGS_DELETED
+                            - ORG_ACCESS_PROVISIONING_METHOD_UPDATED
                             - RESTRICT_ORG_MEMBERSHIP_ENABLED
                             - RESTRICT_ORG_MEMBERSHIP_DISABLED
                             - ROLE_MAPPING_CREATED
@@ -18295,12 +18446,18 @@ components:
                         $ref: '#/components/schemas/DropIndexSuggestionsIndex'
                     readOnly: true
                     type: array
+                message:
+                    description: Explanation of Performance Advisor availability limitations on the current tier.
+                    readOnly: true
+                    type: string
                 redundantIndexes:
                     description: List that contains the documents with information about the redundant indexes that the Performance Advisor suggests to remove.
                     items:
                         $ref: '#/components/schemas/DropIndexSuggestionsIndex'
                     readOnly: true
                     type: array
+                scale:
+                    $ref: '#/components/schemas/ApiClusterScaleView'
                 unusedIndexes:
                     description: List that contains the documents with information about the unused indexes that the Performance Advisor suggests to remove.
                     items:
@@ -19106,6 +19263,11 @@ components:
                   title: Encryption Event Types
                   type: string
                 - enum:
+                    - ENCRYPTION_KEY_TRANSITION_STARTED
+                    - ENCRYPTION_KEY_TRANSITION_COMPLETED
+                  title: Encryption Key Transition Event Types
+                  type: string
+                - enum:
                     - BUCKET_CREATED_AUDIT
                     - BUCKET_DELETED_AUDIT
                   title: Export Bucket Audit Types
@@ -19508,6 +19670,7 @@ components:
                     - SEARCH_HOST_PAUSE_ALL_INITIAL_SYNCS
                     - SEARCH_HOST_DISABLE_FTS
                     - SEARCH_HOST_PAUSE_INITIAL_SYNC_ON_INDEX_IDS
+                    - SEARCH_AUTOSCALING_ADMIN_OVERRIDES_UPDATED
                     - CLUSTER_BLOCK_WRITE
                     - CLUSTER_UNBLOCK_WRITE
                     - KMIP_KEY_ROTATION_SCHEDULED
@@ -19538,6 +19701,8 @@ components:
                     - DISK_WARMING_PROCESS_NODE_UNHIDDEN_BY_ADMIN
                     - DISK_WARMING_PROCESS_INSTANCE_CANCELLED_BY_ADMIN
                     - DISK_WARMING_PROCESS_DISK_TAG_READY_BY_ADMIN
+                    - NODE_FROZEN_BY_ADMIN
+                    - NODE_UNFROZEN_BY_ADMIN
                     - CLUSTER_CREATED_VIA_ANIS
                     - MAINTENANCE_WAVE_ASSIGNMENT_ADDED
                     - MAINTENANCE_WAVE_ASSIGNMENT_MODIFIED
@@ -19667,6 +19832,16 @@ components:
                     - ONLINE_ARCHIVE_DATA_EXPIRATION_RESOLVED
                     - ONLINE_ARCHIVE_MAX_CONSECUTIVE_OFFLOAD_WINDOWS_CHECK
                   title: Online Archive Event Types
+                  type: string
+                - enum:
+                    - PRIVATE_ENDPOINT_CONNECTION_STRING_AVAILABLE
+                    - PRIVATE_ENDPOINT_CONNECTION_STRING_CREATED
+                    - PRIVATE_ENDPOINT_CONNECTION_STRING_DELETED
+                    - PRIVATE_ENDPOINT_CONNECTION_STRING_MISCONFIGURED
+                    - PRIVATE_ENDPOINT_CONNECTION_STRING_OPT_IN
+                    - PRIVATE_ENDPOINT_CONNECTION_STRING_OPT_OUT
+                    - PRIVATE_ENDPOINT_CONNECTION_STRING_UPDATED
+                  title: Private Endpoint Connection String Audit Types
                   type: string
                 - enum:
                     - CROSS_REGION_SUPPORTED_REGION_MODIFIED
@@ -19845,6 +20020,12 @@ components:
                     - STREAMS_PRIVATE_LINK_ENDPOINT_UNUSED_DELETED
                   title: Stream Processing Private Link Endpoint Event Types
                   type: string
+                - enum:
+                    - SEARCH_AUTO_MIGRATION_ADVISORY
+                    - SEARCH_AUTO_MIGRATION_STARTED
+                    - SEARCH_AUTO_MIGRATION_FAILED
+                  title: Search Auto Migration Event Types
+                  type: string
             type: object
         EventTypeForOrg:
             oneOf:
@@ -19993,6 +20174,7 @@ components:
                     - ORG_SETTINGS_CONFIGURED
                     - ORG_SETTINGS_UPDATED
                     - ORG_SETTINGS_DELETED
+                    - ORG_ACCESS_PROVISIONING_METHOD_UPDATED
                     - RESTRICT_ORG_MEMBERSHIP_ENABLED
                     - RESTRICT_ORG_MEMBERSHIP_DISABLED
                     - ROLE_MAPPING_CREATED
@@ -25159,6 +25341,7 @@ components:
                     NORMALIZED_FTS_PROCESS_CPU_USER: '#/components/schemas/RawMetricAlertView'
                     NORMALIZED_SYSTEM_CPU_STEAL: '#/components/schemas/RawMetricAlertView'
                     NORMALIZED_SYSTEM_CPU_USER: '#/components/schemas/RawMetricAlertView'
+                    NORMALIZED_SYSTEM_CPU_USER_SEARCH_PRIMARY_CONTRIBUTOR: '#/components/schemas/RawMetricAlertView'
                     OPCOUNTER_CMD: '#/components/schemas/RawMetricAlertView'
                     OPCOUNTER_DELETE: '#/components/schemas/RawMetricAlertView'
                     OPCOUNTER_GETMORE: '#/components/schemas/RawMetricAlertView'
@@ -25545,6 +25728,7 @@ components:
                     NORMALIZED_FTS_PROCESS_CPU_USER: '#/components/schemas/RawMetricEventView'
                     NORMALIZED_SYSTEM_CPU_STEAL: '#/components/schemas/RawMetricEventView'
                     NORMALIZED_SYSTEM_CPU_USER: '#/components/schemas/RawMetricEventView'
+                    NORMALIZED_SYSTEM_CPU_USER_SEARCH_PRIMARY_CONTRIBUTOR: '#/components/schemas/RawMetricEventView'
                     OPCOUNTER_CMD: '#/components/schemas/RawMetricEventView'
                     OPCOUNTER_DELETE: '#/components/schemas/RawMetricEventView'
                     OPCOUNTER_GETMORE: '#/components/schemas/RawMetricEventView'
@@ -25844,6 +26028,7 @@ components:
                     NORMALIZED_FTS_PROCESS_CPU_USER: '#/components/schemas/NormalizedFtsProcessCpuUserRawMetricThresholdView'
                     NORMALIZED_SYSTEM_CPU_STEAL: '#/components/schemas/NormalizedSystemCpuStealRawMetricThresholdView'
                     NORMALIZED_SYSTEM_CPU_USER: '#/components/schemas/NormalizedSystemCpuUserRawMetricThresholdView'
+                    NORMALIZED_SYSTEM_CPU_USER_SEARCH_PRIMARY_CONTRIBUTOR: '#/components/schemas/NormalizedSystemCpuUserSearchPrimaryContributorRawMetricThresholdView'
                     OPCOUNTER_CMD: '#/components/schemas/OpCounterCmdRawMetricThresholdView'
                     OPCOUNTER_DELETE: '#/components/schemas/OpCounterDeleteRawMetricThresholdView'
                     OPCOUNTER_GETMORE: '#/components/schemas/OpCounterGetMoreRawMetricThresholdView'
@@ -25962,6 +26147,7 @@ components:
                 - $ref: '#/components/schemas/CacheBytesReadIntoDataMetricThresholdView'
                 - $ref: '#/components/schemas/CacheBytesWrittenFromDataMetricThresholdView'
                 - $ref: '#/components/schemas/NormalizedSystemCpuUserRawMetricThresholdView'
+                - $ref: '#/components/schemas/NormalizedSystemCpuUserSearchPrimaryContributorRawMetricThresholdView'
                 - $ref: '#/components/schemas/NormalizedSystemCpuStealRawMetricThresholdView'
                 - $ref: '#/components/schemas/DiskPartitionSpaceUsedDataRawMetricThresholdView'
                 - $ref: '#/components/schemas/DiskPartitionSpaceUsedIndexRawMetricThresholdView'
@@ -29261,6 +29447,10 @@ components:
                             - ATLAS_STREAM_PROCESSING
                             - MONGODB_METRICS
                             - HARDWARE_METRICS
+                            - DB_STATS
+                            - QUERY_SHAPE_INSIGHTS
+                            - SEARCH_METRICS
+                            - SHARDING_METRICS
                         type: string
                     maxItems: 30
                     minItems: 1
@@ -29333,6 +29523,10 @@ components:
                             - ATLAS_STREAM_PROCESSING
                             - MONGODB_METRICS
                             - HARDWARE_METRICS
+                            - DB_STATS
+                            - QUERY_SHAPE_INSIGHTS
+                            - SEARCH_METRICS
+                            - SHARDING_METRICS
                         type: string
                     maxItems: 30
                     minItems: 1
@@ -29398,6 +29592,10 @@ components:
                             - ATLAS_STREAM_PROCESSING
                             - MONGODB_METRICS
                             - HARDWARE_METRICS
+                            - DB_STATS
+                            - QUERY_SHAPE_INSIGHTS
+                            - SEARCH_METRICS
+                            - SHARDING_METRICS
                         type: string
                     maxItems: 30
                     minItems: 1
@@ -29588,6 +29786,78 @@ components:
                     items:
                         $ref: '#/components/schemas/MongoDBAccessLogs'
                     readOnly: true
+                    type: array
+            type: object
+        MongosTopologyCreateRequest:
+            description: Dedicated mongos topology to attach to a sharded cluster.
+            properties:
+                clusterName:
+                    description: Human-readable label that identifies the sharded cluster this topology belongs to.
+                    type: string
+                instanceSize:
+                    description: Instance size of the dedicated mongos hosts (for example, `M30`).
+                    type: string
+                regionPlacements:
+                    description: Per-region placement of the dedicated mongos hosts.
+                    items:
+                        $ref: '#/components/schemas/MongosTopologyResourceRegionConfig'
+                    type: array
+            type: object
+        MongosTopologyResourceRegionConfig:
+            description: Dedicated mongos placement in one region.
+            properties:
+                nodeCount:
+                    description: Number of dedicated mongos to run in this region.
+                    format: int32
+                    type: integer
+                providerName:
+                    description: Cloud provider on which the dedicated mongos run.
+                    enum:
+                        - AWS
+                        - AZURE
+                        - GCP
+                    type: string
+                regionName:
+                    description: Region in which the dedicated mongos run.
+                    type: string
+            type: object
+        MongosTopologyResourceResponse:
+            description: Configuration of the dedicated mongos routers for a sharded cluster, identified by the name of its associated cluster.
+            properties:
+                clusterName:
+                    description: Human-readable label that identifies the sharded cluster this topology belongs to.
+                    type: string
+                instanceSize:
+                    description: Instance size of the dedicated mongos hosts (for example, `M30`).
+                    type: string
+                regionPlacements:
+                    description: Per-region placement of the dedicated mongos hosts.
+                    items:
+                        $ref: '#/components/schemas/MongosTopologyResourceRegionConfig'
+                    type: array
+                status:
+                    description: Lifecycle status of the dedicated mongos topology resource.
+                    enum:
+                        - PENDING_CLUSTER_CREATION
+                        - CREATING
+                        - UPDATING
+                        - ACTIVE
+                    readOnly: true
+                    type: string
+            type: object
+        MongosTopologyUpdateRequest:
+            description: Dedicated mongos tier to apply to a sharded cluster.
+            properties:
+                clusterName:
+                    description: Human-readable label that identifies the sharded cluster this topology belongs to.
+                    type: string
+                instanceSize:
+                    description: Instance size of the dedicated mongos hosts (for example, `M30`).
+                    type: string
+                regionPlacements:
+                    description: Per-region placement of the dedicated mongos hosts.
+                    items:
+                        $ref: '#/components/schemas/MongosTopologyResourceRegionConfig'
                     type: array
             type: object
         MongotuneAlertConfigViewForNdsGroup:
@@ -30148,6 +30418,7 @@ components:
                 - SEARCH_HOST_PAUSE_ALL_INITIAL_SYNCS
                 - SEARCH_HOST_DISABLE_FTS
                 - SEARCH_HOST_PAUSE_INITIAL_SYNC_ON_INDEX_IDS
+                - SEARCH_AUTOSCALING_ADMIN_OVERRIDES_UPDATED
                 - CLUSTER_BLOCK_WRITE
                 - CLUSTER_UNBLOCK_WRITE
                 - KMIP_KEY_ROTATION_SCHEDULED
@@ -30178,6 +30449,8 @@ components:
                 - DISK_WARMING_PROCESS_NODE_UNHIDDEN_BY_ADMIN
                 - DISK_WARMING_PROCESS_INSTANCE_CANCELLED_BY_ADMIN
                 - DISK_WARMING_PROCESS_DISK_TAG_READY_BY_ADMIN
+                - NODE_FROZEN_BY_ADMIN
+                - NODE_UNFROZEN_BY_ADMIN
                 - CLUSTER_CREATED_VIA_ANIS
                 - MAINTENANCE_WAVE_ASSIGNMENT_ADDED
                 - MAINTENANCE_WAVE_ASSIGNMENT_MODIFIED
@@ -31238,6 +31511,31 @@ components:
                 - metricName
             type: object
         NormalizedSystemCpuUserRawMetricThresholdView:
+            properties:
+                metricName:
+                    description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured `metricThreshold.threshold`.
+                    type: string
+                mode:
+                    description: MongoDB Cloud computes the current metric value as an average.
+                    enum:
+                        - AVERAGE
+                    type: string
+                operator:
+                    description: Comparison operator to apply when checking the current metric value.
+                    enum:
+                        - LESS_THAN
+                        - GREATER_THAN
+                    type: string
+                threshold:
+                    description: Value of metric that, when exceeded, triggers an alert.
+                    format: double
+                    type: number
+                units:
+                    $ref: '#/components/schemas/RawMetricUnits'
+            required:
+                - metricName
+            type: object
+        NormalizedSystemCpuUserSearchPrimaryContributorRawMetricThresholdView:
             properties:
                 metricName:
                     description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured `metricThreshold.threshold`.
@@ -32332,6 +32630,35 @@ components:
                     $ref: '#/components/schemas/RawMetricUnits'
             required:
                 - metricName
+            type: object
+        OperationsContactNotification:
+            description: Explicit recurrence override for project operations contact alerts. This setting does not enable notification delivery. Delivery requires opting in through project settings. Contact addresses are resolved when a notification is sent and are not returned here.
+            properties:
+                delayMin:
+                    description: Number of minutes that MongoDB Cloud waits after detecting an alert condition before it sends out the first notification.
+                    format: int32
+                    type: integer
+                intervalMin:
+                    description: |-
+                        Number of minutes to wait between successive notifications. MongoDB Cloud sends notifications until someone acknowledges the unacknowledged alert.
+
+                        PagerDuty, VictorOps, and OpsGenie notifications don't return this element. Configure and manage the notification interval within each of those services.
+                    format: int32
+                    minimum: 5
+                    type: integer
+                notifierId:
+                    description: The `notifierId` is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.
+                    example: 32b6e34b3d91647abb20e7b8
+                    pattern: ^([a-f0-9]{24})$
+                    type: string
+                typeName:
+                    description: Human-readable label that displays the alert notification type.
+                    enum:
+                        - OPERATIONS_CONTACT
+                    type: string
+            required:
+                - typeName
+            title: Operations Contact Notification
             type: object
         OperationsQueriesKilledRawMetricThresholdView:
             properties:
@@ -33846,14 +34173,14 @@ components:
                     description: 'Flag that indicates whether to require users to set up Multi-Factor Authentication (MFA) before accessing the specified organization. To learn more, see: https://www.mongodb.com/docs/atlas/security-multi-factor-authentication/.'
                     type: boolean
                 operationsContact:
-                    description: String that specifies a distribution list email address for the specified organization to receive proactive notifications about its infrastructure. The operations contact is used for notifications only and is not authorized to make decisions or approvals. Passing an explicit null clears the existing operations contact (if any). An empty string is invalid and is rejected with a validation error.
+                    description: String that specifies a distribution list email address for the specified organization to receive proactive notifications about its infrastructure. The operations contact is used for notifications only and is not authorized to make decisions or approvals. Passing an explicit null clears the existing operations contact (if any). An empty string is invalid and is rejected with a validation error. Addresses are trimmed and converted to lowercase before validation; each normalized address must contain at most 254 characters.
                     nullable: true
                     type: string
                 restrictEmployeeAccess:
                     description: 'Flag that indicates whether to block MongoDB Support from accessing Atlas infrastructure and cluster logs for any deployment in the specified organization without explicit permission. Once this setting is turned on, you can grant MongoDB Support a 24-hour bypass access to the Atlas deployment to resolve support issues. To learn more, see: https://www.mongodb.com/docs/atlas/security-restrict-support-access/.'
                     type: boolean
                 securityContact:
-                    description: String that specifies a single email address for the specified organization to receive security-related notifications. Specifying a security contact does not grant them authorization or access to Atlas for security decisions or approvals. An empty string is valid and clears the existing security contact (if any).
+                    description: String that specifies a single email address for the specified organization to receive security-related notifications. Specifying a security contact does not grant them authorization or access to Atlas for security decisions or approvals. An empty string is valid and clears the existing security contact (if any). Addresses are trimmed and converted to lowercase before validation; each normalized address must contain at most 254 characters.
                     type: string
                 streamsCrossGroupEnabled:
                     description: Flag that indicates whether a group's Atlas Stream Processing workspaces in this organization can create connections to other group's clusters in the same organization.
@@ -34618,6 +34945,32 @@ components:
                     description: List of returned documents that MongoDB Cloud provides when completing this request.
                     items:
                         $ref: '#/components/schemas/SkuResponse'
+                    readOnly: true
+                    type: array
+                totalCount:
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
+                    format: int32
+                    minimum: 0
+                    readOnly: true
+                    type: integer
+            required:
+                - results
+            type: object
+        PaginatedApiSkuServiceView:
+            properties:
+                links:
+                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                    externalDocs:
+                        description: Web Linking Specification (RFC 5988)
+                        url: https://datatracker.ietf.org/doc/html/rfc5988
+                    items:
+                        $ref: '#/components/schemas/Link'
+                    readOnly: true
+                    type: array
+                results:
+                    description: List of returned documents that MongoDB Cloud provides when completing this request.
+                    items:
+                        $ref: '#/components/schemas/SkuServiceResponse'
                     readOnly: true
                     type: array
                 totalCount:
@@ -35650,6 +36003,32 @@ components:
             required:
                 - results
             type: object
+        PaginatedMongosTopologyResourceResponse:
+            properties:
+                links:
+                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                    externalDocs:
+                        description: Web Linking Specification (RFC 5988)
+                        url: https://datatracker.ietf.org/doc/html/rfc5988
+                    items:
+                        $ref: '#/components/schemas/Link'
+                    readOnly: true
+                    type: array
+                results:
+                    description: List of returned documents that MongoDB Cloud provides when completing this request.
+                    items:
+                        $ref: '#/components/schemas/MongosTopologyResourceResponse'
+                    readOnly: true
+                    type: array
+                totalCount:
+                    description: Total number of documents available. When `includeCount` is set to `false`, MongoDB Cloud may omit this value or return it when the count is available without additional calculation. The total number is an estimate and may not be exact.
+                    format: int32
+                    minimum: 0
+                    readOnly: true
+                    type: integer
+            required:
+                - results
+            type: object
         PaginatedNetworkAccessView:
             properties:
                 links:
@@ -36565,6 +36944,12 @@ components:
         PerformanceAdvisorResponse:
             description: Response that contains Performance Advisor suggested indexes and query shapes.
             properties:
+                message:
+                    description: Explanation of Performance Advisor availability limitations on the current tier.
+                    readOnly: true
+                    type: string
+                scale:
+                    $ref: '#/components/schemas/ApiClusterScaleView'
                 shapes:
                     description: List of query predicates, sorts, and projections that the Performance Advisor suggests.
                     items:
@@ -37634,8 +38019,14 @@ components:
             type: object
         QueryStatsSummaryListResponse:
             properties:
+                message:
+                    description: Explanation of query shape insights availability limitations on the current tier.
+                    readOnly: true
+                    type: string
                 queryStatsCollection:
                     $ref: '#/components/schemas/QueryStatsCollectionResponse'
+                scale:
+                    $ref: '#/components/schemas/ApiClusterScaleView'
                 summaries:
                     description: List of query shape statistic summaries from Query Shape Insights.
                     items:
@@ -38827,6 +39218,23 @@ components:
                 - resourceType
             title: Resource Events
             type: object
+        ResourcePolicyReference:
+            description: Atlas Resource Policy that caused the request to be denied.
+            properties:
+                id:
+                    description: Unique 24-hexadecimal character string that identifies the Atlas Resource Policy.
+                    example: 32b6e34b3d91647abb20e7b8
+                    pattern: ^([a-f0-9]{24})$
+                    readOnly: true
+                    type: string
+                name:
+                    description: Human-readable label that identifies the Atlas Resource Policy.
+                    readOnly: true
+                    type: string
+            required:
+                - id
+                - name
+            type: object
         ResourceTag:
             description: 'Key-value pair that tags and categorizes a MongoDB Cloud organization, project, or cluster. For example, `environment : production`.'
             properties:
@@ -38927,7 +39335,6 @@ components:
                         type: string
                     useLegacyPathStructure:
                         description: 'When true, uses the legacy daily-folder path structure compatible with Push-Based Log Export: `{prefix}/{cluster}/{hostname}/{logType}/{YYYY-MM-DD}/{timestamp}-{logType}.log`. When false (default), uses the flat timestamped structure: `{prefix}/{cluster}/{hostname}/{logType}/{timestamp}-{logType}.log`.'
-                        nullable: true
                         type: boolean
                   type: object
             description: Request schema for creating or updating an S3 log export integration.
@@ -38968,7 +39375,6 @@ components:
                         type: string
                     useLegacyPathStructure:
                         description: 'When true, uses the legacy daily-folder path structure compatible with Push-Based Log Export: `{prefix}/{cluster}/{hostname}/{logType}/{YYYY-MM-DD}/{timestamp}-{logType}.log`. When false (default), uses the flat timestamped structure: `{prefix}/{cluster}/{hostname}/{logType}/{timestamp}-{logType}.log`.'
-                        nullable: true
                         type: boolean
                   type: object
             description: Details to integrate S3 log export with one Atlas project.
@@ -39144,12 +39550,18 @@ components:
         SchemaAdvisorResponse:
             description: Response that contains Performance Advisor schema suggestions.
             properties:
+                message:
+                    description: Explanation of Performance Advisor availability limitations on the current tier.
+                    readOnly: true
+                    type: string
                 recommendations:
                     description: List that contains the documents with information about the schema advice that Performance Advisor suggests.
                     items:
                         $ref: '#/components/schemas/SchemaAdvisorItemRecommendation'
                     readOnly: true
                     type: array
+                scale:
+                    $ref: '#/components/schemas/ApiClusterScaleView'
             type: object
         SchemaAdvisorTriggerDetails:
             properties:
@@ -39189,6 +39601,14 @@ components:
                     type: string
             required:
                 - type
+            type: object
+        SearchAutoMigration:
+            description: Configuration for automatically adding Dedicated Search Nodes on eligible Atlas Infinite clusters. This setting has no effect on Atlas Core clusters.
+            properties:
+                disabled:
+                    default: false
+                    description: Flag that disables future automatic Search Node provisioning. Defaults to false on creation. Omission on update preserves the stored choice. Disabling retains existing Search Nodes and allows in-flight migrations to continue. Enabling does not bypass resource policies; if indexes exceed the migration threshold, the next eligible evaluation may start provisioning.
+                    type: boolean
             type: object
         SearchDeploymentAuditTypeView:
             description: Unique identifier of event type.
@@ -39547,7 +39967,7 @@ components:
                     description: Label that identifies this index. Within each namespace, the names of all indexes must be unique.
                     type: string
                 queryable:
-                    description: Flag that indicates whether the index is queryable on all hosts.
+                    description: Flag that indicates whether the index is queryable on the nodes currently receiving query traffic.
                     type: boolean
                 status:
                     description: |-
@@ -42247,6 +42667,13 @@ components:
                     readOnly: true
                     type: string
             type: object
+        SkuServiceResponse:
+            properties:
+                name:
+                    description: Human-readable name of the SKU service as shown on invoices.
+                    readOnly: true
+                    type: string
+            type: object
         Slack:
             description: Details to integrate one Slack account with one MongoDB Cloud project.
             properties:
@@ -43123,6 +43550,7 @@ components:
                     AWSLambda: '#/components/schemas/StreamsAWSLambdaConnection'
                     AzureBlobStorage: '#/components/schemas/StreamsAzureBlobStorageConnection'
                     Cluster: '#/components/schemas/StreamsClusterConnection'
+                    DataCatalog: '#/components/schemas/StreamsDataCatalogConnection'
                     GCPPubSub: '#/components/schemas/StreamsGCPPubSubConnection'
                     Https: '#/components/schemas/StreamsHttpsConnection'
                     Kafka: '#/components/schemas/StreamsKafkaConnection'
@@ -43141,7 +43569,12 @@ components:
                 - $ref: '#/components/schemas/StreamsSchemaRegistryConnection'
                 - $ref: '#/components/schemas/StreamsAzureBlobStorageConnection'
                 - $ref: '#/components/schemas/StreamsGCPPubSubConnection'
+                - $ref: '#/components/schemas/StreamsDataCatalogConnection'
             properties:
+                errorMessage:
+                    description: Connection error message.
+                    readOnly: true
+                    type: string
                 id:
                     description: Unique identifier of the connection.
                     readOnly: true
@@ -43182,6 +43615,7 @@ components:
                         - AWSKinesisDataStreams
                         - SchemaRegistry
                         - GCPPubSub
+                        - DataCatalog
                     type: string
             readOnly: true
             type: object
@@ -43209,6 +43643,27 @@ components:
                     readOnly: true
                     type: array
             type: object
+        StreamsDataCatalogConnection:
+            allOf:
+                - $ref: '#/components/schemas/StreamsConnection'
+                - properties:
+                    catalogUrl:
+                        description: 'Base HTTPS URL of the catalog. Must be on the provider''s domain: `*.cloud.databricks.com` or `*.azuredatabricks.net` for Databricks Unity, and `*.snowflakecomputing.com` for Snowflake Horizon.'
+                        format: uri
+                        type: string
+                  type: object
+            description: The configuration for Iceberg Data Catalog connections.
+            discriminator:
+                mapping:
+                    DATABRICKS_UNITY: '#/components/schemas/StreamsDatabricksUnityCatalogConnection'
+                    SNOWFLAKE_HORIZON: '#/components/schemas/StreamsSnowflakeHorizonCatalogConnection'
+                propertyName: catalogProvider
+            oneOf:
+                - $ref: '#/components/schemas/StreamsDatabricksUnityCatalogConnection'
+                - $ref: '#/components/schemas/StreamsSnowflakeHorizonCatalogConnection'
+            required:
+                - catalogUrl
+            type: object
         StreamsDataProcessRegion:
             description: Information about the cloud provider region in which MongoDB Cloud processes the stream.
             properties:
@@ -43235,6 +43690,47 @@ components:
             required:
                 - cloudProvider
                 - region
+            type: object
+        StreamsDatabricksAuthentication:
+            description: Databricks service principal credentials used to obtain an OAuth token.
+            properties:
+                clientId:
+                    description: OAuth client ID of the Databricks service principal.
+                    type: string
+                clientSecret:
+                    description: OAuth client secret of the Databricks service principal. Never returned in responses; omit or leave blank on update to keep the stored secret.
+                    format: password
+                    type: string
+                    writeOnly: true
+            required:
+                - clientId
+                - clientSecret
+            type: object
+        StreamsDatabricksConnectionConfig:
+            description: Databricks settings for a connection.
+            properties:
+                authentication:
+                    $ref: '#/components/schemas/StreamsDatabricksAuthentication'
+            required:
+                - authentication
+            type: object
+        StreamsDatabricksUnityCatalogConnection:
+            allOf:
+                - $ref: '#/components/schemas/StreamsDataCatalogConnection'
+                - properties:
+                    catalogProvider:
+                        description: Catalog system the connection points at. Cannot be changed after creation.
+                        enum:
+                            - DATABRICKS_UNITY
+                        type: string
+                    databricks:
+                        $ref: '#/components/schemas/StreamsDatabricksConnectionConfig'
+                  type: object
+            description: The configuration for a Databricks Unity Catalog connection.
+            required:
+                - catalogProvider
+                - catalogUrl
+                - databricks
             type: object
         StreamsEventTypeViewForNdsGroup:
             description: Unique identifier of event type.
@@ -44221,6 +44717,55 @@ components:
                 - schemaRegistryAuthentication
                 - schemaRegistryUrls
             type: object
+        StreamsSnowflakeAuthentication:
+            description: Snowflake service user and key pair used to authenticate to Snowflake.
+            properties:
+                account:
+                    description: Snowflake account identifier.
+                    type: string
+                privateKey:
+                    description: Private key of the service user's key pair. Never returned in responses; omit or leave blank on update to keep the stored key.
+                    format: password
+                    type: string
+                    writeOnly: true
+                role:
+                    description: Snowflake role the service user assumes.
+                    type: string
+                user:
+                    description: Snowflake service user.
+                    type: string
+            required:
+                - account
+                - privateKey
+                - role
+                - user
+            type: object
+        StreamsSnowflakeConnectionConfig:
+            description: Snowflake settings for a connection.
+            properties:
+                authentication:
+                    $ref: '#/components/schemas/StreamsSnowflakeAuthentication'
+            required:
+                - authentication
+            type: object
+        StreamsSnowflakeHorizonCatalogConnection:
+            allOf:
+                - $ref: '#/components/schemas/StreamsDataCatalogConnection'
+                - properties:
+                    catalogProvider:
+                        description: Catalog system the connection points at. Cannot be changed after creation.
+                        enum:
+                            - SNOWFLAKE_HORIZON
+                        type: string
+                    snowflake:
+                        $ref: '#/components/schemas/StreamsSnowflakeConnectionConfig'
+                  type: object
+            description: The configuration for a Snowflake Horizon catalog connection.
+            required:
+                - catalogProvider
+                - catalogUrl
+                - snowflake
+            type: object
         StreamsStartProcessorFailover:
             description: Failover options for starting a stream processor.
             properties:
@@ -44367,18 +44912,18 @@ components:
                     $ref: '#/components/schemas/StreamConfig'
             type: object
         StreamsWorkspacePrivateEndpointRequest:
-            description: Customer VPC endpoint to register for inbound private connectivity to Atlas Stream Processing.
+            description: VPC endpoint to register for inbound private connectivity to Atlas Stream Processing.
             properties:
                 customerDnsName:
-                    description: DNS name of the customer's VPC endpoint.
+                    description: DNS name of your VPC endpoint.
                     example: vpce-0abc123def4567890-abc123.us-east-1.vpce.amazonaws.com
                     type: string
                 id:
-                    description: Unique identifier of the customer's VPC endpoint.
+                    description: Unique identifier of your VPC endpoint.
                     example: vpce-0abc123def4567890
                     type: string
                 region:
-                    description: Human-readable label identifying the region of the customer's VPC endpoint.
+                    description: Human-readable label identifying the region of your VPC endpoint.
                     example: US_EAST_1
                     type: string
             required:
@@ -44387,28 +44932,28 @@ components:
                 - region
             type: object
         StreamsWorkspacePrivateEndpointResponse:
-            description: Customer VPC endpoint registered for inbound private connectivity to Atlas Stream Processing.
+            description: VPC endpoint registered for inbound private connectivity to Atlas Stream Processing.
             properties:
                 customerDnsName:
-                    description: DNS name of the customer's VPC endpoint.
+                    description: DNS name of your VPC endpoint.
                     example: vpce-0abc123def4567890-abc123.us-east-1.vpce.amazonaws.com
                     type: string
                 endpointServiceName:
-                    description: Name of the Atlas endpoint service the customer's VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
+                    description: Name of the Atlas endpoint service your VPC endpoint connects to. Absent when no endpoint service is configured for the endpoint's region.
                     example: com.amazonaws.vpce.us-east-1.vpce-svc-0123456789abcdef0
                     readOnly: true
                     type: string
                 id:
-                    description: Unique identifier of the customer's VPC endpoint.
+                    description: Unique identifier of your VPC endpoint.
                     example: vpce-0abc123def4567890
                     type: string
                 provider:
-                    description: Cloud provider hosting the customer's VPC endpoint.
+                    description: Cloud provider hosting the VPC endpoint.
                     example: AWS
                     readOnly: true
                     type: string
                 region:
-                    description: Human-readable label identifying the region of the customer's VPC endpoint.
+                    description: Human-readable label identifying the region of your VPC endpoint.
                     example: US_EAST_1
                     type: string
                 status:
@@ -46115,29 +46660,6 @@ components:
                 skuServices:
                     description: The list of projects to be included in the Cost Explorer Query.
                     items:
-                        enum:
-                            - Atlas
-                            - Clusters
-                            - Storage
-                            - Serverless Instances
-                            - Backup
-                            - Data Transfer
-                            - BI Connector
-                            - Premium Features
-                            - Atlas Data Federation
-                            - Atlas Stream Processing
-                            - App Services
-                            - Charts
-                            - Cloud Manager
-                            - Cloud Manager Standard/Premium
-                            - Legacy Backup
-                            - AI Model APIs
-                            - Automated Embedding
-                            - Native Reranking
-                            - Agent Engine
-                            - Flex Consulting
-                            - Support
-                            - Credits
                         type: string
                     type: array
                     uniqueItems: true
@@ -47755,7 +48277,7 @@ info:
     termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
     title: MongoDB Atlas Administration API
     version: "2.0"
-    x-xgen-sha: 2a27ef5141b5040880842c6f9b489232776984b0
+    x-xgen-sha: 4ac90cbee72e06d01c4e6930dcf52b7fe368b215
 openapi: 3.0.1
 paths:
     /api/atlas/v2:
@@ -49183,7 +49705,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "429":
@@ -49240,7 +49762,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "429":
@@ -49702,7 +50224,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "429":
@@ -49746,7 +50268,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "429":
@@ -49842,7 +50364,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "429":
@@ -50848,7 +51370,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "429":
@@ -52551,7 +53073,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -55163,7 +55685,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -55417,7 +55939,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -57321,7 +57843,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "429":
@@ -58186,6 +58708,11 @@ paths:
                     content:
                         application/vnd.atlas.2024-05-30+json:
                             x-xgen-version: "2024-05-30"
+                        application/vnd.atlas.preview+json:
+                            x-xgen-preview:
+                                name: search-node-autoscaling
+                                public: "false"
+                            x-xgen-version: preview
                     description: No Content
                     headers:
                         RateLimit-Limit:
@@ -58197,7 +58724,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -58244,6 +58771,13 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/ApiSearchDeploymentResponseView'
                             x-xgen-version: "2025-03-12"
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSearchDeploymentPreviewResponseView'
+                            x-xgen-preview:
+                                name: search-node-autoscaling
+                                public: "false"
+                            x-xgen-version: preview
                     description: OK
                     headers:
                         RateLimit-Limit:
@@ -58296,6 +58830,13 @@ paths:
                     application/vnd.atlas.2024-05-30+json:
                         schema:
                             $ref: '#/components/schemas/ApiSearchDeploymentRequestView'
+                    application/vnd.atlas.preview+json:
+                        schema:
+                            $ref: '#/components/schemas/ApiSearchDeploymentRequestView'
+                        x-xgen-preview:
+                            name: search-node-autoscaling
+                            public: "false"
+                        x-xgen-version: preview
                 description: Updates the Search Nodes for the specified cluster.
                 required: true
             responses:
@@ -58310,6 +58851,13 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/ApiSearchDeploymentResponseView'
                             x-xgen-version: "2024-05-30"
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSearchDeploymentPreviewResponseView'
+                            x-xgen-preview:
+                                name: search-node-autoscaling
+                                public: "false"
+                            x-xgen-version: preview
                     description: OK
                     headers:
                         RateLimit-Limit:
@@ -58321,7 +58869,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -58359,6 +58907,13 @@ paths:
                     application/vnd.atlas.2024-05-30+json:
                         schema:
                             $ref: '#/components/schemas/ApiSearchDeploymentRequestView'
+                    application/vnd.atlas.preview+json:
+                        schema:
+                            $ref: '#/components/schemas/ApiSearchDeploymentRequestView'
+                        x-xgen-preview:
+                            name: search-node-autoscaling
+                            public: "false"
+                        x-xgen-version: preview
                 description: Creates Search Nodes for the specified cluster.
                 required: true
             responses:
@@ -58381,6 +58936,13 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/ApiSearchDeploymentResponseView'
                             x-xgen-version: "2024-05-30"
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/ApiSearchDeploymentPreviewResponseView'
+                            x-xgen-preview:
+                                name: search-node-autoscaling
+                                public: "false"
+                            x-xgen-version: preview
                     description: Created
                     headers:
                         RateLimit-Limit:
@@ -58392,7 +58954,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -58508,7 +59070,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -58799,7 +59361,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -58983,7 +59545,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -62524,7 +63086,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -62984,7 +63546,7 @@ paths:
                 "402":
                     $ref: '#/components/responses/paymentRequired'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -63138,7 +63700,7 @@ paths:
                 "402":
                     $ref: '#/components/responses/paymentRequired'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -63508,7 +64070,7 @@ paths:
                 "402":
                     $ref: '#/components/responses/paymentRequired'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -65193,7 +65755,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "429":
@@ -65292,7 +65854,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "429":
@@ -66315,6 +66877,265 @@ paths:
                 - Project Read Only
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Projects/operation/getGroupMongoDbVersions
             x-xgen-operation-id-override: getMongoDbVersions
+    /api/atlas/v2/groups/{groupId}/mongosTopologies:
+        get:
+            description: Returns the dedicated mongos topologies in the specified project, including topologies staged before their cluster exists.
+            operationId: listGroupMongosTopologies
+            parameters:
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/includeCount'
+                - $ref: '#/components/parameters/itemsPerPage'
+                - $ref: '#/components/parameters/pageNum'
+                - $ref: '#/components/parameters/pretty'
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/PaginatedMongosTopologyResourceResponse'
+                            x-xgen-preview:
+                                name: mongos-topologies
+                            x-xgen-version: preview
+                    description: OK
+                    headers:
+                        RateLimit-Limit:
+                            $ref: '#/components/headers/HeaderRateLimitLimit'
+                        RateLimit-Remaining:
+                            $ref: '#/components/headers/HeaderRateLimitRemaining'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "429":
+                    $ref: '#/components/responses/tooManyRequests'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return All Dedicated Mongos Topologies for One Project
+            tags:
+                - Clusters
+            x-rolesRequirements:
+                - Project Read Only
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/listGroupMongosTopologies
+        post:
+            description: Attaches a dedicated mongos topology to an existing sharded cluster, triggering the transition from colocated to dedicated mongos. When no cluster with the given name exists yet, the topology is staged and adopted when the cluster is created.
+            operationId: createGroupMongosTopology
+            parameters:
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/pretty'
+            requestBody:
+                content:
+                    application/vnd.atlas.preview+json:
+                        schema:
+                            $ref: '#/components/schemas/MongosTopologyCreateRequest'
+                        x-xgen-preview:
+                            name: mongos-topologies
+                        x-xgen-version: preview
+                description: Dedicated mongos topology to attach.
+                required: true
+            responses:
+                "202":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/MongosTopologyResourceResponse'
+                            x-xgen-preview:
+                                name: mongos-topologies
+                            x-xgen-version: preview
+                    description: Accepted
+                    headers:
+                        Location:
+                            description: URI of the dedicated mongos topology, which reports its latest status. Absent when the request sets `envelope=true`, which returns the URI in the envelope's `locations` parameter instead.
+                            schema:
+                                description: Relative URI of the dedicated mongos topology.
+                                format: uri
+                                type: string
+                            style: simple
+                        RateLimit-Limit:
+                            $ref: '#/components/headers/HeaderRateLimitLimit'
+                        RateLimit-Remaining:
+                            $ref: '#/components/headers/HeaderRateLimitRemaining'
+                "400":
+                    $ref: '#/components/responses/badRequest'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "409":
+                    $ref: '#/components/responses/conflict'
+                "429":
+                    $ref: '#/components/responses/tooManyRequests'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Add One Dedicated Mongos Topology to One Cluster
+            tags:
+                - Clusters
+            x-rolesRequirements:
+                - Project Owner
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createGroupMongosTopology
+            x-xgen-long-running-operation:
+                legacy: false
+    /api/atlas/v2/groups/{groupId}/mongosTopologies/{clusterName}:
+        delete:
+            description: Removes the dedicated mongos topology from the specified cluster, transitioning it back to colocated mongos. This does not delete the cluster.
+            operationId: deleteGroupMongosTopology
+            parameters:
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/pretty'
+                - description: Human-readable label that identifies the sharded cluster this topology belongs to.
+                  in: path
+                  name: clusterName
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            x-xgen-preview:
+                                name: mongos-topologies
+                            x-xgen-version: preview
+                    description: No Content
+                    headers:
+                        RateLimit-Limit:
+                            $ref: '#/components/headers/HeaderRateLimitLimit'
+                        RateLimit-Remaining:
+                            $ref: '#/components/headers/HeaderRateLimitRemaining'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "409":
+                    $ref: '#/components/responses/conflict'
+                "429":
+                    $ref: '#/components/responses/tooManyRequests'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Remove the Dedicated Mongos Topology from One Cluster
+            tags:
+                - Clusters
+            x-rolesRequirements:
+                - Project Owner
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/deleteGroupMongosTopology
+        get:
+            description: Returns the dedicated mongos topology for the specified cluster, or a topology staged before its cluster exists. Only a topology that is dedicated or transitioning to dedicated is returned; a cluster whose mongos are colocated or transitioning back to colocated has no topology resource.
+            operationId: getGroupMongosTopology
+            parameters:
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/pretty'
+                - description: Human-readable label that identifies the sharded cluster this topology belongs to.
+                  in: path
+                  name: clusterName
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/MongosTopologyResourceResponse'
+                            x-xgen-preview:
+                                name: mongos-topologies
+                            x-xgen-version: preview
+                    description: OK
+                    headers:
+                        RateLimit-Limit:
+                            $ref: '#/components/headers/HeaderRateLimitLimit'
+                        RateLimit-Remaining:
+                            $ref: '#/components/headers/HeaderRateLimitRemaining'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "429":
+                    $ref: '#/components/responses/tooManyRequests'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return One Dedicated Mongos Topology for One Cluster
+            tags:
+                - Clusters
+            x-rolesRequirements:
+                - Project Read Only
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getGroupMongosTopology
+        patch:
+            description: Updates the dedicated mongos tier (instance size or region placements) for the specified cluster. Either field may be omitted and keeps its current value.
+            operationId: updateGroupMongosTopology
+            parameters:
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/pretty'
+                - description: Human-readable label that identifies the sharded cluster this topology belongs to.
+                  in: path
+                  name: clusterName
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/vnd.atlas.preview+json:
+                        schema:
+                            $ref: '#/components/schemas/MongosTopologyUpdateRequest'
+                        x-xgen-preview:
+                            name: mongos-topologies
+                        x-xgen-version: preview
+                description: Dedicated mongos tier fields to update.
+                required: true
+            responses:
+                "202":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/MongosTopologyResourceResponse'
+                            x-xgen-preview:
+                                name: mongos-topologies
+                            x-xgen-version: preview
+                    description: Accepted
+                    headers:
+                        Location:
+                            description: URI of the dedicated mongos topology, which reports its latest status. Absent when the request sets `envelope=true`, which returns the URI in the envelope's `locations` parameter instead.
+                            schema:
+                                description: Relative URI of the dedicated mongos topology.
+                                format: uri
+                                type: string
+                            style: simple
+                        RateLimit-Limit:
+                            $ref: '#/components/headers/HeaderRateLimitLimit'
+                        RateLimit-Remaining:
+                            $ref: '#/components/headers/HeaderRateLimitRemaining'
+                "400":
+                    $ref: '#/components/responses/badRequest'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "409":
+                    $ref: '#/components/responses/conflict'
+                "429":
+                    $ref: '#/components/responses/tooManyRequests'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Update the Dedicated Mongos Topology for One Cluster
+            tags:
+                - Clusters
+            x-rolesRequirements:
+                - Project Owner
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/updateGroupMongosTopology
+            x-xgen-long-running-operation:
+                legacy: false
     /api/atlas/v2/groups/{groupId}/peers:
         get:
             description: Returns details about all network peering connections in the specified project. Network peering allows multiple cloud-hosted applications to securely connect to the same project.
@@ -66402,7 +67223,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -66448,7 +67269,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -66549,7 +67370,7 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
                 "409":
@@ -69938,9 +70759,11 @@ paths:
                 "401":
                     $ref: '#/components/responses/unauthorized'
                 "403":
-                    $ref: '#/components/responses/forbidden'
+                    $ref: '#/components/responses/forbiddenOrResourcePolicyViolation'
                 "404":
                     $ref: '#/components/responses/notFound'
+                "409":
+                    $ref: '#/components/responses/conflict'
                 "429":
                     $ref: '#/components/responses/tooManyRequests'
                 "500":
@@ -72400,7 +73223,7 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/listGroupStreamsWorkspacePrivateEndpoints
             x-xgen-operation-id-override: listWorkspacePrivateEndpoints
         post:
-            description: Registers one customer VPC endpoint for Atlas Stream Processing in the specified project.
+            description: Registers one VPC endpoint for Atlas Stream Processing in the specified project.
             operationId: createGroupStreamsWorkspacePrivateEndpoint
             parameters:
                 - $ref: '#/components/parameters/groupId'
@@ -72419,7 +73242,7 @@ paths:
                         x-xgen-preview:
                             public: "true"
                         x-xgen-version: preview
-                description: Customer VPC endpoint to register for Atlas Stream Processing.
+                description: VPC endpoint to register for Atlas Stream Processing.
                 required: true
             responses:
                 "202":
@@ -72475,7 +73298,7 @@ paths:
             parameters:
                 - $ref: '#/components/parameters/groupId'
                 - $ref: '#/components/parameters/envelope'
-                - description: Unique identifier of the customer's VPC endpoint.
+                - description: Unique identifier of your VPC endpoint.
                   in: path
                   name: endpointId
                   required: true
@@ -72525,7 +73348,7 @@ paths:
             parameters:
                 - $ref: '#/components/parameters/groupId'
                 - $ref: '#/components/parameters/envelope'
-                - description: Unique identifier of the customer's VPC endpoint.
+                - description: Unique identifier of your VPC endpoint.
                   in: path
                   name: endpointId
                   required: true
@@ -79262,6 +80085,44 @@ paths:
             tags:
                 - Rate Limiting
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limiting/operation/getRateLimit
+    /api/atlas/v2/skuServices:
+        get:
+            description: Returns all launched SKU services. SKU services are the customer-facing categories that SKUs are grouped under on MongoDB invoices.
+            operationId: listSkuServices
+            parameters:
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/includeCount'
+                - $ref: '#/components/parameters/itemsPerPage'
+                - $ref: '#/components/parameters/pageNum'
+                - $ref: '#/components/parameters/pretty'
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.2025-03-12+json:
+                            schema:
+                                $ref: '#/components/schemas/PaginatedApiSkuServiceView'
+                            x-xgen-version: "2025-03-12"
+                    description: OK
+                    headers:
+                        RateLimit-Limit:
+                            $ref: '#/components/headers/HeaderRateLimitLimit'
+                        RateLimit-Remaining:
+                            $ref: '#/components/headers/HeaderRateLimitRemaining'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "429":
+                    $ref: '#/components/responses/tooManyRequests'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return All Stock Keeping Unit Services
+            tags:
+                - Invoices
+            x-rolesRequirements:
+                - Organization Member
+                - Project Read Only
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Invoices/operation/listSkuServices
     /api/atlas/v2/skus:
         get:
             description: Returns all available SKUs (Stock Keeping Units) that can appear on MongoDB invoices. SKUs represent different products and services offered by MongoDB.

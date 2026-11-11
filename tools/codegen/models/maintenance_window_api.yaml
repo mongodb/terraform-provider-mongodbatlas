@@ -23,11 +23,22 @@ schema:
             - `5`: Thursday.
             - `6`: Friday.
             - `7`: Saturday.
-          computed_optional_required: required
+          computed_optional_required: optional
           tf_schema_name: day_of_week
           tf_model_name: DayOfWeek
           api_name: dayOfWeek
           req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - int64: {}
+          description: 'Maintenance wave that Atlas uses when scheduling maintenance for this project. This read-only value can differ from `waveAssignment` in two scenarios: (1) when the organization''s `effectiveWaveAssignmentMode` is `ENV_TAG_MAPPING`, the effective wave is derived from environment tags regardless of any explicit assignment; (2) when cross-organization maintenance sequencing is active and this project''s organization is a linked non-paying organization, the effective wave reflects the paying organization''s mode.'
+          computed_optional_required: computed
+          tf_schema_name: effective_wave_assignment
+          tf_model_name: EffectiveWaveAssignment
+          api_name: effectiveWaveAssignment
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
           present_in_any_response: true
@@ -127,6 +138,17 @@ schema:
           tf_model_name: TimeZoneId
           api_name: timeZoneId
           req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - int64: {}
+          description: Maintenance wave explicitly assigned to this project. Always returned in GET responses when a value has been set, regardless of the organization's `effectiveWaveAssignmentMode`. When the mode is `ENV_TAG_MAPPING`, this stored assignment is preserved but not used for scheduling — the effective wave is derived from environment tags instead. Not editable when the mode is `ENV_TAG_MAPPING`. Switching back to `MANUAL` restores this value as the effective wave. Must be between 1 and 3, inclusive. Pass `null` to clear an explicit assignment.
+          computed_optional_required: optional
+          tf_schema_name: wave_assignment
+          tf_model_name: WaveAssignment
+          api_name: waveAssignment
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
           present_in_any_response: true
