@@ -466,7 +466,7 @@ resources:
           computability:
             optional: true
             computed: true
-        backup_enabled: # optional but when not configured, Atlas returns a default value depending on the database edition.
+        backup_enabled:
           computability:
             optional: true
             computed: true
@@ -602,7 +602,7 @@ resources:
           computability:
             optional: true
             computed: true
-        search_auto_migration: # optional but when not configured, Atlas returns a default object with disabled set to false.
+        search_auto_migration:
           computability:
             optional: true
             computed: true
