@@ -148,7 +148,7 @@ schema:
           tf_schema_name: wave_assignment
           tf_model_name: WaveAssignment
           api_name: waveAssignment
-          req_body_usage: all_request_bodies
+          req_body_usage: send_null_as_null_on_update
           sensitive: false
           create_only: false
           present_in_any_response: true

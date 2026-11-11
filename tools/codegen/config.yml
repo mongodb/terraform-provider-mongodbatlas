@@ -466,6 +466,10 @@ resources:
           computability:
             optional: true
             computed: true
+        backup_enabled: # optional but when not configured, Atlas returns a default value depending on the database edition.
+          computability:
+            optional: true
+            computed: true
         bi_connector:
           computability:
             optional: true
@@ -598,6 +602,10 @@ resources:
           computability:
             optional: true
             computed: true
+        search_auto_migration: # optional but when not configured, Atlas returns a default object with disabled set to false.
+          computability:
+            optional: true
+            computed: true
         mongo_db_major_version:
           computability:
             optional: true
@@ -709,6 +717,8 @@ resources:
           computability:
             computed: true
         protected_hours: # PATCH keeps the existing protected hours when the field is omitted, so an explicit null is required to clear it when removed from the config.
+          request_body_usage: "send_null_as_null_on_update"
+        wave_assignment: # PATCH keeps the existing wave assignment when the field is omitted, so an explicit null is required to clear it when removed from the config.
           request_body_usage: "send_null_as_null_on_update"
 
   # Singleton resource in org.

@@ -108,7 +108,7 @@ schema:
             On Atlas Core clusters, dedicated clusters use [Cloud Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/) and Flex clusters use [Flex Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/). Default value is `false`. For clusters that use local [NVMe SSDs](https://www.mongodb.com/docs/atlas/manage-clusters/#nvme-storage) for storage, you can't disable backup, so you must set `backupEnabled` to `true`.
 
             On Atlas Infinite clusters, the `backupEnabled` flag controls Additional Backup Retention, not whether backups run. To retain snapshots beyond the 24-hour window, set `backupEnabled` to `true`. For Atlas Infinite clusters, continuous cloud backups are enabled by default, always run, and include a 24-hour window in which you can restore to any point in time. Atlas then applies your snapshot retention policies. To keep only the included window under an Atlas-managed retention policy that you can't edit, set `backupEnabled` to `false`. A cluster covered by a Data Protection policy has this flag set to `true` regardless of the requested value. Default value is `true`.
-          computed_optional_required: optional
+          computed_optional_required: computed_optional
           tf_schema_name: backup_enabled
           tf_model_name: BackupEnabled
           api_name: backupEnabled
@@ -2862,7 +2862,7 @@ schema:
             schema: customtypes.NewObjectType[TFSearchAutoMigrationModel](ctx)
             packages:
                 - customtypes
-          computed_optional_required: optional
+          computed_optional_required: computed_optional
           tf_schema_name: search_auto_migration
           tf_model_name: SearchAutoMigration
           api_name: searchAutoMigration

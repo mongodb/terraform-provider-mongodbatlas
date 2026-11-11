@@ -82,7 +82,7 @@ type TFModel struct {
 	ProtectedHours          customtypes.ObjectValue[TFProtectedHoursModel] `tfsdk:"protected_hours" autogen:"sendnullasnullonupdate"`
 	StartASAP               types.Bool                                     `tfsdk:"start_asap"`
 	TimeZoneId              types.String                                   `tfsdk:"time_zone_id" autogen:"omitjson"`
-	WaveAssignment          types.Int64                                    `tfsdk:"wave_assignment"`
+	WaveAssignment          types.Int64                                    `tfsdk:"wave_assignment" autogen:"sendnullasnullonupdate"`
 }
 type TFProtectedHoursModel struct {
 	EndHourOfDay   types.Int64 `tfsdk:"end_hour_of_day"`
