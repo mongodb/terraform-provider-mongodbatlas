@@ -151,6 +151,15 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 				),
 			},
 			{
+				// The archive's backing federated instance is only listed with type=ONLINE_ARCHIVE.
+				// No exact count: the project is shared with parallel archive tests.
+				Config: configWithoutSchedule(clusterTerraformStr, clusterResourceName) + configFederatedArchiveInstances(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_federated_database_instances.archive", "results.0.name"),
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_federated_database_instances.archive", "results.0.hostnames.0"),
+				),
+			},
+			{
 				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 1, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
@@ -388,6 +397,15 @@ func configWithoutSchedule(clusterTerraformStr, clusterResourceName string) stri
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
 	`, clusterTerraformStr, clusterResourceName)
+}
+
+func configFederatedArchiveInstances() string {
+	return `
+	data "mongodbatlas_federated_database_instances" "archive" {
+		project_id = mongodbatlas_online_archive.users_archive.project_id
+		type       = "ONLINE_ARCHIVE"
+	}
+	`
 }
 
 func configWithDataProcessRegion(clusterTerraformStr, clusterResourceName, cloudProvider, region string) string {

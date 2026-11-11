@@ -21,26 +21,42 @@ func TestAccFederatedDatabaseInstanceDSPlural_basic(t *testing.T) {
 		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
 	)
 
+	config := func(typeAttr string) string {
+		return configDSPlural(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket, typeAttr)
+	}
+	userChecks := resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "results.#", "2"),
+		resource.TestCheckTypeSetElemNestedAttrs(resourceName, "results.*", map[string]string{"name": firstName}),
+		resource.TestCheckTypeSetElemNestedAttrs(resourceName, "results.*", map[string]string{"name": secondName}),
+		resource.TestCheckResourceAttr(resourceName, "results.0.private_endpoint_hostnames.#", "0"),
+	)
+
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t); acc.PreCheckS3Bucket(t) },
-		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckS3Bucket(t) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configDSPlural(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
-					resource.TestCheckResourceAttr(resourceName, "results.0.private_endpoint_hostnames.#", "0"),
-				),
+				Config: config(""),
+				Check:  userChecks,
+			},
+			{
+				Config: config("USER"),
+				Check:  userChecks,
+			},
+			{
+				// The project has no online archive, so USER instances must be filtered out.
+				Config: config("ONLINE_ARCHIVE"),
+				Check:  resource.TestCheckResourceAttr(resourceName, "results.#", "0"),
 			},
 		},
 	})
 }
 
-func configDSPlural(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket string) string {
-	stepConfig := configDSPluralFirstStep(firstName, secondName, testS3Bucket)
+func configDSPlural(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket, typeAttr string) string {
+	stepConfig := configDSPluralFirstStep(firstName, secondName, testS3Bucket, typeAttr)
 	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
 	return acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
@@ -117,7 +133,10 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 %[5]s
 	`, policyName, roleName, projectName, orgID, stepConfig, bucketResourceName)
 }
-func configDSPluralFirstStep(firstName, secondName, testS3Bucket string) string {
+func configDSPluralFirstStep(firstName, secondName, testS3Bucket, typeAttr string) string {
+	if typeAttr != "" {
+		typeAttr = fmt.Sprintf("type = %q", typeAttr)
+	}
 	return fmt.Sprintf(`
 resource "mongodbatlas_federated_database_instance" "test" {
    project_id         = mongodbatlas_project.test.id
@@ -233,7 +252,10 @@ resource "mongodbatlas_federated_database_instance" "test2" {
  }
 
 data "mongodbatlas_federated_database_instances" "test" {
-	project_id           = mongodbatlas_federated_database_instance.test.project_id
+	project_id = mongodbatlas_federated_database_instance.test.project_id
+	%[4]s
+	# test2 must exist before the read so results.# is deterministic
+	depends_on = [mongodbatlas_federated_database_instance.test2]
 }
-	`, firstName, secondName, testS3Bucket)
+	`, firstName, secondName, testS3Bucket, typeAttr)
 }
