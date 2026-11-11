@@ -816,7 +816,7 @@ replication_specs = [
 
 * `disk_iops` - (Optional) Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. You can set this attribute if you selected AWS, GCP, or Azure as your cloud service provider.
 
-  In multi-cloud clusters, AWS and GCP regions can use different `disk_iops` values. The value must be consistent across all regions and node types that use the same cloud provider.
+  In multi-cloud clusters, AWS and GCP regions can use different `disk_iops` values. Within each shard (`replication_specs` entry), the value must be consistent across all regions and node types that use the same cloud provider.
 
   For AWS, valid configurations are:
   * For Gen2 instance sizes (`M30_GEN_2` or greater) with `ebs_volume_type` set to `STANDARD`: configurable between 3000 and 80000 IOPS.
