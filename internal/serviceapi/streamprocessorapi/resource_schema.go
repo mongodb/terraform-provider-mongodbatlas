@@ -19,7 +19,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"effective_tier": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.",
+				MarkdownDescription: "Tier the stream processor is currently running on. The server sets this value from `tier` on create and on every start or restart, may move it within [`minTier`, `maxTier`] while autoscaling is enabled, and restores it to `tier` when autoscaling is disabled. Patching `tier` does not change it directly; the new tier takes effect at the next start or restart.",
 			},
 			"eligible_for_failover": schema.BoolAttribute{
 				Computed:            true,
@@ -36,7 +36,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"name": schema.StringAttribute{
-				Optional:            true,
+				Required:            true,
 				MarkdownDescription: "Human-readable name of the stream processor.",
 			},
 			"options": schema.SingleNestedAttribute{
@@ -72,12 +72,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 							"max_tier": schema.StringAttribute{
+								Computed:            true,
 								Optional:            true,
 								MarkdownDescription: "Tier ceiling for autoscaling (scale-up limit).\n\n- **Omitted:**\n  - On `CREATE`: falls back to the workspace max tier (there is no current bound to preserve).\n  - On `MODIFY` or `:startWith`: the current bound is preserved.\n- **`null`** on `CREATE`, `MODIFY`, or `:startWith`: resets the bound to the workspace max tier.\n- **A tier value** on `CREATE`, `MODIFY`, or `:startWith`: sets the bound to that tier.",
 							},
 							"min_tier": schema.StringAttribute{
+								Computed:            true,
 								Optional:            true,
-								MarkdownDescription: "Tier floor for autoscaling (scale-down limit).\n\n- **Omitted:**\n  - On `CREATE`: falls back to the workspace default tier (there is no current bound to preserve).\n  - On `MODIFY` or `:startWith`: the current bound is preserved.\n- **`null`** on `CREATE`, `MODIFY`, or `:startWith`: resets the bound to the workspace default tier.\n- **A tier value** on `CREATE`, `MODIFY`, or `:startWith`: sets the bound to that tier.",
+								MarkdownDescription: "Tier floor for autoscaling (scale-down limit).\n\n- **Omitted:**\n  - On `CREATE`: defaults to the lower of the processor `tier` and the workspace default tier (there is no current bound to preserve).\n  - On `MODIFY` or `:startWith`: the current bound is preserved.\n- **`null`** on `CREATE`, `MODIFY`, or `:startWith`: resets the bound to the lower of the processor `tier` and the workspace default tier.\n- **A tier value** on `CREATE`, `MODIFY`, or `:startWith`: sets the bound to that tier.",
 							},
 						},
 					},
@@ -107,7 +109,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"pipeline": schema.ListAttribute{
-				Optional:            true,
+				Required:            true,
 				MarkdownDescription: "Stream aggregation pipeline you want to apply to your streaming data.",
 				CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 				ElementType:         jsontypes.NormalizedType{},
@@ -130,7 +132,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"tier": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.",
+				MarkdownDescription: "Baseline processing tier requested by the user.",
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed:            true,

@@ -51,7 +51,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							},
 							"test_bucket": schema.StringAttribute{
 								Optional:            true,
-								MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.",
+								MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.",
 							},
 						},
 					},
@@ -120,7 +120,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"test_bucket": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.",
+						MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.",
 					},
 				},
 			},
@@ -164,6 +164,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Optional for type: Kafka. Comma separated list of server addresses.",
 			},
+			"catalog_provider": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Optional for type: DataCatalog. Catalog system the connection points at. Cannot be changed after creation.",
+			},
 			"cluster_project_id": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Optional for type: Cluster. Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.",
@@ -177,6 +181,29 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Optional for type: Kafka. Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters.",
 				CustomType:          customtypes.NewMapType[types.String](ctx),
 				ElementType:         types.StringType,
+			},
+			"databricks": schema.SingleNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "Optional for type: DataCatalog. Databricks settings for a connection.",
+				CustomType:          customtypes.NewObjectType[TFDatabricksModel](ctx),
+				Attributes: map[string]schema.Attribute{
+					"authentication": schema.SingleNestedAttribute{
+						Required:            true,
+						MarkdownDescription: "Databricks service principal credentials used to obtain an OAuth token.",
+						CustomType:          customtypes.NewObjectType[TFDatabricksAuthenticationModel](ctx),
+						Attributes: map[string]schema.Attribute{
+							"client_id": schema.StringAttribute{
+								Required:            true,
+								MarkdownDescription: "OAuth client ID of the Databricks service principal.",
+							},
+							"client_secret": schema.StringAttribute{
+								Required:            true,
+								MarkdownDescription: "OAuth client secret of the Databricks service principal. Never returned in responses; omit or leave blank on update to keep the stored secret.",
+								Sensitive:           true,
+							},
+						},
+					},
+				},
 			},
 			"db_role_to_execute": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -192,6 +219,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						MarkdownDescription: "Type of the DB role. Can be either Built In or Custom.",
 					},
 				},
+			},
+			"error_message": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Connection error message.",
 			},
 			"gcp": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -387,6 +418,37 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+			"snowflake": schema.SingleNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "Optional for type: DataCatalog. Snowflake settings for a connection.",
+				CustomType:          customtypes.NewObjectType[TFSnowflakeModel](ctx),
+				Attributes: map[string]schema.Attribute{
+					"authentication": schema.SingleNestedAttribute{
+						Required:            true,
+						MarkdownDescription: "Snowflake service user and key pair used to authenticate to Snowflake.",
+						CustomType:          customtypes.NewObjectType[TFSnowflakeAuthenticationModel](ctx),
+						Attributes: map[string]schema.Attribute{
+							"account": schema.StringAttribute{
+								Required:            true,
+								MarkdownDescription: "Snowflake account identifier.",
+							},
+							"private_key": schema.StringAttribute{
+								Required:            true,
+								MarkdownDescription: "Private key of the service user's key pair. Never returned in responses; omit or leave blank on update to keep the stored key.",
+								Sensitive:           true,
+							},
+							"role": schema.StringAttribute{
+								Required:            true,
+								MarkdownDescription: "Snowflake role the service user assumes.",
+							},
+							"user": schema.StringAttribute{
+								Required:            true,
+								MarkdownDescription: "Snowflake service user.",
+							},
+						},
+					},
+				},
+			},
 			"state": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Connection state.",
@@ -413,6 +475,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							},
 							"Cluster": {
 								Allowed: []string{"cluster_name", "cluster_project_id", "db_role_to_execute"},
+							},
+							"DataCatalog": {
+								Allowed:  []string{"catalog_provider", "catalog_url", "databricks", "snowflake"},
+								Required: []string{"catalog_url"},
 							},
 							"GCPPubSub": {
 								Allowed: []string{"gcp", "public_private_networking"},
@@ -460,10 +526,13 @@ type TFModel struct {
 	Aws                          customtypes.ObjectValue[TFAwsModel]                          `tfsdk:"aws"`
 	Azure                        customtypes.ObjectValue[TFAzureModel]                        `tfsdk:"azure"`
 	BootstrapServers             types.String                                                 `tfsdk:"bootstrap_servers"`
+	CatalogProvider              types.String                                                 `tfsdk:"catalog_provider"`
 	ClusterProjectId             types.String                                                 `tfsdk:"cluster_project_id" apiname:"clusterGroupId"`
 	ClusterName                  types.String                                                 `tfsdk:"cluster_name"`
 	Config                       customtypes.MapValue[types.String]                           `tfsdk:"config"`
+	Databricks                   customtypes.ObjectValue[TFDatabricksModel]                   `tfsdk:"databricks"`
 	DbRoleToExecute              customtypes.ObjectValue[TFDbRoleToExecuteModel]              `tfsdk:"db_role_to_execute"`
+	ErrorMessage                 types.String                                                 `tfsdk:"error_message" autogen:"omitjson"`
 	Gcp                          customtypes.ObjectValue[TFGcpModel]                          `tfsdk:"gcp"`
 	ProjectId                    types.String                                                 `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	Headers                      customtypes.MapValue[types.String]                           `tfsdk:"headers"`
@@ -476,6 +545,7 @@ type TFModel struct {
 	SchemaRegistryAuthentication customtypes.ObjectValue[TFSchemaRegistryAuthenticationModel] `tfsdk:"schema_registry_authentication"`
 	SchemaRegistryUrls           customtypes.ListValue[types.String]                          `tfsdk:"schema_registry_urls"`
 	Security                     customtypes.ObjectValue[TFSecurityModel]                     `tfsdk:"security"`
+	Snowflake                    customtypes.ObjectValue[TFSnowflakeModel]                    `tfsdk:"snowflake"`
 	State                        types.String                                                 `tfsdk:"state" autogen:"omitjson"`
 	WorkspaceName                types.String                                                 `tfsdk:"workspace_name" apiname:"tenantName" autogen:"omitjson"`
 	Type                         types.String                                                 `tfsdk:"type"`
@@ -520,6 +590,13 @@ type TFAzureModel struct {
 type TFAzureLinksModel struct {
 	Href types.String `tfsdk:"href" autogen:"omitjson"`
 	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
+}
+type TFDatabricksModel struct {
+	Authentication customtypes.ObjectValue[TFDatabricksAuthenticationModel] `tfsdk:"authentication"`
+}
+type TFDatabricksAuthenticationModel struct {
+	ClientId     types.String `tfsdk:"client_id"`
+	ClientSecret types.String `tfsdk:"client_secret" autogen:"sensitive"`
 }
 type TFDbRoleToExecuteModel struct {
 	Role types.String `tfsdk:"role"`
@@ -567,4 +644,13 @@ type TFSchemaRegistryAuthenticationModel struct {
 type TFSecurityModel struct {
 	BrokerPublicCertificate types.String `tfsdk:"broker_public_certificate"`
 	Protocol                types.String `tfsdk:"protocol"`
+}
+type TFSnowflakeModel struct {
+	Authentication customtypes.ObjectValue[TFSnowflakeAuthenticationModel] `tfsdk:"authentication"`
+}
+type TFSnowflakeAuthenticationModel struct {
+	Account    types.String `tfsdk:"account"`
+	PrivateKey types.String `tfsdk:"private_key" autogen:"sensitive"`
+	Role       types.String `tfsdk:"role"`
+	User       types.String `tfsdk:"user"`
 }

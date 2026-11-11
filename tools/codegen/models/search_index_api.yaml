@@ -907,7 +907,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - bool: {}
-          description: Flag that indicates whether the index is queryable on all hosts.
+          description: Flag that indicates whether the index is queryable on the nodes currently receiving query traffic.
           computed_optional_required: computed
           tf_schema_name: queryable
           tf_model_name: Queryable

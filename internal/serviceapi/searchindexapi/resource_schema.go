@@ -335,7 +335,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"queryable": schema.BoolAttribute{
 				Computed:            true,
-				MarkdownDescription: "Flag that indicates whether the index is queryable on all hosts.",
+				MarkdownDescription: "Flag that indicates whether the index is queryable on the nodes currently receiving query traffic.",
 			},
 			"status": schema.StringAttribute{
 				Computed:            true,
