@@ -1,5 +1,5 @@
 schema:
-    description: Registers one customer VPC endpoint for Atlas Stream Processing in the specified project.
+    description: Registers one VPC endpoint for Atlas Stream Processing in the specified project.
     attributes:
         - string: {}
           description: DNS name of your VPC endpoint.
@@ -284,7 +284,7 @@ data_sources:
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false
-              description: List of returned documents that MongoDB provides when completing this request.
+              description: List of returned documents that MongoDB Cloud provides when completing this request.
               custom_type:
                 name: Results
                 model: customtypes.NestedListValue[TFResultsModel]

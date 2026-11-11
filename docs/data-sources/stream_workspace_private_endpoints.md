@@ -49,7 +49,7 @@ output "endpoint_ids" {
 
 ### Read-Only
 
-- `results` (Attributes List) List of returned documents that MongoDB provides when completing this request. (see [below for nested schema](#nestedatt--results))
+- `results` (Attributes List) List of returned documents that MongoDB Cloud provides when completing this request. (see [below for nested schema](#nestedatt--results))
 
 <a id="nestedatt--results"></a>
 ### Nested Schema for `results`

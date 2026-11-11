@@ -20,7 +20,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"results": dsschema.ListNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "List of returned documents that MongoDB provides when completing this request.",
+				MarkdownDescription: "List of returned documents that MongoDB Cloud provides when completing this request.",
 				CustomType:          customtypes.NewNestedListType[TFPluralDSResultsModel](ctx),
 				NestedObject: dsschema.NestedAttributeObject{
 					Attributes: map[string]dsschema.Attribute{
