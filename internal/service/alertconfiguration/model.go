@@ -3,7 +3,7 @@ package alertconfiguration
 import (
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312027/admin"
+	"go.mongodb.org/atlas-sdk/v20250312028/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
