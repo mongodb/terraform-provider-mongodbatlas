@@ -143,6 +143,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	SetProjectBool(projectPlan.IsDataExplorerGenAIFeaturesEnabled, &projectSettings.IsDataExplorerGenAIFeaturesEnabled)
 	SetProjectBool(projectPlan.IsDataExplorerGenAISampleDocumentPassingEnabled, &projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled)
 	SetProjectBool(projectPlan.IsClusterAiAssistantEnabled, &projectSettings.IsClusterAiAssistantEnabled)
+	SetProjectBool(projectPlan.IsAtlasHomePageAiAssistantEnabled, &projectSettings.IsAtlasHomePageAiAssistantEnabled)
 	SetProjectBool(projectPlan.IsNativeRerankingEnabled, &projectSettings.IsNativeRerankingEnabled)
 
 	if _, _, err = connV2.ProjectsAPI.UpdateGroupSettings(ctx, project.GetId(), projectSettings).Execute(); err != nil {
@@ -487,6 +488,7 @@ func updateProjectSettings(ctx context.Context, projectsAPI admin.ProjectsAPI, p
 	hasChanged = UpdateProjectBool(plan.IsDataExplorerGenAIFeaturesEnabled, state.IsDataExplorerGenAIFeaturesEnabled, &settings.IsDataExplorerGenAIFeaturesEnabled) || hasChanged
 	hasChanged = UpdateProjectBool(plan.IsDataExplorerGenAISampleDocumentPassingEnabled, state.IsDataExplorerGenAISampleDocumentPassingEnabled, &settings.IsDataExplorerGenAISampleDocumentPassingEnabled) || hasChanged
 	hasChanged = UpdateProjectBool(plan.IsClusterAiAssistantEnabled, state.IsClusterAiAssistantEnabled, &settings.IsClusterAiAssistantEnabled) || hasChanged
+	hasChanged = UpdateProjectBool(plan.IsAtlasHomePageAiAssistantEnabled, state.IsAtlasHomePageAiAssistantEnabled, &settings.IsAtlasHomePageAiAssistantEnabled) || hasChanged
 	hasChanged = UpdateProjectBool(plan.IsNativeRerankingEnabled, state.IsNativeRerankingEnabled, &settings.IsNativeRerankingEnabled) || hasChanged
 
 	if hasChanged {

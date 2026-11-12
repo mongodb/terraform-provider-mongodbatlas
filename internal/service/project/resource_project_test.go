@@ -540,6 +540,7 @@ func TestAccProject_basic(t *testing.T) {
 		"is_realtime_performance_panel_enabled",
 		"is_schema_advisor_enabled",
 		"is_cluster_ai_assistant_enabled",
+		"is_atlas_home_page_ai_assistant_enabled",
 		"is_data_explorer_gen_ai_features_enabled",
 		"is_data_explorer_gen_ai_sample_document_passing_enabled",
 		"is_native_reranking_enabled",
@@ -785,6 +786,7 @@ func configProjectWithSettings(projectName, orgID, projectOwnerID string, value 
 			is_realtime_performance_panel_enabled = %[4]t
 			is_schema_advisor_enabled = %[4]t
 			is_cluster_ai_assistant_enabled = %[4]t
+			is_atlas_home_page_ai_assistant_enabled = %[4]t
 			is_data_explorer_gen_ai_features_enabled = %[4]t
 			is_data_explorer_gen_ai_sample_document_passing_enabled = %[4]t
 			is_native_reranking_enabled = %[4]t
@@ -806,6 +808,7 @@ func projectSettingsChecks(orgID, projectOwnerID, projectName string, value bool
 		"is_realtime_performance_panel_enabled",
 		"is_schema_advisor_enabled",
 		"is_cluster_ai_assistant_enabled",
+		"is_atlas_home_page_ai_assistant_enabled",
 		"is_data_explorer_gen_ai_features_enabled",
 		"is_data_explorer_gen_ai_sample_document_passing_enabled",
 		"is_native_reranking_enabled",

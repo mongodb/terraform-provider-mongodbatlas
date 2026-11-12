@@ -133,6 +133,7 @@ type TFProjectDSModel struct {
 	IsDataExplorerGenAIFeaturesEnabled              types.Bool             `tfsdk:"is_data_explorer_gen_ai_features_enabled"`
 	IsDataExplorerGenAISampleDocumentPassingEnabled types.Bool             `tfsdk:"is_data_explorer_gen_ai_sample_document_passing_enabled"`
 	IsClusterAiAssistantEnabled                     types.Bool             `tfsdk:"is_cluster_ai_assistant_enabled"`
+	IsAtlasHomePageAiAssistantEnabled               types.Bool             `tfsdk:"is_atlas_home_page_ai_assistant_enabled"`
 	IsNativeRerankingEnabled                        types.Bool             `tfsdk:"is_native_reranking_enabled"`
 }
 
@@ -188,6 +189,7 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		IsRealtimePerformancePanelEnabled:               types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled),
 		IsSchemaAdvisorEnabled:                          types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
 		IsClusterAiAssistantEnabled:                     types.BoolPointerValue(projectSettings.IsClusterAiAssistantEnabled),
+		IsAtlasHomePageAiAssistantEnabled:               types.BoolPointerValue(projectSettings.IsAtlasHomePageAiAssistantEnabled),
 		IsDataExplorerGenAIFeaturesEnabled:              types.BoolPointerValue(projectSettings.IsDataExplorerGenAIFeaturesEnabled),
 		IsDataExplorerGenAISampleDocumentPassingEnabled: types.BoolPointerValue(projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled),
 		IsNativeRerankingEnabled:                        types.BoolPointerValue(projectSettings.IsNativeRerankingEnabled),
@@ -321,6 +323,7 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		projectPlan.IsRealtimePerformancePanelEnabled = types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled)
 		projectPlan.IsSchemaAdvisorEnabled = types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled)
 		projectPlan.IsClusterAiAssistantEnabled = types.BoolPointerValue(projectSettings.IsClusterAiAssistantEnabled)
+		projectPlan.IsAtlasHomePageAiAssistantEnabled = types.BoolPointerValue(projectSettings.IsAtlasHomePageAiAssistantEnabled)
 		projectPlan.IsDataExplorerGenAIFeaturesEnabled = types.BoolPointerValue(projectSettings.IsDataExplorerGenAIFeaturesEnabled)
 		projectPlan.IsDataExplorerGenAISampleDocumentPassingEnabled = types.BoolPointerValue(projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled)
 		projectPlan.IsNativeRerankingEnabled = types.BoolPointerValue(projectSettings.IsNativeRerankingEnabled)
