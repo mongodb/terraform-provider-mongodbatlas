@@ -81,7 +81,7 @@ output "job_state" {
 - `point_in_time_utc_seconds` (Number) Point-in-time restore time in seconds since UNIX epoch.
 - `restored_documents` (Number) Number of documents restored so far across all supported collections.
 - `snapshot_id` (String) Unique 24-hexadecimal digit string that identifies the snapshot being restored.
-- `state` (String) Current state of the collection restore job.
+- `state` (String) Current state of the collection restore job. A `SUCCESSFUL` job can include individual `UNSUPPORTED` collection restores. Use the `mongodbatlas_cloud_backup_collection_restore_job_collections` data source to get per-collection detailed states.
 - `target_cluster_name` (String) Human-readable label that identifies the target cluster.
 - `target_project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `total_documents` (Number) Total number of documents across all supported collections in the restore job. This value may initially reflect an estimate based on collection metadata and can change as accurate document counts become available during the restore.
