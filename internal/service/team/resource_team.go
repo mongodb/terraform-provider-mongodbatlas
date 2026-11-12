@@ -178,7 +178,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		_, _, err := connV2.TeamsApi.DeleteTeam(ctx, orgID, id).Execute()
 		if err != nil {
 			if admin20241113.IsErrorCode(err, "CANNOT_DELETE_TEAM_ASSIGNED_TO_PROJECT") {
-				projectID, err := getProjectIDByTeamID(ctx, connV2, id)
+				projectID, err := GetProjectIDByTeamID(ctx, connV2.OrganizationsApi, connV2.TeamsApi, orgID, id)
 				if err != nil {
 					return retry.NonRetryableError(err)
 				}
@@ -231,14 +231,19 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func getProjectIDByTeamID(ctx context.Context, connV2 *admin20241113.APIClient, teamID string) (string, error) {
-	projects, _, err := connV2.ProjectsApi.ListProjects(ctx).Execute()
+// GetProjectIDByTeamID returns the ID of a project in the organization that the team is assigned to.
+// It reads every page of the organization's projects, so teams assigned to projects beyond the first page are found.
+func GetProjectIDByTeamID(ctx context.Context, orgsAPI admin20241113.OrganizationsApi, teamsAPI admin20241113.TeamsApi, orgID, teamID string) (string, error) {
+	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin20241113.Group], *http.Response, error) {
+		return orgsAPI.ListOrganizationProjectsWithParams(ctx, &admin20241113.ListOrganizationProjectsApiParams{OrgId: orgID, PageNum: &pageNum}).Execute()
+	})
 	if err != nil {
 		return "", fmt.Errorf("error getting projects information: %s", err)
 	}
 
-	for _, project := range projects.GetResults() {
-		teams, _, err := connV2.TeamsApi.ListProjectTeams(ctx, project.GetId()).Execute()
+	for _, project := range projects {
+		// A project has at most 100 teams, which fits in the default page size.
+		teams, _, err := teamsAPI.ListProjectTeams(ctx, project.GetId()).Execute()
 		if err != nil {
 			return "", fmt.Errorf("error getting teams from project information: %s", err)
 		}
@@ -250,7 +255,7 @@ func getProjectIDByTeamID(ctx context.Context, connV2 *admin20241113.APIClient, 
 		}
 	}
 
-	return "", nil
+	return "", fmt.Errorf("team (%s) is assigned to a project, but no project in organization (%s) has it assigned", teamID, orgID)
 }
 
 func listAllTeamUsers(ctx context.Context, connV2 *admin20241113.APIClient, orgID, teamID string) ([]admin20241113.CloudAppUser, error) {

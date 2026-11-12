@@ -16,7 +16,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Governs adaptive capacity behavior of Azure nodes in single-cloud Azure clusters or multi-cloud clusters that include Azure nodes. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; Azure clusters use adaptive capacity by default when the feature is enabled at the group level. Setting this field for single-cloud AWS or GCP clusters is a no-op.
+          description: Governs adaptive capacity behavior of nodes in clusters on providers that support fallback hardware, including those providers' nodes in multi-cloud clusters. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; clusters use adaptive capacity by default on a provider that supports it.
           computed_optional_required: optional
           tf_schema_name: adaptive_capacity
           tf_model_name: AdaptiveCapacity
@@ -64,7 +64,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.
+                      description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections.
                       computed_optional_required: computed_optional
                       tf_schema_name: minimum_enabled_tls_protocol
                       tf_model_name: MinimumEnabledTlsProtocol
@@ -101,9 +101,13 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-        - bool:
-            default: false
-          description: Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.
+        - bool: {}
+          description: |-
+            Flag that indicates whether Atlas backs up the cluster.
+
+            On Atlas Core clusters, dedicated clusters use [Cloud Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/) and Flex clusters use [Flex Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/). Default value is `false`. For clusters that use local [NVMe SSDs](https://www.mongodb.com/docs/atlas/manage-clusters/#nvme-storage) for storage, you can't disable backup, so you must set `backupEnabled` to `true`.
+
+            On Atlas Infinite clusters, the `backupEnabled` flag controls Additional Backup Retention, not whether backups run. To retain snapshots beyond the 24-hour window, set `backupEnabled` to `true`. For Atlas Infinite clusters, continuous cloud backups are enabled by default, always run, and include a 24-hour window in which you can restore to any point in time. Atlas then applies your snapshot retention policies. To keep only the included window under an Atlas-managed retention policy that you can't edit, set `backupEnabled` to `false`. A cluster covered by a Data Protection policy has this flag set to `true` regardless of the requested value. Default value is `true`.
           computed_optional_required: computed_optional
           tf_schema_name: backup_enabled
           tf_model_name: BackupEnabled
@@ -193,7 +197,8 @@ schema:
                 attributes:
                     - map:
                         element_type: 4
-                      description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names.
+                      description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+                      deprecation_message: This attribute has been deprecated
                       custom_type:
                         model: customtypes.MapValue[types.String]
                         schema: customtypes.NewMapType[types.String](ctx)
@@ -210,7 +215,8 @@ schema:
                       request_only_required_on_create: false
                     - map:
                         element_type: 4
-                      description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present.
+                      description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+                      deprecation_message: This attribute has been deprecated
                       custom_type:
                         model: customtypes.MapValue[types.String]
                         schema: customtypes.NewMapType[types.String](ctx)
@@ -335,7 +341,8 @@ schema:
                                   create_only: false
                                   present_in_any_response: true
                                   request_only_required_on_create: false
-                      description: List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes.
+                      description: List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+                      deprecation_message: This attribute has been deprecated
                       custom_type:
                         name: ConnectionStringsPrivateEndpoint
                         model: customtypes.NestedListValue[TFConnectionStringsPrivateEndpointModel]
@@ -411,6 +418,17 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+        - string: {}
+          description: 'Available in Public Preview: Optional field that indicates whether your cluster will be Atlas INFINITE or CORE. You can set it only when you create the cluster, or when you upgrade a Free or Flex cluster to a dedicated cluster. This value is immutable once the dedicated cluster exists; attempting to change it on an update request returns an error.'
+          computed_optional_required: optional
+          tf_schema_name: database_edition
+          tf_model_name: DatabaseEdition
+          api_name: databaseEdition
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string:
             default: FULLY_WARMED
           description: Disk warming mode selection.
@@ -419,6 +437,17 @@ schema:
           tf_model_name: DiskWarmingMode
           api_name: diskWarmingMode
           req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: 'Available in Public Preview: Field that represents whether your cluster is Atlas INFINITE or CORE. This is read-only and always returned in the response. It reflects the actual cluster state. This value matches `databaseEdition` if it was set, otherwise it reflects the default database edition assigned to the cluster.'
+          computed_optional_required: computed
+          tf_schema_name: effective_database_edition
+          tf_model_name: EffectiveDatabaseEdition
+          api_name: effectiveDatabaseEdition
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
           present_in_any_response: true
@@ -598,6 +627,36 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
+                                            - single_nested:
+                                                nested_object:
+                                                    attributes:
+                                                        - int64: {}
+                                                          description: 'Available in Public Preview: Maximum data size that MongoDB Cloud allows each shard of this cluster to reach, expressed in gigabytes. MongoDB Cloud rejects writes to a shard that reaches the limit that it enforces. In `replicationSpecs`, this field reports the limit that you configured, and MongoDB Cloud omits it when you never configured one. In `effectiveReplicationSpecs`, this field reports the limit that MongoDB Cloud enforces: usually the limit that you configured, otherwise the default limit that MongoDB Cloud assigns when it creates or updates the cluster. This value may differ from the limit that you configured due to system-managed changes. This limit applies to every shard of the cluster; set the same value on each region configuration''s `autoScaling`, as MongoDB Cloud rejects requests that specify differing values. You can set this only on Atlas INFINITE clusters: MongoDB Cloud rejects any request that names this field, including as `null`, for a cluster or node type that doesn''t support it. In a request that includes `replicationSpecs`, omitting `shardSizeLimitGB` or sending it as `null` clears the limit. Omitting `replicationSpecs` preserves it.'
+                                                          computed_optional_required: computed
+                                                          tf_schema_name: shard_size_limit_gb
+                                                          tf_model_name: ShardSizeLimitGB
+                                                          api_name: shardSizeLimitGB
+                                                          req_body_usage: omit_always
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                              description: 'Available in Public Preview: Settings that determine the per-shard data-size limit for this cluster. Applies only to Atlas INFINITE clusters. MongoDB Cloud accepts these settings only on `autoScaling` and rejects them on `analyticsAutoScaling`, including when you send them as `null`. In a request that includes `replicationSpecs`, omitting `storageConfig` or sending it as `null` or `{}` clears the limit. Omitting `replicationSpecs` preserves it.'
+                                              custom_type:
+                                                name: EffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingStorageConfig
+                                                model: customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingStorageConfigModel]
+                                                schema: customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingStorageConfigModel](ctx)
+                                                packages:
+                                                    - customtypes
+                                              computed_optional_required: computed
+                                              tf_schema_name: storage_config
+                                              tf_model_name: StorageConfig
+                                              api_name: storageConfig
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
                                   description: 'Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.'
                                   custom_type:
                                     name: EffectiveReplicationSpecsRegionConfigsAnalyticsAutoScaling
@@ -619,13 +678,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "GCP"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize"` to a Gen 2 instance size (`"M30_GEN_2"` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
@@ -648,7 +709,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput
@@ -808,6 +869,36 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
+                                            - single_nested:
+                                                nested_object:
+                                                    attributes:
+                                                        - int64: {}
+                                                          description: 'Available in Public Preview: Maximum data size that MongoDB Cloud allows each shard of this cluster to reach, expressed in gigabytes. MongoDB Cloud rejects writes to a shard that reaches the limit that it enforces. In `replicationSpecs`, this field reports the limit that you configured, and MongoDB Cloud omits it when you never configured one. In `effectiveReplicationSpecs`, this field reports the limit that MongoDB Cloud enforces: usually the limit that you configured, otherwise the default limit that MongoDB Cloud assigns when it creates or updates the cluster. This value may differ from the limit that you configured due to system-managed changes. This limit applies to every shard of the cluster; set the same value on each region configuration''s `autoScaling`, as MongoDB Cloud rejects requests that specify differing values. You can set this only on Atlas INFINITE clusters: MongoDB Cloud rejects any request that names this field, including as `null`, for a cluster or node type that doesn''t support it. In a request that includes `replicationSpecs`, omitting `shardSizeLimitGB` or sending it as `null` clears the limit. Omitting `replicationSpecs` preserves it.'
+                                                          computed_optional_required: computed
+                                                          tf_schema_name: shard_size_limit_gb
+                                                          tf_model_name: ShardSizeLimitGB
+                                                          api_name: shardSizeLimitGB
+                                                          req_body_usage: omit_always
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                              description: 'Available in Public Preview: Settings that determine the per-shard data-size limit for this cluster. Applies only to Atlas INFINITE clusters. MongoDB Cloud accepts these settings only on `autoScaling` and rejects them on `analyticsAutoScaling`, including when you send them as `null`. In a request that includes `replicationSpecs`, omitting `storageConfig` or sending it as `null` or `{}` clears the limit. Omitting `replicationSpecs` preserves it.'
+                                              custom_type:
+                                                name: EffectiveReplicationSpecsRegionConfigsAutoScalingStorageConfig
+                                                model: customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAutoScalingStorageConfigModel]
+                                                schema: customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsAutoScalingStorageConfigModel](ctx)
+                                                packages:
+                                                    - customtypes
+                                              computed_optional_required: computed
+                                              tf_schema_name: storage_config
+                                              tf_model_name: StorageConfig
+                                              api_name: storageConfig
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
                                   description: 'Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.'
                                   custom_type:
                                     name: EffectiveReplicationSpecsRegionConfigsAutoScaling
@@ -840,13 +931,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "GCP"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize"` to a Gen 2 instance size (`"M30_GEN_2"` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
@@ -869,7 +962,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput
@@ -934,13 +1027,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "GCP"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize"` to a Gen 2 instance size (`"M30_GEN_2"` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
@@ -963,7 +1058,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput
@@ -1028,13 +1123,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "GCP"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize"` to a Gen 2 instance size (`"M30_GEN_2"` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
@@ -1057,7 +1154,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput
@@ -1122,13 +1219,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "GCP"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize"` to a Gen 2 instance size (`"M30_GEN_2"` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
@@ -1151,7 +1250,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput
@@ -1252,13 +1351,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "GCP"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize"` to a Gen 2 instance size (`"M30_GEN_2"` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
@@ -1281,7 +1382,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput
@@ -1606,7 +1707,10 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - bool: {}
-          description: Flag that indicates whether the cluster uses continuous cloud backups.
+          description: |-
+            Flag that indicates whether the cluster uses continuous cloud backups.
+
+            For Atlas Infinite clusters, continuous cloud backups always run. Omit this field or set it to `true`. Setting it to `false` returns an invalid attribute error.
           computed_optional_required: computed_optional
           tf_schema_name: pit_enabled
           tf_model_name: PitEnabled
@@ -1827,6 +1931,36 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
+                                            - single_nested:
+                                                nested_object:
+                                                    attributes:
+                                                        - int64: {}
+                                                          description: 'Available in Public Preview: Maximum data size that MongoDB Cloud allows each shard of this cluster to reach, expressed in gigabytes. MongoDB Cloud rejects writes to a shard that reaches the limit that it enforces. In `replicationSpecs`, this field reports the limit that you configured, and MongoDB Cloud omits it when you never configured one. In `effectiveReplicationSpecs`, this field reports the limit that MongoDB Cloud enforces: usually the limit that you configured, otherwise the default limit that MongoDB Cloud assigns when it creates or updates the cluster. This value may differ from the limit that you configured due to system-managed changes. This limit applies to every shard of the cluster; set the same value on each region configuration''s `autoScaling`, as MongoDB Cloud rejects requests that specify differing values. You can set this only on Atlas INFINITE clusters: MongoDB Cloud rejects any request that names this field, including as `null`, for a cluster or node type that doesn''t support it. In a request that includes `replicationSpecs`, omitting `shardSizeLimitGB` or sending it as `null` clears the limit. Omitting `replicationSpecs` preserves it.'
+                                                          computed_optional_required: optional
+                                                          tf_schema_name: shard_size_limit_gb
+                                                          tf_model_name: ShardSizeLimitGB
+                                                          api_name: shardSizeLimitGB
+                                                          req_body_usage: all_request_bodies
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                              description: 'Available in Public Preview: Settings that determine the per-shard data-size limit for this cluster. Applies only to Atlas INFINITE clusters. MongoDB Cloud accepts these settings only on `autoScaling` and rejects them on `analyticsAutoScaling`, including when you send them as `null`. In a request that includes `replicationSpecs`, omitting `storageConfig` or sending it as `null` or `{}` clears the limit. Omitting `replicationSpecs` preserves it.'
+                                              custom_type:
+                                                name: ReplicationSpecsRegionConfigsAnalyticsAutoScalingStorageConfig
+                                                model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingStorageConfigModel]
+                                                schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingStorageConfigModel](ctx)
+                                                packages:
+                                                    - customtypes
+                                              computed_optional_required: optional
+                                              tf_schema_name: storage_config
+                                              tf_model_name: StorageConfig
+                                              api_name: storageConfig
+                                              req_body_usage: all_request_bodies
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
                                   description: 'Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.'
                                   custom_type:
                                     name: ReplicationSpecsRegionConfigsAnalyticsAutoScaling
@@ -1848,13 +1982,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "GCP"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize"` to a Gen 2 instance size (`"M30_GEN_2"` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_iops
@@ -1877,7 +2013,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput
@@ -2037,6 +2173,36 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
+                                            - single_nested:
+                                                nested_object:
+                                                    attributes:
+                                                        - int64: {}
+                                                          description: 'Available in Public Preview: Maximum data size that MongoDB Cloud allows each shard of this cluster to reach, expressed in gigabytes. MongoDB Cloud rejects writes to a shard that reaches the limit that it enforces. In `replicationSpecs`, this field reports the limit that you configured, and MongoDB Cloud omits it when you never configured one. In `effectiveReplicationSpecs`, this field reports the limit that MongoDB Cloud enforces: usually the limit that you configured, otherwise the default limit that MongoDB Cloud assigns when it creates or updates the cluster. This value may differ from the limit that you configured due to system-managed changes. This limit applies to every shard of the cluster; set the same value on each region configuration''s `autoScaling`, as MongoDB Cloud rejects requests that specify differing values. You can set this only on Atlas INFINITE clusters: MongoDB Cloud rejects any request that names this field, including as `null`, for a cluster or node type that doesn''t support it. In a request that includes `replicationSpecs`, omitting `shardSizeLimitGB` or sending it as `null` clears the limit. Omitting `replicationSpecs` preserves it.'
+                                                          computed_optional_required: optional
+                                                          tf_schema_name: shard_size_limit_gb
+                                                          tf_model_name: ShardSizeLimitGB
+                                                          api_name: shardSizeLimitGB
+                                                          req_body_usage: all_request_bodies
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                              description: 'Available in Public Preview: Settings that determine the per-shard data-size limit for this cluster. Applies only to Atlas INFINITE clusters. MongoDB Cloud accepts these settings only on `autoScaling` and rejects them on `analyticsAutoScaling`, including when you send them as `null`. In a request that includes `replicationSpecs`, omitting `storageConfig` or sending it as `null` or `{}` clears the limit. Omitting `replicationSpecs` preserves it.'
+                                              custom_type:
+                                                name: ReplicationSpecsRegionConfigsAutoScalingStorageConfig
+                                                model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingStorageConfigModel]
+                                                schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAutoScalingStorageConfigModel](ctx)
+                                                packages:
+                                                    - customtypes
+                                              computed_optional_required: optional
+                                              tf_schema_name: storage_config
+                                              tf_model_name: StorageConfig
+                                              api_name: storageConfig
+                                              req_body_usage: all_request_bodies
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
                                   description: 'Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.'
                                   custom_type:
                                     name: ReplicationSpecsRegionConfigsAutoScaling
@@ -2069,13 +2235,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "GCP"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize"` to a Gen 2 instance size (`"M30_GEN_2"` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
@@ -2098,7 +2266,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput
@@ -2163,13 +2331,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "GCP"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize"` to a Gen 2 instance size (`"M30_GEN_2"` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
@@ -2192,7 +2362,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput
@@ -2257,13 +2427,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "GCP"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize"` to a Gen 2 instance size (`"M30_GEN_2"` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
@@ -2286,7 +2458,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput
@@ -2351,13 +2523,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "GCP"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize"` to a Gen 2 instance size (`"M30_GEN_2"` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_iops
@@ -2380,7 +2554,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput
@@ -2481,13 +2655,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "GCP"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize"` to a Gen 2 instance size (`"M30_GEN_2"` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_iops
@@ -2510,7 +2686,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput
@@ -2659,6 +2835,37 @@ schema:
           tf_schema_name: root_cert_type
           tf_model_name: RootCertType
           api_name: rootCertType
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - bool:
+                        default: false
+                      description: Flag that disables future automatic Search Node provisioning. Defaults to false on creation. Omission on update preserves the stored choice. Disabling retains existing Search Nodes and allows in-flight migrations to continue. Enabling does not bypass resource policies; if indexes exceed the migration threshold, the next eligible evaluation may start provisioning.
+                      computed_optional_required: computed_optional
+                      tf_schema_name: disabled
+                      tf_model_name: Disabled
+                      api_name: disabled
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Configuration for automatically adding Dedicated Search Nodes on eligible Atlas Infinite clusters. This setting has no effect on Atlas Core clusters.
+          custom_type:
+            name: SearchAutoMigration
+            model: customtypes.ObjectValue[TFSearchAutoMigrationModel]
+            schema: customtypes.NewObjectType[TFSearchAutoMigrationModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: computed_optional
+          tf_schema_name: search_auto_migration
+          tf_model_name: SearchAutoMigration
+          api_name: searchAutoMigration
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false

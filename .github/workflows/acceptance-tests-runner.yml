@@ -302,7 +302,6 @@ jobs:
       mongodb_employee_access_grant: ${{ steps.filter.outputs.mongodb_employee_access_grant == 'true' || env.mustTrigger == 'true' }}
       network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
       project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
-      push_based_log_export: ${{ steps.filter.outputs.push_based_log_export == 'true' || env.mustTrigger == 'true' }}
       resource_policy: ${{ steps.filter.outputs.resource_policy == 'true' || env.mustTrigger == 'true' }}
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
@@ -356,7 +355,6 @@ jobs:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/clusterapi/*.go'
             - 'internal/serviceapi/clusteroldapi/*.go'
-            - 'internal/serviceapi/pushbasedlogexportapi/*.go'
             - 'internal/serviceapi/searchdeploymentapi/*.go'
             - 'internal/serviceapi/searchindexapi/*.go'
             - 'internal/serviceapi/streaminstanceapi/*.go'
@@ -443,8 +441,6 @@ jobs:
             - 'internal/service/projectipaccesslist/*.go'
             - 'internal/service/projectipaddresses/*.go'
             - 'internal/serviceapi/projectipaccesslist/*.go'
-          push_based_log_export:
-            - 'internal/service/pushbasedlogexport/*.go'
           resource_policy:
             - 'internal/service/resourcepolicy/*.go'
           search_deployment:
@@ -744,7 +740,6 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
             ./internal/serviceapi/clusterapi
-            ./internal/serviceapi/pushbasedlogexportapi
             ./internal/serviceapi/searchdeploymentapi
             ./internal/serviceapi/searchindexapi
             ./internal/serviceapi/streaminstanceapi
@@ -1243,24 +1238,6 @@ jobs:
             ./internal/service/projectinvitation
             ./internal/service/projectipaccesslist
             ./internal/service/projectipaddresses
-        run: make testacc
-
-  push_based_log_export:
-    needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.push_based_log_export == 'true' || inputs.test_group == 'push_based_log_export' }}
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - *checkout
-      - *setup-go
-      - *setup-tf
-      - name: Acceptance Tests
-        env:
-          AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: ./internal/service/pushbasedlogexport
         run: make testacc
 
   resource_policy:

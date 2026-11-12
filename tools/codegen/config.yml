@@ -466,6 +466,10 @@ resources:
           computability:
             optional: true
             computed: true
+        backup_enabled:
+          computability:
+            optional: true
+            computed: true
         bi_connector:
           computability:
             optional: true
@@ -598,6 +602,10 @@ resources:
           computability:
             optional: true
             computed: true
+        search_auto_migration:
+          computability:
+            optional: true
+            computed: true
         mongo_db_major_version:
           computability:
             optional: true
@@ -709,6 +717,8 @@ resources:
           computability:
             computed: true
         protected_hours: # PATCH keeps the existing protected hours when the field is omitted, so an explicit null is required to clear it when removed from the config.
+          request_body_usage: "send_null_as_null_on_update"
+        wave_assignment: # PATCH keeps the existing wave assignment when the field is omitted, so an explicit null is required to clear it when removed from the config.
           request_body_usage: "send_null_as_null_on_update"
 
   # Singleton resource in org.
@@ -828,35 +838,6 @@ resources:
       ignores: ["links"]
       aliases:
         groupId: id # path param name does not match the API response property
-
-  push_based_log_export_api:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-      method: GET
-    create:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-      method: POST
-      wait: &pble-create-wait
-        state_property: "state"
-        pending_states: ["INITIATING", "BUCKET_VERIFIED"]
-        target_states: ["ACTIVE"]
-        timeout_seconds: 900 # 15 minutes
-        min_timeout_seconds: 60
-        delay_seconds: 10
-    update:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-      method: PATCH
-      wait: *pble-create-wait
-    delete:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-      method: DELETE
-      wait:
-        <<: *pble-create-wait
-        pending_states: ["ACTIVE", "INITIATING", "BUCKET_VERIFIED"]
-        target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404
-    version_header: application/vnd.atlas.2023-01-01+json
-    schema:
-      ignores: ["links"]
 
   resource_policy_api:
     read:
