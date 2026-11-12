@@ -1259,7 +1259,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				CatalogProvider: new("DATABRICKS_UNITY"),
 				CatalogUrl:      new("https://dbc-123.cloud.databricks.com"),
 				Databricks: &admin.StreamsDatabricksConnectionConfig{
-					Authentication: admin.StreamsDatabricksAuthentication{
+					Authentication: admin.StreamsDatabricksAuthentication{ //nolint:gosec // Test data
 						ClientId:     "databricks-client-id",
 						ClientSecret: "databricks-secret",
 					},
@@ -1657,7 +1657,7 @@ func TestStreamConnectionKafkaAuthAWSTypedNull(t *testing.T) {
 func TestStreamConnectionUpdateReqWriteOnlySecrets(t *testing.T) {
 	const (
 		databricksClientID = "databricks-client-id"
-		databricksSecret   = "databricks-secret"
+		databricksSecret   = "databricks-secret" //nolint:gosec // Test data
 		snowflakeAccount   = "myorg-myaccount"
 		snowflakeUser      = "svc-user"
 		snowflakeRole      = "ADMIN"
