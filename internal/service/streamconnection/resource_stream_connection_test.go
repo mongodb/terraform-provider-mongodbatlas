@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"maps"
 	"os"
 	"regexp"
 	"strings"
@@ -2053,9 +2054,7 @@ func checkDataCatalogAttributes(resourceName, workspaceName, connectionName, cat
 		"catalog_provider": catalogProvider,
 		"catalog_url":      catalogURL,
 	}
-	for attr, value := range providerAuthChecks {
-		mapChecks[attr] = value
-	}
+	maps.Copy(mapChecks, providerAuthChecks)
 	extra := []resource.TestCheckFunc{checkStreamConnectionExists()}
 	return acc.CheckRSAndDS(resourceName, conversion.StringPtr(dataSourceName), nil, setChecks, mapChecks, extra...)
 }

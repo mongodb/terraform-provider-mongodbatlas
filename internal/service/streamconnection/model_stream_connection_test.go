@@ -557,7 +557,7 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 			},
 			providedProjID:           dummyProjectID,
 			providedInstanceName:     instanceName,
-			providedDatabricksConfig: ptrToObject(tfDatabricksObject(t, "databricks-client-id", "databricks-secret", 1)),
+			providedDatabricksConfig: new(tfDatabricksObject(t, "databricks-client-id", "databricks-secret", 1)),
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:                    types.StringValue(dummyProjectID),
 				WorkspaceName:                types.StringValue(instanceName),
@@ -597,7 +597,7 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 			},
 			providedProjID:          dummyProjectID,
 			providedInstanceName:    instanceName,
-			providedSnowflakeConfig: ptrToObject(tfSnowflakeObject(t, "myorg-myaccount", "svc-user", "ADMIN", "snowflake-private-key", 1)),
+			providedSnowflakeConfig: new(tfSnowflakeObject(t, "myorg-myaccount", "svc-user", "ADMIN", "snowflake-private-key", 1)),
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:                    types.StringValue(dummyProjectID),
 				WorkspaceName:                types.StringValue(instanceName),
@@ -621,10 +621,6 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 			},
 		},
 	}
-}
-
-func ptrToObject(o types.Object) *types.Object {
-	return &o
 }
 
 func TestStreamConnectionSDKToTFModel(t *testing.T) {
