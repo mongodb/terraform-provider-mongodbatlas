@@ -15,7 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/zclconf/go-cty/cty"
-	"go.mongodb.org/atlas-sdk/v20250312027/admin"
+	"go.mongodb.org/atlas-sdk/v20250312028/admin"
 )
 
 var _ datasource.DataSource = &alertConfigurationDS{}
@@ -361,7 +361,7 @@ func outputAlertConfigurationResourceImport(label string, alert *admin.GroupAler
 	return fmt.Sprintf("terraform import mongodbatlas_alert_configuration.%s %s-%s\n", label, *alert.GroupId, *alert.Id)
 }
 
-func convertMatcherToCtyValues(matcher admin.StreamsMatcher) map[string]cty.Value {
+func convertMatcherToCtyValues(matcher admin.StreamsPrivateLinkEndpointMatcher) map[string]cty.Value {
 	return map[string]cty.Value{
 		"field_name": cty.StringVal(matcher.FieldName),
 		"operator":   cty.StringVal(matcher.Operator),

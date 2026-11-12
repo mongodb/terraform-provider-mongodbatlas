@@ -1,7 +1,7 @@
 package thirdpartyintegration
 
 import (
-	"go.mongodb.org/atlas-sdk/v20250312027/admin"
+	"go.mongodb.org/atlas-sdk/v20250312028/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
