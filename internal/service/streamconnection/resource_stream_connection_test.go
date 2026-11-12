@@ -1904,10 +1904,13 @@ func streamConnectionsAttributeChecksMigration(resourceName string, pageNum, ite
 }
 
 func TestAccStreamRSStreamConnection_dataCatalogDatabricks(t *testing.T) {
+	// Atlas resolves the catalog URL's host via DNS as an SSRF check and fails closed, so the URL
+	// must point at a host that actually exists. A fabricated Databricks workspace host is rejected
+	// as an invalid catalogUrl; use a real Databricks host on the allowed domain instead.
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = acc.RandomName()
-		catalogURL              = "https://dbc-123e123e-a1b2.cloud.databricks.com"
+		catalogURL              = "https://accounts.cloud.databricks.com"
 		clientID                = "databricks-client-id"
 		clientSecret            = "databricks-client-secret"
 	)
