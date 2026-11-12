@@ -28,12 +28,17 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
+			"system_managed": dsschema.BoolAttribute{
+				Computed:            true,
+				MarkdownDescription: "Indicates whether the Service Account is system managed.",
+			},
 		},
 	}
 }
 
 type TFDSModel struct {
-	ClientId  types.String                       `tfsdk:"client_id" autogen:"omitjson"`
-	ProjectId types.String                       `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Roles     customtypes.SetValue[types.String] `tfsdk:"roles" autogen:"omitjson"`
+	ClientId      types.String                       `tfsdk:"client_id" autogen:"omitjson"`
+	ProjectId     types.String                       `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	Roles         customtypes.SetValue[types.String] `tfsdk:"roles" autogen:"omitjson"`
+	SystemManaged types.Bool                         `tfsdk:"system_managed" autogen:"omitjson"`
 }
