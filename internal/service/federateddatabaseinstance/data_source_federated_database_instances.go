@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -19,6 +20,11 @@ func PluralDataSource() *schema.Resource {
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+			"type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"USER", "ONLINE_ARCHIVE"}, false),
 			},
 
 			"results": {
@@ -92,7 +98,11 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d
 
 	projectID := d.Get("project_id").(string)
 
-	federatedDatabaseInstances, _, err := connV2.DataFederationAPI.ListDataFederation(ctx, projectID).Execute()
+	req := connV2.DataFederationAPI.ListDataFederation(ctx, projectID)
+	if v, ok := d.GetOk("type"); ok {
+		req = req.Type_(v.(string))
+	}
+	federatedDatabaseInstances, _, err := req.Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting MongoDB Atlas Federated Database Instances information: %s", err))
 	}
