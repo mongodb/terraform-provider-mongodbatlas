@@ -15,5 +15,9 @@ You must set the following variables depending on connection type:
 - `azure_service_principal_id`: UUID that identifies the Azure Service Principal used to access the Azure Blob Storage account.
 - `azure_storage_account_name`: Name of the Azure Storage account to use for the Azure Blob Storage connection.
 - `azure_region`: (optional) Azure region where the storage account is located.
+- `databricks_client_id`: (optional) OAuth client ID of the Databricks service principal used for the Iceberg Data Catalog connection.
+- `databricks_client_secret`: (optional, sensitive) OAuth client secret of the Databricks service principal used for the Iceberg Data Catalog connection. Passed via the write-only `client_secret_wo` attribute (requires Terraform 1.11+); it is never persisted to state. Bump `client_secret_wo_version` to rotate it.
+- `snowflake_user`: (optional) Snowflake service user used for the Iceberg Data Catalog connection.
+- `snowflake_private_key`: (optional, sensitive) Private key of the Snowflake service user's key pair used for the Iceberg Data Catalog connection. Passed via the write-only `private_key_wo` attribute (requires Terraform 1.11+); it is never persisted to state. Bump `private_key_wo_version` to rotate it.
 
 To learn more, see the [Stream Instance Connection Registry Documentation](https://www.mongodb.com/docs/atlas/atlas-sp/manage-processing-instance/#view-connections-in-the-connection-registry).
