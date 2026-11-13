@@ -324,7 +324,7 @@ resource "mongodbatlas_stream_connection" "example_data_catalog_databricks" {
   type            = "DataCatalog"
 
   catalog_provider = "DATABRICKS_UNITY"
-  catalog_url      = "https://dbc-123e123e-a1b2.cloud.databricks.com"
+  catalog_url      = "https://accounts.cloud.databricks.com"
   databricks = {
     authentication = {
       client_id                = var.databricks_client_id

@@ -81,10 +81,10 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
 * `schema_registry_authentication` - Authentication configuration for Schema Registry. See [Schema Registry Authentication](#schema-registry-authentication).
 
 If `type` is of value `DataCatalog` the following additional attributes are defined:
-* `catalog_provider` - Catalog system the connection points at. Can be `DATABRICKS_UNITY` or `SNOWFLAKE_HORIZON`. Cannot be changed after creation.
+* `catalog_provider` - Catalog system the connection points at. Values include `DATABRICKS_UNITY` or `SNOWFLAKE_HORIZON`. Cannot change after it's created.
 * `catalog_url` - Base HTTPS URL of the catalog on the provider's domain.
-* `databricks` - Databricks settings for the connection. Only set when `catalog_provider` is `DATABRICKS_UNITY`. See [Databricks](#databricks).
-* `snowflake` - Snowflake settings for the connection. Only set when `catalog_provider` is `SNOWFLAKE_HORIZON`. See [Snowflake](#snowflake).
+* `databricks` - Databricks settings for the connection. Set only when `catalog_provider` is `DATABRICKS_UNITY`. See [Databricks](#databricks).
+* `snowflake` - Snowflake settings for the connection. Set only when `catalog_provider` is `SNOWFLAKE_HORIZON`. See [Snowflake](#snowflake).
 
 ### Authentication
 
@@ -142,7 +142,7 @@ If `type` is of value `DataCatalog` the following additional attributes are defi
 
 ### Databricks Authentication
 * `client_id` - OAuth client ID of the Databricks service principal.
-* `client_secret_wo` - OAuth client secret of the Databricks service principal. Write-only on the resource; Atlas never returns it, so it is always `null` in the data source.
+* `client_secret_wo` - OAuth client secret of the Databricks service principal. Write-only on the resource. Atlas never returns it, so it is always `null` in the data source.
 
 ### Snowflake
 * `authentication` - Credentials of the Snowflake service user used to authenticate to the Snowflake Horizon catalog. See [Snowflake Authentication](#snowflake-authentication).
