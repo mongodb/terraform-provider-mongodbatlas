@@ -1956,6 +1956,7 @@ func TestAccStreamRSStreamConnection_dataCatalogSnowflake(t *testing.T) {
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = acc.RandomName()
 		catalogURL              = "https://myorg-myaccount.snowflakecomputing.com"
+		updatedCatalogURL       = "https://otherorg-otheraccount.snowflakecomputing.com"
 		account                 = "myorg-myaccount"
 		user                    = "svc-user"
 		role                    = "ADMIN"
@@ -1982,6 +1983,17 @@ func TestAccStreamRSStreamConnection_dataCatalogSnowflake(t *testing.T) {
 				// update an unrelated attribute with an unchanged version: the secret is not resent, so the stored key is kept
 				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, catalogURL, account, user, "UPDATED_ROLE", privateKey, 1),
 				Check: checkDataCatalogAttributes(resourceName, instanceName, connectionName, "SNOWFLAKE_HORIZON", catalogURL, map[string]string{
+					"snowflake.authentication.account": account,
+					"snowflake.authentication.user":    user,
+					"snowflake.authentication.role":    "UPDATED_ROLE",
+				}),
+			},
+			{
+				// change catalog_url with an unchanged version: the API rejects a blank key when the
+				// URL changes, because the stored one would be sent to the new host during token
+				// exchange, so the configured key is resent and the update is accepted
+				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, updatedCatalogURL, account, user, "UPDATED_ROLE", privateKey, 1),
+				Check: checkDataCatalogAttributes(resourceName, instanceName, connectionName, "SNOWFLAKE_HORIZON", updatedCatalogURL, map[string]string{
 					"snowflake.authentication.account": account,
 					"snowflake.authentication.user":    user,
 					"snowflake.authentication.role":    "UPDATED_ROLE",

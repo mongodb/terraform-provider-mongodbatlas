@@ -1658,6 +1658,10 @@ func TestStreamConnectionUpdateReqWriteOnlySecrets(t *testing.T) {
 		snowflakeUser      = "svc-user"
 		snowflakeRole      = "ADMIN"
 		snowflakeKey       = "snowflake-private-key"
+		databricksOldURL   = "https://first.cloud.databricks.com"
+		databricksNewURL   = "https://second.cloud.databricks.com"
+		snowflakeOldURL    = "https://myorg-myaccount.snowflakecomputing.com"
+		snowflakeNewURL    = "https://otherorg-otheraccount.snowflakecomputing.com"
 	)
 	databricksPlan := &streamconnection.TFStreamConnectionModel{Databricks: tfDatabricksObject(t, databricksClientID, databricksSecret, 2)}
 	snowflakePlan := &streamconnection.TFStreamConnectionModel{Snowflake: tfSnowflakeObject(t, snowflakeAccount, snowflakeUser, snowflakeRole, snowflakeKey, 2)}
@@ -1708,6 +1712,47 @@ func TestStreamConnectionUpdateReqWriteOnlySecrets(t *testing.T) {
 			name:        "Snowflake key is sent when state has no version yet (import)",
 			plan:        snowflakePlan,
 			state:       &streamconnection.TFStreamConnectionModel{},
+			wantSecret:  snowflakeKey,
+			description: "snowflake",
+		},
+		{
+			// The API rejects a blank secret when the catalog URL changes, because the stored one
+			// would otherwise be sent to the new host during token exchange.
+			name: "Databricks secret is sent when the catalog URL changed, even though the version did not",
+			plan: &streamconnection.TFStreamConnectionModel{
+				CatalogURL: types.StringValue(databricksNewURL),
+				Databricks: tfDatabricksObject(t, databricksClientID, databricksSecret, 2),
+			},
+			state: &streamconnection.TFStreamConnectionModel{
+				CatalogURL: types.StringValue(databricksOldURL),
+				Databricks: tfDatabricksStateObject(t, databricksClientID, 2),
+			},
+			wantSecret:  databricksSecret,
+			description: "databricks",
+		},
+		{
+			name: "Databricks secret is blank when neither the version nor the catalog URL changed",
+			plan: &streamconnection.TFStreamConnectionModel{
+				CatalogURL: types.StringValue(databricksOldURL),
+				Databricks: tfDatabricksObject(t, databricksClientID, databricksSecret, 2),
+			},
+			state: &streamconnection.TFStreamConnectionModel{
+				CatalogURL: types.StringValue(databricksOldURL),
+				Databricks: tfDatabricksStateObject(t, databricksClientID, 2),
+			},
+			wantSecret:  "",
+			description: "databricks",
+		},
+		{
+			name: "Snowflake key is sent when the catalog URL changed, even though the version did not",
+			plan: &streamconnection.TFStreamConnectionModel{
+				CatalogURL: types.StringValue(snowflakeNewURL),
+				Snowflake:  tfSnowflakeObject(t, snowflakeAccount, snowflakeUser, snowflakeRole, snowflakeKey, 2),
+			},
+			state: &streamconnection.TFStreamConnectionModel{
+				CatalogURL: types.StringValue(snowflakeOldURL),
+				Snowflake:  tfSnowflakeStateObject(t, snowflakeAccount, snowflakeUser, snowflakeRole, 2),
+			},
 			wantSecret:  snowflakeKey,
 			description: "snowflake",
 		},

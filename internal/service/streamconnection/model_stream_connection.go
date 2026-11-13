@@ -219,19 +219,23 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 }
 
 // NewStreamConnectionUpdateReq builds the update request. The state is compared against the
-// plan for the write-only Data Catalog secrets: they are only sent when their rotation version
-// changed since state, because the API keeps the stored secret when the field is blank. This
-// avoids overwriting a secret rotated out-of-band when only an unrelated attribute changes.
+// plan for the write-only Data Catalog secrets: they are sent only when their rotation version
+// changed since state, or when the catalog URL changed, because the API keeps the stored secret
+// when the field is blank. Sending on a version change alone avoids overwriting a secret rotated
+// out-of-band when only an unrelated attribute changes.
 func NewStreamConnectionUpdateReq(ctx context.Context, plan, state *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
 	streamConnection, diags := NewStreamConnectionReq(ctx, plan)
 	if diags.HasError() {
 		return nil, diags
 	}
 
-	if streamConnection.Databricks != nil && !databricksSecretRotated(ctx, state.Databricks, plan.Databricks) {
+	// A changed catalog URL forces the secret to be re-sent; see dataCatalogURLChanged.
+	catalogURLChanged := dataCatalogURLChanged(state, plan)
+
+	if streamConnection.Databricks != nil && !catalogURLChanged && !databricksSecretRotated(ctx, state.Databricks, plan.Databricks) {
 		streamConnection.Databricks.Authentication.ClientSecret = ""
 	}
-	if streamConnection.Snowflake != nil && !snowflakeSecretRotated(ctx, state.Snowflake, plan.Snowflake) {
+	if streamConnection.Snowflake != nil && !catalogURLChanged && !snowflakeSecretRotated(ctx, state.Snowflake, plan.Snowflake) {
 		streamConnection.Snowflake.Authentication.PrivateKey = ""
 	}
 
@@ -244,6 +248,15 @@ func NewStreamConnectionUpdateReq(ctx context.Context, plan, state *TFStreamConn
 	}
 	streamConnection.Headers = &headersMap
 	return streamConnection, nil
+}
+
+// dataCatalogURLChanged reports whether the update points the connection at a different catalog
+// URL. The API carries the stored secret over a blank one only while the URL is unchanged: the
+// secret is sent to the catalog URL during token exchange, so carrying it to a new host would let
+// a caller who cannot read the secret redirect it. When the URL changes the API rejects the blank
+// secret instead, so it has to be re-sent from the configuration.
+func dataCatalogURLChanged(state, plan *TFStreamConnectionModel) bool {
+	return !state.CatalogURL.Equal(plan.CatalogURL)
 }
 
 // databricksSecretRotated reports whether the Databricks client secret should be (re)sent on
