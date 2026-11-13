@@ -1266,6 +1266,58 @@ resources:
           results.config:
             description: *kafka_config_description
 
+  # Inbound private endpoint (customer VPC interface endpoint) registered for Atlas Stream
+  # Processing. Project-scoped: the path has no workspaceName, and the customer-supplied `id`
+  # (vpce-...) is also the path's endpointId. The API has no update verb: the registration is
+  # applied asynchronously by the hostname-sync planner (202 Accepted), surfaced through the
+  # read-only `status` attribute.
+  stream_workspace_private_endpoint:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streamsWorkspacePrivateEndpoints/{endpointId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/streamsWorkspacePrivateEndpoints
+      method: POST
+      wait:
+        state_property: "status"
+        pending_states: ["PENDING"]
+        target_states: ["OK"]
+        timeout_seconds: 600
+        min_timeout_seconds: 10
+        delay_seconds: 10
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/streamsWorkspacePrivateEndpoints/{endpointId}
+      method: DELETE
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      aliases:
+        groupId: projectId
+        # The API's `id` is the customer-supplied VPC endpoint id; the path param endpointId maps
+        # to the same attribute.
+        id: endpointId
+        # `provider` is a reserved root attribute name in Terraform.
+        provider: cloud_provider
+      overrides:
+        project_id:
+          description: *project_id_description
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/streamsWorkspacePrivateEndpoints/{endpointId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/streamsWorkspacePrivateEndpoints
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+          id: endpointId
+          provider: cloud_provider
+          results.id: endpointId
+          results.provider: cloud_provider
+        overrides:
+          project_id:
+            description: *project_id_description
+
   alert_configuration_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
