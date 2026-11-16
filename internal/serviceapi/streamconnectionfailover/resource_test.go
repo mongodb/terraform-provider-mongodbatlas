@@ -149,6 +149,16 @@ func TestAccStreamConnectionFailoverAWSMSKIAM(t *testing.T) {
 				),
 			},
 			{
+				// Unset authentication.aws by switching the connection to PLAIN. A PATCH that merges
+				// could otherwise retain the stale IAM block, which would then show as a non-empty plan.
+				Config: configFailoverPlainAuth(projectID, workspaceName, connectionName, "DUBLIN_IRL", bootstrapServersEnv, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(),
+					resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "PLAIN"),
+					resource.TestCheckNoResourceAttr(resourceName, "authentication.aws.role_arn"),
+				),
+			},
+			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -168,6 +178,25 @@ func TestAccStreamConnectionFailoverAWSMSKIAM(t *testing.T) {
 // connection that assumes roleARN. The role must already be registered through Atlas Cloud Provider
 // Access in the project.
 func configFailoverIAM(projectID, workspaceName, connectionName, region, bootstrapServers, roleARN string, includeFailoverConfig bool) string {
+	return configFailoverAuth(projectID, workspaceName, connectionName, region, bootstrapServers, includeFailoverConfig, fmt.Sprintf(`authentication = {
+				mechanism = "AWS_MSK_IAM"
+				aws = {
+					role_arn = %[1]q
+				}
+			}`, roleARN), "SASL_SSL")
+}
+
+// configFailoverPlainAuth reuses the same workspace and primary connection but drops the IAM block, so
+// the update step exercises unsetting authentication.aws.
+func configFailoverPlainAuth(projectID, workspaceName, connectionName, region, bootstrapServers string, includeFailoverConfig bool) string {
+	return configFailoverAuth(projectID, workspaceName, connectionName, region, bootstrapServers, includeFailoverConfig, `authentication = {
+				mechanism = "PLAIN"
+				username  = "fcuser"
+				password  = "fcpass"
+			}`, "SASL_PLAINTEXT")
+}
+
+func configFailoverAuth(projectID, workspaceName, connectionName, region, bootstrapServers string, includeFailoverConfig bool, authenticationConfig, protocol string) string {
 	failoverConfig := ""
 	if includeFailoverConfig {
 		failoverConfig = `config   = { "auto.offset.reset" = "earliest" }`
@@ -209,16 +238,11 @@ func configFailoverIAM(projectID, workspaceName, connectionName, region, bootstr
 			region            = %[4]q
 			type              = "Kafka"
 			bootstrap_servers = %[5]q
-			authentication = {
-				mechanism = "AWS_MSK_IAM"
-				aws = {
-					role_arn = %[6]q
-				}
-			}
+			%[6]s
 			%[7]s
-			security = { protocol = "SASL_SSL" }
+			security = { protocol = %[8]q }
 		}
-	`, projectID, workspaceName, connectionName, region, bootstrapServers, roleARN, failoverConfig)
+	`, projectID, workspaceName, connectionName, region, bootstrapServers, authenticationConfig, failoverConfig, protocol)
 }
 
 func configFailover(projectID, workspaceName, connectionName, region, bootstrap string, includeFailoverConfig bool) string {

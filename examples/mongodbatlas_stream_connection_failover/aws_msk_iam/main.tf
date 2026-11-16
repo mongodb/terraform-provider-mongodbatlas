@@ -1,3 +1,4 @@
+# Create a stream workspace with a failover region and an Amazon MSK connection that authenticates with `AWS_MSK_IAM` in both the default and failover regions.
 resource "mongodbatlas_stream_workspace" "example" {
   project_id     = var.project_id
   workspace_name = "workspace-with-failover-iam"
