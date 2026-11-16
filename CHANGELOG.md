@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_stream_workspace_private_endpoint` ([#4868](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4868))
+* **New Data Source:** `data-source/mongodbatlas_stream_workspace_private_endpoints` ([#4868](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4868))
+* **New Resource:** `resource/mongodbatlas_stream_workspace_private_endpoint` ([#4868](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4868))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_project: Adds `is_atlas_home_page_ai_assistant_enabled` attribute ([#4880](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4880))
