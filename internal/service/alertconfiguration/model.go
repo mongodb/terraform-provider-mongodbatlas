@@ -3,7 +3,7 @@ package alertconfiguration
 import (
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312027/admin"
+	"go.mongodb.org/atlas-sdk/v20250312028/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -74,10 +74,10 @@ func NewMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigMo
 	}
 }
 
-func NewMatcherList(list []TfMatcherModel) *[]admin.StreamsMatcher {
-	matchers := make([]admin.StreamsMatcher, len(list))
+func NewMatcherList(list []TfMatcherModel) *[]admin.StreamsPrivateLinkEndpointMatcher {
+	matchers := make([]admin.StreamsPrivateLinkEndpointMatcher, len(list))
 	for i, matcher := range list {
-		matchers[i] = admin.StreamsMatcher{
+		matchers[i] = admin.StreamsPrivateLinkEndpointMatcher{
 			FieldName: matcher.FieldName.ValueString(),
 			Operator:  matcher.Operator.ValueString(),
 			Value:     matcher.Value.ValueString(),
@@ -245,7 +245,7 @@ func NewTFThresholdConfigModel(t *admin.StreamProcessorMetricThreshold, currStat
 	return []TfThresholdConfigModel{newState}
 }
 
-func NewTFMatcherModelList(m []admin.StreamsMatcher, currStateSlice []TfMatcherModel) []TfMatcherModel {
+func NewTFMatcherModelList(m []admin.StreamsPrivateLinkEndpointMatcher, currStateSlice []TfMatcherModel) []TfMatcherModel {
 	matchers := make([]TfMatcherModel, len(m))
 	if len(m) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
 		for i, matcher := range m {

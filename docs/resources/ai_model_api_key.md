@@ -59,8 +59,8 @@ output "ai_model_api_keys_results" {
 
 ### Required
 
-- `cloud` (String) Cloud provider scope for this API key. Must be "ANY". Additional cloud values will be supported in future API versions.
-- `geography` (String) Geography scope for this API key. Must be "ANY". Additional geography values will be supported in future API versions.
+- `cloud` (String) Cloud provider scope for this API key. Use "ANY" for a cloud-agnostic scope. Additional cloud values will be supported in future API versions.
+- `geography` (String) Geography scope for this API key. Use "ANY" for a geography-agnostic scope. Additional geography values will be supported in future API versions.
 - `name` (String) A name for the new API key that will be created.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 

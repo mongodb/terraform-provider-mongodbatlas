@@ -8,6 +8,7 @@
     {
      "electableSpecs": {
       "diskIOPS": 2000,
+      "diskSizeGB": 40,
       "ebsVolumeType": "PROVISIONED",
       "instanceSize": "M30",
       "nodeCount": 3
@@ -24,6 +25,7 @@
     {
      "electableSpecs": {
       "diskIOPS": 1000,
+      "diskSizeGB": 40,
       "ebsVolumeType": "PROVISIONED",
       "instanceSize": "M30",
       "nodeCount": 3
