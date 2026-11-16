@@ -10,7 +10,13 @@ A failover connection shares its primary connection's `connection_name` and is c
 
 ## Example Usages
 
+### Kafka with PLAIN authentication
+
 {{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+### Kafka with AWS MSK IAM authentication
+
+{{ tffile (printf "examples/%s/aws_msk_iam/main.tf" .Name )}}
 
 {{ .SchemaMarkdown | trimspace }}
 

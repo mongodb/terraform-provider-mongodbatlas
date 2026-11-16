@@ -60,9 +60,10 @@ The following attributes depend on the value of `type`:
 
 Read-Only:
 
+- `aws` (Attributes) AWS configurations for AWS-based connection types. (see [below for nested schema](#nestedatt--authentication--aws))
 - `client_id` (String) OIDC client identifier for authentication to the Kafka cluster.
 - `client_secret` (String, Sensitive) OIDC client secret for authentication to the Kafka cluster.
-- `mechanism` (String) Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.
+- `mechanism` (String) Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, `OAUTHBEARER`, or `AWS_MSK_IAM`.
 - `method` (String) SASL OAUTHBEARER authentication method. Currently, only OIDC is supported.
 - `password` (String, Sensitive) Password of the account to connect to the Kafka cluster.
 - `sasl_oauthbearer_extensions` (String) SASL OAUTHBEARER extensions parameter for additional OAuth2 configuration.
@@ -72,6 +73,15 @@ Read-Only:
 - `ssl_key_password` (String, Sensitive) Password for the SSL key, if it is password protected.
 - `token_endpoint_url` (String) OIDC token endpoint URL for obtaining access tokens.
 - `username` (String) Username of the account to connect to the Kafka cluster.
+
+<a id="nestedatt--authentication--aws"></a>
+### Nested Schema for `authentication.aws`
+
+Read-Only:
+
+- `role_arn` (String) Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+- `test_bucket` (String) The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.
+
 
 
 <a id="nestedatt--db_role_to_execute"></a>
@@ -95,7 +105,7 @@ Read-Only:
 
 Read-Only:
 
-- `connection_id` (String) Reserved. Will be used by `PRIVATE_LINK` connection type.
+- `connection_id` (String) Reserved. Will be used by `PRIVATE_LINK` connection type. Setting this field with any other networking access type returns a validation error.
 - `name` (String) Reserved. Will be used by `PRIVATE_LINK` connection type.
 - `tgw_route_id` (String) Reserved. Will be used by `TRANSIT_GATEWAY` connection type.
 - `type` (String) Selected networking type. Either `PUBLIC`, `VPC`, `PRIVATE_LINK`, or `TRANSIT_GATEWAY`. Defaults to `PUBLIC`. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. `TRANSIT_GATEWAY` support is coming soon.

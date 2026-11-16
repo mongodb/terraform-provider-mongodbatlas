@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_stream_connection_failover: Adds support for IAM (`AWS_MSK_IAM`) authentication to Amazon MSK clusters via the new `authentication.aws` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_connection_failover: Adds `authentication.aws` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_connection_failovers: Adds `authentication.aws` attribute
+```

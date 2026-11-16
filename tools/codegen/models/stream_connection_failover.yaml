@@ -29,6 +29,47 @@ schema:
         - single_nested:
             nested_object:
                 attributes:
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+                                  computed_optional_required: optional
+                                  tf_schema_name: role_arn
+                                  tf_model_name: RoleArn
+                                  api_name: roleArn
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.
+                                  computed_optional_required: optional
+                                  tf_schema_name: test_bucket
+                                  tf_model_name: TestBucket
+                                  api_name: testBucket
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: AWS configurations for AWS-based connection types.
+                      custom_type:
+                        name: AuthenticationAws
+                        model: customtypes.ObjectValue[TFAuthenticationAwsModel]
+                        schema: customtypes.NewObjectType[TFAuthenticationAwsModel](ctx)
+                        packages:
+                            - customtypes
+                      computed_optional_required: optional
+                      tf_schema_name: aws
+                      tf_model_name: Aws
+                      api_name: aws
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - string: {}
                       description: OIDC client identifier for authentication to the Kafka cluster.
                       computed_optional_required: optional
@@ -52,7 +93,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.
+                      description: Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, `OAUTHBEARER`, or `AWS_MSK_IAM`.
                       computed_optional_required: optional
                       tf_schema_name: mechanism
                       tf_model_name: Mechanism
@@ -308,7 +349,7 @@ schema:
                         nested_object:
                             attributes:
                                 - string: {}
-                                  description: Reserved. Will be used by `PRIVATE_LINK` connection type.
+                                  description: Reserved. Will be used by `PRIVATE_LINK` connection type. Setting this field with any other networking access type returns a validation error.
                                   computed_optional_required: optional
                                   tf_schema_name: connection_id
                                   tf_model_name: ConnectionId
@@ -569,6 +610,47 @@ data_sources:
             - single_nested:
                 nested_object:
                     attributes:
+                        - single_nested:
+                            nested_object:
+                                attributes:
+                                    - string: {}
+                                      description: Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+                                      computed_optional_required: computed
+                                      tf_schema_name: role_arn
+                                      tf_model_name: RoleArn
+                                      api_name: roleArn
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.
+                                      computed_optional_required: computed
+                                      tf_schema_name: test_bucket
+                                      tf_model_name: TestBucket
+                                      api_name: testBucket
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: AWS configurations for AWS-based connection types.
+                          custom_type:
+                            name: AuthenticationAws
+                            model: customtypes.ObjectValue[TFAuthenticationAwsModel]
+                            schema: customtypes.NewObjectType[TFAuthenticationAwsModel](ctx)
+                            packages:
+                                - customtypes
+                          computed_optional_required: computed
+                          tf_schema_name: aws
+                          tf_model_name: Aws
+                          api_name: aws
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
                         - string: {}
                           description: OIDC client identifier for authentication to the Kafka cluster.
                           computed_optional_required: computed
@@ -592,7 +674,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.
+                          description: Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, `OAUTHBEARER`, or `AWS_MSK_IAM`.
                           computed_optional_required: computed
                           tf_schema_name: mechanism
                           tf_model_name: Mechanism
@@ -837,7 +919,7 @@ data_sources:
                             nested_object:
                                 attributes:
                                     - string: {}
-                                      description: Reserved. Will be used by `PRIVATE_LINK` connection type.
+                                      description: Reserved. Will be used by `PRIVATE_LINK` connection type. Setting this field with any other networking access type returns a validation error.
                                       computed_optional_required: computed
                                       tf_schema_name: connection_id
                                       tf_model_name: ConnectionId
@@ -1065,6 +1147,47 @@ data_sources:
                         - single_nested:
                             nested_object:
                                 attributes:
+                                    - single_nested:
+                                        nested_object:
+                                            attributes:
+                                                - string: {}
+                                                  description: Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: role_arn
+                                                  tf_model_name: RoleArn
+                                                  api_name: roleArn
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: test_bucket
+                                                  tf_model_name: TestBucket
+                                                  api_name: testBucket
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                      description: AWS configurations for AWS-based connection types.
+                                      custom_type:
+                                        name: ResultsAuthenticationAws
+                                        model: customtypes.ObjectValue[TFResultsAuthenticationAwsModel]
+                                        schema: customtypes.NewObjectType[TFResultsAuthenticationAwsModel](ctx)
+                                        packages:
+                                            - customtypes
+                                      computed_optional_required: computed
+                                      tf_schema_name: aws
+                                      tf_model_name: Aws
+                                      api_name: aws
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
                                     - string: {}
                                       description: OIDC client identifier for authentication to the Kafka cluster.
                                       computed_optional_required: computed
@@ -1088,7 +1211,7 @@ data_sources:
                                       present_in_any_response: false
                                       request_only_required_on_create: false
                                     - string: {}
-                                      description: Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.
+                                      description: Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, `OAUTHBEARER`, or `AWS_MSK_IAM`.
                                       computed_optional_required: computed
                                       tf_schema_name: mechanism
                                       tf_model_name: Mechanism
@@ -1322,7 +1445,7 @@ data_sources:
                                         nested_object:
                                             attributes:
                                                 - string: {}
-                                                  description: Reserved. Will be used by `PRIVATE_LINK` connection type.
+                                                  description: Reserved. Will be used by `PRIVATE_LINK` connection type. Setting this field with any other networking access type returns a validation error.
                                                   computed_optional_required: computed
                                                   tf_schema_name: connection_id
                                                   tf_model_name: ConnectionId

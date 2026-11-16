@@ -81,3 +81,62 @@ func TestSchemaAuthSecretsAreSensitive(t *testing.T) {
 	}
 	assertSecretsSensitive(t, "plural data source", pluralAuth.Attributes)
 }
+
+// toAny re-keys an attribute map so the same assertions can run against the resource and the data
+// source schemas, which use distinct (but structurally identical) attribute map types.
+func toAny[V any](attrs map[string]V) map[string]any {
+	out := make(map[string]any, len(attrs))
+	for name, attr := range attrs {
+		out[name] = attr
+	}
+	return out
+}
+
+// assertAwsRoleArn checks the MSK IAM authentication block added for CLOUDP-476915: `role_arn` is
+// exposed, and the `links` API boilerplate stays ignored like every other `links` in this resource.
+func assertAwsRoleArn(t *testing.T, label string, authAttrs map[string]any) {
+	t.Helper()
+	var awsAttrs map[string]any
+	switch aws := authAttrs["aws"].(type) {
+	case schema.SingleNestedAttribute:
+		awsAttrs = toAny(aws.Attributes)
+	case dsschema.SingleNestedAttribute:
+		awsAttrs = toAny(aws.Attributes)
+	default:
+		t.Fatalf("%s: authentication.aws not found or not a SingleNestedAttribute", label)
+	}
+	if _, ok := awsAttrs["role_arn"]; !ok {
+		t.Errorf("%s: authentication.aws.role_arn not found", label)
+	}
+	if _, ok := awsAttrs["links"]; ok {
+		t.Errorf("%s: authentication.aws.links must be ignored (see tools/codegen/config.yml)", label)
+	}
+}
+
+// TestSchemaExposesAuthenticationAws guards that `authentication.aws.role_arn` is exposed by the
+// resource and by both data sources, so MSK IAM auth can be configured and read back.
+func TestSchemaExposesAuthenticationAws(t *testing.T) {
+	ctx := context.Background()
+
+	resAuth, ok := streamconnectionfailover.ResourceSchema(ctx).Attributes["authentication"].(schema.SingleNestedAttribute)
+	if !ok {
+		t.Fatal("resource: `authentication` not found or not a SingleNestedAttribute")
+	}
+	assertAwsRoleArn(t, "resource", toAny(resAuth.Attributes))
+
+	dsAuth, ok := streamconnectionfailover.DataSourceSchema(ctx).Attributes["authentication"].(dsschema.SingleNestedAttribute)
+	if !ok {
+		t.Fatal("data source: `authentication` not found or not a SingleNestedAttribute")
+	}
+	assertAwsRoleArn(t, "data source", toAny(dsAuth.Attributes))
+
+	results, ok := streamconnectionfailover.PluralDataSourceSchema(ctx).Attributes["results"].(dsschema.ListNestedAttribute)
+	if !ok {
+		t.Fatal("plural data source: `results` not found or not a ListNestedAttribute")
+	}
+	pluralAuth, ok := results.NestedObject.Attributes["authentication"].(dsschema.SingleNestedAttribute)
+	if !ok {
+		t.Fatal("plural data source: `results.authentication` not found or not a SingleNestedAttribute")
+	}
+	assertAwsRoleArn(t, "plural data source", toAny(pluralAuth.Attributes))
+}
