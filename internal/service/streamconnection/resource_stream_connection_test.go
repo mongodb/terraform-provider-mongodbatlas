@@ -13,7 +13,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -1924,18 +1926,33 @@ func TestAccStreamRSStreamConnection_dataCatalogDatabricks(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, clientSecret, 1),
+				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, clientSecret, 1) + dataSourcePluralConfig,
 				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, map[string]string{"databricks.authentication.client_id": clientID}),
+				ConfigStateChecks: []statecheck.StateCheck{checkDataCatalogPluralResult(connectionName, "DATABRICKS_UNITY", catalogURL, map[string]knownvalue.Check{
+					"databricks.authentication.client_id":                knownvalue.StringExact(clientID),
+					"databricks.authentication.client_secret_wo":         knownvalue.Null(),
+					"databricks.authentication.client_secret_wo_version": knownvalue.Null(),
+				})},
 			},
 			{
 				// update: rotate the write-only client secret by bumping its version; the value is never persisted to state
-				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, "rotated-databricks-client-secret", 2),
+				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, clientID, "rotated-databricks-client-secret", 2) + dataSourcePluralConfig,
 				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, map[string]string{"databricks.authentication.client_id": clientID}),
+				ConfigStateChecks: []statecheck.StateCheck{checkDataCatalogPluralResult(connectionName, "DATABRICKS_UNITY", catalogURL, map[string]knownvalue.Check{
+					"databricks.authentication.client_id":                knownvalue.StringExact(clientID),
+					"databricks.authentication.client_secret_wo":         knownvalue.Null(),
+					"databricks.authentication.client_secret_wo_version": knownvalue.Null(),
+				})},
 			},
 			{
 				// update an unrelated attribute with an unchanged version: the secret is not resent, so the stored secret is kept
-				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, "updated-databricks-client-id", "rotated-databricks-client-secret", 2),
+				Config: dataSourceConfig + configureDataCatalogDatabricks(projectID, instanceName, connectionName, catalogURL, "updated-databricks-client-id", "rotated-databricks-client-secret", 2) + dataSourcePluralConfig,
 				Check:  checkDataCatalogAttributes(resourceName, instanceName, connectionName, "DATABRICKS_UNITY", catalogURL, map[string]string{"databricks.authentication.client_id": "updated-databricks-client-id"}),
+				ConfigStateChecks: []statecheck.StateCheck{checkDataCatalogPluralResult(connectionName, "DATABRICKS_UNITY", catalogURL, map[string]knownvalue.Check{
+					"databricks.authentication.client_id":                knownvalue.StringExact("updated-databricks-client-id"),
+					"databricks.authentication.client_secret_wo":         knownvalue.Null(),
+					"databricks.authentication.client_secret_wo_version": knownvalue.Null(),
+				})},
 			},
 			{
 				ResourceName:      resourceName,
@@ -1972,32 +1989,53 @@ func TestAccStreamRSStreamConnection_dataCatalogSnowflake(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, catalogURL, account, user, role, privateKey, 1),
+				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, catalogURL, account, user, role, privateKey, 1) + dataSourcePluralConfig,
 				Check: checkDataCatalogAttributes(resourceName, instanceName, connectionName, "SNOWFLAKE_HORIZON", catalogURL, map[string]string{
 					"snowflake.authentication.account": account,
 					"snowflake.authentication.user":    user,
 					"snowflake.authentication.role":    role,
 				}),
+				ConfigStateChecks: []statecheck.StateCheck{checkDataCatalogPluralResult(connectionName, "SNOWFLAKE_HORIZON", catalogURL, map[string]knownvalue.Check{
+					"snowflake.authentication.account":                knownvalue.StringExact(account),
+					"snowflake.authentication.user":                   knownvalue.StringExact(user),
+					"snowflake.authentication.role":                   knownvalue.StringExact(role),
+					"snowflake.authentication.private_key_wo":         knownvalue.Null(),
+					"snowflake.authentication.private_key_wo_version": knownvalue.Null(),
+				})},
 			},
 			{
 				// update an unrelated attribute with an unchanged version: the secret is not resent, so the stored key is kept
-				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, catalogURL, account, user, "UPDATED_ROLE", privateKey, 1),
+				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, catalogURL, account, user, "UPDATED_ROLE", privateKey, 1) + dataSourcePluralConfig,
 				Check: checkDataCatalogAttributes(resourceName, instanceName, connectionName, "SNOWFLAKE_HORIZON", catalogURL, map[string]string{
 					"snowflake.authentication.account": account,
 					"snowflake.authentication.user":    user,
 					"snowflake.authentication.role":    "UPDATED_ROLE",
 				}),
+				ConfigStateChecks: []statecheck.StateCheck{checkDataCatalogPluralResult(connectionName, "SNOWFLAKE_HORIZON", catalogURL, map[string]knownvalue.Check{
+					"snowflake.authentication.account":                knownvalue.StringExact(account),
+					"snowflake.authentication.user":                   knownvalue.StringExact(user),
+					"snowflake.authentication.role":                   knownvalue.StringExact("UPDATED_ROLE"),
+					"snowflake.authentication.private_key_wo":         knownvalue.Null(),
+					"snowflake.authentication.private_key_wo_version": knownvalue.Null(),
+				})},
 			},
 			{
 				// change catalog_url with an unchanged version: the API rejects a blank key when the
 				// URL changes, because the stored one would be sent to the new host during token
 				// exchange, so the configured key is resent and the update is accepted
-				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, updatedCatalogURL, account, user, "UPDATED_ROLE", privateKey, 1),
+				Config: dataSourceConfig + configureDataCatalogSnowflake(projectID, instanceName, connectionName, updatedCatalogURL, account, user, "UPDATED_ROLE", privateKey, 1) + dataSourcePluralConfig,
 				Check: checkDataCatalogAttributes(resourceName, instanceName, connectionName, "SNOWFLAKE_HORIZON", updatedCatalogURL, map[string]string{
 					"snowflake.authentication.account": account,
 					"snowflake.authentication.user":    user,
 					"snowflake.authentication.role":    "UPDATED_ROLE",
 				}),
+				ConfigStateChecks: []statecheck.StateCheck{checkDataCatalogPluralResult(connectionName, "SNOWFLAKE_HORIZON", updatedCatalogURL, map[string]knownvalue.Check{
+					"snowflake.authentication.account":                knownvalue.StringExact(account),
+					"snowflake.authentication.user":                   knownvalue.StringExact(user),
+					"snowflake.authentication.role":                   knownvalue.StringExact("UPDATED_ROLE"),
+					"snowflake.authentication.private_key_wo":         knownvalue.Null(),
+					"snowflake.authentication.private_key_wo_version": knownvalue.Null(),
+				})},
 			},
 			{
 				ResourceName:      resourceName,
@@ -2072,4 +2110,14 @@ func checkDataCatalogAttributes(resourceName, workspaceName, connectionName, cat
 	maps.Copy(mapChecks, providerAuthChecks)
 	extra := []resource.TestCheckFunc{checkStreamConnectionExists()}
 	return acc.CheckRSAndDS(resourceName, conversion.StringPtr(dataSourceName), nil, setChecks, mapChecks, extra...)
+}
+
+func checkDataCatalogPluralResult(connectionName, catalogProvider, catalogURL string, providerAuthChecks map[string]knownvalue.Check) statecheck.StateCheck {
+	checks := map[string]knownvalue.Check{
+		"type":             knownvalue.StringExact("DataCatalog"),
+		"catalog_provider": knownvalue.StringExact(catalogProvider),
+		"catalog_url":      knownvalue.StringExact(catalogURL),
+	}
+	maps.Copy(checks, providerAuthChecks)
+	return acc.PluralResultCheck(pluralDataSourceName, "connection_name", knownvalue.StringExact(connectionName), checks)
 }
