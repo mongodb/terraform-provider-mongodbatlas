@@ -219,7 +219,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.OneOf("DATABRICKS_UNITY", "SNOWFLAKE_HORIZON"),
+					stringvalidator.OneOf(CatalogProviderDatabricksUnity, CatalogProviderSnowflakeHorizon),
 				},
 			},
 			"catalog_url": schema.StringAttribute{

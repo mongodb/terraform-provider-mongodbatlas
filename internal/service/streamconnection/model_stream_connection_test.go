@@ -1336,6 +1336,25 @@ func tfDatabricksStateObject(t *testing.T, clientID string, clientSecretWoVersio
 	return databricksObject
 }
 
+// tfDatabricksObjectWithoutWriteOnly builds the databricks object as it appears in a plan whose
+// configuration drops the `client_secret_wo` pair: the secret and its rotation-trigger version are
+// both null.
+func tfDatabricksObjectWithoutWriteOnly(t *testing.T, clientID string) types.Object {
+	t.Helper()
+	authModel := streamconnection.TFDatabricksAuthenticationModel{
+		ClientID:              types.StringValue(clientID),
+		ClientSecretWo:        types.StringNull(),
+		ClientSecretWoVersion: types.Int64Null(),
+	}
+	authObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.DatabricksAuthenticationObjectType.AttrTypes, authModel)
+	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+	databricksObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.DatabricksObjectType.AttrTypes, streamconnection.TFDatabricksModel{
+		Authentication: authObject,
+	})
+	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+	return databricksObject
+}
+
 func tfSnowflakeObject(t *testing.T, account, user, role, privateKey string, privateKeyWoVersion int64) types.Object {
 	t.Helper()
 	authModel := streamconnection.TFSnowflakeAuthenticationModel{
@@ -1363,6 +1382,27 @@ func tfSnowflakeStateObject(t *testing.T, account, user, role string, privateKey
 		User:                types.StringValue(user),
 		Role:                types.StringValue(role),
 		PrivateKeyWoVersion: types.Int64Value(privateKeyWoVersion),
+	}
+	authObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.SnowflakeAuthenticationObjectType.AttrTypes, authModel)
+	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+	snowflakeObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.SnowflakeObjectType.AttrTypes, streamconnection.TFSnowflakeModel{
+		Authentication: authObject,
+	})
+	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+	return snowflakeObject
+}
+
+// tfSnowflakeObjectWithoutWriteOnly builds the snowflake object as it appears in a plan whose
+// configuration drops the `private_key_wo` pair: the key and its rotation-trigger version are both
+// null.
+func tfSnowflakeObjectWithoutWriteOnly(t *testing.T, account, user, role string) types.Object {
+	t.Helper()
+	authModel := streamconnection.TFSnowflakeAuthenticationModel{
+		Account:             types.StringValue(account),
+		User:                types.StringValue(user),
+		Role:                types.StringValue(role),
+		PrivateKeyWo:        types.StringNull(),
+		PrivateKeyWoVersion: types.Int64Null(),
 	}
 	authObject, diags := types.ObjectValueFrom(t.Context(), streamconnection.SnowflakeAuthenticationObjectType.AttrTypes, authModel)
 	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
@@ -1713,6 +1753,23 @@ func TestStreamConnectionUpdateReqWriteOnlySecrets(t *testing.T) {
 			plan:        snowflakePlan,
 			state:       &streamconnection.TFStreamConnectionModel{},
 			wantSecret:  snowflakeKey,
+			description: "snowflake",
+		},
+		{
+			// The config drops the `client_secret_wo` pair while state still has a version, so there
+			// is no configured secret to send: the request is blank and the API keeps the stored one.
+			name:        "Databricks secret is blank when the plan drops the write-only pair while state has a version",
+			plan:        &streamconnection.TFStreamConnectionModel{Databricks: tfDatabricksObjectWithoutWriteOnly(t, databricksClientID)},
+			state:       &streamconnection.TFStreamConnectionModel{Databricks: tfDatabricksStateObject(t, databricksClientID, 5)},
+			wantSecret:  "",
+			description: "databricks",
+		},
+		{
+			// Same as above for Snowflake: dropping the `private_key_wo` pair leaves nothing to send.
+			name:        "Snowflake key is blank when the plan drops the write-only pair while state has a version",
+			plan:        &streamconnection.TFStreamConnectionModel{Snowflake: tfSnowflakeObjectWithoutWriteOnly(t, snowflakeAccount, snowflakeUser, snowflakeRole)},
+			state:       &streamconnection.TFStreamConnectionModel{Snowflake: tfSnowflakeStateObject(t, snowflakeAccount, snowflakeUser, snowflakeRole, 5)},
+			wantSecret:  "",
 			description: "snowflake",
 		},
 		{

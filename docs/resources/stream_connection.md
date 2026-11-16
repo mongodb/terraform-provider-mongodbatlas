@@ -524,7 +524,7 @@ If `type` is of value `DataCatalog` the following additional arguments are defin
 * `client_secret_wo` - (Optional, Sensitive, Write-Only) OAuth client secret of the Databricks service principal. The secret is sent in requests but is **never persisted to the Terraform state**. Requires Terraform 1.11 or later. Atlas never returns the stored secret: to change it, set `client_secret_wo` and bump `client_secret_wo_version`; to keep the stored secret on update, leave them unchanged.
 * `client_secret_wo_version` - (Optional) Version of the Databricks client secret used as a rotation trigger, since the write-only value itself is not stored. Change this number (e.g. increment it) whenever `client_secret_wo` changes.
 
-~> **NOTE:** Changing `catalog_url` requires providing the secret again: set `client_secret_wo` and bump `client_secret_wo_version` when the catalog URL changes.
+~> **NOTE:** Changing `catalog_url` requires setting `client_secret_wo` again, because Atlas rejects a blank secret when the catalog URL changes. Bump `client_secret_wo_version` only when the secret value itself changes.
 
 ### Snowflake
 * `authentication` - (Required) Credentials of the Snowflake service user used to authenticate to the Snowflake Horizon catalog. See [Snowflake Authentication](#snowflake-authentication).
@@ -536,7 +536,7 @@ If `type` is of value `DataCatalog` the following additional arguments are defin
 * `private_key_wo` - (Optional, Sensitive, Write-Only) Private key of the service user's key pair. The key is sent in requests but is **never persisted to the Terraform state**. Requires Terraform 1.11 or later. Atlas never returns the stored key: to change it, set `private_key_wo` and bump `private_key_wo_version`; to keep the stored key on update, leave them unchanged.
 * `private_key_wo_version` - (Optional) Version of the Snowflake private key used as a rotation trigger, since the write-only value itself is not stored. Change this number (e.g. increment it) whenever `private_key_wo` changes.
 
-~> **NOTE:** Changing `catalog_url` requires providing the private key again: set `private_key_wo` and bump `private_key_wo_version` when the catalog URL changes.
+~> **NOTE:** Changing `catalog_url` requires setting `private_key_wo` again, because Atlas rejects a blank private key when the catalog URL changes. Bump `private_key_wo_version` only when the private key itself changes.
 
 ### Timeouts
 

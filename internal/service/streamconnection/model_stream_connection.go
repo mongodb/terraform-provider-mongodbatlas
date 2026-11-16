@@ -259,9 +259,13 @@ func dataCatalogURLChanged(state, plan *TFStreamConnectionModel) bool {
 	return !state.CatalogURL.Equal(plan.CatalogURL)
 }
 
-// databricksSecretRotated reports whether the Databricks client secret should be (re)sent on
-// update: true when the rotation version changed since state or state has no version yet (e.g.
-// after import), so the first managed update always sends the configured secret.
+// databricksSecretRotated reports whether the Databricks client secret is taken from the
+// configuration instead of being blanked on update. It is true when the rotation version changed
+// since state, and when state has no version yet (e.g. after import), so the first managed update
+// always sends the configured secret. It is also true when the plan has no version while state has
+// one, which happens when the configuration drops the `client_secret_wo` pair: there is no
+// configured secret to send in that case, so the request carries a blank value and relies on the
+// API keeping the stored secret.
 func databricksSecretRotated(ctx context.Context, state, plan types.Object) bool {
 	stateVersion, diags := databricksWoVersion(ctx, state)
 	if diags.HasError() || stateVersion.IsNull() {
@@ -274,6 +278,8 @@ func databricksSecretRotated(ctx context.Context, state, plan types.Object) bool
 	return stateVersion != planVersion
 }
 
+// snowflakeSecretRotated is the Snowflake counterpart of databricksSecretRotated: see its comment
+// for the cases in which the private key is taken from the configuration rather than blanked.
 func snowflakeSecretRotated(ctx context.Context, state, plan types.Object) bool {
 	stateVersion, diags := snowflakeWoVersion(ctx, state)
 	if diags.HasError() || stateVersion.IsNull() {
