@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -22,9 +21,8 @@ func PluralDataSource() *schema.Resource {
 				Required: true,
 			},
 			"type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"USER", "ONLINE_ARCHIVE"}, false),
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 
 			"results": {

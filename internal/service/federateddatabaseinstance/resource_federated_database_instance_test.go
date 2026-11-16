@@ -1,10 +1,13 @@
 package federateddatabaseinstance_test
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"os"
 	"regexp"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -861,4 +864,102 @@ resource "mongodbatlas_federated_database_instance" "test" {
    }
 }
 	`, federatedInstanceName, projectName, orgID)
+}
+
+func TestAccFederatedDatabaseInstanceDSPlural_type(t *testing.T) {
+	var (
+		userName = acc.RandomName()
+		// Must use US_EAST_1 in dev for online_archive to work.
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
+			ReplicationSpecs: []acc.ReplicationSpecRequest{{AutoScalingDiskGbEnabled: true, Region: "US_EAST_1"}},
+		})
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyFederatedDatabaseInstance,
+		Steps: []resource.TestStep{
+			{
+				// The online archive needs sample data in the cluster before it can be created.
+				Config: clusterInfo.TerraformStr,
+				Check:  acc.PopulateWithSampleDataTestCheck(clusterInfo.ProjectID, clusterInfo.Name),
+			},
+			{
+				// No exact count: the project is shared, so other archives may exist.
+				Config: clusterInfo.TerraformStr + configPluralDSType(clusterInfo.ResourceName, userName, `type = "ONLINE_ARCHIVE"`),
+				Check: func(s *terraform.State) error {
+					attrs := s.RootModule().Resources[pluralDataSourceName].Primary.Attributes
+					count, _ := strconv.Atoi(attrs["results.#"])
+					if count == 0 {
+						return errors.New("expected at least one online archive instance")
+					}
+					for i := range count {
+						name := attrs[fmt.Sprintf("results.%d.name", i)]
+						if name == userName || !strings.Contains(name, "atlas-online-archive-") {
+							return fmt.Errorf("expected an online archive instance, got %q", name)
+						}
+					}
+					return nil
+				},
+			},
+		},
+	})
+}
+
+func configPluralDSType(clusterResourceName, userName, typeAttr string) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_online_archive" "test" {
+  project_id      = %[1]s.project_id
+  cluster_name    = %[1]s.name
+  coll_name       = "listingsAndReviews"
+  collection_type = "STANDARD"
+  db_name         = "sample_airbnb"
+  sync_creation   = true
+
+  criteria {
+    type              = "DATE"
+    date_field        = "last_review"
+    date_format       = "ISODATE"
+    expire_after_days = 2
+  }
+
+  partition_fields {
+    field_name = "last_review"
+    order      = 0
+  }
+}
+
+resource "mongodbatlas_federated_database_instance" "test" {
+  project_id = %[1]s.project_id
+  name       = %[2]q
+
+  storage_databases {
+    name = "VirtualDatabase0"
+    collections {
+      name = "VirtualCollection0"
+      data_sources {
+        collection = "listingsAndReviews"
+        database   = "sample_airbnb"
+        store_name = "ClusterStore"
+      }
+    }
+  }
+
+  storage_stores {
+    name         = "ClusterStore"
+    cluster_name = %[1]s.name
+    project_id   = %[1]s.project_id
+    provider     = "atlas"
+    read_preference {
+      mode = "secondary"
+    }
+  }
+}
+
+data "mongodbatlas_federated_database_instances" "test" {
+  project_id = %[1]s.project_id
+  %[3]s
+  depends_on = [mongodbatlas_online_archive.test, mongodbatlas_federated_database_instance.test]
+}
+`, clusterResourceName, userName, typeAttr)
 }
