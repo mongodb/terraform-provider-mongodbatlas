@@ -52,6 +52,8 @@ func configureQueryVars(config *MockHTTPDataConfig) []string {
 
 func NewCaptureMockConfigClientModifier(t *testing.T, config *MockHTTPDataConfig, data *MockHTTPData) *CaptureMockConfigClientModifier {
 	t.Helper()
+	// Capture normalizes request paths against the OpenAPI spec, so ensure it is loaded.
+	InitializeAPISpecPaths()
 	return &CaptureMockConfigClientModifier{
 		t:            t,
 		isDiff:       configureIsDiff(config),
