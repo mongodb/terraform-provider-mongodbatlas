@@ -50,9 +50,7 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 			acc.PreCheckAwsEnvBasic(t)
 			acc.PreCheckAwsRegionCases(t)
 			acc.SerialSleep(t)
-			if !acc.ExistingClusterUsed() { // do not change a caller-owned project's settings
-				optOutOfPECS(t, projectID)
-			}
+			optOutOfPECS(t, projectID)
 		},
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
