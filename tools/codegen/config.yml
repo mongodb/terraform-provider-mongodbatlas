@@ -3,9 +3,10 @@ variables:
   org_id_description: &org_id_description "Unique 24-hexadecimal digit string that identifies the organization that contains your projects."
   project_id_description: &project_id_description "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation."
   # The spec's `mechanism` description predates MSK IAM auth and omits AWS_MSK_IAM, which this
-  # resource supports via `authentication.aws`. Same wording as the hand-written
-  # mongodbatlas_stream_connection docs.
-  # TODO(CLOUDP-431787): drop this override once the description is corrected upstream.
+  # resource supports via `authentication.aws`: the spec gained the `aws` object but the
+  # description enumerating the supported mechanisms was never updated. Same wording as the
+  # hand-written mongodbatlas_stream_connection docs. Unlike the other description stopgaps here,
+  # no upstream ticket tracks this correction, so re-check it against the spec on every refetch.
   kafka_mechanism_description: &kafka_mechanism_description "Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, `OAUTHBEARER`, or `AWS_MSK_IAM`."
   # TODO(CLOUDP-439020): once the descriptions are corrected upstream, delete these anchors and the
   # `description` overrides that reference them, then refetch the spec and regenerate.

@@ -92,8 +92,8 @@ func toAny[V any](attrs map[string]V) map[string]any {
 	return out
 }
 
-// assertAwsRoleArn checks the MSK IAM authentication block added for CLOUDP-476915: `role_arn` is
-// exposed, and the `links` API boilerplate stays ignored like every other `links` in this resource.
+// assertAwsRoleArn checks the MSK IAM authentication block: `role_arn` is exposed, and the `links`
+// API boilerplate stays ignored like every other `links` in this resource.
 func assertAwsRoleArn(t *testing.T, label string, authAttrs map[string]any) {
 	t.Helper()
 	var awsAttrs map[string]any
