@@ -20,9 +20,10 @@ func PluralDataSource() *schema.Resource {
 				Required: true,
 			},
 			"results": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem:     thirdPartyIntegrationSchema(),
+				Type:      schema.TypeList,
+				Computed:  true,
+				Sensitive: true,
+				Elem:      thirdPartyIntegrationSchema(),
 			},
 		},
 	}
