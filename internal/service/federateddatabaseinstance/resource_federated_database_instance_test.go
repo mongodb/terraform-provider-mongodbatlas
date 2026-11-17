@@ -868,10 +868,9 @@ resource "mongodbatlas_federated_database_instance" "test" {
 
 func TestAccFederatedDatabaseInstanceDSPlural_type(t *testing.T) {
 	var (
-		userName = acc.RandomName()
-		// Must use US_EAST_1 in dev for online_archive to work.
+		userName    = acc.RandomName()
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
-			ReplicationSpecs: []acc.ReplicationSpecRequest{{AutoScalingDiskGbEnabled: true, Region: "US_EAST_1"}},
+			ReplicationSpecs: []acc.ReplicationSpecRequest{{AutoScalingDiskGbEnabled: true, Region: "EU_WEST_1"}},
 		})
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -902,8 +901,40 @@ func TestAccFederatedDatabaseInstanceDSPlural_type(t *testing.T) {
 					return nil
 				},
 			},
+			{
+				Config: clusterInfo.TerraformStr + configPluralDSType(clusterInfo.ResourceName, userName, `type = "USER"`),
+				Check:  checkPluralDSUserInstances(userName),
+			},
+			{
+				Config: clusterInfo.TerraformStr + configPluralDSType(clusterInfo.ResourceName, userName, ""),
+				Check:  checkPluralDSUserInstances(userName),
+			},
 		},
 	})
+}
+
+func checkPluralDSUserInstances(userName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		attrs := s.RootModule().Resources[pluralDataSourceName].Primary.Attributes
+		count, err := strconv.Atoi(attrs["results.#"])
+		if err != nil {
+			return fmt.Errorf("reading federated database instance count: %w", err)
+		}
+		foundUser := false
+		for i := range count {
+			name := attrs[fmt.Sprintf("results.%d.name", i)]
+			if strings.Contains(name, "atlas-online-archive-") {
+				return fmt.Errorf("expected only user instances, got archive instance %q", name)
+			}
+			if name == userName {
+				foundUser = true
+			}
+		}
+		if !foundUser {
+			return fmt.Errorf("expected user instance %q in results", userName)
+		}
+		return nil
+	}
 }
 
 func configPluralDSType(clusterResourceName, userName, typeAttr string) string {
