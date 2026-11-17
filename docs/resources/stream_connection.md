@@ -376,13 +376,13 @@ resource "mongodbatlas_stream_processor" "example" {
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
-* `db_role_to_execute` - The name of a Built in or Custom DB Role to connect to an Atlas Cluster. See [DBRoleToExecute](#dbroletoexecute).
+* `db_role_to_execute` - Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster. See [DBRoleToExecute](#dbroletoexecute).
 * `cluster_project_id` - Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams instance. You must first enable the organization setting.
 
 If `type` is of value `Kafka` the following additional arguments are defined:
 * `authentication` - User credentials required to connect to a Kafka cluster. Includes the authentication type, as well as the parameters for that authentication mode. See [authentication](#authentication).
 * `bootstrap_servers` - Comma separated list of server addresses.
-* `config` - A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
+* `config` - Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters.
 * `security` - Properties for the secure transport connection to Kafka. For SASL_SSL, this can include the trusted certificate to use. See [security](#security).
 * `networking` - Networking Access Type can be `PUBLIC` (default), `VPC`, or `PRIVATE_LINK`. See [networking](#networking).
 
