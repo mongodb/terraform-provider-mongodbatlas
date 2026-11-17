@@ -104,6 +104,8 @@ output "service_account_secret" {
 * `secret_id` - Unique 24-hexadecimal digit string that identifies the secret.
 * `secret` - (Sensitive) The secret for the Service Account. It will be returned only the first time after creation.
 
+~> **NOTE:** The whole `secrets` list is sensitive, so outputs that reference any attribute in it, including `expires_at` and `secret_id`, must set `sensitive = true`.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
