@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.22.0 (November 17, 2026)
+
 NOTES:
 
 * resource/mongodbatlas_organization: Marks the whole `secrets` list as sensitive, so outputs that reference any attribute in it, including `expires_at` and `secret_id`, must set `sensitive = true` ([#4893](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4893))
