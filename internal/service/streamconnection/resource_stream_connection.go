@@ -23,9 +23,17 @@ const (
 	ConnectionTypeAWSKinesisDataStreams = "AWSKinesisDataStreams"
 	ConnectionTypeAWSLambda             = "AWSLambda"
 	ConnectionTypeAzureBlobStorage      = "AzureBlobStorage"
+	ConnectionTypeDataCatalog           = "DataCatalog"
 	ConnectionTypeGCPPubSub             = "GCPPubSub"
 	ConnectionTypeKafka                 = "Kafka"
 	ConnectionTypeS3                    = "S3"
+)
+
+// Catalog provider values for DataCatalog connections. The catalog system cannot be
+// changed after creation, so changing it forces replacement.
+const (
+	CatalogProviderDatabricksUnity  = "DATABRICKS_UNITY"
+	CatalogProviderSnowflakeHorizon = "SNOWFLAKE_HORIZON"
 )
 
 var _ resource.ResourceWithConfigure = &streamConnectionRS{}
@@ -67,6 +75,11 @@ type TFStreamConnectionCommonModel struct {
 	SchemaRegistryProvider       types.String `tfsdk:"schema_registry_provider"`
 	SchemaRegistryURLs           types.List   `tfsdk:"schema_registry_urls"`
 	SchemaRegistryAuthentication types.Object `tfsdk:"schema_registry_authentication"`
+	// DataCatalog (Iceberg) connection
+	CatalogProvider types.String `tfsdk:"catalog_provider"`
+	CatalogURL      types.String `tfsdk:"catalog_url"`
+	Databricks      types.Object `tfsdk:"databricks"`
+	Snowflake       types.Object `tfsdk:"snowflake"`
 }
 
 type TFStreamConnectionModel struct {
@@ -190,6 +203,54 @@ var AzureObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"region":               types.StringType,
 }}
 
+// DataCatalog (Iceberg) connection models. The API never returns the Databricks
+// client secret or the Snowflake private key, so the secrets are write-only
+// attributes (`*_wo` + `*_wo_version`) that are sent in requests but never
+// persisted to state; only the version, a rotation trigger, is kept.
+type TFDatabricksModel struct {
+	Authentication types.Object `tfsdk:"authentication"`
+}
+
+var DatabricksObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"authentication": DatabricksAuthenticationObjectType,
+}}
+
+type TFDatabricksAuthenticationModel struct {
+	ClientID              types.String `tfsdk:"client_id"`
+	ClientSecretWo        types.String `tfsdk:"client_secret_wo"`
+	ClientSecretWoVersion types.Int64  `tfsdk:"client_secret_wo_version"`
+}
+
+var DatabricksAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"client_id":                types.StringType,
+	"client_secret_wo":         types.StringType,
+	"client_secret_wo_version": types.Int64Type,
+}}
+
+type TFSnowflakeModel struct {
+	Authentication types.Object `tfsdk:"authentication"`
+}
+
+var SnowflakeObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"authentication": SnowflakeAuthenticationObjectType,
+}}
+
+type TFSnowflakeAuthenticationModel struct {
+	Account             types.String `tfsdk:"account"`
+	User                types.String `tfsdk:"user"`
+	Role                types.String `tfsdk:"role"`
+	PrivateKeyWo        types.String `tfsdk:"private_key_wo"`
+	PrivateKeyWoVersion types.Int64  `tfsdk:"private_key_wo_version"`
+}
+
+var SnowflakeAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"account":                types.StringType,
+	"user":                   types.StringType,
+	"role":                   types.StringType,
+	"private_key_wo":         types.StringType,
+	"private_key_wo_version": types.Int64Type,
+}}
+
 func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
 	conversion.UpdateSchemaDescription(&resp.Schema)
@@ -206,12 +267,32 @@ func getWorkspaceOrInstanceName(model *TFStreamConnectionModel) string {
 	return ""
 }
 
+// applyWriteOnlyConfig copies the Data Catalog write-only secret values from the
+// configuration onto the plan: Terraform nullifies write-only attributes in the
+// plan, so the secrets must be read from the configuration to build API requests.
+func applyWriteOnlyConfig(plan, configModel *TFStreamConnectionModel) {
+	if configModel == nil {
+		return
+	}
+	if !configModel.Databricks.IsNull() && !configModel.Databricks.IsUnknown() {
+		plan.Databricks = configModel.Databricks
+	}
+	if !configModel.Snowflake.IsNull() && !configModel.Snowflake.IsUnknown() {
+		plan.Snowflake = configModel.Snowflake
+	}
+}
+
 func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var streamConnectionPlan TFStreamConnectionModel
+	var streamConnectionPlan, streamConnectionConfig TFStreamConnectionModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamConnectionPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	resp.Diagnostics.Append(req.Config.Get(ctx, &streamConnectionConfig)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	applyWriteOnlyConfig(&streamConnectionPlan, &streamConnectionConfig)
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionPlan.ProjectID.ValueString()
@@ -250,7 +331,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 	instanceName := streamConnectionPlan.InstanceName.ValueString()
 	workspaceName := streamConnectionPlan.WorkspaceName.ValueString()
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, &streamConnectionPlan.SchemaRegistryAuthentication, apiResp, &streamConnectionPlan.Timeouts)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, &streamConnectionPlan.SchemaRegistryAuthentication, &streamConnectionPlan.Databricks, &streamConnectionPlan.Snowflake, apiResp, &streamConnectionPlan.Timeouts)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -285,7 +366,7 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 
 	instanceName := streamConnectionState.InstanceName.ValueString()
 	workspaceName := streamConnectionState.WorkspaceName.ValueString()
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionState.Authentication, &streamConnectionState.SchemaRegistryAuthentication, apiResp, &streamConnectionState.Timeouts)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionState.Authentication, &streamConnectionState.SchemaRegistryAuthentication, &streamConnectionState.Databricks, &streamConnectionState.Snowflake, apiResp, &streamConnectionState.Timeouts)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -294,11 +375,22 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 }
 
 func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var streamConnectionPlan TFStreamConnectionModel
+	var streamConnectionPlan, streamConnectionConfig TFStreamConnectionModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamConnectionPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	resp.Diagnostics.Append(req.Config.Get(ctx, &streamConnectionConfig)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	var streamConnectionState TFStreamConnectionModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &streamConnectionState)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	applyWriteOnlyConfig(&streamConnectionPlan, &streamConnectionConfig)
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionPlan.ProjectID.ValueString()
@@ -308,7 +400,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 	connectionName := streamConnectionPlan.ConnectionName.ValueString()
-	streamConnectionReq, diags := NewStreamConnectionUpdateReq(ctx, &streamConnectionPlan)
+	streamConnectionReq, diags := NewStreamConnectionUpdateReq(ctx, &streamConnectionPlan, &streamConnectionState)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -332,7 +424,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 
 	instanceName := streamConnectionPlan.InstanceName.ValueString()
 	workspaceName := streamConnectionPlan.WorkspaceName.ValueString()
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, &streamConnectionPlan.SchemaRegistryAuthentication, apiResp, &streamConnectionPlan.Timeouts)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, &streamConnectionPlan.SchemaRegistryAuthentication, &streamConnectionPlan.Databricks, &streamConnectionPlan.Snowflake, apiResp, &streamConnectionPlan.Timeouts)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
