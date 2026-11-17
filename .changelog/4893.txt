@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_organization: Fixes the service account secret being shown in plain text in plan output by marking the secrets attribute as sensitive
+```
