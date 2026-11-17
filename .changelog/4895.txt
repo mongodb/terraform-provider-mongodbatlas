@@ -1,5 +1,5 @@
 ```release-note:bug
-data-source/mongodbatlas_third_party_integrations: Fixes the integration credential fields being shown in plain text by marking the results attribute as sensitive
+data-source/mongodbatlas_third_party_integrations: Fixes the integration credential fields being shown in plain text in state output and in expressions that reference them by marking the `results` attribute as sensitive
 ```
 
 ```release-note:note
