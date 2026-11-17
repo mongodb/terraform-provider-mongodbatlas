@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection: Adds `DataCatalog` connection type support ([#4839](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4839))
+* data-source/mongodbatlas_stream_connections: Adds `DataCatalog` connection type support ([#4839](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4839))
+* resource/mongodbatlas_stream_connection: Adds `DataCatalog` connection type for Iceberg Data Catalog connections with `catalog_provider` (`DATABRICKS_UNITY` or `SNOWFLAKE_HORIZON`), `catalog_url`, and `databricks`/`snowflake` configuration whose secrets are write-only attributes (`client_secret_wo`, `private_key_wo` with `*_wo_version` rotation triggers, requires Terraform 1.11+) and are never persisted to state ([#4839](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4839))
+
 ## 2.22.0 (November 17, 2026)
 
 NOTES:
