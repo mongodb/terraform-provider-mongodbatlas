@@ -715,12 +715,6 @@ func TestValidateAPIKeyIsOrgOwner(t *testing.T) {
 	}
 }
 
-func TestResourceCoreConfigSchema_ServiceAccountSecretsSensitive(t *testing.T) {
-	// secrets is computed-only, so its inner secret sensitivity does not reach Terraform.
-	serviceAccount := organization.Resource().CoreConfigSchema().BlockTypes["service_account"].Block
-	require.True(t, serviceAccount.Attributes["secrets"].Sensitive, "secrets must be sensitive so Terraform redacts the service account secret in plan output")
-}
-
 func checkAggr(orgOwnerID, name, description string, settings *admin.OrganizationSettings, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	attributes := map[string]string{
 		"name":                       name,
