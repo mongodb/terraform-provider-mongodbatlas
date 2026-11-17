@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+NOTES:
+
+* resource/mongodbatlas_organization: Marks the whole `secrets` list as sensitive, so outputs that reference any attribute in it, including `expires_at` and `secret_id`, must set `sensitive = true` ([#4893](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4893))
+
 FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_stream_workspace_private_endpoint` ([#4868](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4868))
@@ -20,6 +24,7 @@ BUG FIXES:
 * provider: Fixes delete operations failing when the resource is already gone from Atlas and the API returns an error code other than 404. The delete now succeeds and the resource is removed from state instead of erroring. Affects mongodbatlas_api_key, mongodbatlas_project_api_key, mongodbatlas_access_list_api_key, mongodbatlas_api_key_project_assignment, mongodbatlas_push_based_log_export ([#4856](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4856))
 * resource/mongodbatlas_cluster_outage_simulation: Fixes the create-timeout cleanup and delete waits to poll the simulation state instead of checking it only once at the end of the timeout ([#4863](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4863))
 * resource/mongodbatlas_online_archive: Supports cluster names with hyphens when importing the resource ([#4855](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4855))
+* resource/mongodbatlas_organization: Fixes the service account secret being shown in plain text in plan output for organizations created with a service account by marking the `secrets` attribute as sensitive ([#4893](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4893))
 * resource/mongodbatlas_team: Fixes delete failing when the team is assigned to a project that is not in the first page of projects ([#4878](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4878))
 
 ## 2.21.0 (October 28, 2026)
