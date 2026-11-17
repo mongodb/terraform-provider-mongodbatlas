@@ -715,6 +715,14 @@ func TestValidateAPIKeyIsOrgOwner(t *testing.T) {
 	}
 }
 
+func TestResourceCoreConfigSchema_ServiceAccountSecretsSensitive(t *testing.T) {
+	// secrets is a computed-only block, so the SDK v2 converts it into a nested attribute
+	// and the plugin protocol cannot carry the sensitivity of the inner secret field.
+	// The whole attribute must be sensitive for Terraform to redact it in plan output.
+	serviceAccount := organization.Resource().CoreConfigSchema().BlockTypes["service_account"].Block
+	require.True(t, serviceAccount.Attributes["secrets"].Sensitive, "secrets must be sensitive so Terraform redacts the service account secret in plan output")
+}
+
 func checkAggr(orgOwnerID, name, description string, settings *admin.OrganizationSettings, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	attributes := map[string]string{
 		"name":                       name,

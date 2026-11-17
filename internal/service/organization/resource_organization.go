@@ -161,8 +161,9 @@ func Resource() *schema.Resource {
 							Computed: true,
 						},
 						"secrets": {
-							Type:     schema.TypeList,
-							Computed: true,
+							Type:      schema.TypeList,
+							Computed:  true,
+							Sensitive: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"created_at": {
