@@ -886,20 +886,7 @@ func TestAccFederatedDatabaseInstanceDSPlural_type(t *testing.T) {
 			{
 				// No exact count: the project is shared, so other archives may exist.
 				Config: clusterInfo.TerraformStr + configPluralDSType(clusterInfo.ResourceName, userName, `type = "ONLINE_ARCHIVE"`),
-				Check: func(s *terraform.State) error {
-					attrs := s.RootModule().Resources[pluralDataSourceName].Primary.Attributes
-					count, _ := strconv.Atoi(attrs["results.#"])
-					if count == 0 {
-						return errors.New("expected at least one online archive instance")
-					}
-					for i := range count {
-						name := attrs[fmt.Sprintf("results.%d.name", i)]
-						if name == userName || !strings.Contains(name, "atlas-online-archive-") {
-							return fmt.Errorf("expected an online archive instance, got %q", name)
-						}
-					}
-					return nil
-				},
+				Check:  checkPluralDSOnlineArchiveInstances(userName),
 			},
 			{
 				Config: clusterInfo.TerraformStr + configPluralDSType(clusterInfo.ResourceName, userName, `type = "USER"`),
@@ -911,6 +898,26 @@ func TestAccFederatedDatabaseInstanceDSPlural_type(t *testing.T) {
 			},
 		},
 	})
+}
+
+func checkPluralDSOnlineArchiveInstances(userName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		attrs := s.RootModule().Resources[pluralDataSourceName].Primary.Attributes
+		count, err := strconv.Atoi(attrs["results.#"])
+		if err != nil {
+			return fmt.Errorf("reading federated database instance count: %w", err)
+		}
+		if count == 0 {
+			return errors.New("expected at least one online archive instance")
+		}
+		for i := range count {
+			name := attrs[fmt.Sprintf("results.%d.name", i)]
+			if name == userName || !strings.Contains(name, "atlas-online-archive-") {
+				return fmt.Errorf("expected an online archive instance, got %q", name)
+			}
+		}
+		return nil
+	}
 }
 
 func checkPluralDSUserInstances(userName string) resource.TestCheckFunc {
