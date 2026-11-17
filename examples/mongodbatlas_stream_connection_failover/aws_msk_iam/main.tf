@@ -38,6 +38,12 @@ resource "mongodbatlas_stream_connection" "example" {
   security = {
     protocol = "SASL_SSL"
   }
+  # The bootstrap servers use MSK's public IAM listener, so these connections use PUBLIC networking.
+  networking = {
+    access = {
+      type = "PUBLIC"
+    }
+  }
 }
 
 # A failover connection shares the primary connection's name and authenticates to the MSK cluster
@@ -57,5 +63,10 @@ resource "mongodbatlas_stream_connection_failover" "example" {
   }
   security = {
     protocol = "SASL_SSL"
+  }
+  networking = {
+    access = {
+      type = "PUBLIC"
+    }
   }
 }

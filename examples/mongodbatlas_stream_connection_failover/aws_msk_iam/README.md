@@ -7,7 +7,7 @@ Both connections set `authentication.aws.role_arn`. The role must already be reg
 ## Prerequisites
 
 - Project Owner on the project.
-- An Amazon MSK cluster in each region, with IAM access control enabled.
+- An Amazon MSK cluster in each region, with IAM access control enabled. This example uses MSK's public IAM listener, so the clusters must also have public access enabled.
 - An AWS IAM role trusted by Atlas Cloud Provider Access.
 
 Credentials come from the environment (`MONGODB_ATLAS_CLIENT_ID` and `MONGODB_ATLAS_CLIENT_SECRET`).
@@ -25,12 +25,14 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 
 ```hcl
 project_id                 = "your-project-id"
-bootstrap_servers          = "b-1.example.kafka.us-east-1.amazonaws.com:9098,b-2.example.kafka.us-east-1.amazonaws.com:9098"
-failover_bootstrap_servers = "b-1.example.kafka.eu-west-1.amazonaws.com:9098"
+bootstrap_servers          = "b-1.example.kafka.us-east-1.amazonaws.com:9198,b-2.example.kafka.us-east-1.amazonaws.com:9198"
+failover_bootstrap_servers = "b-1.example.kafka.eu-west-1.amazonaws.com:9198"
 kafka_iam_role_arn         = "arn:aws:iam::123456789012:role/atlas-msk-access"
 ```
 
 The workspace targets `VIRGINIA_USA` as its default region and `DUBLIN_IRL` as its failover region. Change both in `main.tf` to match where your MSK clusters run.
+
+Both connections use port `9198`, MSK's public listener for IAM access control, which matches the `PUBLIC` networking they declare. MSK exposes IAM on `9098` for access from inside the AWS VPC and on `9198` for public access, so a cluster without public access needs `9098` and private networking instead: set `networking = { access = { type = "VPC", connection_id = "<network-peering-or-private-endpoint-id>" } }` on both connections.
 
 **3. Plan and apply.**
 

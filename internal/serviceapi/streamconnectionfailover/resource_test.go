@@ -100,9 +100,10 @@ func TestAccStreamConnectionFailover(t *testing.T) {
 }
 
 // TestAccStreamConnectionFailoverAWSMSKIAM covers a failover connection that authenticates to an
-// Amazon MSK cluster with AWS_MSK_IAM: create, update, read back through both data sources, and
-// import. The role must already be registered through Atlas Cloud Provider Access in
-// MONGODB_ATLAS_PROJECT_ID, so the test is skipped in CI and unless the environment variables are set.
+// Amazon MSK cluster with AWS_MSK_IAM: create, update, read back through both data sources, import
+// while IAM is still configured, then unset authentication.aws. The role must already be registered
+// through Atlas Cloud Provider Access in MONGODB_ATLAS_PROJECT_ID, so the test is skipped in CI and
+// unless the environment variables are set.
 func TestAccStreamConnectionFailoverAWSMSKIAM(t *testing.T) {
 	acc.SkipTestForCI(t) // needs a manually configured Atlas-authorized MSK IAM role and bootstrap servers
 
@@ -149,16 +150,9 @@ func TestAccStreamConnectionFailoverAWSMSKIAM(t *testing.T) {
 				),
 			},
 			{
-				// Unset authentication.aws by switching the connection to PLAIN. A PATCH that merges
-				// could otherwise retain the stale IAM block, which would then show as a non-empty plan.
-				Config: configFailoverPlainAuth(projectID, workspaceName, connectionName, "DUBLIN_IRL", bootstrapServersEnv, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(),
-					resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "PLAIN"),
-					resource.TestCheckNoResourceAttr(resourceName, "authentication.aws.role_arn"),
-				),
-			},
-			{
+				// Import while the connection still authenticates with AWS_MSK_IAM, so this verifies
+				// that authentication.aws.role_arn survives an import instead of only round-tripping a
+				// PLAIN connection.
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -169,6 +163,16 @@ func TestAccStreamConnectionFailoverAWSMSKIAM(t *testing.T) {
 				// Secrets are never returned by the API, so they cannot be verified on import.
 				// delete_on_create_timeout is a create-time behavior flag with no API representation.
 				ImportStateVerifyIgnore: []string{"authentication.password", "authentication.client_secret", "delete_on_create_timeout"},
+			},
+			{
+				// Unset authentication.aws by switching the connection to PLAIN. A PATCH that merges
+				// could otherwise retain the stale IAM block, which would then show as a non-empty plan.
+				Config: configFailoverPlainAuth(projectID, workspaceName, connectionName, "DUBLIN_IRL", bootstrapServersEnv, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(),
+					resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "PLAIN"),
+					resource.TestCheckNoResourceAttr(resourceName, "authentication.aws.role_arn"),
+				),
 			},
 		},
 	})
