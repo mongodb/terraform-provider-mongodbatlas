@@ -1,5 +1,5 @@
 ```release-note:bug
-resource/mongodbatlas_organization: Fixes the service account secret being shown in plain text in plan output by marking the secrets attribute as sensitive
+resource/mongodbatlas_organization: Fixes the service account secret being shown in plain text in plan output for organizations created with a service account by marking the `secrets` attribute as sensitive
 ```
 
 ```release-note:note
