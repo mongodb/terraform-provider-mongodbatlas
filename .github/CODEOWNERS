@@ -51,6 +51,8 @@
 /docs/data-sources/org_log_integration.md @mongodb/APIx-Integrations
 /docs/data-sources/org_log_integrations.md @mongodb/APIx-Integrations
 /docs/data-sources/org_maintenance_settings.md @mongodb/APIx-Integrations
+/docs/data-sources/private_endpoint_connection_string.md @mongodb/APIx-Integrations
+/docs/data-sources/private_endpoint_connection_strings.md @mongodb/APIx-Integrations
 /docs/data-sources/project_ip_access_lists.md @mongodb/APIx-Integrations
 /docs/data-sources/project_mcp_config.md @mongodb/APIx-Integrations
 /docs/data-sources/project_mcp_config_secret.md @mongodb/APIx-Integrations
@@ -80,6 +82,7 @@
 /docs/resources/org_delegation_settings.md @mongodb/APIx-Integrations
 /docs/resources/org_log_integration.md @mongodb/APIx-Integrations
 /docs/resources/org_maintenance_settings.md @mongodb/APIx-Integrations
+/docs/resources/private_endpoint_connection_string.md @mongodb/APIx-Integrations
 /docs/resources/project_mcp_config.md @mongodb/APIx-Integrations
 /docs/resources/project_mcp_config_secret.md @mongodb/APIx-Integrations
 /docs/resources/project_service_account.md @mongodb/APIx-Integrations

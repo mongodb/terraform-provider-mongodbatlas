@@ -68,6 +68,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orgdelegationsettings"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orglogintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orgmaintenancesettings"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privateendpointconnectionstring"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive"
 	autogenprojectipaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectmcpconfig"
@@ -387,6 +388,8 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		projectmcpconfig.PluralDataSource,
 		projectmcpconfigsecret.DataSource,
 		projectmcpconfigsecret.PluralDataSource,
+		privateendpointconnectionstring.DataSource,
+		privateendpointconnectionstring.PluralDataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
@@ -443,6 +446,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		mcpconfigsecret.Resource,
 		projectmcpconfig.Resource,
 		projectmcpconfigsecret.Resource,
+		privateendpointconnectionstring.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {
