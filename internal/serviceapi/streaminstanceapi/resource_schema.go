@@ -171,6 +171,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Optional for type: DataCatalog. Catalog system the connection points at. Cannot be changed after creation.",
 						},
+						"catalog_url": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Required for type: DataCatalog. Base HTTPS URL of the catalog. Must be on the provider's domain: `*.cloud.databricks.com` or `*.azuredatabricks.net` for Databricks Unity, and `*.snowflakecomputing.com` for Snowflake Horizon.",
+						},
 						"cluster_group_id": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Optional for type: Cluster. Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.",
@@ -583,6 +587,7 @@ type TFConnectionsModel struct {
 	Azure                        customtypes.ObjectValue[TFConnectionsAzureModel]                        `tfsdk:"azure" autogen:"omitjson"`
 	BootstrapServers             types.String                                                            `tfsdk:"bootstrap_servers" autogen:"omitjson"`
 	CatalogProvider              types.String                                                            `tfsdk:"catalog_provider" autogen:"omitjson"`
+	CatalogUrl                   types.String                                                            `tfsdk:"catalog_url" autogen:"omitjson"`
 	ClusterGroupId               types.String                                                            `tfsdk:"cluster_group_id" autogen:"omitjson"`
 	ClusterName                  types.String                                                            `tfsdk:"cluster_name" autogen:"omitjson"`
 	Config                       customtypes.MapValue[types.String]                                      `tfsdk:"config" autogen:"omitjson"`
