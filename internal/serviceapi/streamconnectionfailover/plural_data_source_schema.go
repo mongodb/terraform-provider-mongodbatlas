@@ -42,10 +42,6 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 											Computed:            true,
 											MarkdownDescription: "Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.",
 										},
-										"test_bucket": dsschema.StringAttribute{
-											Computed:            true,
-											MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.",
-										},
 									},
 								},
 								"client_id": dsschema.StringAttribute{
@@ -243,8 +239,7 @@ type TFPluralDSResultsAuthenticationModel struct {
 	Username                  types.String                                                     `tfsdk:"username" autogen:"omitjson"`
 }
 type TFPluralDSResultsAuthenticationAwsModel struct {
-	RoleArn    types.String `tfsdk:"role_arn" autogen:"omitjson"`
-	TestBucket types.String `tfsdk:"test_bucket" autogen:"omitjson"`
+	RoleArn types.String `tfsdk:"role_arn" autogen:"omitjson"`
 }
 type TFPluralDSResultsDbRoleToExecuteModel struct {
 	Role types.String `tfsdk:"role" autogen:"omitjson"`

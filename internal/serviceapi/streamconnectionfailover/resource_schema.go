@@ -29,12 +29,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						CustomType:          customtypes.NewObjectType[TFAuthenticationAwsModel](ctx),
 						Attributes: map[string]schema.Attribute{
 							"role_arn": schema.StringAttribute{
-								Optional:            true,
+								Required:            true,
 								MarkdownDescription: "Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.",
-							},
-							"test_bucket": schema.StringAttribute{
-								Optional:            true,
-								MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.",
 							},
 						},
 					},
@@ -266,8 +262,7 @@ type TFAuthenticationModel struct {
 	Username                  types.String                                      `tfsdk:"username"`
 }
 type TFAuthenticationAwsModel struct {
-	RoleArn    types.String `tfsdk:"role_arn"`
-	TestBucket types.String `tfsdk:"test_bucket"`
+	RoleArn types.String `tfsdk:"role_arn"`
 }
 type TFDbRoleToExecuteModel struct {
 	Role types.String `tfsdk:"role"`

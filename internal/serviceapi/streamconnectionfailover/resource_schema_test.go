@@ -92,8 +92,8 @@ func toAny[V any](attrs map[string]V) map[string]any {
 	return out
 }
 
-// assertAwsRoleArn checks the MSK IAM authentication block: `role_arn` is exposed, and the `links`
-// API boilerplate stays ignored like every other `links` in this resource.
+// assertAwsRoleArn checks the MSK IAM authentication block: `role_arn` is exposed, while the
+// `links` API boilerplate and the S3-only `test_bucket` stay ignored (see tools/codegen/config.yml).
 func assertAwsRoleArn(t *testing.T, label string, authAttrs map[string]any) {
 	t.Helper()
 	var awsAttrs map[string]any
@@ -110,6 +110,9 @@ func assertAwsRoleArn(t *testing.T, label string, authAttrs map[string]any) {
 	}
 	if _, ok := awsAttrs["links"]; ok {
 		t.Errorf("%s: authentication.aws.links must be ignored (see tools/codegen/config.yml)", label)
+	}
+	if _, ok := awsAttrs["test_bucket"]; ok {
+		t.Errorf("%s: authentication.aws.test_bucket must be ignored: it is S3-only, and failover supports only Kafka and Cluster", label)
 	}
 }
 
@@ -139,4 +142,25 @@ func TestSchemaExposesAuthenticationAws(t *testing.T) {
 		t.Fatal("plural data source: `results.authentication` not found or not a SingleNestedAttribute")
 	}
 	assertAwsRoleArn(t, "plural data source", toAny(pluralAuth.Attributes))
+}
+
+// TestSchemaAwsRoleArnIsRequired guards that an empty `aws = {}` block is rejected. `aws` stays
+// optional so PLAIN/SCRAM/OAUTHBEARER remain valid, but with `test_bucket` ignored role_arn is the
+// only field that applies to a failover connection, so it is required inside the block.
+func TestSchemaAwsRoleArnIsRequired(t *testing.T) {
+	resAuth, ok := streamconnectionfailover.ResourceSchema(context.Background()).Attributes["authentication"].(schema.SingleNestedAttribute)
+	if !ok {
+		t.Fatal("resource: `authentication` not found or not a SingleNestedAttribute")
+	}
+	aws, ok := resAuth.Attributes["aws"].(schema.SingleNestedAttribute)
+	if !ok {
+		t.Fatal("resource: `authentication.aws` not found or not a SingleNestedAttribute")
+	}
+	roleArn, ok := aws.Attributes["role_arn"].(schema.StringAttribute)
+	if !ok {
+		t.Fatal("resource: `authentication.aws.role_arn` not found or not a StringAttribute")
+	}
+	if !roleArn.IsRequired() {
+		t.Error("resource: authentication.aws.role_arn must be required, so that `aws = {}` is rejected")
+	}
 }

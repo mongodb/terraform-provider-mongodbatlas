@@ -34,21 +34,10 @@ schema:
                             attributes:
                                 - string: {}
                                   description: Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
-                                  computed_optional_required: optional
+                                  computed_optional_required: required
                                   tf_schema_name: role_arn
                                   tf_model_name: RoleArn
                                   api_name: roleArn
-                                  req_body_usage: all_request_bodies
-                                  sensitive: false
-                                  create_only: false
-                                  present_in_any_response: true
-                                  request_only_required_on_create: false
-                                - string: {}
-                                  description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.
-                                  computed_optional_required: optional
-                                  tf_schema_name: test_bucket
-                                  tf_model_name: TestBucket
-                                  api_name: testBucket
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
@@ -624,17 +613,6 @@ data_sources:
                                       create_only: false
                                       present_in_any_response: false
                                       request_only_required_on_create: false
-                                    - string: {}
-                                      description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.
-                                      computed_optional_required: computed
-                                      tf_schema_name: test_bucket
-                                      tf_model_name: TestBucket
-                                      api_name: testBucket
-                                      req_body_usage: omit_always
-                                      sensitive: false
-                                      create_only: false
-                                      present_in_any_response: false
-                                      request_only_required_on_create: false
                           description: AWS configurations for AWS-based connection types.
                           custom_type:
                             name: AuthenticationAws
@@ -1156,17 +1134,6 @@ data_sources:
                                                   tf_schema_name: role_arn
                                                   tf_model_name: RoleArn
                                                   api_name: roleArn
-                                                  req_body_usage: omit_always
-                                                  sensitive: false
-                                                  create_only: false
-                                                  present_in_any_response: false
-                                                  request_only_required_on_create: false
-                                                - string: {}
-                                                  description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.
-                                                  computed_optional_required: computed
-                                                  tf_schema_name: test_bucket
-                                                  tf_model_name: TestBucket
-                                                  api_name: testBucket
                                                   req_body_usage: omit_always
                                                   sensitive: false
                                                   create_only: false
