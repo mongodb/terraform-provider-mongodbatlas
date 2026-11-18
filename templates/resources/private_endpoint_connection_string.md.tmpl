@@ -1,0 +1,31 @@
+---
+subcategory: "Private Endpoint Services"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a resource for managing a customer-managed private endpoint connection string for one MongoDB Atlas cluster. The connection string is built from an explicit set of private endpoints, and MongoDB Atlas embeds a stable generated slug in its hostnames.
+
+~> **NOTE:** The Atlas API for this resource is in preview and can change before it becomes generally available. Your project must be opted in to private endpoint connection strings through the project setting `isPrivateEndpointConnectionStringsEnabled` (see [Update Project Settings](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-updategroupsettings)). When a project opts in, Atlas copies each existing generated private endpoint connection string into a read-only `IMPORTED` record with the same hostname. This resource creates and manages `SELF_MANAGED` connection strings only; the data sources return both types, and Atlas rejects updates to `IMPORTED` records. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+
+Create and update operations are asynchronous. Terraform waits until `status` is `AVAILABLE`, up to the `timeouts` values (default 2 hours). If Atlas reports `FAILED`, the apply fails and `error_message` explains the cause and the fix.
+
+`private_endpoint_ids` accepts 1 to 50 private endpoints, at most one per cloud provider region. It can include private endpoints that the cluster does not use yet, which lets you pre-link a private endpoint for a future region. You can update `name` and `private_endpoint_ids` in place: the connection string ID and slug stay the same, and Atlas keeps returning the existing connection string until the updated one is available. `project_id` and `cluster_name` cannot be changed after creation.
+
+`optimized_mode_enabled` requires an AWS sharded cluster and a private endpoint selection that meets the [optimized connection string requirements](https://www.mongodb.com/docs/atlas/reference/faq/connection-changes/#how-can-i-optimize-connection-performance-for-sharded-clusters-using-private-endpoints).
+
+## Example Usages
+
+{{ tffile "examples/mongodbatlas_private_endpoint_connection_string/main.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import a private endpoint connection string by using the project ID, cluster name, and connection string ID in the format `PROJECT_ID/CLUSTER_NAME/CONNECTION_STRING_ID`, for example:
+
+```shell
+terraform import mongodbatlas_private_endpoint_connection_string.this 650972848269185c55f40ca1/my-cluster/32b6e34b3d91647abb20e7b8
+```
+
+For more information see: [MongoDB Atlas API - Private Endpoint Connection String](https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createGroupClusterPrivateEndpointConnectionString) Documentation.

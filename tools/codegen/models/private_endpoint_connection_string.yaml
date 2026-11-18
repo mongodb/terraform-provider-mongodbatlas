@@ -1,0 +1,605 @@
+schema:
+    description: Creates one private endpoint connection string for the specified cluster. The new record is returned with `status = PENDING`; MongoDB Cloud publishes the DNS records asynchronously, so poll the record until it reports `AVAILABLE` before connecting with it.
+    attributes:
+        - string: {}
+          description: Human-readable label that identifies the cluster.
+          computed_optional_required: required
+          tf_schema_name: cluster_name
+          tf_model_name: ClusterName
+          api_name: clusterName
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - string: {}
+          description: Private endpoint-aware connection string that uses the `mongodb://` protocol to connect to this cluster through the selected private endpoints. MongoDB Cloud returns this value when `status` is `AVAILABLE`. After you submit an update, MongoDB Cloud continues to return the existing connection string until the updated connection string becomes available.
+          computed_optional_required: computed
+          tf_schema_name: connection_string
+          tf_model_name: ConnectionString
+          api_name: connectionString
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies this private endpoint connection string. This value is the `connectionStringId` path parameter of this resource's endpoints.
+          computed_optional_required: computed
+          tf_schema_name: connection_string_id
+          tf_model_name: ConnectionStringId
+          api_name: connectionStringId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string: {}
+          description: Date and time when MongoDB Cloud created this private endpoint connection string. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+          computed_optional_required: computed
+          tf_schema_name: created_at
+          tf_model_name: CreatedAt
+          api_name: createdAt
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string: {}
+          description: Error message that explains why this private endpoint connection string is in the `FAILED` state, including the remediation, for example when a selected endpoint was deleted mid-flight. Present only when `status` is `FAILED`.
+          computed_optional_required: computed
+          tf_schema_name: error_message
+          tf_model_name: ErrorMessage
+          api_name: errorMessage
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+          computed_optional_required: required
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - string: {}
+          description: Party that manages this private endpoint connection string. MongoDB Cloud returns `SELF_MANAGED` for connection strings that you create and maintain through this resource, and `IMPORTED` for records that preserve the private endpoint connection strings that this cluster exposed before migration. You can delete an imported record but not update it.
+          computed_optional_required: computed
+          tf_schema_name: management_type
+          tf_model_name: ManagementType
+          api_name: managementType
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string: {}
+          description: Human-readable label of at most 64 characters that identifies this private endpoint connection string. You can change this label without changing the connection string.
+          computed_optional_required: required
+          tf_schema_name: name
+          tf_model_name: Name
+          api_name: name
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - bool:
+            default: false
+          description: Flag that indicates whether this private endpoint connection string uses the optimized load-balanced mode. This mode requires a sharded cluster and a private endpoint selection that satisfies the optimized connection string requirements.
+          computed_optional_required: computed_optional
+          tf_schema_name: optimized_mode_enabled
+          tf_model_name: OptimizedModeEnabled
+          api_name: optimizedModeEnabled
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - set:
+            element_type: 4
+          description: Set of private endpoints that this connection string covers. MongoDB Cloud stores this set as a snapshot of your selection and never adds newly created private endpoints to it. The set accepts at most one private endpoint per cloud provider region, and can include private endpoints that the cluster does not use yet. Order is not significant and MongoDB Cloud rejects duplicate values.
+          custom_type:
+            model: customtypes.SetValue[types.String]
+            schema: customtypes.NewSetType[types.String](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: required
+          tf_schema_name: private_endpoint_ids
+          tf_model_name: PrivateEndpointIds
+          api_name: privateEndpointIds
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Short generated pin of at most 64 characters, unique per project. Present only when `managementType` is `SELF_MANAGED`. A self-managed connection string embeds this value in its DNS names, and its replica set horizon name is `cs-` plus this value.
+          computed_optional_required: computed
+          tf_schema_name: slug
+          tf_model_name: Slug
+          api_name: slug
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+          immutable_computed: true
+        - string: {}
+          description: Private endpoint-aware connection string that uses the `mongodb+srv://` protocol to connect to this cluster through the selected private endpoints. MongoDB Cloud returns this value when `status` is `AVAILABLE`. After you submit an update, MongoDB Cloud continues to return the existing connection string until the updated connection string becomes available.
+          computed_optional_required: computed
+          tf_schema_name: srv_connection_string
+          tf_model_name: SrvConnectionString
+          api_name: srvConnectionString
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: State of this private endpoint connection string. MongoDB Cloud returns `PENDING` while it reconfigures the cluster, `AVAILABLE` once the connection string is usable, and `FAILED` when creation cannot complete.
+          computed_optional_required: computed
+          tf_schema_name: status
+          tf_model_name: Status
+          api_name: status
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Date and time when MongoDB Cloud last updated this private endpoint connection string. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+          computed_optional_required: computed
+          tf_schema_name: updated_at
+          tf_model_name: UpdatedAt
+          api_name: updatedAt
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - bool:
+            default: true
+          description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
+          computed_optional_required: computed_optional
+          tf_schema_name: delete_on_create_timeout
+          tf_model_name: DeleteOnCreateTimeout
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - timeouts:
+            configurable_timeouts:
+                - create
+                - update
+          computed_optional_required: ""
+          tf_schema_name: timeouts
+          tf_model_name: Timeouts
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/privateEndpointConnectionStrings/{connectionStringId}
+    create:
+        wait:
+            state_property: status
+            error_description_property: errorMessage
+            pending_states:
+                - PENDING
+            target_states:
+                - AVAILABLE
+            timeout_seconds: 7200
+            min_timeout_seconds: 10
+            delay_seconds: 10
+        http_method: POST
+        path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/privateEndpointConnectionStrings
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/privateEndpointConnectionStrings/{connectionStringId}
+    update:
+        wait:
+            state_property: status
+            error_description_property: errorMessage
+            pending_states:
+                - PENDING
+            target_states:
+                - AVAILABLE
+            timeout_seconds: 7200
+            min_timeout_seconds: 10
+            delay_seconds: 10
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/privateEndpointConnectionStrings/{connectionStringId}
+    version_header: application/vnd.atlas.preview+json
+data_sources:
+    singular:
+        description: Returns one private endpoint connection string from the specified cluster. This endpoint treats `deleteRequested = true` records as not found.
+        attributes:
+            - string: {}
+              description: Human-readable label that identifies the cluster.
+              computed_optional_required: required
+              tf_schema_name: cluster_name
+              tf_model_name: ClusterName
+              api_name: clusterName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Private endpoint-aware connection string that uses the `mongodb://` protocol to connect to this cluster through the selected private endpoints. MongoDB Cloud returns this value when `status` is `AVAILABLE`. After you submit an update, MongoDB Cloud continues to return the existing connection string until the updated connection string becomes available.
+              computed_optional_required: computed
+              tf_schema_name: connection_string
+              tf_model_name: ConnectionString
+              api_name: connectionString
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies this private endpoint connection string.
+              computed_optional_required: required
+              tf_schema_name: connection_string_id
+              tf_model_name: ConnectionStringId
+              api_name: connectionStringId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Date and time when MongoDB Cloud created this private endpoint connection string. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+              computed_optional_required: computed
+              tf_schema_name: created_at
+              tf_model_name: CreatedAt
+              api_name: createdAt
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Error message that explains why this private endpoint connection string is in the `FAILED` state, including the remediation, for example when a selected endpoint was deleted mid-flight. Present only when `status` is `FAILED`.
+              computed_optional_required: computed
+              tf_schema_name: error_message
+              tf_model_name: ErrorMessage
+              api_name: errorMessage
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Party that manages this private endpoint connection string. MongoDB Cloud returns `SELF_MANAGED` for connection strings that you create and maintain through this resource, and `IMPORTED` for records that preserve the private endpoint connection strings that this cluster exposed before migration. You can delete an imported record but not update it.
+              computed_optional_required: computed
+              tf_schema_name: management_type
+              tf_model_name: ManagementType
+              api_name: managementType
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Human-readable label of at most 64 characters that identifies this private endpoint connection string. You can change this label without changing the connection string.
+              computed_optional_required: computed
+              tf_schema_name: name
+              tf_model_name: Name
+              api_name: name
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - bool:
+                default: false
+              description: Flag that indicates whether this private endpoint connection string uses the optimized load-balanced mode. This mode requires a sharded cluster and a private endpoint selection that satisfies the optimized connection string requirements.
+              computed_optional_required: computed
+              tf_schema_name: optimized_mode_enabled
+              tf_model_name: OptimizedModeEnabled
+              api_name: optimizedModeEnabled
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - set:
+                element_type: 4
+              description: Set of private endpoints that this connection string covers. MongoDB Cloud stores this set as a snapshot of your selection and never adds newly created private endpoints to it. The set accepts at most one private endpoint per cloud provider region, and can include private endpoints that the cluster does not use yet. Order is not significant and MongoDB Cloud rejects duplicate values.
+              custom_type:
+                model: customtypes.SetValue[types.String]
+                schema: customtypes.NewSetType[types.String](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: private_endpoint_ids
+              tf_model_name: PrivateEndpointIds
+              api_name: privateEndpointIds
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Short generated pin of at most 64 characters, unique per project. Present only when `managementType` is `SELF_MANAGED`. A self-managed connection string embeds this value in its DNS names, and its replica set horizon name is `cs-` plus this value.
+              computed_optional_required: computed
+              tf_schema_name: slug
+              tf_model_name: Slug
+              api_name: slug
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Private endpoint-aware connection string that uses the `mongodb+srv://` protocol to connect to this cluster through the selected private endpoints. MongoDB Cloud returns this value when `status` is `AVAILABLE`. After you submit an update, MongoDB Cloud continues to return the existing connection string until the updated connection string becomes available.
+              computed_optional_required: computed
+              tf_schema_name: srv_connection_string
+              tf_model_name: SrvConnectionString
+              api_name: srvConnectionString
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: State of this private endpoint connection string. MongoDB Cloud returns `PENDING` while it reconfigures the cluster, `AVAILABLE` once the connection string is usable, and `FAILED` when creation cannot complete.
+              computed_optional_required: computed
+              tf_schema_name: status
+              tf_model_name: Status
+              api_name: status
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Date and time when MongoDB Cloud last updated this private endpoint connection string. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+              computed_optional_required: computed
+              tf_schema_name: updated_at
+              tf_model_name: UpdatedAt
+              api_name: updatedAt
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    plural:
+        description: Returns all private endpoint connection strings for the specified cluster.
+        attributes:
+            - string: {}
+              description: Human-readable label that identifies the cluster.
+              computed_optional_required: required
+              tf_schema_name: cluster_name
+              tf_model_name: ClusterName
+              api_name: clusterName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Filter records by management type.
+              computed_optional_required: optional
+              tf_schema_name: management_type
+              tf_model_name: ManagementType
+              api_name: managementType
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Private endpoint-aware connection string that uses the `mongodb://` protocol to connect to this cluster through the selected private endpoints. MongoDB Cloud returns this value when `status` is `AVAILABLE`. After you submit an update, MongoDB Cloud continues to return the existing connection string until the updated connection string becomes available.
+                          computed_optional_required: computed
+                          tf_schema_name: connection_string
+                          tf_model_name: ConnectionString
+                          api_name: connectionString
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-hexadecimal digit string that identifies this private endpoint connection string. This value is the `connectionStringId` path parameter of this resource's endpoints.
+                          computed_optional_required: computed
+                          tf_schema_name: connection_string_id
+                          tf_model_name: ConnectionStringId
+                          api_name: connectionStringId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Date and time when MongoDB Cloud created this private endpoint connection string. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                          computed_optional_required: computed
+                          tf_schema_name: created_at
+                          tf_model_name: CreatedAt
+                          api_name: createdAt
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Error message that explains why this private endpoint connection string is in the `FAILED` state, including the remediation, for example when a selected endpoint was deleted mid-flight. Present only when `status` is `FAILED`.
+                          computed_optional_required: computed
+                          tf_schema_name: error_message
+                          tf_model_name: ErrorMessage
+                          api_name: errorMessage
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Party that manages this private endpoint connection string. MongoDB Cloud returns `SELF_MANAGED` for connection strings that you create and maintain through this resource, and `IMPORTED` for records that preserve the private endpoint connection strings that this cluster exposed before migration. You can delete an imported record but not update it.
+                          computed_optional_required: computed
+                          tf_schema_name: management_type
+                          tf_model_name: ManagementType
+                          api_name: managementType
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Human-readable label of at most 64 characters that identifies this private endpoint connection string. You can change this label without changing the connection string.
+                          computed_optional_required: computed
+                          tf_schema_name: name
+                          tf_model_name: Name
+                          api_name: name
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - bool:
+                            default: false
+                          description: Flag that indicates whether this private endpoint connection string uses the optimized load-balanced mode. This mode requires a sharded cluster and a private endpoint selection that satisfies the optimized connection string requirements.
+                          computed_optional_required: computed
+                          tf_schema_name: optimized_mode_enabled
+                          tf_model_name: OptimizedModeEnabled
+                          api_name: optimizedModeEnabled
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - set:
+                            element_type: 4
+                          description: Set of private endpoints that this connection string covers. MongoDB Cloud stores this set as a snapshot of your selection and never adds newly created private endpoints to it. The set accepts at most one private endpoint per cloud provider region, and can include private endpoints that the cluster does not use yet. Order is not significant and MongoDB Cloud rejects duplicate values.
+                          custom_type:
+                            model: customtypes.SetValue[types.String]
+                            schema: customtypes.NewSetType[types.String](ctx)
+                            packages:
+                                - customtypes
+                          computed_optional_required: computed
+                          tf_schema_name: private_endpoint_ids
+                          tf_model_name: PrivateEndpointIds
+                          api_name: privateEndpointIds
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Short generated pin of at most 64 characters, unique per project. Present only when `managementType` is `SELF_MANAGED`. A self-managed connection string embeds this value in its DNS names, and its replica set horizon name is `cs-` plus this value.
+                          computed_optional_required: computed
+                          tf_schema_name: slug
+                          tf_model_name: Slug
+                          api_name: slug
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Private endpoint-aware connection string that uses the `mongodb+srv://` protocol to connect to this cluster through the selected private endpoints. MongoDB Cloud returns this value when `status` is `AVAILABLE`. After you submit an update, MongoDB Cloud continues to return the existing connection string until the updated connection string becomes available.
+                          computed_optional_required: computed
+                          tf_schema_name: srv_connection_string
+                          tf_model_name: SrvConnectionString
+                          api_name: srvConnectionString
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: State of this private endpoint connection string. MongoDB Cloud returns `PENDING` while it reconfigures the cluster, `AVAILABLE` once the connection string is usable, and `FAILED` when creation cannot complete.
+                          computed_optional_required: computed
+                          tf_schema_name: status
+                          tf_model_name: Status
+                          api_name: status
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Date and time when MongoDB Cloud last updated this private endpoint connection string. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                          computed_optional_required: computed
+                          tf_schema_name: updated_at
+                          tf_model_name: UpdatedAt
+                          api_name: updatedAt
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of returned documents that MongoDB Cloud provides when completing this request.
+              custom_type:
+                name: Results
+                model: customtypes.NestedListValue[TFResultsModel]
+                schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+                packages:
+                    - customtypes
+              computed_optional_required: computed
+              tf_schema_name: results
+              tf_model_name: Results
+              api_name: results
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Filter records by lifecycle status.
+              computed_optional_required: optional
+              tf_schema_name: status
+              tf_model_name: Status
+              api_name: status
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/privateEndpointConnectionStrings/{connectionStringId}
+        list:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/clusters/{clusterName}/privateEndpointConnectionStrings
+        version_header: application/vnd.atlas.preview+json
+name: private_endpoint_connection_string
+packageName: privateendpointconnectionstring

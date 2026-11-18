@@ -354,6 +354,7 @@ jobs:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/clusterapi/*.go'
             - 'internal/serviceapi/clusteroldapi/*.go'
+            - 'internal/serviceapi/privateendpointconnectionstring/*.go'
             - 'internal/serviceapi/searchdeploymentapi/*.go'
             - 'internal/serviceapi/searchindexapi/*.go'
             - 'internal/serviceapi/streaminstanceapi/*.go'
@@ -736,9 +737,13 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_KMS_KEY_ID: ${{ secrets.aws_kms_key_id }}
+          AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
+          AWS_SUBNET_ID: ${{ vars.AWS_SUBNET_ID }}
+          AWS_SECURITY_GROUP_ID: ${{ vars.AWS_SECURITY_GROUP_ID }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
             ./internal/serviceapi/clusterapi
+            ./internal/serviceapi/privateendpointconnectionstring
             ./internal/serviceapi/searchdeploymentapi
             ./internal/serviceapi/searchindexapi
             ./internal/serviceapi/streaminstanceapi

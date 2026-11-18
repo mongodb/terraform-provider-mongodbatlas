@@ -1,0 +1,17 @@
+---
+subcategory: "Private Endpoint Services"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes a private endpoint connection string for one MongoDB Atlas cluster. It returns both `SELF_MANAGED` connection strings that the resource manages and read-only `IMPORTED` records that Atlas created when the project opted in.
+
+~> **NOTE:** The Atlas API for this data source is in preview and can change before it becomes generally available. Your project must be opted in to private endpoint connection strings through the project setting `isPrivateEndpointConnectionStringsEnabled`. To use this data source, the requesting Service Account or API Key must have the Project Read Only role.
+
+## Example Usage
+
+{{ tffile "examples/mongodbatlas_private_endpoint_connection_string/main.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Private Endpoint Connection String](https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getGroupClusterPrivateEndpointConnectionString) Documentation.

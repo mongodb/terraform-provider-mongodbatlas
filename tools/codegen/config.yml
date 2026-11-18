@@ -2282,3 +2282,56 @@ resources:
         overrides:
           project_id:
             description: *project_id_description
+
+  # Preview API until GA: switch version_header to the dated stable version when the API is promoted.
+  # The resource manages SELF_MANAGED strings only. IMPORTED strings can be read with the data sources, and Atlas rejects updates to them with a 405.
+  private_endpoint_connection_string:
+    read: &private-endpoint-connection-string-read
+      path: &private_endpoint_connection_string_item_path /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/privateEndpointConnectionStrings/{connectionStringId}
+      method: GET
+    create:
+      path: &private_endpoint_connection_string_collection_path /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/privateEndpointConnectionStrings
+      method: POST
+      # Atlas returns PENDING while it publishes the DNS records (and, for replica sets, the horizon), then AVAILABLE, or FAILED with errorMessage.
+      wait: &private-endpoint-connection-string-wait
+        state_property: status
+        pending_states: [PENDING]
+        target_states: [AVAILABLE]
+        error_description_property: errorMessage
+        timeout_seconds: 7200 # 2 hours, same default as mongodbatlas_privatelink_endpoint_service
+        min_timeout_seconds: 10
+        delay_seconds: 10
+    update:
+      path: *private_endpoint_connection_string_item_path
+      method: PATCH
+      wait: *private-endpoint-connection-string-wait
+    # No delete wait: the DELETE returns 204 and the GET returns 404 for the string from then on.
+    delete:
+      path: *private_endpoint_connection_string_item_path
+      method: DELETE
+    version_header: application/vnd.atlas.preview+json
+    schema:
+      aliases:
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+        connection_string_id:
+          immutable_computed: true # Reduces plan verbosity.
+        created_at:
+          immutable_computed: true # Reduces plan verbosity.
+        management_type:
+          immutable_computed: true # Always SELF_MANAGED for strings created by this resource.
+        slug:
+          immutable_computed: true # Generated on create and embedded in the hostnames, it never changes.
+    datasources:
+      read: *private-endpoint-connection-string-read
+      list:
+        path: *private_endpoint_connection_string_collection_path
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description
