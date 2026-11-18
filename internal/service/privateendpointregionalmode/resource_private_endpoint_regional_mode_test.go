@@ -6,15 +6,10 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/clean"
-	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312028/admin"
 )
 
 func TestAccPrivateEndpointRegionalMode_basic(t *testing.T) {
@@ -46,12 +41,7 @@ func TestAccPrivateEndpointRegionalMode_conn(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			acc.PreCheckAwsEnvBasic(t)
-			acc.PreCheckAwsRegionCases(t)
-			acc.SerialSleep(t)
-			optOutOfPECS(t, projectID)
-		},
+		PreCheck:                 func() { acc.PreCheckAwsEnvBasic(t); acc.PreCheckAwsRegionCases(t); acc.SerialSleep(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -84,7 +74,8 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	var (
 		resourceName   = "mongodbatlas_private_endpoint_regional_mode.test"
 		dataSourceName = "data.mongodbatlas_private_endpoint_regional_mode.test"
-		projectID      = createOptedOutProject(tb, acc.RandomProjectName())
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acc.RandomProjectName()
 	)
 
 	return &resource.TestCase{
@@ -93,7 +84,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, false),
+				Config: configBasic(orgID, projectName, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -104,7 +95,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				),
 			},
 			{
-				Config: configBasic(projectID, true),
+				Config: configBasic(orgID, projectName, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -116,39 +107,6 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			},
 		},
 	}
-}
-
-const cleanupProjectDeleteTimeout = 10 * time.Minute
-
-// createOptedOutProject creates a dedicated project and opts it out of private endpoint connection strings (PECS).
-// New projects auto opt in to PECS, which freezes the regional mode setting, so the resource can only be
-// exercised on a project that opted out.
-func createOptedOutProject(tb testing.TB, name string) string {
-	tb.Helper()
-	acc.SkipInUnitTest(tb)
-	acc.PreCheckBasic(tb)
-	group := &admin.Group{Name: name, OrgId: os.Getenv("MONGODB_ATLAS_ORG_ID")}
-	project, _, err := acc.ConnV2().ProjectsAPI.CreateGroup(context.Background(), group).Execute()
-	require.NoError(tb, err)
-	projectID := project.GetId()
-	require.NotEmpty(tb, projectID)
-	tb.Cleanup(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), cleanupProjectDeleteTimeout)
-		defer cancel()
-		require.NoError(tb, clean.DeleteProject(ctx, acc.ConnV2(), projectID))
-	})
-	optOutOfPECS(tb, projectID)
-	return projectID
-}
-
-// optOutOfPECS disables private endpoint connection strings for the project.
-// The setting is only exposed by the preview SDK today.
-func optOutOfPECS(tb testing.TB, projectID string) {
-	tb.Helper()
-	disabled := false
-	settings := &adminpreview.GroupSettingsPreview{IsPrivateEndpointConnectionStringsEnabled: &disabled}
-	_, _, err := acc.ConnPreview().ProjectsAPI.UpdateGroupSettings(context.Background(), projectID, settings).Execute()
-	require.NoError(tb, err)
 }
 
 func modeClusterData(clusterResourceName, regionalModeResourceName, privateLinkResourceName string) string {
@@ -182,18 +140,23 @@ func configNoProject(resourceName, projectID string, enabled bool) string {
 	`, resourceName, projectID, enabled)
 }
 
-func configBasic(projectID string, enabled bool) string {
+func configBasic(orgID, projectName string, enabled bool) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
 		resource "mongodbatlas_private_endpoint_regional_mode" "test" {
-			project_id   = %[1]q
-			enabled      = %[2]t
+			project_id   = mongodbatlas_project.project.id
+			enabled      = %[3]t
 		}
 
 		data "mongodbatlas_private_endpoint_regional_mode" "test" {
-			project_id = %[1]q
+			project_id = mongodbatlas_project.project.id
 			depends_on = [ mongodbatlas_private_endpoint_regional_mode.test ]
 		}
-	`, projectID, enabled)
+	`, orgID, projectName, enabled)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
