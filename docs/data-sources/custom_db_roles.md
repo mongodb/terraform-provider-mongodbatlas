@@ -10,8 +10,8 @@ subcategory: "Database Users"
 
 ```terraform
 resource "mongodbatlas_database_user" "test" {
-  username      = "test-acc-username"
-  password      = "test-acc-password"
+  username      = "<USERNAME>"
+  password      = "<PASSWORD>"
   project_id    = "<PROJECT-ID>"
   database_name = "admin"
 
