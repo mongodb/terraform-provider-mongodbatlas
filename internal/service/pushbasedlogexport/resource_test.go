@@ -20,7 +20,13 @@ const (
 	defaultPrefixPath  = ""
 )
 
+// Push-based log export acceptance tests do not run in CI:
+//  * PBLE is deprecated in favor of log_integration and will be removed in the next major version.
+//  * Atlas no longer accepts new PBLE configurations.
+// You may run these locally passing an allowlisted project ID via env vars.
+
 func TestAccPushBasedLogExport_basic(t *testing.T) {
+	acc.SkipTestForCI(t)
 	resource.Test(t, *basicTestCase(t))
 }
 
@@ -65,6 +71,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 }
 
 func TestAccPushBasedLogExport_noPrefixPath(t *testing.T) {
+	acc.SkipTestForCI(t)
 	resource.Test(t, *noPrefixPathTestCase(t))
 }
 
@@ -95,6 +102,7 @@ func noPrefixPathTestCase(tb testing.TB) *resource.TestCase {
 }
 
 func TestAccPushBasedLogExport_createFailure(t *testing.T) {
+	acc.SkipTestForCI(t)
 	resource.Test(t, *createFailure(t))
 }
 
@@ -118,6 +126,7 @@ func createFailure(tb testing.TB) *resource.TestCase {
 }
 
 func TestAccPushBasedLogExport_createTimeoutWithDeleteOnCreateTimeout(t *testing.T) {
+	acc.SkipTestForCI(t)
 	resource.Test(t, *createTimeoutWithDeleteOnCreateTimeout(t))
 }
 

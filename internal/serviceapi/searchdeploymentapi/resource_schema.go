@@ -16,6 +16,67 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"auto_scaling": schema.SingleNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "Settings that let Atlas change the Search Node tier on its own. Bounds apply to the whole deployment, and Atlas scales each region and shard independently within them. Omit to keep autoscaling off.",
+				CustomType:          customtypes.NewObjectType[TFAutoScalingModel](ctx),
+				Attributes: map[string]schema.Attribute{
+					"compute": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "Settings that control Search Node tier scaling based on load.",
+						CustomType:          customtypes.NewObjectType[TFAutoScalingComputeModel](ctx),
+						Attributes: map[string]schema.Attribute{
+							"enabled": schema.BoolAttribute{
+								Computed:            true,
+								Optional:            true,
+								MarkdownDescription: "Flag that indicates whether Atlas raises the Search Node tier when the nodes are under sustained load. If set to `true`, you must also set `maxInstanceTier`.",
+							},
+							"max_instance_tier": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "Highest Search Node tier that Atlas can scale up to. Required when `enabled` is `true`.",
+							},
+							"min_instance_tier": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "Lowest Search Node tier that Atlas can scale down to. Required when `scaleDownEnabled` is `true`. Scaling down is not supported yet, so setting this returns an error.",
+							},
+							"scale_down_enabled": schema.BoolAttribute{
+								Computed:            true,
+								Optional:            true,
+								MarkdownDescription: "Flag that indicates whether Atlas lowers the Search Node tier when load drops. Takes effect only when `enabled` is `true`. If set to `true`, you must also set `minInstanceTier`. Scaling down is not supported yet, so setting this to `true` returns an error.",
+							},
+						},
+					},
+				},
+			},
+			"baseline_specs": schema.ListNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "List of starting settings for the Search Nodes in each cluster region.",
+				CustomType:          customtypes.NewNestedListType[TFBaselineSpecsModel](ctx),
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"cloud_provider": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Cloud service provider on which Search Nodes are provisioned.",
+						},
+						"instance_size": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Hardware specification for the Search Node instance sizes.",
+						},
+						"node_count": schema.Int64Attribute{
+							Computed:            true,
+							MarkdownDescription: "Number of Search Nodes for this configuration.",
+						},
+						"region_name": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Cloud provider region where Search Nodes are provisioned.",
+						},
+						"shard_id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Shard that owns this Search Node configuration.",
+						},
+					},
+				},
+			},
 			"cluster_name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Label that identifies the cluster to create Search Nodes for.",
@@ -27,7 +88,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"effective_specs": schema.ListNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "List of settings that configure the Search Nodes for your cluster, with per-region detail including the region name and cloud provider.",
+				MarkdownDescription: "List of settings that configure the Search Nodes for your cluster. Each entry describes one region or, when `shardId` is present, one shard in one region.",
 				CustomType:          customtypes.NewNestedListType[TFEffectiveSpecsModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -41,11 +102,15 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"node_count": schema.Int64Attribute{
 							Computed:            true,
-							MarkdownDescription: "Number of Search Nodes in this region.",
+							MarkdownDescription: "Number of Search Nodes for this configuration.",
 						},
 						"region_name": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Cloud provider region where Search Nodes are provisioned.",
+						},
+						"shard_id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Shard that owns this Search Node configuration.",
 						},
 					},
 				},
@@ -108,6 +173,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
+	AutoScaling              customtypes.ObjectValue[TFAutoScalingModel]        `tfsdk:"auto_scaling"`
+	BaselineSpecs            customtypes.NestedListValue[TFBaselineSpecsModel]  `tfsdk:"baseline_specs" autogen:"omitjson"`
 	ClusterName              types.String                                       `tfsdk:"cluster_name" autogen:"omitjson"`
 	DefaultNodeCount         types.Int64                                        `tfsdk:"default_node_count"`
 	EffectiveSpecs           customtypes.NestedListValue[TFEffectiveSpecsModel] `tfsdk:"effective_specs" autogen:"omitjson"`
@@ -119,11 +186,28 @@ type TFModel struct {
 	DeleteOnCreateTimeout    types.Bool                                         `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
 	Timeouts                 timeouts.Value                                     `tfsdk:"timeouts" autogen:"omitjson"`
 }
+type TFAutoScalingModel struct {
+	Compute customtypes.ObjectValue[TFAutoScalingComputeModel] `tfsdk:"compute"`
+}
+type TFAutoScalingComputeModel struct {
+	Enabled          types.Bool   `tfsdk:"enabled"`
+	MaxInstanceTier  types.String `tfsdk:"max_instance_tier"`
+	MinInstanceTier  types.String `tfsdk:"min_instance_tier"`
+	ScaleDownEnabled types.Bool   `tfsdk:"scale_down_enabled"`
+}
+type TFBaselineSpecsModel struct {
+	CloudProvider types.String `tfsdk:"cloud_provider" autogen:"omitjson"`
+	InstanceSize  types.String `tfsdk:"instance_size" autogen:"omitjson"`
+	NodeCount     types.Int64  `tfsdk:"node_count" autogen:"omitjson"`
+	RegionName    types.String `tfsdk:"region_name" autogen:"omitjson"`
+	ShardId       types.String `tfsdk:"shard_id" autogen:"omitjson"`
+}
 type TFEffectiveSpecsModel struct {
 	CloudProvider types.String `tfsdk:"cloud_provider" autogen:"omitjson"`
 	InstanceSize  types.String `tfsdk:"instance_size" autogen:"omitjson"`
 	NodeCount     types.Int64  `tfsdk:"node_count" autogen:"omitjson"`
 	RegionName    types.String `tfsdk:"region_name" autogen:"omitjson"`
+	ShardId       types.String `tfsdk:"shard_id" autogen:"omitjson"`
 }
 type TFSpecsModel struct {
 	CloudProvider types.String `tfsdk:"cloud_provider"`

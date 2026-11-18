@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312027/admin"
+	"go.mongodb.org/atlas-sdk/v20250312028/admin"
 
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -161,8 +161,9 @@ func Resource() *schema.Resource {
 							Computed: true,
 						},
 						"secrets": {
-							Type:     schema.TypeList,
-							Computed: true,
+							Type:      schema.TypeList,
+							Computed:  true,
+							Sensitive: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"created_at": {

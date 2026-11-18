@@ -54,7 +54,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.
+                      description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections.
                       computed_optional_required: computed_optional
                       tf_schema_name: minimum_enabled_tls_protocol
                       tf_model_name: MinimumEnabledTlsProtocol
@@ -183,7 +183,8 @@ schema:
                 attributes:
                     - map:
                         element_type: 4
-                      description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names.
+                      description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+                      deprecation_message: This attribute has been deprecated
                       custom_type:
                         model: customtypes.MapValue[types.String]
                         schema: customtypes.NewMapType[types.String](ctx)
@@ -200,7 +201,8 @@ schema:
                       request_only_required_on_create: false
                     - map:
                         element_type: 4
-                      description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present.
+                      description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+                      deprecation_message: This attribute has been deprecated
                       custom_type:
                         model: customtypes.MapValue[types.String]
                         schema: customtypes.NewMapType[types.String](ctx)
@@ -325,7 +327,8 @@ schema:
                                   create_only: false
                                   present_in_any_response: true
                                   request_only_required_on_create: false
-                      description: List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes.
+                      description: List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+                      deprecation_message: This attribute has been deprecated
                       custom_type:
                         name: ConnectionStringsPrivateEndpoint
                         model: customtypes.NestedListValue[TFConnectionStringsPrivateEndpointModel]
@@ -833,13 +836,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `replicationSpecs[n].regionConfigs[m].providerName` to `GCP`.
+                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` to a Gen 2 instance size (`M30_GEN_2` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_iops
@@ -851,7 +856,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput
@@ -1043,13 +1048,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `replicationSpecs[n].regionConfigs[m].providerName` to `GCP`.
+                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` to a Gen 2 instance size (`M30_GEN_2` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_iops
@@ -1061,7 +1068,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput
@@ -1162,13 +1169,15 @@ schema:
                                         attributes:
                                             - int64: {}
                                               description: |-
-                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+                                                Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.
 
-                                                - set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.
-                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.
+                                                 Change this parameter if you:
+
+                                                - set `replicationSpecs[n].regionConfigs[m].providerName` to `GCP`.
+                                                - set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` to a Gen 2 instance size (`M30_GEN_2` or greater).
 
                                                 The maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.
-                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                This parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.
                                                 Changing this value impacts cluster cost.
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_iops
@@ -1180,7 +1189,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - int64: {}
-                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              description: Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.
                                               computed_optional_required: computed
                                               tf_schema_name: disk_throughput
                                               tf_model_name: DiskThroughput

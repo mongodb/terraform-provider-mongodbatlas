@@ -19,9 +19,15 @@ type Resource struct {
 
 // DataSources defines the configuration for generating data sources independently from resources
 type DataSources struct {
-	Read          *APIOperation `yaml:"read"`   // singular data source read operation
-	List          *APIOperation `yaml:"list"`   // plural data source list operation
-	SchemaOptions SchemaOptions `yaml:"schema"` // data source specific schema options (aliases, overrides, ignores)
+	Read *APIOperation `yaml:"read"` // singular data source read operation
+	List *APIOperation `yaml:"list"` // plural data source list operation
+	// PluralOverrides apply to the plural data source only, for when it needs different settings than the singular one
+	// for an attribute with the same path (e.g. a filter query param sharing its name with an output attribute). A key
+	// here replaces the whole entry for the same path in schema.overrides, so an empty entry (`{}`) opts the plural out
+	// of a shared override. Keys are exact paths: a key without the `results.` prefix targets a root-level attribute,
+	// never the one under `results`.
+	PluralOverrides map[string]Override `yaml:"plural_overrides"`
+	SchemaOptions   SchemaOptions       `yaml:"schema"` // data source specific schema options (aliases, overrides, ignores), shared by the singular and plural data sources
 }
 
 type APIOperation struct {

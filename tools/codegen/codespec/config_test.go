@@ -1,6 +1,7 @@
 package codespec_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -1419,6 +1420,150 @@ func TestApplyTransformationsToDataSources_OverrideTransformation(t *testing.T) 
 			}
 		})
 	}
+}
+
+// TestApplyTransformationsToDataSources_OverrideScoping covers how overrides resolve when the singular data source,
+// the plural root (filters), and the plural `results` share attribute names.
+func TestApplyTransformationsToDataSources_OverrideScoping(t *testing.T) {
+	const orig = "original"
+	newOAuth := func() codespec.Attribute {
+		return codespec.Attribute{
+			TFSchemaName: "oauth", TFModelName: "Oauth", APIName: "oauth", ComputedOptionalRequired: codespec.Computed,
+			SingleNested: &codespec.SingleNestedAttribute{NestedObject: codespec.NestedAttributeObject{Attributes: codespec.Attributes{
+				{TFSchemaName: "client_id", TFModelName: "ClientId", APIName: "clientId", ComputedOptionalRequired: codespec.Computed, String: &codespec.StringAttribute{}, Description: conversion.StringPtr(orig)},
+			}}},
+		}
+	}
+	newProviderType := func(computability codespec.ComputedOptionalRequired) codespec.Attribute {
+		return codespec.Attribute{TFSchemaName: "provider_type", TFModelName: "ProviderType", APIName: "providerType", ComputedOptionalRequired: computability, String: &codespec.StringAttribute{}, Description: conversion.StringPtr(orig)}
+	}
+	newDataSources := func() *codespec.DataSources {
+		return &codespec.DataSources{
+			Singular: &codespec.Schema{Attributes: codespec.Attributes{newProviderType(codespec.Computed), newOAuth()}},
+			Plural: &codespec.Schema{Attributes: codespec.Attributes{
+				newProviderType(codespec.Optional),
+				{
+					TFSchemaName: "results", TFModelName: "Results", APIName: "results", ComputedOptionalRequired: codespec.Computed,
+					ListNested: &codespec.ListNestedAttribute{NestedObject: codespec.NestedAttributeObject{Attributes: codespec.Attributes{newProviderType(codespec.Computed), newOAuth()}}},
+				},
+			}},
+		}
+	}
+	desc := func(d string) config.Override { return config.Override{Description: d} }
+
+	tests := map[string]struct {
+		expectedSingular map[string]string // attribute path -> description
+		expectedPlural   map[string]string
+		inputConfig      config.DataSources
+	}{
+		"shared key applies to singular, plural root and plural results": {
+			inputConfig: config.DataSources{SchemaOptions: config.SchemaOptions{Overrides: map[string]config.Override{
+				"provider_type": desc("shared"),
+			}}},
+			expectedSingular: map[string]string{"provider_type": "shared"},
+			expectedPlural:   map[string]string{"provider_type": "shared", "results.provider_type": "shared"},
+		},
+		"shared nested key applies to the same nested path under plural results": {
+			inputConfig: config.DataSources{SchemaOptions: config.SchemaOptions{Overrides: map[string]config.Override{
+				"oauth.client_id": desc("shared"),
+			}}},
+			expectedSingular: map[string]string{"oauth.client_id": "shared"},
+			expectedPlural:   map[string]string{"results.oauth.client_id": "shared"},
+		},
+		"shared results key takes precedence over shared root key for plural results": {
+			inputConfig: config.DataSources{SchemaOptions: config.SchemaOptions{Overrides: map[string]config.Override{
+				"provider_type":         desc("root"),
+				"results.provider_type": desc("results"),
+			}}},
+			expectedSingular: map[string]string{"provider_type": "root"},
+			expectedPlural:   map[string]string{"provider_type": "root", "results.provider_type": "results"},
+		},
+		"plural override on root key applies only to the plural root attribute": {
+			inputConfig: config.DataSources{
+				SchemaOptions:   config.SchemaOptions{Overrides: map[string]config.Override{"provider_type": desc("shared")}},
+				PluralOverrides: map[string]config.Override{"provider_type": desc("plural filter")},
+			},
+			expectedSingular: map[string]string{"provider_type": "shared"},
+			expectedPlural:   map[string]string{"provider_type": "plural filter", "results.provider_type": "shared"},
+		},
+		"plural override without shared key does not reach plural results": {
+			inputConfig: config.DataSources{
+				PluralOverrides: map[string]config.Override{"provider_type": desc("plural filter")},
+			},
+			expectedSingular: map[string]string{"provider_type": orig},
+			expectedPlural:   map[string]string{"provider_type": "plural filter", "results.provider_type": orig},
+		},
+		"plural override on results key applies only to plural results": {
+			inputConfig: config.DataSources{
+				SchemaOptions:   config.SchemaOptions{Overrides: map[string]config.Override{"provider_type": desc("shared")}},
+				PluralOverrides: map[string]config.Override{"results.provider_type": desc("plural results")},
+			},
+			expectedSingular: map[string]string{"provider_type": "shared"},
+			expectedPlural:   map[string]string{"provider_type": "shared", "results.provider_type": "plural results"},
+		},
+		"empty plural overrides opt the plural out so a shared key applies to the singular only": {
+			inputConfig: config.DataSources{
+				SchemaOptions:   config.SchemaOptions{Overrides: map[string]config.Override{"provider_type": desc("singular only")}},
+				PluralOverrides: map[string]config.Override{"provider_type": {}, "results.provider_type": {}},
+			},
+			expectedSingular: map[string]string{"provider_type": "singular only"},
+			expectedPlural:   map[string]string{"provider_type": orig, "results.provider_type": orig},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			ds := newDataSources()
+			require.NoError(t, codespec.ApplyTransformationsToDataSources(&tc.inputConfig, ds))
+			for path, expected := range tc.expectedSingular {
+				assert.Equal(t, expected, *findAttrByPath(t, ds.Singular.Attributes, path).Description, "singular %s", path)
+			}
+			for path, expected := range tc.expectedPlural {
+				assert.Equal(t, expected, *findAttrByPath(t, ds.Plural.Attributes, path).Description, "plural %s", path)
+			}
+		})
+	}
+
+	t.Run("scoped override replaces non-description fields only on its data source", func(t *testing.T) {
+		ds := newDataSources()
+		dsConfig := &config.DataSources{
+			SchemaOptions: config.SchemaOptions{Overrides: map[string]config.Override{
+				"provider_type": {Computability: &config.Computability{Computed: true, Optional: true}},
+			}},
+			PluralOverrides: map[string]config.Override{"provider_type": {Sensitive: new(true)}},
+		}
+		require.NoError(t, codespec.ApplyTransformationsToDataSources(dsConfig, ds))
+
+		singular := findAttrByPath(t, ds.Singular.Attributes, "provider_type")
+		assert.Equal(t, codespec.ComputedOptional, singular.ComputedOptionalRequired)
+		assert.False(t, singular.Sensitive)
+
+		pluralRoot := findAttrByPath(t, ds.Plural.Attributes, "provider_type")
+		assert.Equal(t, codespec.Optional, pluralRoot.ComputedOptionalRequired, "scoped entry replaces the shared one as a whole")
+		assert.True(t, pluralRoot.Sensitive)
+
+		pluralResult := findAttrByPath(t, ds.Plural.Attributes, "results.provider_type")
+		assert.Equal(t, codespec.ComputedOptional, pluralResult.ComputedOptionalRequired)
+		assert.False(t, pluralResult.Sensitive)
+	})
+}
+
+func findAttrByPath(t *testing.T, attrs codespec.Attributes, path string) *codespec.Attribute {
+	t.Helper()
+	name, rest, nested := strings.Cut(path, ".")
+	for i := range attrs {
+		if attrs[i].TFSchemaName != name {
+			continue
+		}
+		if !nested {
+			return &attrs[i]
+		}
+		obj := attrs[i].NestedObject()
+		require.NotNil(t, obj, "attribute %s has no nested object", name)
+		return findAttrByPath(t, obj.Attributes, rest)
+	}
+	require.Failf(t, "attribute not found", "path %s", path)
+	return nil
 }
 
 func TestApplyTransformationsToDataSources_IgnoreTransformation(t *testing.T) {

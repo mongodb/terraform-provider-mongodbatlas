@@ -1,4 +1,4 @@
-package pushbasedlogexportapi_test
+package streamworkspaceprivateendpoint_test
 
 import (
 	"os"

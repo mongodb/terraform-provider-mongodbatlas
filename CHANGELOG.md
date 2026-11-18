@@ -2,8 +2,29 @@
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_stream_connection: Adds `DataCatalog` connection type support ([#4839](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4839))
+* data-source/mongodbatlas_stream_connections: Adds `DataCatalog` connection type support ([#4839](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4839))
+* resource/mongodbatlas_stream_connection: Adds `DataCatalog` connection type for Iceberg Data Catalog connections with `catalog_provider` (`DATABRICKS_UNITY` or `SNOWFLAKE_HORIZON`), `catalog_url`, and `databricks`/`snowflake` configuration whose secrets are write-only attributes (`client_secret_wo`, `private_key_wo` with `*_wo_version` rotation triggers, requires Terraform 1.11+) and are never persisted to state ([#4839](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4839))
+
+## 2.22.0 (November 17, 2026)
+
+NOTES:
+
+* resource/mongodbatlas_organization: Marks the whole `secrets` list as sensitive, so outputs that reference any attribute in it, including `expires_at` and `secret_id`, must set `sensitive = true` ([#4893](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4893))
+
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_stream_workspace_private_endpoint` ([#4868](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4868))
+* **New Data Source:** `data-source/mongodbatlas_stream_workspace_private_endpoints` ([#4868](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4868))
+* **New Resource:** `resource/mongodbatlas_stream_workspace_private_endpoint` ([#4868](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4868))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_project: Adds `is_atlas_home_page_ai_assistant_enabled` attribute ([#4880](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4880))
+* data-source/mongodbatlas_projects: Adds `is_atlas_home_page_ai_assistant_enabled` attribute ([#4880](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4880))
 * resource/mongodbatlas_cloud_backup_snapshot_export_job: Adds support for import using `{project_id}/{cluster_name}/{export_job_id}` format ([#4854](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4854))
 * resource/mongodbatlas_online_archive: Adds support for import using `{project_id}/{cluster_name}/{archive_id}` format ([#4855](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4855))
+* resource/mongodbatlas_project: Adds `is_atlas_home_page_ai_assistant_enabled` attribute ([#4880](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4880))
 * resource/mongodbatlas_search_index: Adds support for import using `{project_id}/{cluster_name}/{index_id}` format ([#4854](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4854))
 
 BUG FIXES:
@@ -11,6 +32,8 @@ BUG FIXES:
 * provider: Fixes delete operations failing when the resource is already gone from Atlas and the API returns an error code other than 404. The delete now succeeds and the resource is removed from state instead of erroring. Affects mongodbatlas_api_key, mongodbatlas_project_api_key, mongodbatlas_access_list_api_key, mongodbatlas_api_key_project_assignment, mongodbatlas_push_based_log_export ([#4856](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4856))
 * resource/mongodbatlas_cluster_outage_simulation: Fixes the create-timeout cleanup and delete waits to poll the simulation state instead of checking it only once at the end of the timeout ([#4863](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4863))
 * resource/mongodbatlas_online_archive: Supports cluster names with hyphens when importing the resource ([#4855](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4855))
+* resource/mongodbatlas_organization: Fixes the service account secret being shown in plain text in plan output for organizations created with a service account by marking the `secrets` attribute as sensitive ([#4893](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4893))
+* resource/mongodbatlas_team: Fixes delete failing when the team is assigned to a project that is not in the first page of projects ([#4878](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4878))
 
 ## 2.21.0 (October 28, 2026)
 

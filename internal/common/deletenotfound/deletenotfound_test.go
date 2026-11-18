@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	adminOlderSDK "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312027/admin"
+	"go.mongodb.org/atlas-sdk/v20250312028/admin"
 	"go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"

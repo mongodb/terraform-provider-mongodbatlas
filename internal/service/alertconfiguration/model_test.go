@@ -7,7 +7,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312027/admin"
+	"go.mongodb.org/atlas-sdk/v20250312028/admin"
 )
 
 const (
@@ -170,12 +170,12 @@ func TestThresholdConfigSDKToTFModel(t *testing.T) {
 
 func TestMatcherSDKToTFModel(t *testing.T) {
 	testCases := map[string]struct {
-		SDKResp             []admin.StreamsMatcher
+		SDKResp             []admin.StreamsPrivateLinkEndpointMatcher
 		currentStateMatcher []alertconfiguration.TfMatcherModel
 		expectedTFModel     []alertconfiguration.TfMatcherModel
 	}{
 		"Complete SDK response": {
-			SDKResp: []admin.StreamsMatcher{{
+			SDKResp: []admin.StreamsPrivateLinkEndpointMatcher{{
 				FieldName: "HOSTNAME",
 				Operator:  "EQUALS",
 				Value:     "PRIMARY",
@@ -540,12 +540,12 @@ func TestPopulateThresholdFromPlan(t *testing.T) {
 
 func TestMatcherTFModelToSDK(t *testing.T) {
 	testCases := map[string]struct {
-		expectedSDKReq []admin.StreamsMatcher
+		expectedSDKReq []admin.StreamsPrivateLinkEndpointMatcher
 		tfModel        []alertconfiguration.TfMatcherModel
 	}{
 		"Empty TF model": {
 			tfModel:        []alertconfiguration.TfMatcherModel{},
-			expectedSDKReq: make([]admin.StreamsMatcher, 0),
+			expectedSDKReq: make([]admin.StreamsPrivateLinkEndpointMatcher, 0),
 		},
 		"Complete TF model": {
 			tfModel: []alertconfiguration.TfMatcherModel{
@@ -555,7 +555,7 @@ func TestMatcherTFModelToSDK(t *testing.T) {
 					Value:     types.StringValue("PRIMARY"),
 				},
 			},
-			expectedSDKReq: []admin.StreamsMatcher{{
+			expectedSDKReq: []admin.StreamsPrivateLinkEndpointMatcher{{
 				FieldName: "HOSTNAME",
 				Operator:  "EQUALS",
 				Value:     "PRIMARY",

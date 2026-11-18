@@ -45,7 +45,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"minimum_enabled_tls_protocol": schema.StringAttribute{
 						Computed:            true,
 						Optional:            true,
-						MarkdownDescription: "Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.",
+						MarkdownDescription: "Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections.",
 					},
 					"tls_cipher_config_mode": schema.StringAttribute{
 						Computed:            true,
@@ -97,13 +97,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"aws_private_link": schema.MapAttribute{
 						Computed:            true,
-						MarkdownDescription: "Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names.",
+						MarkdownDescription: "Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.",
 						CustomType:          customtypes.NewMapType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
 					"aws_private_link_srv": schema.MapAttribute{
 						Computed:            true,
-						MarkdownDescription: "Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present.",
+						MarkdownDescription: "Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.",
 						CustomType:          customtypes.NewMapType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
@@ -113,7 +113,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"private_endpoint": schema.ListNestedAttribute{
 						Computed:            true,
-						MarkdownDescription: "List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes.",
+						MarkdownDescription: "List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.",
 						CustomType:          customtypes.NewNestedListType[TFConnectionStringsPrivateEndpointModel](ctx),
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
@@ -332,11 +332,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
 												Optional:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` to `GCP`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` to a Gen 2 instance size (`M30_GEN_2` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -416,11 +416,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
 												Optional:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` to `GCP`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` to a Gen 2 instance size (`M30_GEN_2` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -477,11 +477,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
 												Optional:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` to `GCP`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` to a Gen 2 instance size (`M30_GEN_2` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,

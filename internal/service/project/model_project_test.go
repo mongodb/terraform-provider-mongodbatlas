@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312027/admin"
+	"go.mongodb.org/atlas-sdk/v20250312028/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -194,6 +194,7 @@ var (
 		IsDataExplorerGenAIFeaturesEnabled:              new(true),
 		IsDataExplorerGenAISampleDocumentPassingEnabled: new(true),
 		IsClusterAiAssistantEnabled:                     new(true),
+		IsAtlasHomePageAiAssistantEnabled:               new(true),
 		IsNativeRerankingEnabled:                        new(true),
 	}
 	IPAddressesSDK = admin.GroupIPAddresses{
@@ -338,6 +339,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				IsSchemaAdvisorEnabled:                          types.BoolValue(true),
 				IsSlowOperationThresholdingEnabled:              types.BoolValue(false),
 				IsClusterAiAssistantEnabled:                     types.BoolValue(true),
+				IsAtlasHomePageAiAssistantEnabled:               types.BoolValue(true),
 				IsDataExplorerGenAIFeaturesEnabled:              types.BoolValue(true),
 				IsDataExplorerGenAISampleDocumentPassingEnabled: types.BoolValue(true),
 				IsNativeRerankingEnabled:                        types.BoolValue(true),
@@ -379,6 +381,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				IsSchemaAdvisorEnabled:                          types.BoolValue(true),
 				IsSlowOperationThresholdingEnabled:              types.BoolValue(true),
 				IsClusterAiAssistantEnabled:                     types.BoolValue(true),
+				IsAtlasHomePageAiAssistantEnabled:               types.BoolValue(true),
 				IsDataExplorerGenAIFeaturesEnabled:              types.BoolValue(true),
 				IsDataExplorerGenAISampleDocumentPassingEnabled: types.BoolValue(true),
 				IsNativeRerankingEnabled:                        types.BoolValue(true),
@@ -436,6 +439,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				IsSchemaAdvisorEnabled:                          types.BoolValue(true),
 				IsSlowOperationThresholdingEnabled:              types.BoolValue(false),
 				IsClusterAiAssistantEnabled:                     types.BoolValue(true),
+				IsAtlasHomePageAiAssistantEnabled:               types.BoolValue(true),
 				IsDataExplorerGenAIFeaturesEnabled:              types.BoolValue(true),
 				IsDataExplorerGenAISampleDocumentPassingEnabled: types.BoolValue(true),
 				IsNativeRerankingEnabled:                        types.BoolValue(true),
@@ -473,6 +477,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 				IsSchemaAdvisorEnabled:                          types.BoolValue(true),
 				IsSlowOperationThresholdingEnabled:              types.BoolValue(false),
 				IsClusterAiAssistantEnabled:                     types.BoolValue(true),
+				IsAtlasHomePageAiAssistantEnabled:               types.BoolValue(true),
 				IsDataExplorerGenAIFeaturesEnabled:              types.BoolValue(true),
 				IsDataExplorerGenAISampleDocumentPassingEnabled: types.BoolValue(true),
 				IsNativeRerankingEnabled:                        types.BoolValue(true),

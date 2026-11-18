@@ -24,7 +24,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"adaptive_capacity": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Governs adaptive capacity behavior of Azure nodes in single-cloud Azure clusters or multi-cloud clusters that include Azure nodes. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; Azure clusters use adaptive capacity by default when the feature is enabled at the group level. Setting this field for single-cloud AWS or GCP clusters is a no-op.",
+				MarkdownDescription: "Governs adaptive capacity behavior of nodes in clusters on providers that support fallback hardware, including those providers' nodes in multi-cloud clusters. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; clusters use adaptive capacity by default on a provider that supports it.",
 			},
 			"advanced_configuration": schema.SingleNestedAttribute{
 				Computed:            true,
@@ -48,7 +48,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"minimum_enabled_tls_protocol": schema.StringAttribute{
 						Computed:            true,
 						Optional:            true,
-						MarkdownDescription: "Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.",
+						MarkdownDescription: "Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections.",
 					},
 					"tls_cipher_config_mode": schema.StringAttribute{
 						Computed:            true,
@@ -60,7 +60,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"backup_enabled": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.",
+				MarkdownDescription: "Flag that indicates whether Atlas backs up the cluster.\n\nOn Atlas Core clusters, dedicated clusters use [Cloud Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/overview/) and Flex clusters use [Flex Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/). Default value is `false`. For clusters that use local [NVMe SSDs](https://www.mongodb.com/docs/atlas/manage-clusters/#nvme-storage) for storage, you can't disable backup, so you must set `backupEnabled` to `true`.\n\nOn Atlas Infinite clusters, the `backupEnabled` flag controls Additional Backup Retention, not whether backups run. To retain snapshots beyond the 24-hour window, set `backupEnabled` to `true`. For Atlas Infinite clusters, continuous cloud backups are enabled by default, always run, and include a 24-hour window in which you can restore to any point in time. Atlas then applies your snapshot retention policies. To keep only the included window under an Atlas-managed retention policy that you can't edit, set `backupEnabled` to `false`. A cluster covered by a Data Protection policy has this flag set to `true` regardless of the requested value. Default value is `true`.",
 			},
 			"bi_connector": schema.SingleNestedAttribute{
 				Computed:            true,
@@ -100,13 +100,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"aws_private_link": schema.MapAttribute{
 						Computed:            true,
-						MarkdownDescription: "Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names.",
+						MarkdownDescription: "Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.",
 						CustomType:          customtypes.NewMapType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
 					"aws_private_link_srv": schema.MapAttribute{
 						Computed:            true,
-						MarkdownDescription: "Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present.",
+						MarkdownDescription: "Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.",
 						CustomType:          customtypes.NewMapType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
@@ -116,7 +116,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"private_endpoint": schema.ListNestedAttribute{
 						Computed:            true,
-						MarkdownDescription: "List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes.",
+						MarkdownDescription: "List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.",
 						CustomType:          customtypes.NewNestedListType[TFConnectionStringsPrivateEndpointModel](ctx),
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
@@ -178,10 +178,18 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Date and time when MongoDB Cloud created this cluster. This parameter expresses its value in ISO 8601 format in UTC.",
 			},
+			"database_edition": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Available in Public Preview: Optional field that indicates whether your cluster will be Atlas INFINITE or CORE. You can set it only when you create the cluster, or when you upgrade a Free or Flex cluster to a dedicated cluster. This value is immutable once the dedicated cluster exists; attempting to change it on an update request returns an error.",
+			},
 			"disk_warming_mode": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Disk warming mode selection.",
+			},
+			"effective_database_edition": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Available in Public Preview: Field that represents whether your cluster is Atlas INFINITE or CORE. This is read-only and always returned in the response. It reflects the actual cluster state. This value matches `databaseEdition` if it was set, otherwise it reflects the default database edition assigned to the cluster.",
 			},
 			"effective_replication_specs": schema.ListNestedAttribute{
 				Computed:            true,
@@ -238,6 +246,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 													},
 												},
 											},
+											"storage_config": schema.SingleNestedAttribute{
+												Computed:            true,
+												MarkdownDescription: "Available in Public Preview: Settings that determine the per-shard data-size limit for this cluster. Applies only to Atlas INFINITE clusters. MongoDB Cloud accepts these settings only on `autoScaling` and rejects them on `analyticsAutoScaling`, including when you send them as `null`. In a request that includes `replicationSpecs`, omitting `storageConfig` or sending it as `null` or `{}` clears the limit. Omitting `replicationSpecs` preserves it.",
+												CustomType:          customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingStorageConfigModel](ctx),
+												Attributes: map[string]schema.Attribute{
+													"shard_size_limit_gb": schema.Int64Attribute{
+														Computed:            true,
+														MarkdownDescription: "Available in Public Preview: Maximum data size that MongoDB Cloud allows each shard of this cluster to reach, expressed in gigabytes. MongoDB Cloud rejects writes to a shard that reaches the limit that it enforces. In `replicationSpecs`, this field reports the limit that you configured, and MongoDB Cloud omits it when you never configured one. In `effectiveReplicationSpecs`, this field reports the limit that MongoDB Cloud enforces: usually the limit that you configured, otherwise the default limit that MongoDB Cloud assigns when it creates or updates the cluster. This value may differ from the limit that you configured due to system-managed changes. This limit applies to every shard of the cluster; set the same value on each region configuration's `autoScaling`, as MongoDB Cloud rejects requests that specify differing values. You can set this only on Atlas INFINITE clusters: MongoDB Cloud rejects any request that names this field, including as `null`, for a cluster or node type that doesn't support it. In a request that includes `replicationSpecs`, omitting `shardSizeLimitGB` or sending it as `null` clears the limit. Omitting `replicationSpecs` preserves it.",
+													},
+												},
+											},
 										},
 									},
 									"analytics_specs": schema.SingleNestedAttribute{
@@ -247,7 +266,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"GCP\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\"` to a Gen 2 instance size (`\"M30_GEN_2\"` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
 												Computed:            true,
@@ -255,7 +274,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -310,6 +329,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 													},
 												},
 											},
+											"storage_config": schema.SingleNestedAttribute{
+												Computed:            true,
+												MarkdownDescription: "Available in Public Preview: Settings that determine the per-shard data-size limit for this cluster. Applies only to Atlas INFINITE clusters. MongoDB Cloud accepts these settings only on `autoScaling` and rejects them on `analyticsAutoScaling`, including when you send them as `null`. In a request that includes `replicationSpecs`, omitting `storageConfig` or sending it as `null` or `{}` clears the limit. Omitting `replicationSpecs` preserves it.",
+												CustomType:          customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsAutoScalingStorageConfigModel](ctx),
+												Attributes: map[string]schema.Attribute{
+													"shard_size_limit_gb": schema.Int64Attribute{
+														Computed:            true,
+														MarkdownDescription: "Available in Public Preview: Maximum data size that MongoDB Cloud allows each shard of this cluster to reach, expressed in gigabytes. MongoDB Cloud rejects writes to a shard that reaches the limit that it enforces. In `replicationSpecs`, this field reports the limit that you configured, and MongoDB Cloud omits it when you never configured one. In `effectiveReplicationSpecs`, this field reports the limit that MongoDB Cloud enforces: usually the limit that you configured, otherwise the default limit that MongoDB Cloud assigns when it creates or updates the cluster. This value may differ from the limit that you configured due to system-managed changes. This limit applies to every shard of the cluster; set the same value on each region configuration's `autoScaling`, as MongoDB Cloud rejects requests that specify differing values. You can set this only on Atlas INFINITE clusters: MongoDB Cloud rejects any request that names this field, including as `null`, for a cluster or node type that doesn't support it. In a request that includes `replicationSpecs`, omitting `shardSizeLimitGB` or sending it as `null` clears the limit. Omitting `replicationSpecs` preserves it.",
+													},
+												},
+											},
 										},
 									},
 									"backing_provider_name": schema.StringAttribute{
@@ -323,7 +353,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"GCP\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\"` to a Gen 2 instance size (`\"M30_GEN_2\"` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
 												Computed:            true,
@@ -331,7 +361,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -354,7 +384,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"GCP\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\"` to a Gen 2 instance size (`\"M30_GEN_2\"` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
 												Computed:            true,
@@ -362,7 +392,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -385,7 +415,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"GCP\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\"` to a Gen 2 instance size (`\"M30_GEN_2\"` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
 												Computed:            true,
@@ -393,7 +423,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -416,7 +446,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"GCP\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\"` to a Gen 2 instance size (`\"M30_GEN_2\"` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
 												Computed:            true,
@@ -424,7 +454,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -459,7 +489,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"GCP\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\"` to a Gen 2 instance size (`\"M30_GEN_2\"` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
 												Computed:            true,
@@ -467,7 +497,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -574,7 +604,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"pit_enabled": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether the cluster uses continuous cloud backups.",
+				MarkdownDescription: "Flag that indicates whether the cluster uses continuous cloud backups.\n\nFor Atlas Infinite clusters, continuous cloud backups always run. Omit this field or set it to `true`. Setting it to `false` returns an invalid attribute error.",
 			},
 			"redact_client_log_data": schema.BoolAttribute{
 				Computed:            true,
@@ -641,6 +671,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 													},
 												},
 											},
+											"storage_config": schema.SingleNestedAttribute{
+												Optional:            true,
+												MarkdownDescription: "Available in Public Preview: Settings that determine the per-shard data-size limit for this cluster. Applies only to Atlas INFINITE clusters. MongoDB Cloud accepts these settings only on `autoScaling` and rejects them on `analyticsAutoScaling`, including when you send them as `null`. In a request that includes `replicationSpecs`, omitting `storageConfig` or sending it as `null` or `{}` clears the limit. Omitting `replicationSpecs` preserves it.",
+												CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingStorageConfigModel](ctx),
+												Attributes: map[string]schema.Attribute{
+													"shard_size_limit_gb": schema.Int64Attribute{
+														Optional:            true,
+														MarkdownDescription: "Available in Public Preview: Maximum data size that MongoDB Cloud allows each shard of this cluster to reach, expressed in gigabytes. MongoDB Cloud rejects writes to a shard that reaches the limit that it enforces. In `replicationSpecs`, this field reports the limit that you configured, and MongoDB Cloud omits it when you never configured one. In `effectiveReplicationSpecs`, this field reports the limit that MongoDB Cloud enforces: usually the limit that you configured, otherwise the default limit that MongoDB Cloud assigns when it creates or updates the cluster. This value may differ from the limit that you configured due to system-managed changes. This limit applies to every shard of the cluster; set the same value on each region configuration's `autoScaling`, as MongoDB Cloud rejects requests that specify differing values. You can set this only on Atlas INFINITE clusters: MongoDB Cloud rejects any request that names this field, including as `null`, for a cluster or node type that doesn't support it. In a request that includes `replicationSpecs`, omitting `shardSizeLimitGB` or sending it as `null` clears the limit. Omitting `replicationSpecs` preserves it.",
+													},
+												},
+											},
 										},
 									},
 									"analytics_specs": schema.SingleNestedAttribute{
@@ -652,7 +693,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
 												Optional:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"GCP\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\"` to a Gen 2 instance size (`\"M30_GEN_2\"` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
 												Computed:            true,
@@ -661,7 +702,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -726,6 +767,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 													},
 												},
 											},
+											"storage_config": schema.SingleNestedAttribute{
+												Optional:            true,
+												MarkdownDescription: "Available in Public Preview: Settings that determine the per-shard data-size limit for this cluster. Applies only to Atlas INFINITE clusters. MongoDB Cloud accepts these settings only on `autoScaling` and rejects them on `analyticsAutoScaling`, including when you send them as `null`. In a request that includes `replicationSpecs`, omitting `storageConfig` or sending it as `null` or `{}` clears the limit. Omitting `replicationSpecs` preserves it.",
+												CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAutoScalingStorageConfigModel](ctx),
+												Attributes: map[string]schema.Attribute{
+													"shard_size_limit_gb": schema.Int64Attribute{
+														Optional:            true,
+														MarkdownDescription: "Available in Public Preview: Maximum data size that MongoDB Cloud allows each shard of this cluster to reach, expressed in gigabytes. MongoDB Cloud rejects writes to a shard that reaches the limit that it enforces. In `replicationSpecs`, this field reports the limit that you configured, and MongoDB Cloud omits it when you never configured one. In `effectiveReplicationSpecs`, this field reports the limit that MongoDB Cloud enforces: usually the limit that you configured, otherwise the default limit that MongoDB Cloud assigns when it creates or updates the cluster. This value may differ from the limit that you configured due to system-managed changes. This limit applies to every shard of the cluster; set the same value on each region configuration's `autoScaling`, as MongoDB Cloud rejects requests that specify differing values. You can set this only on Atlas INFINITE clusters: MongoDB Cloud rejects any request that names this field, including as `null`, for a cluster or node type that doesn't support it. In a request that includes `replicationSpecs`, omitting `shardSizeLimitGB` or sending it as `null` clears the limit. Omitting `replicationSpecs` preserves it.",
+													},
+												},
+											},
 										},
 									},
 									"backing_provider_name": schema.StringAttribute{
@@ -739,7 +791,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"GCP\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\"` to a Gen 2 instance size (`\"M30_GEN_2\"` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
 												Computed:            true,
@@ -747,7 +799,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -770,7 +822,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"GCP\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\"` to a Gen 2 instance size (`\"M30_GEN_2\"` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
 												Computed:            true,
@@ -778,7 +830,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -801,7 +853,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"GCP\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\"` to a Gen 2 instance size (`\"M30_GEN_2\"` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
 												Computed:            true,
@@ -809,7 +861,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -833,7 +885,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
 												Optional:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"GCP\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\"` to a Gen 2 instance size (`\"M30_GEN_2\"` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
 												Computed:            true,
@@ -842,7 +894,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -899,7 +951,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
 												Optional:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+												MarkdownDescription: "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Only configurable for Gen 2 instance sizes.\n\n Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"GCP\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\"` to a Gen 2 instance size (`\"M30_GEN_2\"` or greater).\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the standard IOPS value for the selected `.diskSizeGB`.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
 												Computed:            true,
@@ -908,7 +960,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											},
 											"disk_throughput": schema.Int64Attribute{
 												Computed:            true,
-												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+												MarkdownDescription: "Throughput (in MiB/s) provisioned for storage attached to this hardware. Only returned for Gen 2 instance sizes.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -954,6 +1006,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Root Certificate Authority that MongoDB Atlas cluster uses. MongoDB Cloud supports Internet Security Research Group.",
+			},
+			"search_auto_migration": schema.SingleNestedAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Configuration for automatically adding Dedicated Search Nodes on eligible Atlas Infinite clusters. This setting has no effect on Atlas Core clusters.",
+				CustomType:          customtypes.NewObjectType[TFSearchAutoMigrationModel](ctx),
+				Attributes: map[string]schema.Attribute{
+					"disabled": schema.BoolAttribute{
+						Computed:            true,
+						Optional:            true,
+						MarkdownDescription: "Flag that disables future automatic Search Node provisioning. Defaults to false on creation. Omission on update preserves the stored choice. Disabling retains existing Search Nodes and allows in-flight migrations to continue. Enabling does not bypass resource policies; if indexes exceed the migration threshold, the next eligible evaluation may start provisioning.",
+					},
+				},
 			},
 			"state_name": schema.StringAttribute{
 				Computed:            true,
@@ -1006,7 +1071,9 @@ type TFModel struct {
 	ConfigServerType                              types.String                                                  `tfsdk:"config_server_type" autogen:"omitjson"`
 	ConnectionStrings                             customtypes.ObjectValue[TFConnectionStringsModel]             `tfsdk:"connection_strings" autogen:"omitjson"`
 	CreateDate                                    types.String                                                  `tfsdk:"create_date" autogen:"omitjson"`
+	DatabaseEdition                               types.String                                                  `tfsdk:"database_edition"`
 	DiskWarmingMode                               types.String                                                  `tfsdk:"disk_warming_mode"`
+	EffectiveDatabaseEdition                      types.String                                                  `tfsdk:"effective_database_edition" autogen:"omitjson"`
 	EffectiveReplicationSpecs                     customtypes.NestedListValue[TFEffectiveReplicationSpecsModel] `tfsdk:"effective_replication_specs" autogen:"omitjson"`
 	EncryptionAtRestProvider                      types.String                                                  `tfsdk:"encryption_at_rest_provider"`
 	FeatureCompatibilityVersion                   types.String                                                  `tfsdk:"feature_compatibility_version" autogen:"omitjson"`
@@ -1027,6 +1094,7 @@ type TFModel struct {
 	ReplicationSpecs                              customtypes.NestedListValue[TFReplicationSpecsModel]          `tfsdk:"replication_specs"`
 	RetainBackups                                 types.Bool                                                    `tfsdk:"retain_backups"`
 	RootCertType                                  types.String                                                  `tfsdk:"root_cert_type"`
+	SearchAutoMigration                           customtypes.ObjectValue[TFSearchAutoMigrationModel]           `tfsdk:"search_auto_migration"`
 	StateName                                     types.String                                                  `tfsdk:"state_name" autogen:"omitjson"`
 	Tags                                          customtypes.MapValue[types.String]                            `tfsdk:"tags" autogen:"listasmap,sendnullasemptyonupdate"`
 	TerminationProtectionEnabled                  types.Bool                                                    `tfsdk:"termination_protection_enabled"`
@@ -1087,8 +1155,9 @@ type TFEffectiveReplicationSpecsRegionConfigsModel struct {
 	RegionName              types.String                                                                                  `tfsdk:"region_name" autogen:"omitjson"`
 }
 type TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingModel struct {
-	Compute customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel] `tfsdk:"compute" autogen:"omitjson"`
-	DiskGB  customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel]  `tfsdk:"disk_gb" autogen:"omitjson"`
+	Compute       customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel]       `tfsdk:"compute" autogen:"omitjson"`
+	DiskGB        customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel]        `tfsdk:"disk_gb" autogen:"omitjson"`
+	StorageConfig customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingStorageConfigModel] `tfsdk:"storage_config" autogen:"omitjson"`
 }
 type TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel struct {
 	Enabled          types.Bool   `tfsdk:"enabled" autogen:"omitjson"`
@@ -1099,6 +1168,9 @@ type TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel st
 type TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel struct {
 	Enabled types.Bool `tfsdk:"enabled" autogen:"omitjson"`
 }
+type TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingStorageConfigModel struct {
+	ShardSizeLimitGB types.Int64 `tfsdk:"shard_size_limit_gb" autogen:"omitjson"`
+}
 type TFEffectiveReplicationSpecsRegionConfigsAnalyticsSpecsModel struct {
 	DiskIOPS       types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
 	DiskSizeGB     types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
@@ -1108,8 +1180,9 @@ type TFEffectiveReplicationSpecsRegionConfigsAnalyticsSpecsModel struct {
 	NodeCount      types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFEffectiveReplicationSpecsRegionConfigsAutoScalingModel struct {
-	Compute customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAutoScalingComputeModel] `tfsdk:"compute" autogen:"omitjson"`
-	DiskGB  customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAutoScalingDiskGBModel]  `tfsdk:"disk_gb" autogen:"omitjson"`
+	Compute       customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAutoScalingComputeModel]       `tfsdk:"compute" autogen:"omitjson"`
+	DiskGB        customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAutoScalingDiskGBModel]        `tfsdk:"disk_gb" autogen:"omitjson"`
+	StorageConfig customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAutoScalingStorageConfigModel] `tfsdk:"storage_config" autogen:"omitjson"`
 }
 type TFEffectiveReplicationSpecsRegionConfigsAutoScalingComputeModel struct {
 	Enabled          types.Bool   `tfsdk:"enabled" autogen:"omitjson"`
@@ -1119,6 +1192,9 @@ type TFEffectiveReplicationSpecsRegionConfigsAutoScalingComputeModel struct {
 }
 type TFEffectiveReplicationSpecsRegionConfigsAutoScalingDiskGBModel struct {
 	Enabled types.Bool `tfsdk:"enabled" autogen:"omitjson"`
+}
+type TFEffectiveReplicationSpecsRegionConfigsAutoScalingStorageConfigModel struct {
+	ShardSizeLimitGB types.Int64 `tfsdk:"shard_size_limit_gb" autogen:"omitjson"`
 }
 type TFEffectiveReplicationSpecsRegionConfigsEffectiveAnalyticsSpecsModel struct {
 	DiskIOPS       types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
@@ -1186,8 +1262,9 @@ type TFReplicationSpecsRegionConfigsModel struct {
 	RegionName              types.String                                                                         `tfsdk:"region_name"`
 }
 type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingModel struct {
-	Compute customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel] `tfsdk:"compute"`
-	DiskGB  customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel]  `tfsdk:"disk_gb"`
+	Compute       customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel]       `tfsdk:"compute"`
+	DiskGB        customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel]        `tfsdk:"disk_gb"`
+	StorageConfig customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingStorageConfigModel] `tfsdk:"storage_config"`
 }
 type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel struct {
 	Enabled          types.Bool   `tfsdk:"enabled"`
@@ -1198,6 +1275,9 @@ type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel struct {
 type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel struct {
 	Enabled types.Bool `tfsdk:"enabled"`
 }
+type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingStorageConfigModel struct {
+	ShardSizeLimitGB types.Int64 `tfsdk:"shard_size_limit_gb"`
+}
 type TFReplicationSpecsRegionConfigsAnalyticsSpecsModel struct {
 	DiskIOPS       types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
 	DiskSizeGB     types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
@@ -1207,8 +1287,9 @@ type TFReplicationSpecsRegionConfigsAnalyticsSpecsModel struct {
 	NodeCount      types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFReplicationSpecsRegionConfigsAutoScalingModel struct {
-	Compute customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingComputeModel] `tfsdk:"compute"`
-	DiskGB  customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel]  `tfsdk:"disk_gb"`
+	Compute       customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingComputeModel]       `tfsdk:"compute"`
+	DiskGB        customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel]        `tfsdk:"disk_gb"`
+	StorageConfig customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingStorageConfigModel] `tfsdk:"storage_config"`
 }
 type TFReplicationSpecsRegionConfigsAutoScalingComputeModel struct {
 	Enabled          types.Bool   `tfsdk:"enabled"`
@@ -1218,6 +1299,9 @@ type TFReplicationSpecsRegionConfigsAutoScalingComputeModel struct {
 }
 type TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel struct {
 	Enabled types.Bool `tfsdk:"enabled"`
+}
+type TFReplicationSpecsRegionConfigsAutoScalingStorageConfigModel struct {
+	ShardSizeLimitGB types.Int64 `tfsdk:"shard_size_limit_gb"`
 }
 type TFReplicationSpecsRegionConfigsEffectiveAnalyticsSpecsModel struct {
 	DiskIOPS       types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
@@ -1259,4 +1343,7 @@ type TFReplicationSpecsRegionConfigsReadOnlySpecsModel struct {
 	EbsVolumeType  types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
 	InstanceSize   types.String  `tfsdk:"instance_size" autogen:"omitjson"`
 	NodeCount      types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
+}
+type TFSearchAutoMigrationModel struct {
+	Disabled types.Bool `tfsdk:"disabled"`
 }

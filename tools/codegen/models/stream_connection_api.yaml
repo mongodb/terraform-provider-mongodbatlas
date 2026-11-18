@@ -28,6 +28,19 @@ schema:
                       tf_schema_name: cluster_project_id
                     - api_name: dbRoleToExecute
                       tf_schema_name: db_role_to_execute
+            DataCatalog:
+                allowed:
+                    - api_name: catalogProvider
+                      tf_schema_name: catalog_provider
+                    - api_name: catalogUrl
+                      tf_schema_name: catalog_url
+                    - api_name: databricks
+                      tf_schema_name: databricks
+                    - api_name: snowflake
+                      tf_schema_name: snowflake
+                required:
+                    - api_name: catalogUrl
+                      tf_schema_name: catalog_url
             GCPPubSub:
                 allowed:
                     - api_name: gcp
@@ -138,7 +151,7 @@ schema:
                                   present_in_any_response: true
                                   request_only_required_on_create: false
                                 - string: {}
-                                  description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
+                                  description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.
                                   computed_optional_required: optional
                                   tf_schema_name: test_bucket
                                   tf_model_name: TestBucket
@@ -327,7 +340,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
+                      description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN. This field applies only to S3 connections and is ignored for all other connection types and configurations.
                       computed_optional_required: optional
                       tf_schema_name: test_bucket
                       tf_model_name: TestBucket
@@ -459,6 +472,17 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
+          description: 'Optional for type: DataCatalog. Catalog system the connection points at. Cannot be changed after creation.'
+          computed_optional_required: optional
+          tf_schema_name: catalog_provider
+          tf_model_name: CatalogProvider
+          api_name: catalogProvider
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
           description: 'Optional for type: Cluster. Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.'
           computed_optional_required: optional
           tf_schema_name: cluster_project_id
@@ -492,6 +516,66 @@ schema:
           tf_schema_name: config
           tf_model_name: Config
           api_name: config
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: OAuth client ID of the Databricks service principal.
+                                  computed_optional_required: required
+                                  tf_schema_name: client_id
+                                  tf_model_name: ClientId
+                                  api_name: clientId
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: OAuth client secret of the Databricks service principal. Never returned in responses; omit or leave blank on update to keep the stored secret.
+                                  computed_optional_required: required
+                                  tf_schema_name: client_secret
+                                  tf_model_name: ClientSecret
+                                  api_name: clientSecret
+                                  req_body_usage: all_request_bodies
+                                  sensitive: true
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: Databricks service principal credentials used to obtain an OAuth token.
+                      custom_type:
+                        name: DatabricksAuthentication
+                        model: customtypes.ObjectValue[TFDatabricksAuthenticationModel]
+                        schema: customtypes.NewObjectType[TFDatabricksAuthenticationModel](ctx)
+                        packages:
+                            - customtypes
+                      computed_optional_required: required
+                      tf_schema_name: authentication
+                      tf_model_name: Authentication
+                      api_name: authentication
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: 'Optional for type: DataCatalog. Databricks settings for a connection.'
+          custom_type:
+            name: Databricks
+            model: customtypes.ObjectValue[TFDatabricksModel]
+            schema: customtypes.NewObjectType[TFDatabricksModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: optional
+          tf_schema_name: databricks
+          tf_model_name: Databricks
+          api_name: databricks
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -534,6 +618,17 @@ schema:
           tf_model_name: DbRoleToExecute
           api_name: dbRoleToExecute
           req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Connection error message.
+          computed_optional_required: computed
+          tf_schema_name: error_message
+          tf_model_name: ErrorMessage
+          api_name: errorMessage
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
           present_in_any_response: true
@@ -1028,6 +1123,88 @@ schema:
           tf_schema_name: security
           tf_model_name: Security
           api_name: security
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Snowflake account identifier.
+                                  computed_optional_required: required
+                                  tf_schema_name: account
+                                  tf_model_name: Account
+                                  api_name: account
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Private key of the service user's key pair. Never returned in responses; omit or leave blank on update to keep the stored key.
+                                  computed_optional_required: required
+                                  tf_schema_name: private_key
+                                  tf_model_name: PrivateKey
+                                  api_name: privateKey
+                                  req_body_usage: all_request_bodies
+                                  sensitive: true
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Snowflake role the service user assumes.
+                                  computed_optional_required: required
+                                  tf_schema_name: role
+                                  tf_model_name: Role
+                                  api_name: role
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Snowflake service user.
+                                  computed_optional_required: required
+                                  tf_schema_name: user
+                                  tf_model_name: User
+                                  api_name: user
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: Snowflake service user and key pair used to authenticate to Snowflake.
+                      custom_type:
+                        name: SnowflakeAuthentication
+                        model: customtypes.ObjectValue[TFSnowflakeAuthenticationModel]
+                        schema: customtypes.NewObjectType[TFSnowflakeAuthenticationModel](ctx)
+                        packages:
+                            - customtypes
+                      computed_optional_required: required
+                      tf_schema_name: authentication
+                      tf_model_name: Authentication
+                      api_name: authentication
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: 'Optional for type: DataCatalog. Snowflake settings for a connection.'
+          custom_type:
+            name: Snowflake
+            model: customtypes.ObjectValue[TFSnowflakeModel]
+            schema: customtypes.NewObjectType[TFSnowflakeModel](ctx)
+            packages:
+                - customtypes
+          computed_optional_required: optional
+          tf_schema_name: snowflake
+          tf_model_name: Snowflake
+          api_name: snowflake
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false

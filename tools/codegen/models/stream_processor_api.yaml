@@ -2,7 +2,7 @@ schema:
     description: Create one Stream Processor within the specified stream workspace.
     attributes:
         - string: {}
-          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          description: Tier the stream processor is currently running on. The server sets this value from `tier` on create and on every start or restart, may move it within [`minTier`, `maxTier`] while autoscaling is enabled, and restores it to `tier` when autoscaling is disabled. Patching `tier` does not change it directly; the new tier takes effect at the next start or restart.
           computed_optional_required: computed
           tf_schema_name: effective_tier
           tf_model_name: EffectiveTier
@@ -50,7 +50,7 @@ schema:
           request_only_required_on_create: false
         - string: {}
           description: Human-readable name of the stream processor.
-          computed_optional_required: optional
+          computed_optional_required: required
           tf_schema_name: name
           tf_model_name: Name
           api_name: name
@@ -132,7 +132,7 @@ schema:
                                       - On `MODIFY` or `:startWith`: the current bound is preserved.
                                     - **`null`** on `CREATE`, `MODIFY`, or `:startWith`: resets the bound to the workspace max tier.
                                     - **A tier value** on `CREATE`, `MODIFY`, or `:startWith`: sets the bound to that tier.
-                                  computed_optional_required: optional
+                                  computed_optional_required: computed_optional
                                   tf_schema_name: max_tier
                                   tf_model_name: MaxTier
                                   api_name: maxTier
@@ -146,11 +146,11 @@ schema:
                                     Tier floor for autoscaling (scale-down limit).
 
                                     - **Omitted:**
-                                      - On `CREATE`: falls back to the workspace default tier (there is no current bound to preserve).
+                                      - On `CREATE`: defaults to the lower of the processor `tier` and the workspace default tier (there is no current bound to preserve).
                                       - On `MODIFY` or `:startWith`: the current bound is preserved.
-                                    - **`null`** on `CREATE`, `MODIFY`, or `:startWith`: resets the bound to the workspace default tier.
+                                    - **`null`** on `CREATE`, `MODIFY`, or `:startWith`: resets the bound to the lower of the processor `tier` and the workspace default tier.
                                     - **A tier value** on `CREATE`, `MODIFY`, or `:startWith`: sets the bound to that tier.
-                                  computed_optional_required: optional
+                                  computed_optional_required: computed_optional
                                   tf_schema_name: min_tier
                                   tf_model_name: MinTier
                                   api_name: minTier
@@ -263,7 +263,7 @@ schema:
             packages:
                 - customtypes
                 - jsontypes
-          computed_optional_required: optional
+          computed_optional_required: required
           tf_schema_name: pipeline
           tf_model_name: Pipeline
           api_name: pipeline
@@ -313,7 +313,7 @@ schema:
           present_in_any_response: false
           request_only_required_on_create: false
         - string: {}
-          description: Selected tier for the Stream Workspace. Configures Memory or VCPU allowances.
+          description: Baseline processing tier requested by the user.
           computed_optional_required: computed_optional
           tf_schema_name: tier
           tf_model_name: Tier
