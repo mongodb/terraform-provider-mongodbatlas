@@ -32,7 +32,12 @@ kafka_iam_role_arn         = "arn:aws:iam::123456789012:role/atlas-msk-access"
 
 The workspace targets `VIRGINIA_USA` as its default region and `DUBLIN_IRL` as its failover region. Change both in `main.tf` to match where your MSK clusters run.
 
-Both connections use port `9198`, MSK's public listener for IAM access control, which matches the `PUBLIC` networking they declare. MSK exposes IAM on `9098` for access from inside the AWS VPC and on `9198` for public access, so a cluster without public access needs `9098` and private networking instead: set `networking = { access = { type = "VPC", connection_id = "<network-peering-or-private-endpoint-id>" } }` on both connections.
+Both connections use port `9198`, MSK's public listener for IAM access control, which matches the `PUBLIC` networking they declare. MSK exposes IAM on `9098` for access from inside the AWS VPC and on `9198` for public access, so a cluster without public access needs private networking instead:
+
+- **Peered VPC** — port `9098` and `networking = { access = { type = "VPC" } }` on both connections. VPC peering must already exist between the Atlas VPC and the VPC hosting the cluster.
+- **PrivateLink** — that endpoint's bootstrap servers and `networking = { access = { type = "PRIVATE_LINK", connection_id = "<private-link-connection-id>" } }`.
+
+`connection_id` is only valid with `PRIVATE_LINK`; setting it with any other networking type fails validation.
 
 **3. Plan and apply.**
 
