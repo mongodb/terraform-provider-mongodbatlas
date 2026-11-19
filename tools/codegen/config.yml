@@ -2,6 +2,12 @@ variables:
   # API descriptions mention using the /orgs and /groups endpoints to fetch user's orgs/projects, removing that part.
   org_id_description: &org_id_description "Unique 24-hexadecimal digit string that identifies the organization that contains your projects."
   project_id_description: &project_id_description "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation."
+  # The spec's `mechanism` description predates MSK IAM auth and omits AWS_MSK_IAM, which this
+  # resource supports via `authentication.aws`: the spec gained the `aws` object but the
+  # description enumerating the supported mechanisms was never updated. Same wording as the
+  # hand-written mongodbatlas_stream_connection docs. Unlike the other description stopgaps here,
+  # no upstream ticket tracks this correction, so re-check it against the spec on every refetch.
+  kafka_mechanism_description: &kafka_mechanism_description "Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, `OAUTHBEARER`, or `AWS_MSK_IAM`."
   # TODO(CLOUDP-439020): once the descriptions are corrected upstream, delete these anchors and the
   # `description` overrides that reference them, then refetch the spec and regenerate.
   collections_source_namespace_description: &collections_source_namespace_description "Collection requested to restore, as `database.collection`."
@@ -1132,6 +1138,12 @@ resources:
         [
           "links",
           "authentication.links",
+          # `authentication.aws` was added to the shared StreamsKafkaAuthentication schema for MSK
+          # IAM auth. Its `links` is dropped like every other `links` in this resource, and its
+          # `test_bucket` is S3-only so it cannot apply here: failover supports only Kafka and
+          # Cluster, and `authentication` is a Kafka-only branch.
+          "authentication.aws.links",
+          "authentication.aws.test_bucket",
           "db_role_to_execute.links",
           "networking.links",
           "networking.access.links",
@@ -1148,6 +1160,14 @@ resources:
       overrides:
         project_id:
           description: *project_id_description
+        authentication.mechanism:
+          description: *kafka_mechanism_description
+        # `aws` stays optional so PLAIN/SCRAM/OAUTHBEARER remain valid, but an empty `aws = {}` is
+        # meaningless: with `test_bucket` ignored, role_arn is the only field that applies here.
+        # Mirrors db_role_to_execute.role, a required child inside an optional parent.
+        authentication.aws.role_arn:
+          computability:
+            required: true
         # A PATCH merges, so omitting the map keeps the old value. Send an empty map on update to
         # clear it when removed; the read side normalizes empty->null to avoid drift. The manual
         # mongodbatlas_stream_connection resource clears maps the same way on this endpoint.
@@ -1192,12 +1212,15 @@ resources:
       schema:
         # Mirror the resource: drop `links` and `name` in both the singular shape and the plural
         # `results.` shape. `name` is dropped because a failover connection's name always equals its
-        # parent `connection_name`, so it is redundant.
+        # parent `connection_name`, so it is redundant. `authentication.aws.test_bucket` is dropped
+        # with the resource's copy.
         ignores:
           [
             "links",
             "name",
             "authentication.links",
+            "authentication.aws.links",
+            "authentication.aws.test_bucket",
             "db_role_to_execute.links",
             "networking.links",
             "networking.access.links",
@@ -1205,6 +1228,8 @@ resources:
             "results.links",
             "results.name",
             "results.authentication.links",
+            "results.authentication.aws.links",
+            "results.authentication.aws.test_bucket",
             "results.db_role_to_execute.links",
             "results.networking.links",
             "results.networking.access.links",
@@ -1222,6 +1247,11 @@ resources:
           # ([/groups](#tag/...)) that the docs link-checker flags as a broken fragment.
           project_id:
             description: *project_id_description
+          # Keep the curated mechanism wording in both the singular and plural (`results.`) shapes.
+          authentication.mechanism:
+            description: *kafka_mechanism_description
+          results.authentication.mechanism:
+            description: *kafka_mechanism_description
 
   # Inbound private endpoint (customer VPC interface endpoint) registered for Atlas Stream
   # Processing. Project-scoped: the path has no workspaceName, and the customer-supplied `id`

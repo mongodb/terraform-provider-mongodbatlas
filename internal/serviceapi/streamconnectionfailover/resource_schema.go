@@ -23,6 +23,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Optional for type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.",
 				CustomType:          customtypes.NewObjectType[TFAuthenticationModel](ctx),
 				Attributes: map[string]schema.Attribute{
+					"aws": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "AWS configurations for AWS-based connection types.",
+						CustomType:          customtypes.NewObjectType[TFAuthenticationAwsModel](ctx),
+						Attributes: map[string]schema.Attribute{
+							"role_arn": schema.StringAttribute{
+								Required:            true,
+								MarkdownDescription: "Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.",
+							},
+						},
+					},
 					"client_id": schema.StringAttribute{
 						Optional:            true,
 						MarkdownDescription: "OIDC client identifier for authentication to the Kafka cluster.",
@@ -34,7 +45,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"mechanism": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.",
+						MarkdownDescription: "Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, `OAUTHBEARER`, or `AWS_MSK_IAM`.",
 					},
 					"method": schema.StringAttribute{
 						Optional:            true,
@@ -138,7 +149,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Attributes: map[string]schema.Attribute{
 							"connection_id": schema.StringAttribute{
 								Optional:            true,
-								MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type.",
+								MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type. Setting this field with any other networking access type returns a validation error.",
 							},
 							"name": schema.StringAttribute{
 								Optional:            true,
@@ -236,18 +247,22 @@ type TFModel struct {
 	Timeouts              timeouts.Value                                  `tfsdk:"timeouts" autogen:"omitjson"`
 }
 type TFAuthenticationModel struct {
-	ClientId                  types.String `tfsdk:"client_id"`
-	ClientSecret              types.String `tfsdk:"client_secret" autogen:"sensitive"`
-	Mechanism                 types.String `tfsdk:"mechanism"`
-	Method                    types.String `tfsdk:"method"`
-	Password                  types.String `tfsdk:"password" autogen:"sensitive"`
-	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions"`
-	Scope                     types.String `tfsdk:"scope"`
-	SslCertificate            types.String `tfsdk:"ssl_certificate"`
-	SslKey                    types.String `tfsdk:"ssl_key" autogen:"sensitive"`
-	SslKeyPassword            types.String `tfsdk:"ssl_key_password" autogen:"sensitive"`
-	TokenEndpointUrl          types.String `tfsdk:"token_endpoint_url"`
-	Username                  types.String `tfsdk:"username"`
+	Aws                       customtypes.ObjectValue[TFAuthenticationAwsModel] `tfsdk:"aws"`
+	ClientId                  types.String                                      `tfsdk:"client_id"`
+	ClientSecret              types.String                                      `tfsdk:"client_secret" autogen:"sensitive"`
+	Mechanism                 types.String                                      `tfsdk:"mechanism"`
+	Method                    types.String                                      `tfsdk:"method"`
+	Password                  types.String                                      `tfsdk:"password" autogen:"sensitive"`
+	SaslOauthbearerExtensions types.String                                      `tfsdk:"sasl_oauthbearer_extensions"`
+	Scope                     types.String                                      `tfsdk:"scope"`
+	SslCertificate            types.String                                      `tfsdk:"ssl_certificate"`
+	SslKey                    types.String                                      `tfsdk:"ssl_key" autogen:"sensitive"`
+	SslKeyPassword            types.String                                      `tfsdk:"ssl_key_password" autogen:"sensitive"`
+	TokenEndpointUrl          types.String                                      `tfsdk:"token_endpoint_url"`
+	Username                  types.String                                      `tfsdk:"username"`
+}
+type TFAuthenticationAwsModel struct {
+	RoleArn types.String `tfsdk:"role_arn"`
 }
 type TFDbRoleToExecuteModel struct {
 	Role types.String `tfsdk:"role"`
