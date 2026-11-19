@@ -167,6 +167,8 @@ The only field required for criteria type `CUSTOM`
 * `archive_id` - ID of the online archive.
 * `state`    - Status of the online archive. Valid values are: Pending, Archiving, Idle, Pausing, Paused, Orphaned and Deleted
 
+-> **NOTE:** To connect to and query archived data, use the hostname of the backing federated database instance that Atlas creates for each online archive. Retrieve it with the [mongodbatlas_federated_database_instances data source](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/federated_database_instances) with `type` set to `ONLINE_ARCHIVE`.
+
 ## Import 
 
 You can import online archives using `project_id`, `cluster_name`, and `archive_id` in one of the following formats:
