@@ -224,8 +224,8 @@ func TestAccFederatedDatabaseInstance_gcpMissingRoleID(t *testing.T) {
 func TestAccFederatedDatabaseInstance_atlasClusterAndPluralDSType(t *testing.T) {
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
-			// Online Archive requires US_EAST_1 in cloud-dev.
-			ReplicationSpecs: []acc.ReplicationSpecRequest{{Region: "US_EAST_1"}},
+			// Online Archive is only supported in specific regions in cloud-dev. EU_WEST_1 being one of them.
+			ReplicationSpecs: []acc.ReplicationSpecRequest{{Region: "EU_WEST_1"}},
 		})
 		name   = acc.RandomName()
 		config = configWithCluster(&clusterInfo, name)
