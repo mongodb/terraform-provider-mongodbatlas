@@ -170,12 +170,12 @@ func keepsStateWhenUnknown(ctx context.Context, t *testing.T, a schema.Attribute
 			},
 			func(p *planmodifier.ObjectResponse) attr.Value { return p.PlanValue }, stateValue)
 	default:
-		t.Fatalf("attribute kind %T is not modelled by keepsStateWhenUnknown: add a case for it", a)
+		t.Fatalf("attribute kind %T is not modeled by keepsStateWhenUnknown: add a case for it", a)
 		return false
 	}
 }
 
-// The element type does not matter to the modifiers, so collections are modelled as collections of strings.
+// The element type does not matter to the modifiers, so collections are modeled as collections of strings.
 func listKeepsState(ctx context.Context, mods []planmodifier.List) bool {
 	stateValue := types.ListValueMust(types.StringType, []attr.Value{})
 	return anyModifierKeepsState(mods,
