@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -1083,13 +1084,16 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 		configCall             = func(timeoutSection string) string {
 			return configBasicReplicaset(t, &basicReplicasetConfig{ProjectID: projectID, ClusterName: clusterName, TimeoutStr: timeoutSection, InstanceSize: "M10"})
 		}
+		// Give POST /clusters time to commit on Atlas before the create context expires during AwaitChanges.
+		// A 2s timeout can cancel the client POST read while Atlas still commits the cluster, causing cleanup
+		// to send DELETE before the create commits (404) and leave the cluster running in IDLE.
 		timeoutsStrShort = `
 			timeouts = {
-				create = "2s"
+				create = "30s"
 			}
 			delete_on_create_timeout = true
 		`
-		timeoutsStrLong      = strings.ReplaceAll(timeoutsStrShort, "2s", "6000s")
+		timeoutsStrLong      = strings.ReplaceAll(timeoutsStrShort, "30s", "6000s")
 		timeoutsStrLongFalse = strings.ReplaceAll(timeoutsStrLong, "true", "false")
 	)
 
@@ -1098,7 +1102,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 		Steps: []resource.TestStep{
 			{
 				Config:      configCall(timeoutsStrShort),
-				ExpectError: regexp.MustCompile("context deadline exceeded"),
+				ExpectError: regexp.MustCompile(`(?s)didn't reach desired state:\s+IDLE`),
 			},
 			// OK create should keep the delete_on_create_timeout flag and should be no cleanup.
 			{
@@ -1126,11 +1130,13 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 	})
 }
 
-// waitOnClusterDeleteDone waits until the cluster created with a very short create timeout and
+// waitOnClusterDeleteDone waits until the cluster created with a short create timeout and
 // delete_on_create_timeout = true is gone. The cluster can already be deleted by the time this runs,
 // which is the expected outcome, so a missing cluster is not an error.
 func waitOnClusterDeleteDone(t *testing.T, projectID, clusterName string) {
 	t.Helper()
+	initialState := clusterStateAfterCreateTimeoutCleanup(t.Context(), acc.MongoDBClient.AtlasV2.ClustersAPI, projectID, clusterName)
+	t.Logf("Cluster %s state after create-timeout cleanup: %s.", clusterName, initialState)
 	diags := &diag.Diagnostics{}
 	_ = advancedcluster.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedcluster.ClusterWaitParams{
 		ProjectID:   projectID,
@@ -1138,8 +1144,24 @@ func waitOnClusterDeleteDone(t *testing.T, projectID, clusterName string) {
 		Timeout:     60 * time.Minute,
 		IsDelete:    true,
 	}, "waiting for cluster to be deleted after cleanup in create timeout", diags)
-	require.False(t, diags.HasError(), "unexpected diagnostics while waiting for cluster %s to be deleted: %v", clusterName, diags)
+	require.False(t, diags.HasError(), "unexpected diagnostics while waiting for cluster %s to be deleted (state after create-timeout cleanup: %s): %v", clusterName, initialState, diags)
 	time.Sleep(2 * time.Minute) // Decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name".
+}
+
+// clusterStateAfterCreateTimeoutCleanup reads the cluster state once before the delete wait so a
+// timeout diagnostic distinguishes slow Atlas deletion (DELETING) from cleanup leaving the cluster active.
+func clusterStateAfterCreateTimeoutCleanup(ctx context.Context, api admin.ClustersAPI, projectID, clusterName string) string {
+	clusterDesc, resp, err := api.GetCluster(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		if validate.StatusNotFound(resp) || admin.IsErrorCode(err, advancedcluster.ErrorCodeClusterNotFound) {
+			return "DELETED (404)"
+		}
+		return fmt.Sprintf("error reading cluster: %v", err)
+	}
+	if state := clusterDesc.GetStateName(); state != "" {
+		return state
+	}
+	return "UNKNOWN"
 }
 
 type basicReplicasetConfig struct {
