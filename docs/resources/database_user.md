@@ -14,8 +14,8 @@ Each user has a set of roles that provide access to the project’s databases. U
 
 ```terraform
 resource "mongodbatlas_database_user" "test" {
-  username           = "test-acc-username"
-  password           = "test-acc-password"
+  username           = "<USERNAME>"
+  password           = "<PASSWORD>"
   project_id         = "<PROJECT-ID>"
   auth_database_name = "admin"
 
@@ -49,7 +49,7 @@ resource "mongodbatlas_database_user" "test" {
 
 ```terraform
 resource "mongodbatlas_database_user" "test" {
-  username           = "test-acc-username"
+  username           = "<USERNAME>"
   x509_type          = "MANAGED"
   project_id         = "<PROJECT-ID>"
   auth_database_name = "$external"
@@ -125,7 +125,7 @@ ephemeral "random_password" "user" {
 }
 
 resource "mongodbatlas_database_user" "test" {
-  username            = "test-acc-username"
+  username            = "<USERNAME>"
   password_wo         = ephemeral.random_password.user.result
   password_wo_version = 1
   project_id          = "<PROJECT-ID>"
@@ -140,7 +140,7 @@ resource "mongodbatlas_database_user" "test" {
 
 
 ### Further Examples
-- [Database User](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.21.0/examples/mongodbatlas_database_user)
+- [Database User](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.22.0/examples/mongodbatlas_database_user)
 
 
 ## Argument Reference
@@ -152,8 +152,8 @@ Accepted values include:
 * `project_id` - (Required) The unique ID for the project to create the database user, also known as `groupId` in the official documentation.
 * `roles` - (Required) 	List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
 * `username` - (Required) Username for authenticating to MongoDB. USER_ARN or ROLE_ARN if `aws_iam_type` is USER or ROLE.
-* `password` - (Optional) User's initial password. Only applicable for password-based authentication. Conflicts with `password_wo`. You can remove this argument from your Terraform configuration after user creation without impacting the user, password, or Terraform management. If you change your password management to outside of Terraform, we advise removing the argument from the Terraform configuration. **IMPORTANT:** The Terraform state file stores passwords as plain text, we recommend using `password_wo` instead.
-* `password_wo` - (Optional) User's password, passed as a [write-only argument](https://developer.hashicorp.com/terraform/language/resources/ephemeral/write-only) so it is never written to Terraform state or plan files. Write-only arguments can accept ephemeral and non-ephemeral values. Only applicable for password-based authentication, and conflicts with `password`. Requires Terraform 1.11 or later, and must be set together with `password_wo_version`.
+* `password` - (Optional) User's initial password. Only applicable for password-based authentication. Conflicts with `password_wo`. You can remove this argument from your Terraform configuration after user creation without impacting the user, password, or Terraform management. If you change your password management to outside of Terraform, we advise removing the argument from the Terraform configuration. **IMPORTANT:** The Terraform state file stores passwords as plain text, we recommend using `password_wo` instead. Atlas rejects passwords that appear on its common password list.
+* `password_wo` - (Optional) User's password, passed as a [write-only argument](https://developer.hashicorp.com/terraform/language/resources/ephemeral/write-only) so it is never written to Terraform state or plan files. Write-only arguments can accept ephemeral and non-ephemeral values. Only applicable for password-based authentication, and conflicts with `password`. Requires Terraform 1.11 or later, and must be set together with `password_wo_version`. Atlas rejects passwords that appear on its common password list.
 * `password_wo_version` - (Optional) Integer that triggers an update of `password_wo`. To rotate the password, change `password_wo` and increment this value in the same edit. Changing `password_wo` on its own has no effect, since Terraform cannot detect changes to a value that is not in state.
 * `description` - (Optional) Description of this database user.
 

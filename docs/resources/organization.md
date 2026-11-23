@@ -49,9 +49,9 @@ output "service_account_secret" {
 ~> **NOTE:** When a `service_account` block is defined, a Service Account is created instead of a Programmatic API Key. The `public_key` and `private_key` attributes will not be populated in this case.
 
 ### Further Examples
-- [Organization setup - step 1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.21.0/examples/mongodbatlas_organization/organization-step-1)
-- [Organization setup - step 2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.21.0/examples/mongodbatlas_organization/organization-step-2)
-- [Organization import](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.21.0/examples/mongodbatlas_organization/organization-import)
+- [Organization setup - step 1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.22.0/examples/mongodbatlas_organization/organization-step-1)
+- [Organization setup - step 2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.22.0/examples/mongodbatlas_organization/organization-step-2)
+- [Organization import](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.22.0/examples/mongodbatlas_organization/organization-import)
 
 ## Argument Reference
 
@@ -95,7 +95,7 @@ output "service_account_secret" {
 ~> **WARNING:** Service Account secrets expire after the configured `secret_expires_after_hours` period. To avoid losing access to the Atlas Administration API, update your application with the new client secret before the current one expires. If all secrets expire without being replaced, you will lose access to the organization. For more information, see [Rotate Service Account Secrets](https://www.mongodb.com/docs/atlas/tutorial/rotate-service-account-secrets/).
 * `client_id` - The Client ID of the Service Account.
 * `created_at` - The date that the Service Account was created on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-* `secrets` - A list of secrets associated with the specified Service Account. See [Secrets](#secrets).
+* `secrets` - (Sensitive) A list of secrets associated with the specified Service Account. See [Secrets](#secrets).
 
 ### Secrets
 
@@ -103,6 +103,8 @@ output "service_account_secret" {
 * `expires_at` - The date for the expiration of the secret. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 * `secret_id` - Unique 24-hexadecimal digit string that identifies the secret.
 * `secret` - (Sensitive) The secret for the Service Account. It will be returned only the first time after creation.
+
+~> **NOTE:** The whole `secrets` list is sensitive, so outputs that reference any attribute in it, including `expires_at` and `secret_id`, must set `sensitive = true`.
 
 ## Attributes Reference
 

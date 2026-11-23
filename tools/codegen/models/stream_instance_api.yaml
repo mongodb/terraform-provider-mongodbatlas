@@ -487,6 +487,17 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
+                      description: 'Required for type: DataCatalog. Base HTTPS URL of the catalog. Must be on the provider''s domain: `*.cloud.databricks.com` or `*.azuredatabricks.net` for Databricks Unity, and `*.snowflakecomputing.com` for Snowflake Horizon.'
+                      computed_optional_required: computed
+                      tf_schema_name: catalog_url
+                      tf_model_name: CatalogUrl
+                      api_name: catalogUrl
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
                       description: 'Optional for type: Cluster. Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.'
                       computed_optional_required: computed
                       tf_schema_name: cluster_group_id

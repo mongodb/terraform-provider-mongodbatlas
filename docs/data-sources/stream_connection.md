@@ -37,17 +37,17 @@ data "mongodbatlas_stream_connection" "example" {
 
 ## Attributes Reference
 
-* `type` - Type of connection. Can be `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
+* `type` - Type of connection. Can be `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `DataCatalog`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
-* `db_role_to_execute` - The name of a Built in or Custom DB Role to connect to an Atlas Cluster. See [DBRoleToExecute](#dbroletoexecute).
+* `db_role_to_execute` - Name of a built-in or custom DB Role to connect to a MongoDB Cloud Cluster. See [DBRoleToExecute](#dbroletoexecute).
 * `cluster_project_id` - Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams instance. You must first enable the organization setting.
 
 If `type` is of value `Kafka` the following additional attributes are defined:
 * `authentication` - User credentials required to connect to a Kafka cluster. Includes the authentication type, as well as the parameters for that authentication mode. See [authentication](#authentication).
 * `bootstrap_servers` - Comma separated list of server addresses.
-* `config` - A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
+* `config` - Map of Kafka key-value pairs for optional configuration. This object is flat, and keys can have '.' characters.
 * `security` - Properties for the secure transport connection to Kafka. For SASL_SSL, this can include the trusted certificate to use. See [security](#security).
 * `networking` - Networking Access Type can be `PUBLIC` (default), `VPC`, or `PRIVATE_LINK`. See [networking](#networking).
 
@@ -79,6 +79,12 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
 * `schema_registry_provider` - The Schema Registry provider. Must be set to `CONFLUENT`.
 * `schema_registry_urls` - List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
 * `schema_registry_authentication` - Authentication configuration for Schema Registry. See [Schema Registry Authentication](#schema-registry-authentication).
+
+If `type` is of value `DataCatalog` the following additional attributes are defined:
+* `catalog_provider` - Catalog system the connection points at. Values include `DATABRICKS_UNITY` or `SNOWFLAKE_HORIZON`. Cannot change after it's created.
+* `catalog_url` - Base HTTPS URL of the catalog on the provider's domain.
+* `databricks` - Databricks settings for the connection. Set only when `catalog_provider` is `DATABRICKS_UNITY`. See [Databricks](#databricks).
+* `snowflake` - Snowflake settings for the connection. Set only when `catalog_provider` is `SNOWFLAKE_HORIZON`. See [Snowflake](#snowflake).
 
 ### Authentication
 
@@ -130,6 +136,24 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
   * `SASL_INHERIT` - Inherits the authentication configuration from Kafka for the Confluent Schema Registry.
 * `username` - Username for the Schema Registry. Required when `type` is `USER_INFO`.
 * `password` - Password for the Schema Registry. Required when `type` is `USER_INFO`.
+
+### Databricks
+* `authentication` - Credentials of the Databricks service principal used to authenticate to the Databricks Unity Catalog. See [Databricks Authentication](#databricks-authentication).
+
+### Databricks Authentication
+* `client_id` - OAuth client ID of the Databricks service principal.
+* `client_secret_wo` - OAuth client secret of the Databricks service principal. Write-only on the resource. Atlas never returns it, so it is always `null` in the data source.
+* `client_secret_wo_version` - Version of the Databricks client secret used as a rotation trigger on the resource. Atlas never returns it, so it is always `null` in the data source.
+
+### Snowflake
+* `authentication` - Credentials of the Snowflake service user used to authenticate to the Snowflake Horizon catalog. See [Snowflake Authentication](#snowflake-authentication).
+
+### Snowflake Authentication
+* `account` - Snowflake account identifier.
+* `user` - Snowflake service user.
+* `role` - Snowflake role the service user assumes.
+* `private_key_wo` - Private key of the service user's key pair. Write-only on the resource; Atlas never returns it, so it is always `null` in the data source.
+* `private_key_wo_version` - Version of the Snowflake private key used as a rotation trigger on the resource. Atlas never returns it, so it is always `null` in the data source.
 
 To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getstreamconnection) Documentation.
 The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_processor/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.

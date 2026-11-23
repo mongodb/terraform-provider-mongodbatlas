@@ -26878,6 +26878,10 @@ components:
           $ref: "#/components/schemas/StreamsDatabricksConnectionConfig"
         snowflake:
           $ref: "#/components/schemas/StreamsSnowflakeConnectionConfig"
+        catalogUrl:
+          description: "Base HTTPS URL of the catalog. Must be on the provider's domain: `*.cloud.databricks.com` or `*.azuredatabricks.net` for Databricks Unity, and `*.snowflakecomputing.com` for Snowflake Horizon."
+          format: uri
+          type: string
       readOnly: true
       type: object
       x-xgen-discriminator:
@@ -29434,7 +29438,7 @@ info:
   termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
   title: MongoDB Atlas Administration API
   version: "2.0"
-  x-xgen-sha: 4ac90cbee72e06d01c4e6930dcf52b7fe368b215
+  x-xgen-sha: aed150e8f1ce537e7e36dc88578085e500f74272
 openapi: 3.0.1
 paths:
   /api/atlas/v2:

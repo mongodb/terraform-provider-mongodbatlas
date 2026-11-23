@@ -168,6 +168,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Optional for type: DataCatalog. Catalog system the connection points at. Cannot be changed after creation.",
 			},
+			"catalog_url": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Required for type: DataCatalog. Base HTTPS URL of the catalog. Must be on the provider's domain: `*.cloud.databricks.com` or `*.azuredatabricks.net` for Databricks Unity, and `*.snowflakecomputing.com` for Snowflake Horizon.",
+			},
 			"cluster_project_id": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Optional for type: Cluster. Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.",
@@ -527,6 +531,7 @@ type TFModel struct {
 	Azure                        customtypes.ObjectValue[TFAzureModel]                        `tfsdk:"azure"`
 	BootstrapServers             types.String                                                 `tfsdk:"bootstrap_servers"`
 	CatalogProvider              types.String                                                 `tfsdk:"catalog_provider"`
+	CatalogUrl                   types.String                                                 `tfsdk:"catalog_url"`
 	ClusterProjectId             types.String                                                 `tfsdk:"cluster_project_id" apiname:"clusterGroupId"`
 	ClusterName                  types.String                                                 `tfsdk:"cluster_name"`
 	Config                       customtypes.MapValue[types.String]                           `tfsdk:"config"`
