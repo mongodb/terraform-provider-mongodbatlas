@@ -50,6 +50,28 @@ resource "mongodbatlas_search_index" "auto_embed" {
 EOF
 }
 
+# Text search index with an Automated Embedding field: Atlas generates the
+# embeddings from the source field's text using the specified Voyage model.
+# The mapping key is the source field path.
+resource "mongodbatlas_search_index" "auto_embed_search" {
+  project_id       = var.project_id
+  cluster_name     = var.cluster_name
+  database         = var.database
+  collection_name  = var.collection_name
+  name             = "auto-embed-search-index"
+  type             = "search"
+  mappings_dynamic = false
+  mappings_fields  = <<-EOF
+{
+  "plot": {
+    "type": "autoEmbed",
+    "model": "voyage-4-lite",
+    "modality": "text"
+  }
+}
+EOF
+}
+
 output "search_index_id" {
   value = mongodbatlas_search_index.search.index_id
 }
@@ -60,4 +82,8 @@ output "vector_index_id" {
 
 output "auto_embed_index_id" {
   value = mongodbatlas_search_index.auto_embed.index_id
+}
+
+output "auto_embed_search_index_id" {
+  value = mongodbatlas_search_index.auto_embed_search.index_id
 }

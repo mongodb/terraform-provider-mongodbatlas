@@ -1,10 +1,11 @@
 # MongoDB Atlas Provider - Search Indexes on a Cluster
 
-This example shows how to create different `mongodbatlas_search_index` types on a MongoDB Atlas cluster, three indexes on the same collection:
+This example shows how to create different `mongodbatlas_search_index` types on a MongoDB Atlas cluster, four indexes on the same collection:
 
 - A text `search` index with dynamic mappings.
 - A `vector` index, for embeddings you generate and store yourself.
-- An `autoEmbed` (Automated Embedding) index, where Atlas generates the embeddings from a text field using a Voyage model.
+- An `autoEmbed` (Automated Embedding) vector index, where Atlas generates the embeddings from a text field using a Voyage model.
+- A `search` index with an `autoEmbed` field, where Atlas generates embeddings from a text field for use in `$search` queries.
 
 Variables required to be set:
 
