@@ -174,35 +174,27 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 	if InUnitTest() {
 		return nil
 	}
-	// Wait for post-create primary elections to settle before mongorestore runs.
-	time.Sleep(1 * time.Minute)
-	const maxAttempts = 3
-	var err error
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		err = runSampleDatasetLoad(projectID, clusterName)
-		if err == nil || attempt == maxAttempts || !strings.Contains(err.Error(), "ReplicaSetNoPrimary") {
-			return err
-		}
-		log.Printf("[INFO] sample dataset load attempt %d/%d failed with ReplicaSetNoPrimary for cluster %s:%s; retrying in 30s: %v", attempt, maxAttempts, projectID, clusterName, err)
-		time.Sleep(30 * time.Second)
-	}
-	return err
-}
-
-func runSampleDatasetLoad(projectID, clusterName string) error {
 	ctx := context.Background()
-	jobLoad, _, err := ConnV2().ClustersAPI.RequestSampleDatasetLoad(ctx, projectID, clusterName).Execute()
-	if err != nil || jobLoad == nil {
-		return fmt.Errorf("cluster(%s:%s) loading sample data set error: %s", projectID, clusterName, err)
-	}
-	jobID := jobLoad.GetId()
+	var (
+		jobID   string
+		retries int
+	)
 	stateConf := retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyWorkingState},
 		Target:     []string{retrystrategy.RetryStrategyCompletedState},
-		Timeout:    30 * time.Minute,
+		Timeout:    45 * time.Minute,
 		MinTimeout: 1 * time.Minute,
-		Delay:      1 * time.Minute,
+		// Delay also lets post-create primary elections settle before requesting the first load.
+		Delay: 1 * time.Minute,
 		Refresh: func() (result any, state string, err error) {
+			if jobID == "" {
+				jobLoad, _, err := ConnV2().ClustersAPI.RequestSampleDatasetLoad(ctx, projectID, clusterName).Execute()
+				if err != nil || jobLoad == nil {
+					return nil, "", fmt.Errorf("cluster(%s:%s) loading sample data set error: %s", projectID, clusterName, err)
+				}
+				jobID = jobLoad.GetId()
+				return jobLoad, retrystrategy.RetryStrategyWorkingState, nil
+			}
 			job, _, err := ConnV2().ClustersAPI.GetSampleDatasetLoad(ctx, projectID, jobID).Execute()
 			if err != nil {
 				return nil, "", err
@@ -211,13 +203,19 @@ func runSampleDatasetLoad(projectID, clusterName string) error {
 				return nil, "", fmt.Errorf("sample dataset load %s returned nil job for cluster %s:%s", jobID, projectID, clusterName)
 			}
 			state = job.GetState()
+			if state == retrystrategy.RetryStrategyFailedState && retries < 2 && strings.Contains(job.GetErrorMessage(), "ReplicaSetNoPrimary") {
+				retries++
+				log.Printf("[INFO] sample dataset load %s failed with ReplicaSetNoPrimary for cluster %s:%s (retry %d/2); requesting a new load", jobID, projectID, clusterName, retries)
+				jobID = ""
+				return job, retrystrategy.RetryStrategyWorkingState, nil
+			}
 			if err := errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state, job.GetErrorMessage()); err != nil {
 				return job, state, err
 			}
 			return job, state, nil
 		},
 	}
-	_, err = stateConf.WaitForStateContext(ctx)
+	_, err := stateConf.WaitForStateContext(ctx)
 	return err
 }
 
