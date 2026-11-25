@@ -63,6 +63,20 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:            onlineArchiveResourceName,
+				ImportStateIdFunc:       importStateIDFunc(onlineArchiveResourceName, "/"),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"sync_creation", "delete_on_create_timeout", "state"},
+			},
+			{
+				ResourceName:            onlineArchiveResourceName,
+				ImportStateIdFunc:       importStateIDFunc(onlineArchiveResourceName, "-"),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"sync_creation", "delete_on_create_timeout", "state"},
+			},
+			{
 				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 2, 8, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
@@ -123,64 +137,6 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 	})
 }
 
-func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
-	var (
-		clusterInfo               = acc.GetClusterInfo(t, clusterRequest())
-		clusterResourceName       = clusterInfo.ResourceName
-		clusterName               = clusterInfo.Name
-		projectID                 = clusterInfo.ProjectID
-		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
-		clusterTerraformStr       = clusterInfo.TerraformStr
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: clusterTerraformStr,
-				Check:  acc.PopulateWithSampleDataTestCheck(projectID, clusterName),
-			},
-			{
-				Config: configWithoutSchedule(clusterTerraformStr, clusterResourceName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
-					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
-					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
-				),
-			},
-			{
-				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 1, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
-					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
-					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
-					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.type"),
-					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_hour"),
-					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_minute"),
-					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_hour"),
-					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_minute"),
-				),
-			},
-			{
-				ResourceName:            onlineArchiveResourceName,
-				ImportStateIdFunc:       importStateIDFunc(onlineArchiveResourceName, "/"),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"sync_creation", "delete_on_create_timeout", "state"},
-			},
-			{
-				ResourceName:            onlineArchiveResourceName,
-				ImportStateIdFunc:       importStateIDFunc(onlineArchiveResourceName, "-"),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"sync_creation", "delete_on_create_timeout", "state"},
-			},
-		},
-	})
-}
-
 // importStateIDFunc builds the import ID {project_id}{sep}{cluster_name}{sep}{archive_id}. Test cluster names contain hyphens.
 func importStateIDFunc(resourceName, sep string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
@@ -218,6 +174,10 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 			{
 				Config: configWithDataProcessRegion(clusterTerraformStr, clusterResourceName, cloudProvider, processRegion),
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
+					resource.TestCheckNoResourceAttr(onlineArchiveResourceName, "schedule.#"),
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.cloud_provider", cloudProvider),
 					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_process_region.0.region", processRegion),
 					resource.TestCheckResourceAttr(onlineArchiveDataSourceName, "data_process_region.0.cloud_provider", cloudProvider),
