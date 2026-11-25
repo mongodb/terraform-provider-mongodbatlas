@@ -59,14 +59,11 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-You can import stream instance resource using the project ID and instance name. For example:
+You can import stream instance resource using the project ID and instance name, in the format `{project_id}/{instance_name}`. For example:
 
 ```
 $ terraform import mongodbatlas_stream_instance.test 650972848269185c55f40ca1/InstanceName
 ```
-
-1. `{project_id}/{instance_name}` (recommended)
-2. `{project_id}-{instance_name}` (deprecated, will be removed in the next major version)
 
 To learn more, see: [MongoDB Atlas API - Stream Instance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamInstance) Documentation. 
 The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_processor/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.

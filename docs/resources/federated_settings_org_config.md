@@ -58,14 +58,10 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-FederatedSettingsOrgConfig must be imported using federation settings ID and org ID, in one of the following formats:
-
-1. `{federation_settings_id}/{org_id}` (recommended)
-2. `{federation_settings_id}-{org_id}` (deprecated, will be removed in the next major version)
+FederatedSettingsOrgConfig must be imported using federation settings ID and org ID, in the format `{federation_settings_id}/{org_id}`.
 
 ```
-$ terraform import mongodbatlas_federated_settings_org_config.org_connection 627a9687f7f7f7f774de306f14/627a9683ea7ff7f74de306f14 # (1)
-$ terraform import mongodbatlas_federated_settings_org_config.org_connection 627a9687f7f7f7f774de306f14-627a9683ea7ff7f74de306f14 # (2)
+$ terraform import mongodbatlas_federated_settings_org_config.org_connection 627a9687f7f7f7f774de306f14/627a9683ea7ff7f74de306f14
 ```
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/federation-configuration/)

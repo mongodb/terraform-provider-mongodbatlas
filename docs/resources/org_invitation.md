@@ -71,10 +71,6 @@ An organization invitation can **not** be imported once it has been accepted.
 
 Import a user's invitation to an organization, e.g.
 
-
 ```
 $ terraform import mongodbatlas_org_invitation.my_user 1112222b3bf99403840e8934/my_user@mongodb.com
 ```
-
-1. `{org_id}/{username}` (recommended)
-2. `{org_id}-{username}` (deprecated, will be removed in the next major version)

@@ -44,13 +44,10 @@ output "expiration_time" {
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ## Import 
-The resource can be imported using project ID and cluster name, e.g.
+The resource can be imported using project ID and cluster name, in the format `{project_id}/{cluster_name}`, e.g.
 
 ```
 $ terraform import mongodbatlas_mongodb_employee_access_grant.test 650972848269185c55f40ca1/MyCluster
 ```
-
-1. `{project_id}/{cluster_name}` (recommended)
-2. `{project_id}-{cluster_name}` (deprecated, will be removed in the next major version)
 
 For more information see: [MongoDB Employee Access Grant API doc](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-grantmongodbemployeeaccess).

@@ -64,14 +64,10 @@ In addition to all arguments above, the following attributes are exported:
     
 ## Import
 
-LDAP Configuration must be imported using project ID and request ID, in one of the following formats:
-
-1. `{project_id}/{request_id}` (recommended)
-2. `{project_id}-{request_id}` (deprecated, will be removed in the next major version)
+LDAP Configuration must be imported using project ID and request ID, in the format `{project_id}/{request_id}`.
 
 ```
-$ terraform import mongodbatlas_ldap_verify.test 5d09d6a59ccf6445652a444a/5d09d6a59ccf6445652a444a # (1)
-$ terraform import mongodbatlas_ldap_verify.test 5d09d6a59ccf6445652a444a-5d09d6a59ccf6445652a444a # (2)
+$ terraform import mongodbatlas_ldap_verify.test 5d09d6a59ccf6445652a444a/5d09d6a59ccf6445652a444a
 ```
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/ldaps-configuration-request-verification)

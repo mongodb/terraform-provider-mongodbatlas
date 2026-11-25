@@ -101,7 +101,4 @@ IP Access List entries can be imported using the `project_id` and `cidr_block` o
 $ terraform import mongodbatlas_project_ip_access_list.this 5d0f1f74cf09a29120e123cd/10.242.88.0/21
 ```
 
-1. `{project_id}/{entry}` (recommended), where `entry` may be a CIDR block such as `10.0.0.0/8`, an IP address, or an AWS security group ID
-2. `{project_id}-{entry}` (deprecated, will be removed in the next major version)
-
 For more information, see [MongoDB Atlas API Reference](https://www.mongodb.com/docs/atlas/reference/api/access-lists/).

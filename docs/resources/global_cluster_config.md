@@ -97,13 +97,10 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Global Clusters can be imported using project ID and cluster name, e.g.
+Global Clusters can be imported using project ID and cluster name, in the format `{project_id}/{cluster_name}`, e.g.
 
 ```
 $ terraform import mongodbatlas_global_cluster_config.config 1112222b3bf99403840e8934/Cluster0
 ```
-
-1. `{project_id}/{cluster_name}` (recommended)
-2. `{project_id}-{cluster_name}` (deprecated, will be removed in the next major version)
 
 See detailed information for arguments and attributes: [MongoDB API Global Clusters](https://www.mongodb.com/docs/atlas/reference/api/global-clusters/)

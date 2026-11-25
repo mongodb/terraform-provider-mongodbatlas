@@ -18,14 +18,10 @@ subcategory: "Clusters"
 {{ .SchemaMarkdown | trimspace }}
 
 ## Import
-You can import the Flex Cluster resource by using the Project ID and Flex Cluster name, in one of the following formats:
-
-1. `{project_id}/{cluster_name}` (recommended)
-2. `{project_id}-{cluster_name}` (deprecated, will be removed in the next major version)
+You can import the Flex Cluster resource by using the Project ID and Flex Cluster name, in the format `{project_id}/{cluster_name}`.
 
 ```
-$ terraform import mongodbatlas_flex_cluster.test 6117ac2fe2a3d04ed27a987v/yourFlexClusterName # (1)
-$ terraform import mongodbatlas_flex_cluster.test 6117ac2fe2a3d04ed27a987v-yourFlexClusterName # (2)
+$ terraform import mongodbatlas_flex_cluster.test 6117ac2fe2a3d04ed27a987v/yourFlexClusterName
 ```
 
 For more information see: [MongoDB Atlas API - Flex Cluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Flex-Clusters/operation/createFlexcluster) Documentation.
