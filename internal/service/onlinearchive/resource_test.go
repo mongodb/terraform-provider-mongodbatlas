@@ -125,12 +125,15 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
 					resource.TestCheckNoResourceAttr(onlineArchiveResourceName, "schedule.#"),
+					resource.TestCheckNoResourceAttr(onlineArchiveResourceName, "data_expiration_rule.0.expire_after_days"),
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),
 				),
 			},
 			{
-				Config: configWithoutSchedule(clusterTerraformStr, clusterResourceName),
+				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 7, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "schedule.0.type", "DAILY"),
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_expiration_rule.0.expire_after_days", "7"),
 				),
 			},
 		},
