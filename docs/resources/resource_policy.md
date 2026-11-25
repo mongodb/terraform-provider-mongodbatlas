@@ -147,11 +147,15 @@ Read-Only:
 - `id` (String) Unique 24-hexadecimal character string that identifies a user.
 - `name` (String) Human-readable label that describes a user.
 
-## Import 
-Resource Policy resource can be imported using the org ID and policy ID, in the format `{ORG_ID}-{POLICY_ID}`, e.g.
+## Import
+Resource Policy resource can be imported using the org ID and policy ID, in one of the following formats:
+
+1. `{org_id}/{resource_policy_id}` (recommended)
+2. `{org_id}-{resource_policy_id}` (deprecated, will be removed in the next major version)
 
 ```
-terraform import mongodbatlas_resource_policy.cloud_region 65def6ce0f722a1507105aa5-66f1c018dba9c04e7dcfaf36
+terraform import mongodbatlas_resource_policy.cloud_region 65def6ce0f722a1507105aa5/66f1c018dba9c04e7dcfaf36 # (1)
+terraform import mongodbatlas_resource_policy.cloud_region 65def6ce0f722a1507105aa5-66f1c018dba9c04e7dcfaf36 # (2)
 ```
 
 For more information see: [MongoDB Atlas API - Resource Policies](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-resource-policies) Documentation.

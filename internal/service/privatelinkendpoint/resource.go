@@ -345,22 +345,14 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	parts := strings.Split(d.Id(), "-")
-
-	if len(parts) != 6 && len(parts) != 5 && len(parts) != 4 {
-		return nil, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}-{private_link_id}-{provider_name}-{region}")
+	importID, err := SplitPrivateLinkEndpointImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
-
-	projectID := parts[0]
-	privateLinkID := parts[1]
-	providerName := parts[2]
-	region := parts[3] // If region it's azure or Atlas format like US_EAST_1
-	if len(parts) == 5 {
-		region = fmt.Sprintf("%s-%s", parts[3], parts[4])
+	if importID.Legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{private_link_id}-{provider_name}-{region}", "{project_id}/{private_link_id}/{provider_name}/{region}"))
 	}
-	if len(parts) == 6 {
-		region = fmt.Sprintf("%s-%s-%s", parts[3], parts[4], parts[5])
-	}
+	projectID, privateLinkID, providerName, region := importID.ProjectID, importID.PrivateLinkID, importID.ProviderName, importID.Region
 
 	privateEndpoint, _, err := conn.PrivateEndpoints.Get(ctx, projectID, providerName, privateLinkID)
 	if err != nil {
@@ -379,6 +371,39 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+type ImportID struct {
+	ProjectID     string
+	PrivateLinkID string
+	ProviderName  string
+	Region        string
+	Legacy        bool
+}
+
+func SplitPrivateLinkEndpointImportID(id string) (ImportID, error) {
+	if ok, parts := conversion.ImportSplitN(id, 4); ok {
+		return ImportID{
+			ProjectID:     parts[0],
+			PrivateLinkID: parts[1],
+			ProviderName:  parts[2],
+			Region:        parts[3],
+		}, nil
+	}
+
+	parts := strings.Split(id, "-")
+	if len(parts) < 4 || len(parts) > 6 {
+		return ImportID{}, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}/{private_link_id}/{provider_name}/{region}, or the legacy format {project_id}-{private_link_id}-{provider_name}-{region}")
+	}
+
+	// The region may contain hyphens (for example us-east-1), so join the remaining parts.
+	return ImportID{
+		ProjectID:     parts[0],
+		PrivateLinkID: parts[1],
+		ProviderName:  parts[2],
+		Region:        strings.Join(parts[3:], "-"),
+		Legacy:        true,
+	}, nil
 }
 
 func refreshFunc(ctx context.Context, client *admin.APIClient, projectID, providerName, privateLinkID string) retry.StateRefreshFunc {

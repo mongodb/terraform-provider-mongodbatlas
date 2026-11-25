@@ -2,7 +2,9 @@ package cloudprovideraccess
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 	"regexp"
 	"time"
 
@@ -340,10 +342,13 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) (map[string]any, err
 }
 
 func resourceCloudProviderAccessSetupImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	projectID, providerName, roleID, err := splitCloudProviderAccessID(d.Id())
+	projectID, providerName, roleID, legacy, err := splitCloudProviderAccessID(d.Id())
 
 	if err != nil {
 		return nil, fmt.Errorf(errorImporter, err)
+	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{provider_name}-{role_id}", "{project_id}/{provider_name}/{role_id}"))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -359,13 +364,20 @@ func resourceCloudProviderAccessSetupImportState(ctx context.Context, d *schema.
 	return []*schema.ResourceData{d}, nil
 }
 
-// format  {project_id}-{provider-name}-{role-id}
-func splitCloudProviderAccessID(id string) (projectID, providerName, roleID string, err error) {
+// splitCloudProviderAccessID accepts the new "/"-separated format first and falls back to the
+// legacy "-"-separated format. legacy is true only when the legacy format parsed successfully.
+func splitCloudProviderAccessID(id string) (projectID, providerName, roleID string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 3); ok {
+		return parts[0], parts[1], parts[2], false, nil
+	}
+
+	legacy = true
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 4 {
-		err = fmt.Errorf(errorImporter, "format please use {project_id}-{provider-name}-{role-id}")
+		legacy = false
+		err = errors.New("import format error: to import a cloud provider access setup, use the format {project_id}/{provider_name}/{role_id} or the legacy format {project_id}-{provider_name}-{role_id}")
 		return
 	}
 

@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -349,4 +351,59 @@ func configOIDCWorkloadBasic(federationSettingsID, description, audience, author
 		depends_on 				= [mongodbatlas_federated_settings_identity_provider.test]
 	  }
 	  `, federationSettingsID, audience, description, federatedsettingsidentityprovider.WORKLOAD, authorizationType, groupsClaimRaw, federatedsettingsidentityprovider.OIDC)
+}
+
+func TestSplitFederatedSettingsIdentityProviderImportID(t *testing.T) {
+	const errorString = "import format error: to import a Federated Settings Identity Provider, use the format {federation_settings_id}/{okta_idp_id} or the legacy format {federation_settings_id}-{okta_idp_id}"
+	tests := map[string]struct {
+		importID             string
+		federationSettingsID string
+		oktaIdpID            string
+		errorString          string
+		legacy               bool
+	}{
+		"slash format": {
+			importID:             "7e4b5ade-6a91-11ec-8dd6-68b6fc43686c/664619d870c247237f4b86a6",
+			federationSettingsID: "7e4b5ade-6a91-11ec-8dd6-68b6fc43686c",
+			oktaIdpID:            "664619d870c247237f4b86a6",
+		},
+		"slash format with more parts": {
+			importID:    "part1/part2/part3",
+			errorString: errorString,
+		},
+		"legacy format": {
+			importID:             "7e4b5ade-6a91-11ec-8dd6-68b6fc43686c-664619d870c247237f4b86a6",
+			federationSettingsID: "7e4b5ade-6a91-11ec-8dd6-68b6fc43686c",
+			oktaIdpID:            "664619d870c247237f4b86a6",
+			legacy:               true,
+		},
+		"legacy format with hyphens in federation settings ID": {
+			importID:             "7e4b5ade-6a91-11ec-8dd6-68b6fc43686c-0aa6239e-9a68-4a34-a1ee-0b3b3c3e4e5f",
+			federationSettingsID: "7e4b5ade-6a91-11ec-8dd6-68b6fc43686c-0aa6239e-9a68-4a34-a1ee",
+			oktaIdpID:            "0b3b3c3e4e5f",
+			legacy:               true,
+		},
+		"missing idp ID without hyphen separator": {
+			importID:    "664619d870c247237f4b86a6",
+			errorString: errorString,
+		},
+		"empty input": {
+			importID:    "",
+			errorString: errorString,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			federationSettingsID, oktaIdpID, legacy, err := federatedsettingsidentityprovider.SplitFederatedSettingsIdentityProviderImportID(tc.importID)
+			if tc.errorString != "" {
+				require.EqualError(t, err, tc.errorString)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, tc.federationSettingsID, federationSettingsID)
+			assert.Equal(t, tc.oktaIdpID, oktaIdpID)
+			assert.Equal(t, tc.legacy, legacy)
+		})
+	}
 }

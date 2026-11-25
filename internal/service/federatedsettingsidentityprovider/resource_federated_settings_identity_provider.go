@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -18,6 +19,8 @@ import (
 
 const SAML = "SAML"
 const OIDC = "OIDC"
+
+var legacyImportIDRegex = regexp.MustCompile(`(?s)^(.*)-(.*)$`)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -370,29 +373,31 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	federationSettingsID, idpID, err := splitFederatedSettingsIdentityProviderImportID(d.Id())
+	federationSettingsID, idpID, legacy, err := SplitFederatedSettingsIdentityProviderImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{federation_settings_id}-{okta_idp_id}", "{federation_settings_id}/{okta_idp_id}"))
+	}
 
-	d.SetId(encodeStateID(*federationSettingsID, *idpID))
+	d.SetId(encodeStateID(federationSettingsID, idpID))
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func splitFederatedSettingsIdentityProviderImportID(id string) (federationSettingsID, oktaIdpID *string, err error) {
-	var re = regexp.MustCompile(`(?s)^(.*)-(.*)$`)
-	parts := re.FindStringSubmatch(id)
-
+// SplitFederatedSettingsIdentityProviderImportID splits an import ID in the format
+// {federation_settings_id}/{okta_idp_id} or in the legacy format {federation_settings_id}-{okta_idp_id}.
+func SplitFederatedSettingsIdentityProviderImportID(id string) (federationSettingsID, oktaIdpID string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+	parts := legacyImportIDRegex.FindStringSubmatch(id)
 	if len(parts) != 3 {
-		err = errors.New("import format error: to import a Federated SettingsIdentity Provider, use the format {federation_settings_id}-{okta_idp_id}")
+		err = errors.New("import format error: to import a Federated Settings Identity Provider, use the format {federation_settings_id}/{okta_idp_id} or the legacy format {federation_settings_id}-{okta_idp_id}")
 		return
 	}
-
-	federationSettingsID = &parts[1]
-	oktaIdpID = &parts[2]
-
-	return
+	return parts[1], parts[2], true, nil
 }
 
 // Since the migration of this resource to the latest version of the auto-generated SDK (v20231115) and the breaking changes of the API

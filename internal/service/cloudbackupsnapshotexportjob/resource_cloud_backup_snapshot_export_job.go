@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
@@ -287,9 +288,12 @@ func expandExportJobCustomData(d *schema.ResourceData) *[]admin.BackupLabel {
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	projectID, clusterName, exportID, err := SplitImportID(d.Id())
+	projectID, clusterName, exportID, legacy, err := SplitImportID(d.Id())
 	if err != nil {
 		return nil, err
+	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}--{cluster_name}--{export_job_id}", "{project_id}/{cluster_name}/{export_job_id}"))
 	}
 
 	_, _, err = connV2.CloudBackupsAPI.GetBackupExport(ctx, projectID, clusterName, exportID).Execute()
@@ -311,16 +315,16 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 
 // SplitImportID splits an import ID in the format {project_id}/{cluster_name}/{export_job_id},
 // or in the legacy format {project_id}--{cluster_name}--{export_job_id}, where the cluster name can contain hyphens.
-func SplitImportID(id string) (projectID, clusterName, exportJobID string, err error) {
+func SplitImportID(id string) (projectID, clusterName, exportJobID string, legacy bool, err error) {
 	if ok, parts := conversion.ImportSplit(id, 3); ok {
-		return parts[0], parts[1], parts[2], nil
+		return parts[0], parts[1], parts[2], false, nil
 	}
 	parts := legacyImportIDRegex.FindStringSubmatch(id)
 	if len(parts) != 4 {
 		err = errors.New(ErrorImportFormat)
 		return
 	}
-	return parts[1], parts[2], parts[3], nil
+	return parts[1], parts[2], parts[3], true, nil
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {

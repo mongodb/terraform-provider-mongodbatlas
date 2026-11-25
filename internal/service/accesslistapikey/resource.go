@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"strings"
 
@@ -184,14 +185,13 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	parts := strings.SplitN(d.Id(), "-", 3)
-	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a api key use the format {org_id}-{api_key_id}-{ip_address}")
+	orgID, apiKeyID, ipAddress, legacy, err := SplitAccessListAPIKeyImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
-
-	orgID := parts[0]
-	apiKeyID := parts[1]
-	ipAddress := parts[2]
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{org_id}-{api_key_id}-{ip_address}", "{org_id}/{api_key_id}/{ip_address}"))
+	}
 
 	r, _, err := connV2.ProgrammaticAPIKeysAPI.GetOrgAccessEntry(ctx, orgID, ipAddress, apiKeyID).Execute()
 	if err != nil {
@@ -217,4 +217,19 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func SplitAccessListAPIKeyImportID(id string) (orgID, apiKeyID, entry string, legacy bool, err error) {
+	// Use SplitN so an IP/CIDR entry such as 10.0.0.0/8 keeps its slash.
+	if ok, parts := conversion.ImportSplitN(id, 3); ok {
+		return parts[0], parts[1], parts[2], false, nil
+	}
+
+	parts := strings.SplitN(id, "-", 3)
+	if len(parts) != 3 {
+		legacy = false
+		err = errors.New("import format error: to import an api key use the format {org_id}/{api_key_id}/{ip_address}, or the legacy format {org_id}-{api_key_id}-{ip_address}")
+		return
+	}
+	return parts[0], parts[1], parts[2], true, nil
 }

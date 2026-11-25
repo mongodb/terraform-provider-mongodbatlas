@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -220,16 +221,30 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	parts := strings.SplitN(d.Id(), "-", 2)
-	if len(parts) != 2 {
-		return nil, errors.New("import format error: to import a api key use the format {project_id}-{api_key_id}")
+	_, apiKeyID, legacy, err := splitProjectAPIKeyImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
-
-	// projectID is not needed for import any more, but kept to maintain import format and avoid breaking changes
-	apiKeyID := parts[1]
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{api_key_id}", "{project_id}/{api_key_id}"))
+	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"api_key_id": apiKeyID,
 	}))
 	return []*schema.ResourceData{d}, nil
+}
+
+func splitProjectAPIKeyImportID(id string) (projectID, apiKeyID string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+	parts := strings.SplitN(id, "-", 2)
+	if len(parts) != 2 {
+		legacy = false
+		err = errors.New("import format error: to import an api key use the format {project_id}/{api_key_id} or the legacy format {project_id}-{api_key_id}")
+		return
+	}
+	// projectID is not needed for import any more, but kept to maintain import format and avoid breaking changes
+	return parts[0], parts[1], true, nil
 }

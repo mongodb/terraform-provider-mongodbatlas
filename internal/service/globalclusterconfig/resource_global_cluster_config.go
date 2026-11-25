@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
 	"time"
@@ -281,13 +282,13 @@ func flattenManagedNamespaces(managedNamespaces []admin.ManagedNamespaces) []map
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	parts := strings.SplitN(d.Id(), "-", 2)
-	if len(parts) != 2 {
-		return nil, errors.New("import format error: to import a global cluster, use the format {project_id}-{cluster-name}")
+	projectID, name, legacy, err := splitGlobalClusterImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
-
-	projectID := parts[0]
-	name := parts[1]
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{cluster_name}", "{project_id}/{cluster_name}"))
+	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":   projectID,
@@ -303,6 +304,19 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func splitGlobalClusterImportID(id string) (projectID, clusterName string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+	parts := strings.SplitN(id, "-", 2)
+	if len(parts) != 2 {
+		legacy = false
+		err = errors.New("import format error: to import a global cluster, use the format {project_id}/{cluster_name} or the legacy format {project_id}-{cluster_name}")
+		return
+	}
+	return parts[0], parts[1], true, nil
 }
 
 func removeManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, remove []any, projectID, clusterName string) error {

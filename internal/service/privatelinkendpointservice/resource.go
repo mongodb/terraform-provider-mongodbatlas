@@ -388,9 +388,12 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	parts := strings.SplitN(d.Id(), "--", 4)
-	if len(parts) != 4 {
-		return nil, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}")
+	parts, legacy, err := splitImportStateID(d.Id())
+	if err != nil {
+		return nil, err
+	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}", "{project_id}/{private_link_id}/{endpoint_service_id}/{provider_name}"))
 	}
 	projectID := parts[0]
 	privateLinkID := parts[1]
@@ -425,6 +428,21 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+// splitImportStateID accepts the new "/"-separated format first and falls back to the
+// legacy "--"-separated format. legacy is true only when the legacy format parsed successfully.
+func splitImportStateID(id string) (parts []string, legacy bool, err error) {
+	if ok, newParts := conversion.ImportSplit(id, 4); ok {
+		return newParts, false, nil
+	}
+	legacy = true
+	parts = strings.SplitN(id, "--", 4)
+	if len(parts) != 4 {
+		legacy = false
+		err = errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}/{private_link_id}/{endpoint_service_id}/{provider_name} or the legacy format {project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}")
+	}
+	return
 }
 
 func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID, providerName, privateLinkID, endpointServiceID string) retry.StateRefreshFunc {

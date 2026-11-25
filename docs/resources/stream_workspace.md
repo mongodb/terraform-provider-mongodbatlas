@@ -99,8 +99,11 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-You can import stream workspace resource using the project ID and workspace name, in the format `PROJECT_ID-WORKSPACE_NAME`. For example:
+You can import stream workspace resource using the project ID and workspace name. For example:
 
 ```
-$ terraform import mongodbatlas_stream_workspace.test 650972848269185c55f40ca1-WorkspaceName
+$ terraform import mongodbatlas_stream_workspace.test 650972848269185c55f40ca1/WorkspaceName
 ```
+
+1. `{project_id}/{workspace_name}` (recommended)
+2. `{project_id}-{workspace_name}` (deprecated, will be removed in the next major version)

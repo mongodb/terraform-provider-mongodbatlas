@@ -211,12 +211,12 @@ In addition to all arguments above, the following attributes are exported:
 
 Database users can be imported using project ID, username, and auth database name in the format:
 
-1. `project_id`-`username`-`auth_database_name` Doesn't  work if `-` is used in both the `username` and the `auth_database_name`. For example `my-username` and `my-db` should use (2).
-2. `project_id`/`username`/`auth_database_name` Works when neither `username` nor `auth_database_name` use `/`.
+1. `project_id`/`username`/`auth_database_name` (recommended) Works when neither `username` nor `auth_database_name` use `/`.
+2. `project_id`-`username`-`auth_database_name` (deprecated, will be removed in the next major version) Doesn't  work if `-` is used in both the `username` and the `auth_database_name`. For example `my-username` and `my-db` should use (1).
 
 ```
-terraform import mongodbatlas_database_user.my_user 1112222b3bf99403840e8934-my_user-admin # (1)
-terraform import mongodbatlas_database_user.my_user 1112222b3bf99403840e8934/my-username-dash/my-db-name # (2)
+terraform import mongodbatlas_database_user.my_user 1112222b3bf99403840e8934/my_user/admin # (1)
+terraform import mongodbatlas_database_user.my_user 1112222b3bf99403840e8934-my_user-admin # (2)
 ```
 
 ~> **NOTE:** Terraform will want to change the password after importing the user if a `password` or `password_wo` argument is specified.

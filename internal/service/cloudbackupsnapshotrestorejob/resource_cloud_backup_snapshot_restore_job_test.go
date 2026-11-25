@@ -11,8 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotrestorejob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -222,4 +225,64 @@ func configDownload(terraformStr, clusterResourceName, description, retentionInD
 			}
 		}
 	`, terraformStr, clusterResourceName, description, retentionInDays, snapshotIDField)
+}
+
+func TestSplitSnapshotRestoreJobImportID(t *testing.T) {
+	const errorString = "import format error: to import a cloudProviderSnapshotRestoreJob, use the format {project_id}/{cluster_name}/{snapshot_restore_job_id} or the legacy format {project_id}-{cluster_name}-{snapshot_restore_job_id}"
+	tests := map[string]struct {
+		importID      string
+		projectID     string
+		clusterName   string
+		snapshotJobID string
+		errorString   string
+		legacy        bool
+	}{
+		"slash format": {
+			importID:      "664619d870c247237f4b86a6/my-cluster/664619d870c247237f4b86a7",
+			projectID:     "664619d870c247237f4b86a6",
+			clusterName:   "my-cluster",
+			snapshotJobID: "664619d870c247237f4b86a7",
+		},
+		"slash format with more parts": {
+			importID:    "part1/part2/part3/part4",
+			errorString: errorString,
+		},
+		"legacy format": {
+			importID:      "664619d870c247237f4b86a6-Cluster0-664619d870c247237f4b86a7",
+			projectID:     "664619d870c247237f4b86a6",
+			clusterName:   "Cluster0",
+			snapshotJobID: "664619d870c247237f4b86a7",
+			legacy:        true,
+		},
+		"legacy format with hyphens in cluster name": {
+			importID:      "664619d870c247237f4b86a6-my-prod-cluster-01-664619d870c247237f4b86a7",
+			projectID:     "664619d870c247237f4b86a6",
+			clusterName:   "my-prod-cluster-01",
+			snapshotJobID: "664619d870c247237f4b86a7",
+			legacy:        true,
+		},
+		"missing snapshot restore job ID": {
+			importID:    "664619d870c247237f4b86a6-Cluster0",
+			errorString: errorString,
+		},
+		"empty input": {
+			importID:    "",
+			errorString: errorString,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			projectID, clusterName, snapshotJobID, legacy, err := cloudbackupsnapshotrestorejob.SplitSnapshotRestoreJobImportID(tc.importID)
+			if tc.errorString != "" {
+				require.EqualError(t, err, tc.errorString)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, tc.projectID, projectID)
+			assert.Equal(t, tc.clusterName, clusterName)
+			assert.Equal(t, tc.snapshotJobID, snapshotJobID)
+			assert.Equal(t, tc.legacy, legacy)
+		})
+	}
 }

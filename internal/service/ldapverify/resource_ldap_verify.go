@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -222,14 +223,15 @@ func flattenValidations(validations []admin.LDAPVerifyConnectivityJobRequestVali
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	parts := strings.SplitN(d.Id(), "-", 2)
-	if len(parts) != 2 {
-		return nil, errors.New("import format error: to import a LDAP Verify use the format {project_id}-{request_id}")
+	projectID, requestID, legacy, err := SplitImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
-	projectID := parts[0]
-	requestID := parts[1]
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{request_id}", "{project_id}/{request_id}"))
+	}
 
-	_, _, err := connV2.LDAPConfigurationAPI.GetUserSecurityVerify(ctx, projectID, requestID).Execute()
+	_, _, err = connV2.LDAPConfigurationAPI.GetUserSecurityVerify(ctx, projectID, requestID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorRead, requestID, err)
 	}
@@ -247,6 +249,20 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		"request_id": requestID,
 	}))
 	return []*schema.ResourceData{d}, nil
+}
+
+// SplitImportID splits an import ID in the format {project_id}/{request_id},
+// or in the legacy format {project_id}-{request_id}.
+func SplitImportID(id string) (projectID, requestID string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+	parts := strings.SplitN(id, "-", 2)
+	if len(parts) != 2 {
+		err = errors.New("import format error: to import a LDAP Verify use the format {project_id}/{request_id} or the legacy format {project_id}-{request_id}")
+		return
+	}
+	return parts[0], parts[1], true, nil
 }
 
 func resourceRefreshFunc(ctx context.Context, projectID, requestID string, connV2 *admin.APIClient) retry.StateRefreshFunc {

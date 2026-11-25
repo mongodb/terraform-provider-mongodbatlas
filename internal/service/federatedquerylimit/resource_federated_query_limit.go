@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -152,14 +153,13 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).AtlasV2
-	parts := strings.Split(d.Id(), "--")
-
-	var projectID, tenantName, limitName string
-
-	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a MongoDB Atlas Federated Database Query Limit, use the format {project_id}-{tenant_name}-{limit_name}")
+	projectID, tenantName, limitName, legacy, err := SplitImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
-	projectID, tenantName, limitName = parts[0], parts[1], parts[2]
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}--{tenant_name}--{limit_name}", "{project_id}/{tenant_name}/{limit_name}"))
+	}
 
 	queryLimit, _, err := conn.DataFederationAPI.GetDataFederationLimit(ctx, projectID, tenantName, limitName).Execute()
 
@@ -178,6 +178,20 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+// SplitImportID splits an import ID in the format {project_id}/{tenant_name}/{limit_name},
+// or in the legacy format {project_id}--{tenant_name}--{limit_name}.
+func SplitImportID(id string) (projectID, tenantName, limitName string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 3); ok {
+		return parts[0], parts[1], parts[2], false, nil
+	}
+	parts := strings.Split(id, "--")
+	if len(parts) != 3 {
+		err = errors.New("import format error: to import a MongoDB Atlas Federated Database Query Limit, use the format {project_id}/{tenant_name}/{limit_name} or the legacy format {project_id}--{tenant_name}--{limit_name}")
+		return
+	}
+	return parts[0], parts[1], parts[2], true, nil
 }
 
 func setResourceFieldsFromFederatedDatabaseQueryLimit(d *schema.ResourceData, projectID string, queryLimit *admin.DataFederationTenantQueryLimit) error {

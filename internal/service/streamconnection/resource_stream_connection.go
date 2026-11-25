@@ -368,10 +368,13 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 }
 
 func (r *streamConnectionRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	workspaceName, projectID, connectionName, err := splitStreamConnectionImportID(req.ID)
+	workspaceName, projectID, connectionName, legacy, err := SplitStreamConnectionImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting stream connection import ID", err.Error())
 		return
+	}
+	if legacy {
+		resp.Diagnostics.AddWarning(conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{workspace_name}-{project_id}-{connection_name}", "{project_id}/{workspace_name}/{connection_name}"))
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("instance_name"), workspaceName)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("workspace_name"), workspaceName)...)
@@ -379,12 +382,18 @@ func (r *streamConnectionRS) ImportState(ctx context.Context, req resource.Impor
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("connection_name"), connectionName)...)
 }
 
-func splitStreamConnectionImportID(id string) (workspaceName, projectID, connectionName string, err error) {
+func SplitStreamConnectionImportID(id string) (workspaceName, projectID, connectionName string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 3); ok {
+		return parts[1], parts[0], parts[2], false, nil
+	}
+
+	legacy = true
 	var re = regexp.MustCompile(`^(.*)-([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 4 {
-		err = errors.New("use the format {workspace_name}-{project_id}-{connection_name}")
+		legacy = false
+		err = errors.New("use the format {project_id}/{workspace_name}/{connection_name}, or the legacy format {workspace_name}-{project_id}-{connection_name}")
 		return
 	}
 

@@ -80,10 +80,14 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Identity Provider **must** be imported before using federation_settings_id-idp_id, e.g.
+Identity Provider **must** be imported before use, using federation settings ID and IdP ID, in one of the following formats:
+
+1. `{federation_settings_id}/{okta_idp_id}` (recommended)
+2. `{federation_settings_id}-{okta_idp_id}` (deprecated, will be removed in the next major version)
 
 ```
-$ terraform import mongodbatlas_federated_settings_identity_provider.identity_provider 6287a663c660f52b1c441c6c-0oad4fas87jL5Xnk12971234
+$ terraform import mongodbatlas_federated_settings_identity_provider.identity_provider 6287a663c660f52b1c441c6c/0oad4fas87jL5Xnk12971234 # (1)
+$ terraform import mongodbatlas_federated_settings_identity_provider.identity_provider 6287a663c660f52b1c441c6c-0oad4fas87jL5Xnk12971234 # (2)
 ```
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/federation-configuration/)

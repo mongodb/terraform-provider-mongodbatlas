@@ -47,11 +47,14 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-The Federated Database Instance Query Limit can be imported using project ID, name of the instance and limit name, in the format: 
-`project_id`--`tenant_name`--`limit_name`, e.g.
+The Federated Database Instance Query Limit can be imported using project ID, name of the instance and limit name, in one of the following formats:
+
+1. `{project_id}/{tenant_name}/{limit_name}` (recommended)
+2. `{project_id}--{tenant_name}--{limit_name}` (deprecated, will be removed in the next major version)
 
 ```
-$ terraform import mongodbatlas_federated_query_limit.example 1112222b3bf99403840e8934--FederatedDatabaseInstance0--bytesProcessed.daily
+$ terraform import mongodbatlas_federated_query_limit.example 1112222b3bf99403840e8934/FederatedDatabaseInstance0/bytesProcessed.daily # (1)
+$ terraform import mongodbatlas_federated_query_limit.example 1112222b3bf99403840e8934--FederatedDatabaseInstance0--bytesProcessed.daily # (2)
 ```
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createOneDataFederationQueryLimit) Documentation for more information.

@@ -211,9 +211,12 @@ Optional:
 - `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), and "h" (hours). Default: `3h`.
 
 ## Import 
-Stream Processor resource can be imported using the Project ID, Stream Instance name and Stream Processor name, in the format `INSTANCE_NAME-PROJECT_ID-PROCESSOR_NAME`, e.g.
+Stream Processor resource can be imported using the Project ID, Stream Instance name and Stream Processor name, e.g.
 ```
-$ terraform import mongodbatlas_stream_processor.test yourInstanceName-6117ac2fe2a3d04ed27a987v-yourProcessorName
+$ terraform import mongodbatlas_stream_processor.test 6117ac2fe2a3d04ed27a987v/yourInstanceName/yourProcessorName
 ```
+
+1. `{project_id}/{instance_name}/{processor_name}` (recommended)
+2. `{instance_name}-{project_id}-{processor_name}` (deprecated, will be removed in the next major version)
 
 For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createstreamprocessor) Documentation.

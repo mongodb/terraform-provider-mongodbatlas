@@ -2,6 +2,7 @@ package projectipaccesslist
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -204,20 +205,35 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 }
 
 func (r *projectIPAccessListRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.SplitN(req.ID, "-", 2)
-
-	if len(parts) != 2 {
-		resp.Diagnostics.AddError("import format error", "to import a projectIP Access List, use the format {project_id}-{entry}")
+	projectID, entry, legacy, err := SplitProjectIPAccessListImportID(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError("import format error", err.Error())
 		return
 	}
-
-	projectID := parts[0]
-	entry := parts[1]
+	if legacy {
+		resp.Diagnostics.AddWarning(conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{entry}", "{project_id}/{entry}"))
+	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), conversion.EncodeStateID(map[string]string{
 		"entry":      entry,
 		"project_id": projectID,
 	}))...)
+}
+
+func SplitProjectIPAccessListImportID(id string) (projectID, entry string, legacy bool, err error) {
+	// A CIDR entry in the legacy format also contains "/", so only treat the ID as
+	// the new format when the part before the first slash is a valid project ID.
+	if i := strings.Index(id, "/"); i > 0 && conversion.ValidateProjectID(id[:i]) == nil {
+		return id[:i], id[i+1:], false, nil
+	}
+
+	parts := strings.SplitN(id, "-", 2)
+	if len(parts) != 2 {
+		legacy = false
+		err = errors.New("to import a projectIP Access List, use the format {project_id}/{entry}, or the legacy format {project_id}-{entry}")
+		return
+	}
+	return parts[0], parts[1], true, nil
 }
 
 func createEntry(ctx context.Context, connV2 *admin.APIClient, projectIPAccessListModel *TfProjectIPAccessListModel, timeout time.Duration, errorMsg string) (*admin.NetworkPermissionEntry, error) {

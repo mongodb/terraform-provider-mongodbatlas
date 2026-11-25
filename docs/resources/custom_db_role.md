@@ -151,10 +151,13 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Database users can be imported using project ID and username, in the format `PROJECTID-ROLENAME`, e.g.
+Database users can be imported using project ID and role name, e.g.
 
 ```
-$ terraform import mongodbatlas_custom_db_role.my_role 1112222b3bf99403840e8934-MyCustomRole
+$ terraform import mongodbatlas_custom_db_role.my_role 1112222b3bf99403840e8934/MyCustomRole
 ```
+
+1. `{project_id}/{role_name}` (recommended)
+2. `{project_id}-{role_name}` (deprecated, will be removed in the next major version)
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/custom-roles/)

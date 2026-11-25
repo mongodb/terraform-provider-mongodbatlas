@@ -1346,14 +1346,17 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	projectID, name, err := splitSClusterImportID(d.Id())
+	projectID, name, legacy, err := splitSClusterImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{name}", "{project_id}/{name}"))
+	}
 
-	u, _, err := conn.Clusters.Get(ctx, *projectID, *name)
+	u, _, err := conn.Clusters.Get(ctx, projectID, name)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
+		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", name, projectID, err)
 	}
 
 	if err := d.Set("project_id", u.GroupID); err != nil {
@@ -1365,12 +1368,12 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 
 	if err := d.Set("cloud_backup", u.ProviderBackupEnabled); err != nil {
-		return nil, fmt.Errorf("couldn't import cluster backup configuration %s in project %s, error: %s", *name, *projectID, err)
+		return nil, fmt.Errorf("couldn't import cluster backup configuration %s in project %s, error: %s", name, projectID, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"cluster_id":    u.ID,
-		"project_id":    *projectID,
+		"project_id":    projectID,
 		"cluster_name":  u.Name,
 		"provider_name": u.ProviderSettings.ProviderName,
 	}))
@@ -1378,19 +1381,20 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func splitSClusterImportID(id string) (projectID, clusterName *string, err error) {
+func splitSClusterImportID(id string) (projectID, clusterName string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 3 {
-		err = errors.New("import format error: to import a cluster, use the format {project_id}-{name}")
+		legacy = false
+		err = errors.New("import format error: to import a cluster, use the format {project_id}/{name} or the legacy format {project_id}-{name}")
 		return
 	}
 
-	projectID = &parts[1]
-	clusterName = &parts[2]
-
-	return
+	return parts[1], parts[2], true, nil
 }
 
 func getInstanceSizeToInt(instanceSize string) int {

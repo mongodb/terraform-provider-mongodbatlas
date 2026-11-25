@@ -9,7 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedquerylimit"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -252,4 +255,65 @@ func checkDestroy(s *terraform.State) error {
 		}
 	}
 	return nil
+}
+
+func TestSplitImportID(t *testing.T) {
+	const errorString = "import format error: to import a MongoDB Atlas Federated Database Query Limit, use the format {project_id}/{tenant_name}/{limit_name} or the legacy format {project_id}--{tenant_name}--{limit_name}"
+	tests := map[string]struct {
+		importID    string
+		projectID   string
+		tenantName  string
+		limitName   string
+		errorString string
+		legacy      bool
+	}{
+		"slash format": {
+			importID:   "664619d870c247237f4b86a6/myTenant/bytesProcessed",
+			projectID:  "664619d870c247237f4b86a6",
+			tenantName: "myTenant",
+			limitName:  "bytesProcessed",
+		},
+		"slash format with more parts": {
+			importID:    "part1/part2/part3/part4",
+			errorString: errorString,
+		},
+		"slash format with less parts": {
+			importID:    "part1/part2",
+			errorString: errorString,
+		},
+		"legacy format": {
+			importID:   "664619d870c247237f4b86a6--myTenant--bytesProcessed",
+			projectID:  "664619d870c247237f4b86a6",
+			tenantName: "myTenant",
+			limitName:  "bytesProcessed",
+			legacy:     true,
+		},
+		"legacy format with single hyphens": {
+			importID:    "664619d870c247237f4b86a6-myTenant-bytesProcessed",
+			errorString: errorString,
+		},
+		"legacy format with more separators": {
+			importID:    "664619d870c247237f4b86a6--myTenant--bytes--Processed",
+			errorString: errorString,
+		},
+		"empty input": {
+			importID:    "",
+			errorString: errorString,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			projectID, tenantName, limitName, legacy, err := federatedquerylimit.SplitImportID(tc.importID)
+			if tc.errorString != "" {
+				require.EqualError(t, err, tc.errorString)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, tc.projectID, projectID)
+			assert.Equal(t, tc.tenantName, tenantName)
+			assert.Equal(t, tc.limitName, limitName)
+			assert.Equal(t, tc.legacy, legacy)
+		})
+	}
 }

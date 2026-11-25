@@ -520,9 +520,12 @@ func resourceMongoDBAtlasEventTriggerImportState(ctx context.Context, d *schema.
 		return nil, err
 	}
 
-	parts := strings.Split(d.Id(), "--")
-	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a MongoDB Event Trigger, use the format {project_id}--{app_id}--{trigger_id} ")
+	parts, legacy, err := splitEventTriggerImportID(d.Id())
+	if err != nil {
+		return nil, err
+	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}--{app_id}--{trigger_id}", "{project_id}/{app_id}/{trigger_id}"))
 	}
 
 	projectID := parts[0]
@@ -548,6 +551,21 @@ func resourceMongoDBAtlasEventTriggerImportState(ctx context.Context, d *schema.
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+// splitEventTriggerImportID accepts the new "/"-separated format first and falls back to the
+// legacy "--"-separated format. legacy is true only when the legacy format parsed successfully.
+func splitEventTriggerImportID(id string) (parts []string, legacy bool, err error) {
+	if ok, newParts := conversion.ImportSplit(id, 3); ok {
+		return newParts, false, nil
+	}
+	legacy = true
+	parts = strings.Split(id, "--")
+	if len(parts) != 3 {
+		legacy = false
+		err = errors.New("import format error: to import a MongoDB Event Trigger, use the format {project_id}/{app_id}/{trigger_id} or the legacy format {project_id}--{app_id}--{trigger_id}")
+	}
+	return
 }
 
 func matchToString(value any) string {

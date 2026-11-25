@@ -439,3 +439,14 @@ output "privatelink_endpoint_id" {
 - `state` (String) Status of the connection.
 
 For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprivatelinkconnection) Documentation.
+
+## Import
+Streams PrivateLink Endpoint resource can be imported using the project ID and connection ID, in one of the following formats:
+
+1. `{project_id}/{connection_id}` (recommended)
+2. `{project_id}-{connection_id}` (deprecated, will be removed in the next major version)
+
+```
+$ terraform import mongodbatlas_stream_privatelink_endpoint.test 6117ac2fe2a3d04ed27a987v/5f181c22014657337f6ed-sensitiveVpcEndpoint # (1)
+$ terraform import mongodbatlas_stream_privatelink_endpoint.test 6117ac2fe2a3d04ed27a987v-5f181c22014657337f6ed-sensitiveVpcEndpoint # (2)
+```

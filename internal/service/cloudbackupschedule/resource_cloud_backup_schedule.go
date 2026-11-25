@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -515,15 +516,15 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	parts := strings.SplitN(d.Id(), "-", 2)
-	if len(parts) != 2 {
-		return nil, errors.New("import format error: to import a Cloud Backup Schedule use the format {project_id}-{cluster_name}")
+	projectID, clusterName, legacy, err := splitScheduleImportID(d.Id())
+	if err != nil {
+		return nil, err
+	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{cluster_name}", "{project_id}/{cluster_name}"))
 	}
 
-	projectID := parts[0]
-	clusterName := parts[1]
-
-	_, _, err := connV2.CloudBackupsAPI.GetBackupSchedule(ctx, projectID, clusterName).Execute()
+	_, _, err = connV2.CloudBackupsAPI.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}
@@ -542,6 +543,26 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+// splitScheduleImportID accepts the new "/"-separated format first and falls back to the
+// legacy "-"-separated format. legacy is true only when the legacy format parsed successfully.
+func splitScheduleImportID(id string) (projectID, clusterName string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+
+	legacy = true
+	parts := strings.SplitN(id, "-", 2)
+	if len(parts) != 2 {
+		legacy = false
+		err = errors.New("import format error: to import a Cloud Backup Schedule use the format {project_id}/{cluster_name} or the legacy format {project_id}-{cluster_name}")
+		return
+	}
+
+	projectID, clusterName = parts[0], parts[1]
+
+	return
 }
 
 func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APIClient, d *schema.ResourceData, projectID, clusterName string) error {

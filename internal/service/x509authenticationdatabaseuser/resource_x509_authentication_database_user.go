@@ -2,8 +2,8 @@ package x509authenticationdatabaseuser
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -182,15 +182,10 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	parts := strings.SplitN(d.Id(), "-", 2)
-	if len(parts) != 1 && len(parts) != 2 {
-		return nil, errors.New("import format error: to import a X509 Authentication, use the formats {project_id} or {project_id}-{username}")
+	projectID, username, legacy := SplitX509ImportID(d.Id())
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{username}", "{project_id}/{username}"))
 	}
-	var username string
-	if len(parts) == 2 {
-		username = parts[1]
-	}
-	projectID := parts[0]
 
 	if username != "" {
 		_, _, err := connV2.X509AuthenticationAPI.ListDatabaseUserCerts(ctx, projectID, username).Execute()
@@ -223,6 +218,19 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func SplitX509ImportID(id string) (projectID, username string, legacy bool) {
+	// The single {project_id} form is the same in both formats and is not deprecated.
+	if strings.Contains(id, "/") {
+		parts := strings.SplitN(id, "/", 2)
+		return parts[0], parts[1], false
+	}
+	parts := strings.SplitN(id, "-", 2)
+	if len(parts) == 1 {
+		return parts[0], "", false
+	}
+	return parts[0], parts[1], true
 }
 
 func flattenCertificates(userCertificates []admin.UserCert) []map[string]any {

@@ -443,6 +443,7 @@ func TestSplitDatabaseUserImportID(t *testing.T) {
 		username    string
 		authDBName  string
 		errorString string
+		legacy      bool
 	}{
 		"valid input": {
 			importID:   "664619d870c247237f4b86a6/my-username-dash/my-db-name",
@@ -455,6 +456,7 @@ func TestSplitDatabaseUserImportID(t *testing.T) {
 			projectID:  "664619d870c247237f4b86a6",
 			username:   "myUsernameCamel",
 			authDBName: "mydbname",
+			legacy:     true,
 		},
 		"invalid input projectID": {
 			importID:    "part1/part2/part3",
@@ -488,7 +490,7 @@ func TestSplitDatabaseUserImportID(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			part1, part2, part3, err := databaseuser.SplitDatabaseUserImportID(tc.importID)
+			part1, part2, part3, legacy, err := databaseuser.SplitDatabaseUserImportID(tc.importID)
 			if tc.errorString != "" {
 				require.EqualError(t, err, tc.errorString)
 			} else {
@@ -497,6 +499,7 @@ func TestSplitDatabaseUserImportID(t *testing.T) {
 			assert.Equal(t, tc.projectID, part1)
 			assert.Equal(t, tc.username, part2)
 			assert.Equal(t, tc.authDBName, part3)
+			assert.Equal(t, tc.legacy, legacy)
 		})
 	}
 }

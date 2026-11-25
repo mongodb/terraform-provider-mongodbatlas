@@ -98,10 +98,13 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Network Peering Containers can be imported using project ID and network peering container id, in the format `PROJECTID-CONTAINER-ID`, e.g.
+Network Peering Containers can be imported using project ID and network peering container id, e.g.
 
 ```
-$ terraform import mongodbatlas_network_container.my_container 1112222b3bf99403840e8934-5cbf563d87d9d67253be590a
+$ terraform import mongodbatlas_network_container.my_container 1112222b3bf99403840e8934/5cbf563d87d9d67253be590a
 ```
+
+1. `{project_id}/{container_id}` (recommended)
+2. `{project_id}-{container_id}` (deprecated, will be removed in the next major version)
 
 See detailed information for arguments and attributes: [MongoDB API Network Peering Container](https://www.mongodb.com/docs/atlas/reference/api/vpc-create-container/)

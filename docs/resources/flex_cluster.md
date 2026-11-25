@@ -109,10 +109,15 @@ Read-Only:
 - `standard` (String) Public connection string that you can use to connect to this cluster. This connection string uses the mongodb:// protocol.
 - `standard_srv` (String) Public connection string that you can use to connect to this flex cluster. This connection string uses the `mongodb+srv://` protocol.
 
-## Import 
-You can import the Flex Cluster resource by using the Project ID and Flex Cluster name, in the format `PROJECT_ID-FLEX_CLUSTER_NAME`. For example:
+## Import
+You can import the Flex Cluster resource by using the Project ID and Flex Cluster name, in one of the following formats:
+
+1. `{project_id}/{cluster_name}` (recommended)
+2. `{project_id}-{cluster_name}` (deprecated, will be removed in the next major version)
+
 ```
-$ terraform import mongodbatlas_flex_cluster.test 6117ac2fe2a3d04ed27a987v-yourFlexClusterName
+$ terraform import mongodbatlas_flex_cluster.test 6117ac2fe2a3d04ed27a987v/yourFlexClusterName # (1)
+$ terraform import mongodbatlas_flex_cluster.test 6117ac2fe2a3d04ed27a987v-yourFlexClusterName # (2)
 ```
 
 For more information see: [MongoDB Atlas API - Flex Cluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Flex-Clusters/operation/createFlexcluster) Documentation.

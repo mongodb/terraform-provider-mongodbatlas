@@ -1003,11 +1003,14 @@ Optional:
 
 ## Import
 
-Clusters can be imported using project ID and cluster name, in the format `PROJECTID-CLUSTERNAME`, e.g.
+Clusters can be imported using project ID and cluster name, e.g.
 
 ```
-$ terraform import mongodbatlas_advanced_cluster.my_cluster 1112222b3bf99403840e8934-Cluster0
+$ terraform import mongodbatlas_advanced_cluster.my_cluster 1112222b3bf99403840e8934/Cluster0
 ```
+
+1. `{project_id}/{cluster_name}` (recommended)
+2. `{project_id}-{cluster_name}` (deprecated, will be removed in the next major version)
 
 See detailed information for arguments and attributes: [MongoDB API Advanced Clusters](https://www.mongodb.com/docs/atlas/reference/api/cluster-advanced/create-one-cluster-advanced/)
 

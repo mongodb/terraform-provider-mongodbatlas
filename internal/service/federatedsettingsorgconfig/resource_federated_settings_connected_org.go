@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -15,6 +16,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 )
+
+var legacyImportIDRegex = regexp.MustCompile(`(?s)^(.*)-(.*)$`)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -192,42 +195,44 @@ func resourcDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).AtlasV2
-	federationSettingsID, orgID, err := splitImportID(d.Id())
+	federationSettingsID, orgID, legacy, err := SplitImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
-
-	_, _, err = conn.FederatedAuthenticationAPI.GetConnectedOrgConfig(ctx, *federationSettingsID, *orgID).Execute()
-	if err != nil {
-		return nil, fmt.Errorf("couldn't import Organization config (%s) in Federation settings (%s), error: %s", *orgID, *federationSettingsID, err)
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{federation_settings_id}-{org_id}", "{federation_settings_id}/{org_id}"))
 	}
 
-	if err := d.Set("federation_settings_id", *federationSettingsID); err != nil {
+	_, _, err = conn.FederatedAuthenticationAPI.GetConnectedOrgConfig(ctx, federationSettingsID, orgID).Execute()
+	if err != nil {
+		return nil, fmt.Errorf("couldn't import Organization config (%s) in Federation settings (%s), error: %s", orgID, federationSettingsID, err)
+	}
+
+	if err := d.Set("federation_settings_id", federationSettingsID); err != nil {
 		return nil, fmt.Errorf("error setting Organization config in Federation settings (%s): %s", d.Id(), err)
 	}
-	if err := d.Set("org_id", *orgID); err != nil {
+	if err := d.Set("org_id", orgID); err != nil {
 		return nil, fmt.Errorf("error setting org id (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"federation_settings_id": *federationSettingsID,
-		"org_id":                 *orgID,
+		"federation_settings_id": federationSettingsID,
+		"org_id":                 orgID,
 	}))
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func splitImportID(id string) (federationSettingsID, orgID *string, err error) {
-	var re = regexp.MustCompile(`(?s)^(.*)-(.*)$`)
-	parts := re.FindStringSubmatch(id)
-
+// SplitImportID splits an import ID in the format {federation_settings_id}/{org_id}
+// or in the legacy format {federation_settings_id}-{org_id}.
+func SplitImportID(id string) (federationSettingsID, orgID string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+	parts := legacyImportIDRegex.FindStringSubmatch(id)
 	if len(parts) != 3 {
-		err = errors.New("import format error: to import a Federated Settings Orgnization Config, use the format {federation_settings_id}-{org_id}")
+		err = errors.New("import format error: to import a Federated Settings Organization Config, use the format {federation_settings_id}/{org_id} or the legacy format {federation_settings_id}-{org_id}")
 		return
 	}
-
-	federationSettingsID = &parts[1]
-	orgID = &parts[2]
-
-	return
+	return parts[1], parts[2], true, nil
 }

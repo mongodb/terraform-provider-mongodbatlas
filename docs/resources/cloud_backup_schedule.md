@@ -335,10 +335,13 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Cloud Backup Schedule entries can be imported using project_id and cluster_name, in the format `PROJECTID-CLUSTERNAME`, e.g.
+Cloud Backup Schedule entries can be imported using project_id and cluster_name, e.g.
 
 ```
-$ terraform import mongodbatlas_cloud_backup_schedule.test 5d0f1f73cf09a29120e173cf-MyClusterTest
+$ terraform import mongodbatlas_cloud_backup_schedule.test 5d0f1f73cf09a29120e173cf/MyClusterTest
 ```
+
+1. `{project_id}/{cluster_name}` (recommended)
+2. `{project_id}-{cluster_name}` (deprecated, will be removed in the next major version)
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/schedule/modify-one-schedule/)

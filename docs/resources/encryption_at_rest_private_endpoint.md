@@ -129,12 +129,17 @@ Optional:
 - `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), and "h" (hours). Default: `3h`.
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), and "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs. Default: `3h`.
 
-## Import 
-Encryption At Rest Private Endpoint resource can be imported using the project ID, cloud provider, and private endpoint ID. The format must be `{project_id}-{cloud_provider}-{private_endpoint_id}` e.g.
+## Import
+Encryption At Rest Private Endpoint resource can be imported using the project ID, cloud provider, and private endpoint ID, in one of the following formats:
+
+1. `{project_id}/{cloud_provider}/{private_endpoint_id}` (recommended)
+2. `{project_id}-{cloud_provider}-{private_endpoint_id}` (deprecated, will be removed in the next major version)
 
 ```
-$ terraform import mongodbatlas_encryption_at_rest_private_endpoint.test 650972848269185c55f40ca1-AZURE-650972848269185c55f40ca2
-$ terraform import mongodbatlas_encryption_at_rest_private_endpoint.test 650972848269185c55f40ca2-AWS-650972848269185c55f40ca3
+$ terraform import mongodbatlas_encryption_at_rest_private_endpoint.test 650972848269185c55f40ca1/AZURE/650972848269185c55f40ca2 # (1)
+$ terraform import mongodbatlas_encryption_at_rest_private_endpoint.test 650972848269185c55f40ca2/AWS/650972848269185c55f40ca3 # (1)
+$ terraform import mongodbatlas_encryption_at_rest_private_endpoint.test 650972848269185c55f40ca1-AZURE-650972848269185c55f40ca2 # (2)
+$ terraform import mongodbatlas_encryption_at_rest_private_endpoint.test 650972848269185c55f40ca2-AWS-650972848269185c55f40ca3 # (2)
 ```
 
 For more information see: 

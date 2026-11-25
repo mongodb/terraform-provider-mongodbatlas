@@ -294,10 +294,14 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Alert Configuration can be imported using the `project_id-alert_configuration_id`, e.g.
+Alert Configuration can be imported using project ID and alert configuration ID, in one of the following formats:
+
+1. `{project_id}/{alert_configuration_id}` (recommended)
+2. `{project_id}-{alert_configuration_id}` (deprecated, will be removed in the next major version)
 
 ```
-terraform import mongodbatlas_alert_configuration.test 5d0f1f74cf09a29120e123cd-5d0f1f74cf09a29120e1fscg
+terraform import mongodbatlas_alert_configuration.test 5d0f1f74cf09a29120e123cd/5d0f1f74cf09a29120e1fscg # (1)
+terraform import mongodbatlas_alert_configuration.test 5d0f1f74cf09a29120e123cd-5d0f1f74cf09a29120e1fscg # (2)
 ```
 
 **NOTE**: Third-party notifications will not contain their respective credentials as these are sensitive attributes. If you wish to perform updates on these notifications without providing the original credentials, the corresponding `notifier_id` attribute must be provided instead.

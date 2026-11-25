@@ -93,10 +93,14 @@ In addition to all arguments above, the following attributes are exported:
   * `DELETING` - Atlas is deleting the GCP Private Service Connect service.
 
 ## Import
-Private Endpoint Service can be imported using project ID, private link ID, provider name and region, in the format `{project_id}-{private_link_id}-{provider_name}-{region}`, e.g.
+Private Endpoint Service can be imported using project ID, private link ID, provider name and region (the region is the last part and may contain hyphens, e.g. `us-east-1`), in one of the following formats:
+
+1. `{project_id}/{private_link_id}/{provider_name}/{region}` (recommended)
+2. `{project_id}-{private_link_id}-{provider_name}-{region}` (deprecated, will be removed in the next major version)
 
 ```
-$ terraform import mongodbatlas_privatelink_endpoint.this 1112222b3bf99403840e8934-3242342343112-AWS-us-east-1
+$ terraform import mongodbatlas_privatelink_endpoint.this 1112222b3bf99403840e8934/3242342343112/AWS/us-east-1 # (1)
+$ terraform import mongodbatlas_privatelink_endpoint.this 1112222b3bf99403840e8934-3242342343112-AWS-us-east-1 # (2)
 ```
 
 For more information, see:

@@ -173,22 +173,30 @@ func (r *resourcePolicyRS) Delete(ctx context.Context, req resource.DeleteReques
 }
 
 func (r *resourcePolicyRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	orgID, resourcePolicyID, err := splitImportID(req.ID)
+	orgID, resourcePolicyID, legacy, err := splitImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting search deployment import ID", err.Error())
 		return
+	}
+	if legacy {
+		resp.Diagnostics.AddWarning(conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{org_id}-{resource_policy_id}", "{org_id}/{resource_policy_id}"))
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("org_id"), orgID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), resourcePolicyID)...)
 }
 
-func splitImportID(id string) (orgID, resourcePolicyID string, err error) {
+func splitImportID(id string) (orgID, resourcePolicyID string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+	legacy = true
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 3 {
-		err = errors.New("use the format {org_id}-{resource_policy_id}")
+		legacy = false
+		err = errors.New("use the format {org_id}/{resource_policy_id} or the legacy format {org_id}-{resource_policy_id}")
 		return
 	}
 

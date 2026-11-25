@@ -213,22 +213,30 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	projectID, name, err := splitFlexClusterImportID(req.ID)
+	projectID, name, legacy, err := splitFlexClusterImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting import ID", err.Error())
 		return
+	}
+	if legacy {
+		resp.Diagnostics.AddWarning(conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{cluster_name}", "{project_id}/{cluster_name}"))
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), name)...)
 }
 
-func splitFlexClusterImportID(id string) (projectID, clusterName *string, err error) {
+func splitFlexClusterImportID(id string) (projectID, clusterName *string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return &parts[0], &parts[1], false, nil
+	}
+	legacy = true
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 3 {
-		err = errors.New("import format error: to import a flex cluster, use the format {project_id}-{cluster_name}")
+		legacy = false
+		err = errors.New("import format error: to import a flex cluster, use the format {project_id}/" + "{cluster_name} or the legacy format {project_id}-{cluster_name}")
 		return
 	}
 

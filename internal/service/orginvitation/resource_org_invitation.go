@@ -3,6 +3,7 @@ package orginvitation
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
@@ -211,9 +212,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	orgID, username, err := splitOrgInvitationImportID(d.Id())
+	orgID, username, legacy, err := splitOrgInvitationImportID(d.Id())
 	if err != nil {
 		return nil, err
+	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{org_id}-{username}", "{org_id}/{username}"))
 	}
 
 	orgInvitations, _, err := connV2.OrganizationsAPI.ListOrgInvites(ctx, orgID).Execute()
@@ -246,12 +250,20 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return nil, fmt.Errorf("could not import Organization Invitation for %s", d.Id())
 }
 
-func splitOrgInvitationImportID(id string) (orgID, username string, err error) {
+// splitOrgInvitationImportID accepts the new "/"-separated format first and falls back to the
+// legacy "-"-separated format. legacy is true only when the legacy format parsed successfully.
+func splitOrgInvitationImportID(id string) (orgID, username string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+
+	legacy = true
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 3 {
-		err = fmt.Errorf("import format error: to import a Organization Invitation, use the format {org_id}-{username}")
+		legacy = false
+		err = fmt.Errorf("import format error: to import a Organization Invitation, use the format {org_id}/{username} or the legacy format {org_id}-{username}")
 		return
 	}
 

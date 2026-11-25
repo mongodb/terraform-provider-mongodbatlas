@@ -10,7 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsorgrolemapping"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAccFederatedSettingsOrgRoleMapping_NoDriftOnRoleAssignments(t *testing.T) {
@@ -224,4 +227,64 @@ func configTwoRoleAssignments(federationSettingsID, orgID, groupID string) strin
 		}
 	}
 	`, federationSettingsID, orgID, groupID)
+}
+
+func TestSplitFederatedSettingsOrganizationRoleMappingImportID(t *testing.T) {
+	const errorString = "import format error: to import a Federated Settings Role Mappings, use the format {federation_settings_id}/{org_id}/{role_mapping_id} or the legacy format {federation_settings_id}-{org_id}-{role_mapping_id}"
+	tests := map[string]struct {
+		importID             string
+		federationSettingsID string
+		orgID                string
+		roleMappingID        string
+		errorString          string
+		legacy               bool
+	}{
+		"slash format": {
+			importID:             "7e4b5ade-6a91-11ec-8dd6-68b6fc43686c/664619d870c247237f4b86a6/664619d870c247237f4b86a7",
+			federationSettingsID: "7e4b5ade-6a91-11ec-8dd6-68b6fc43686c",
+			orgID:                "664619d870c247237f4b86a6",
+			roleMappingID:        "664619d870c247237f4b86a7",
+		},
+		"slash format with more parts": {
+			importID:    "part1/part2/part3/part4",
+			errorString: errorString,
+		},
+		"legacy format": {
+			importID:             "7e4b5ade-6a91-11ec-8dd6-68b6fc43686c-664619d870c247237f4b86a6-664619d870c247237f4b86a7",
+			federationSettingsID: "7e4b5ade-6a91-11ec-8dd6-68b6fc43686c",
+			orgID:                "664619d870c247237f4b86a6",
+			roleMappingID:        "664619d870c247237f4b86a7",
+			legacy:               true,
+		},
+		"legacy format with more hyphens": {
+			importID:             "7e4b5ade-6a91-11ec-8dd6-68b6fc43686c-664619d870c247237f4b86a6-664619d870c247237f4b86a7-extra-part",
+			federationSettingsID: "7e4b5ade-6a91-11ec-8dd6-68b6fc43686c-664619d870c247237f4b86a6-664619d870c247237f4b86a7",
+			orgID:                "extra",
+			roleMappingID:        "part",
+			legacy:               true,
+		},
+		"missing role mapping ID with a single hyphen": {
+			importID:    "664619d870c247237f4b86a6-664619d870c247237f4b86a7",
+			errorString: errorString,
+		},
+		"empty input": {
+			importID:    "",
+			errorString: errorString,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			federationSettingsID, orgID, roleMappingID, legacy, err := federatedsettingsorgrolemapping.SplitFederatedSettingsOrganizationRoleMappingImportID(tc.importID)
+			if tc.errorString != "" {
+				require.EqualError(t, err, tc.errorString)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, tc.federationSettingsID, federationSettingsID)
+			assert.Equal(t, tc.orgID, orgID)
+			assert.Equal(t, tc.roleMappingID, roleMappingID)
+			assert.Equal(t, tc.legacy, legacy)
+		})
+	}
 }

@@ -645,7 +645,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 
-		projectID, username, authDatabaseName, err := databaseuser.SplitDatabaseUserImportID(rs.Primary.ID)
+		projectID, username, authDatabaseName, _, err := databaseuser.SplitDatabaseUserImportID(rs.Primary.ID)
 		if err != nil {
 			continue
 		}

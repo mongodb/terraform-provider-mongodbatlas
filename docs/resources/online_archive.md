@@ -172,7 +172,7 @@ The only field required for criteria type `CUSTOM`
 You can import online archives using `project_id`, `cluster_name`, and `archive_id` in one of the following formats:
 
 1. `project_id`/`cluster_name`/`archive_id` (recommended)
-2. `project_id`-`cluster_name`-`archive_id` (legacy)
+2. `project_id`-`cluster_name`-`archive_id` (deprecated, will be removed in the next major version)
 
 ```bash
 terraform import mongodbatlas_online_archive.users_archive <project_id>/<cluster_name>/<archive_id> # (1)

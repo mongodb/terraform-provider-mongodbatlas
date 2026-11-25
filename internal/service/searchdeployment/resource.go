@@ -198,10 +198,13 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	projectID, clusterName, err := splitSearchNodeImportID(req.ID)
+	projectID, clusterName, legacy, err := splitSearchNodeImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting search deployment import ID", err.Error())
 		return
+	}
+	if legacy {
+		resp.Diagnostics.AddWarning(conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{cluster_name}", "{project_id}/{cluster_name}"))
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
@@ -211,12 +214,17 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	}
 }
 
-func splitSearchNodeImportID(id string) (projectID, clusterName string, err error) {
+func splitSearchNodeImportID(id string) (projectID, clusterName string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+	legacy = true
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 3 {
-		err = errors.New("use the format {project_id}-{cluster_name}")
+		legacy = false
+		err = errors.New("use the format {project_id}/{cluster_name} or the legacy format {project_id}-{cluster_name}")
 		return
 	}
 

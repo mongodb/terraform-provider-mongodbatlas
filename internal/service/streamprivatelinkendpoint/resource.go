@@ -202,22 +202,30 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	projectID, connectionID, err := splitStreamPrivatelinkEndpointImportID(req.ID)
+	projectID, connectionID, legacy, err := splitStreamPrivatelinkEndpointImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting import ID", err.Error())
 		return
+	}
+	if legacy {
+		resp.Diagnostics.AddWarning(conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{connection_id}", "{project_id}/{connection_id}"))
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), connectionID)...)
 }
 
-func splitStreamPrivatelinkEndpointImportID(id string) (projectID, connectionID string, err error) {
+func splitStreamPrivatelinkEndpointImportID(id string) (projectID, connectionID string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+	legacy = true
 	re := regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-([0-9a-fA-F]{24})$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 3 {
-		err = errors.New("import format error: to import a stream private link endpoint, use the format {project_id}-{connection_id}")
+		legacy = false
+		err = errors.New("import format error: to import a stream private link endpoint, use the format {project_id}/{connection_id} or the legacy format {project_id}-{connection_id}")
 		return
 	}
 

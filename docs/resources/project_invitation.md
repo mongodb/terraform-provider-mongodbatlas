@@ -61,8 +61,11 @@ See the [MongoDB Atlas Administration API](https://www.mongodb.com/docs/atlas/re
 ~> **IMPORTANT:**
 A project invitation can **not** be imported once it has been accepted.
 
-Import a user's invitation to a project by separating the `project_id` and the `username` with a hyphen:
+Import a user's invitation to a project, e.g.
 
 ```
-$ terraform import mongodbatlas_project_invitation.my_user 1112222b3bf99403840e8934-my_user@mongodb.com
+$ terraform import mongodbatlas_project_invitation.my_user 1112222b3bf99403840e8934/my_user@mongodb.com
 ```
+
+1. `{project_id}/{username}` (recommended)
+2. `{project_id}-{username}` (deprecated, will be removed in the next major version)

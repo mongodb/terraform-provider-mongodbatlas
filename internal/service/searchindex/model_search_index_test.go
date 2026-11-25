@@ -88,6 +88,7 @@ func TestSplitImportID(t *testing.T) {
 		clusterName string
 		indexID     string
 		errorString string
+		legacy      bool
 	}{
 		"valid input": {
 			importID:    "664619d870c247237f4b86a6/my-cluster/664619d870c247237f4b86a7",
@@ -106,12 +107,14 @@ func TestSplitImportID(t *testing.T) {
 			projectID:   "664619d870c247237f4b86a6",
 			clusterName: "my-cluster",
 			indexID:     "664619d870c247237f4b86a7",
+			legacy:      true,
 		},
 		"valid input legacy with double hyphen in cluster name": {
 			importID:    "664619d870c247237f4b86a6--my--cluster--664619d870c247237f4b86a7",
 			projectID:   "664619d870c247237f4b86a6",
 			clusterName: "my--cluster",
 			indexID:     "664619d870c247237f4b86a7",
+			legacy:      true,
 		},
 		"invalid input with more parts": {
 			importID:    "part1/part2/part3/part4",
@@ -137,7 +140,7 @@ func TestSplitImportID(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			projectID, clusterName, indexID, err := searchindex.SplitImportID(tc.importID)
+			projectID, clusterName, indexID, legacy, err := searchindex.SplitImportID(tc.importID)
 			if tc.errorString != "" {
 				require.EqualError(t, err, tc.errorString)
 			} else {
@@ -146,6 +149,7 @@ func TestSplitImportID(t *testing.T) {
 			assert.Equal(t, tc.projectID, projectID)
 			assert.Equal(t, tc.clusterName, clusterName)
 			assert.Equal(t, tc.indexID, indexID)
+			assert.Equal(t, tc.legacy, legacy)
 		})
 	}
 }
