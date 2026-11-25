@@ -3,7 +3,6 @@ package acc
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"testing"
 	"time"
@@ -171,14 +170,8 @@ func PopulateWithSampleDataTestCheck(projectID, clusterName string) resource.Tes
 
 // PopulateWithSampleData adds Sample Data to the cluster, otherwise resources like online archive or indexes won't work
 func PopulateWithSampleData(projectID, clusterName string) error {
-	if InUnitTest() {
-		return nil
-	}
 	ctx := context.Background()
-	var (
-		jobID   string
-		retries int
-	)
+	var jobID string
 	stateConf := retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyWorkingState},
 		Target:     []string{retrystrategy.RetryStrategyCompletedState},
@@ -203,9 +196,7 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 				return nil, "", fmt.Errorf("sample dataset load %s returned nil job for cluster %s:%s", jobID, projectID, clusterName)
 			}
 			state = job.GetState()
-			if state == retrystrategy.RetryStrategyFailedState && retries < 2 && strings.Contains(job.GetErrorMessage(), "ReplicaSetNoPrimary") {
-				retries++
-				log.Printf("[INFO] sample dataset load %s failed with ReplicaSetNoPrimary for cluster %s:%s (retry %d/2); requesting a new load", jobID, projectID, clusterName, retries)
+			if state == retrystrategy.RetryStrategyFailedState && strings.Contains(job.GetErrorMessage(), "ReplicaSetNoPrimary") {
 				jobID = ""
 				return job, retrystrategy.RetryStrategyWorkingState, nil
 			}
