@@ -171,7 +171,11 @@ func PopulateWithSampleDataTestCheck(projectID, clusterName string) resource.Tes
 
 // PopulateWithSampleData adds Sample Data to the cluster, otherwise resources like online archive or indexes won't work
 func PopulateWithSampleData(projectID, clusterName string) error {
-	sleepForPrimaryElection()
+	if InUnitTest() {
+		return nil
+	}
+	// Wait for post-create primary elections to settle before mongorestore runs.
+	time.Sleep(1 * time.Minute)
 	const maxAttempts = 3
 	var err error
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
@@ -180,17 +184,9 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 			return err
 		}
 		log.Printf("[INFO] sample dataset load attempt %d/%d failed with ReplicaSetNoPrimary for cluster %s:%s; retrying in 30s: %v", attempt, maxAttempts, projectID, clusterName, err)
-		if !InUnitTest() {
-			time.Sleep(30 * time.Second)
-		}
+		time.Sleep(30 * time.Second)
 	}
 	return err
-}
-
-func sleepForPrimaryElection() {
-	if !InUnitTest() {
-		time.Sleep(1 * time.Minute)
-	}
 }
 
 func runSampleDatasetLoad(projectID, clusterName string) error {
