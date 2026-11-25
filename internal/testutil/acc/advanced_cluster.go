@@ -177,8 +177,6 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 		Target:     []string{retrystrategy.RetryStrategyCompletedState},
 		Timeout:    45 * time.Minute,
 		MinTimeout: 1 * time.Minute,
-		// Delay also lets post-create primary elections settle before requesting the first load.
-		Delay: 1 * time.Minute,
 		Refresh: func() (result any, state string, err error) {
 			if jobID == "" {
 				jobLoad, _, err := ConnV2().ClustersAPI.RequestSampleDatasetLoad(ctx, projectID, clusterName).Execute()
