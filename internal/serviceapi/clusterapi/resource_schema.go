@@ -100,13 +100,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"aws_private_link": schema.MapAttribute{
 						Computed:            true,
-						MarkdownDescription: "Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.",
+						MarkdownDescription: "Deprecated: Use the Private Endpoint Connection Strings resource instead. Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names.",
 						CustomType:          customtypes.NewMapType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
 					"aws_private_link_srv": schema.MapAttribute{
 						Computed:            true,
-						MarkdownDescription: "Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.",
+						MarkdownDescription: "Deprecated: Use the Private Endpoint Connection Strings resource instead. Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present.",
 						CustomType:          customtypes.NewMapType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
@@ -116,7 +116,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"private_endpoint": schema.ListNestedAttribute{
 						Computed:            true,
-						MarkdownDescription: "List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.",
+						MarkdownDescription: "Deprecated: Use the Private Endpoint Connection Strings resource instead. List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes.",
 						CustomType:          customtypes.NewNestedListType[TFConnectionStringsPrivateEndpointModel](ctx),
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
@@ -564,7 +564,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"labels": schema.MapAttribute{
 				Optional:            true,
-				MarkdownDescription: "Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.\n\nCluster labels are deprecated and will be removed in a future release. We strongly recommend that you use Resource Tags instead.",
+				MarkdownDescription: "Deprecated: Cluster labels will be removed in a future release. We strongly recommend that you use Resource Tags instead.\n\nCollection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.",
 				CustomType:          customtypes.NewMapType[types.String](ctx),
 				ElementType:         types.StringType,
 			},

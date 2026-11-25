@@ -151,7 +151,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								},
 								"region": schema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "Azure region where the storage account is located.",
+									MarkdownDescription: "Deprecated: Azure region where the storage account is located.",
 								},
 								"service_principal_id": schema.StringAttribute{
 									Computed:            true,

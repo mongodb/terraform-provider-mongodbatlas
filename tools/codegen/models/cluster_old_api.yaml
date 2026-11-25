@@ -183,7 +183,7 @@ schema:
                 attributes:
                     - map:
                         element_type: 4
-                      description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+                      description: 'Deprecated: Use the Private Endpoint Connection Strings resource instead. Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names.'
                       deprecation_message: This attribute has been deprecated
                       custom_type:
                         model: customtypes.MapValue[types.String]
@@ -201,7 +201,7 @@ schema:
                       request_only_required_on_create: false
                     - map:
                         element_type: 4
-                      description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+                      description: 'Deprecated: Use the Private Endpoint Connection Strings resource instead. Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present.'
                       deprecation_message: This attribute has been deprecated
                       custom_type:
                         model: customtypes.MapValue[types.String]
@@ -327,7 +327,7 @@ schema:
                                   create_only: false
                                   present_in_any_response: true
                                   request_only_required_on_create: false
-                      description: List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+                      description: 'Deprecated: Use the Private Endpoint Connection Strings resource instead. List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters'' nodes.'
                       deprecation_message: This attribute has been deprecated
                       custom_type:
                         name: ConnectionStringsPrivateEndpoint
@@ -506,9 +506,9 @@ schema:
         - map:
             element_type: 4
           description: |-
-            Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
+            Deprecated: Cluster labels will be removed in a future release. We strongly recommend that you use Resource tags instead.
 
-            Cluster labels are deprecated and will be removed in a future release. We strongly recommend that you use Resource tags instead.
+            Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
           deprecation_message: This attribute has been deprecated
           custom_type:
             model: customtypes.MapValue[types.String]
