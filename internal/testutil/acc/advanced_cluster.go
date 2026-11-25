@@ -2,7 +2,9 @@ package acc
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"testing"
 	"time"
@@ -10,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"go.mongodb.org/atlas-sdk/v20250312028/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -161,6 +164,50 @@ func CheckIndependentShardScalingMode(resourceName, clusterName, expectedMode st
 	}
 }
 
+const (
+	sampleDatasetLoadTotalTimeout          = 95 * time.Minute
+	sampleDatasetLoadJobTimeout            = 30 * time.Minute
+	sampleDatasetLoadPollInterval          = 1 * time.Minute
+	sampleDatasetLoadInitialDelay          = 1 * time.Minute
+	sampleDatasetLoadRetryDelay            = 30 * time.Second
+	sampleDatasetLoadMaxAttempts           = 3
+	sampleDatasetNoPrimaryToken            = "ReplicaSetNoPrimary"
+	sampleDatasetDuplicateKeyToken         = "E11000 duplicate key error"
+	sampleDatasetConflictingNamespaceToken = "Target cluster has conflicting non-empty namespace with the dataset"
+)
+
+type sampleDatasetLoadTiming struct {
+	totalTimeout time.Duration
+	jobTimeout   time.Duration
+	pollInterval time.Duration
+	initialDelay time.Duration
+	retryDelay   time.Duration
+	maxAttempts  int
+}
+
+var defaultSampleDatasetLoadTiming = sampleDatasetLoadTiming{
+	totalTimeout: sampleDatasetLoadTotalTimeout,
+	jobTimeout:   sampleDatasetLoadJobTimeout,
+	pollInterval: sampleDatasetLoadPollInterval,
+	initialDelay: sampleDatasetLoadInitialDelay,
+	retryDelay:   sampleDatasetLoadRetryDelay,
+	maxAttempts:  sampleDatasetLoadMaxAttempts,
+}
+
+type sampleDatasetLoadFailedError struct {
+	projectID    string
+	clusterName  string
+	jobID        string
+	errorMessage string
+}
+
+func (e *sampleDatasetLoadFailedError) Error() string {
+	if e.errorMessage != "" {
+		return fmt.Sprintf("sample dataset load %s failed for cluster %s:%s: %s", e.jobID, e.projectID, e.clusterName, e.errorMessage)
+	}
+	return fmt.Sprintf("sample dataset load %s failed for cluster %s:%s", e.jobID, e.projectID, e.clusterName)
+}
+
 // PopulateWithSampleDataTestCheck is a wrapper around PopulateWithSampleData to be used as a resource.TestCheckFunc
 func PopulateWithSampleDataTestCheck(projectID, clusterName string) resource.TestCheckFunc {
 	return func(*terraform.State) error {
@@ -170,20 +217,60 @@ func PopulateWithSampleDataTestCheck(projectID, clusterName string) resource.Tes
 
 // PopulateWithSampleData adds Sample Data to the cluster, otherwise resources like online archive or indexes won't work
 func PopulateWithSampleData(projectID, clusterName string) error {
-	ctx := context.Background()
-	jobLoad, _, err := ConnV2().ClustersAPI.RequestSampleDatasetLoad(context.Background(), projectID, clusterName).Execute()
-	if err != nil || jobLoad == nil {
-		return fmt.Errorf("cluster(%s:%s) loading sample data set error: %s", projectID, clusterName, err)
+	timing := defaultSampleDatasetLoadTiming
+	if InUnitTest() {
+		timing.initialDelay = 0
+	}
+	return populateWithSampleData(context.Background(), ConnV2().ClustersAPI, projectID, clusterName, timing)
+}
+
+func populateWithSampleData(ctx context.Context, api admin.ClustersAPI, projectID, clusterName string, timing sampleDatasetLoadTiming) error {
+	ctx, cancel := context.WithTimeout(ctx, timing.totalTimeout)
+	defer cancel()
+
+	// Wait briefly after a fresh cluster first reports IDLE so post-create primary elections settle before mongorestore runs.
+	if timing.initialDelay > 0 {
+		log.Printf("[INFO] waiting %s before sample dataset load for cluster %s:%s", timing.initialDelay, projectID, clusterName)
+		if err := sleepWithContext(ctx, timing.initialDelay); err != nil {
+			return err
+		}
+	}
+
+	maxAttempts := max(timing.maxAttempts, 1)
+	var lastErr error
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		lastErr = runSampleDatasetLoadAttempt(ctx, api, projectID, clusterName, timing)
+		if lastErr == nil {
+			return nil
+		}
+		if ctx.Err() != nil || attempt == maxAttempts || !isRetryableSampleDatasetLoadError(lastErr) {
+			return lastErr
+		}
+		log.Printf("[INFO] sample dataset load attempt %d/%d failed with transient primary election error for cluster %s:%s; retrying in %s: %v", attempt, maxAttempts, projectID, clusterName, timing.retryDelay, lastErr)
+		if err := sleepWithContext(ctx, timing.retryDelay); err != nil {
+			return fmt.Errorf("%w (after sample dataset load error: %w)", err, lastErr)
+		}
+	}
+	return lastErr
+}
+
+func runSampleDatasetLoadAttempt(ctx context.Context, api admin.ClustersAPI, projectID, clusterName string, timing sampleDatasetLoadTiming) error {
+	jobLoad, _, err := api.RequestSampleDatasetLoad(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		return fmt.Errorf("cluster(%s:%s) loading sample data set error: %w", projectID, clusterName, err)
+	}
+	if jobLoad == nil {
+		return fmt.Errorf("cluster(%s:%s) loading sample data set returned nil job", projectID, clusterName)
 	}
 	jobID := jobLoad.GetId()
 	stateConf := retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyWorkingState},
 		Target:     []string{retrystrategy.RetryStrategyCompletedState},
-		Timeout:    30 * time.Minute,
-		MinTimeout: 1 * time.Minute,
-		Delay:      1 * time.Minute,
+		Timeout:    timing.jobTimeout,
+		MinTimeout: timing.pollInterval,
+		Delay:      timing.pollInterval,
 		Refresh: func() (result any, state string, err error) {
-			job, _, err := ConnV2().ClustersAPI.GetSampleDatasetLoad(ctx, projectID, jobID).Execute()
+			job, _, err := api.GetSampleDatasetLoad(ctx, projectID, jobID).Execute()
 			if err != nil {
 				return nil, "", err
 			}
@@ -203,12 +290,41 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 
 func errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state, errorMessage string) error {
 	if state == retrystrategy.RetryStrategyFailedState {
-		if errorMessage != "" {
-			return fmt.Errorf("sample dataset load %s failed for cluster %s:%s: %s", jobID, projectID, clusterName, errorMessage)
+		return &sampleDatasetLoadFailedError{
+			projectID:    projectID,
+			clusterName:  clusterName,
+			jobID:        jobID,
+			errorMessage: errorMessage,
 		}
-		return fmt.Errorf("sample dataset load %s failed for cluster %s:%s", jobID, projectID, clusterName)
 	}
 	return nil
+}
+
+func isRetryableSampleDatasetLoadError(err error) bool {
+	var failedErr *sampleDatasetLoadFailedError
+	return errors.As(err, &failedErr) && strings.Contains(failedErr.errorMessage, sampleDatasetNoPrimaryToken)
+}
+
+// isTaintedSampleDatasetClusterError reports whether a failed sample-dataset load left partial data on the cluster,
+// blocking another RequestSampleDatasetLoad on that cluster until a fresh cluster is created.
+func isTaintedSampleDatasetClusterError(err error) bool {
+	var failedErr *sampleDatasetLoadFailedError
+	if !errors.As(err, &failedErr) {
+		return false
+	}
+	return strings.Contains(failedErr.errorMessage, sampleDatasetDuplicateKeyToken) ||
+		strings.Contains(failedErr.errorMessage, sampleDatasetConflictingNamespaceToken)
+}
+
+func sleepWithContext(ctx context.Context, d time.Duration) error {
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 // ErrIfSampleDatasetLoadFailedForTest exposes sample-dataset FAILED mapping for unit tests.

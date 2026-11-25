@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	MaxClusterNodesPerProject = 30 // Choose to be conservative, 40 clusters per project is the limit before `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` error, see https://www.mongodb.com/docs/atlas/reference/atlas-limits/
-	MaxFreeTierClusterCount   = 1  // Project can have at most 1 free tier cluster
+	MaxClusterNodesPerProject       = 30 // Choose to be conservative, 40 clusters per project is the limit before `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` error, see https://www.mongodb.com/docs/atlas/reference/atlas-limits/
+	MaxFreeTierClusterCount         = 1  // Project can have at most 1 free tier cluster
+	sampleDatasetClusterMaxAttempts = 2
 )
 
 type projectInfo struct {
@@ -34,6 +35,7 @@ var sharedInfo = struct {
 	projects           []projectInfo
 	mu                 sync.Mutex
 	muSleep            sync.Mutex
+	clusterPopulated   bool
 	init               bool
 }{
 	projects: []projectInfo{},
@@ -234,15 +236,44 @@ func clusterNameExecution(tb testing.TB, populateSampleData, backupEnabled, pitE
 
 	// lazy creation so it's only done if really needed
 	if sharedInfo.clusterName == "" {
-		name := RandomClusterName()
-		tb.Logf("Creating execution cluster: %s\n", name)
-		sharedInfo.clusterName = createCluster(tb, projectID, name, backupEnabled, pitEnabled)
-
 		if populateSampleData {
-			if populateErr := PopulateWithSampleData(projectID, sharedInfo.clusterName); populateErr != nil {
-				sharedInfo.clusterPopulateErr = populateErr
+			name, createOrPopulateErr := createSeededClusterWithRetry(
+				sampleDatasetClusterMaxAttempts,
+				seededClusterFuncs{
+					create: func() (string, error) {
+						name := RandomClusterName()
+						tb.Logf("Creating execution cluster: %s\n", name)
+						if createErr := createCluster(tb, projectID, name, backupEnabled, pitEnabled); createErr != nil {
+							return "", createErr
+						}
+						return name, nil
+					},
+					populate: func(name string) error {
+						return PopulateWithSampleData(projectID, name)
+					},
+					delete: func(name string) error {
+						tb.Logf("Deleting tainted execution cluster before retry: %s\n", name)
+						return deleteCluster(context.Background(), ConnV2(), projectID, name)
+					},
+				},
+			)
+			if name == "" && createOrPopulateErr != nil {
+				return projectID, "", createOrPopulateErr
 			}
+			sharedInfo.clusterName = name
+			sharedInfo.clusterPopulateErr = createOrPopulateErr
+			sharedInfo.clusterPopulated = createOrPopulateErr == nil
+		} else {
+			name := RandomClusterName()
+			tb.Logf("Creating execution cluster: %s\n", name)
+			if createErr := createCluster(tb, projectID, name, backupEnabled, pitEnabled); createErr != nil {
+				return projectID, "", createErr
+			}
+			sharedInfo.clusterName = name
 		}
+	} else if populateSampleData && !sharedInfo.clusterPopulated && sharedInfo.clusterPopulateErr == nil {
+		sharedInfo.clusterPopulateErr = PopulateWithSampleData(projectID, sharedInfo.clusterName)
+		sharedInfo.clusterPopulated = sharedInfo.clusterPopulateErr == nil
 	}
 
 	if populateSampleData && sharedInfo.clusterPopulateErr != nil {
@@ -250,6 +281,34 @@ func clusterNameExecution(tb testing.TB, populateSampleData, backupEnabled, pitE
 	}
 
 	return projectID, sharedInfo.clusterName, nil
+}
+
+type seededClusterFuncs struct {
+	create   func() (string, error)
+	populate func(clusterName string) error
+	delete   func(clusterName string) error
+}
+
+func createSeededClusterWithRetry(maxAttempts int, fns seededClusterFuncs) (clusterName string, err error) {
+	attempts := max(maxAttempts, 1)
+	for attempt := 1; attempt <= attempts; attempt++ {
+		name, createErr := fns.create()
+		if createErr != nil {
+			return name, createErr
+		}
+		populateErr := fns.populate(name)
+		if populateErr == nil {
+			return name, nil
+		}
+		if attempt == attempts || !isTaintedSampleDatasetClusterError(populateErr) {
+			return name, populateErr
+		}
+		log.Printf("[INFO] sample dataset load left partial data on cluster %s (attempt %d/%d); deleting cluster and retrying on a fresh cluster: %v", name, attempt, attempts, populateErr)
+		if delErr := fns.delete(name); delErr != nil {
+			return name, fmt.Errorf("%w (after sample dataset load failure: %w)", delErr, populateErr)
+		}
+	}
+	return "", nil
 }
 
 // ProjectIDExecutionWithStreamInstance returns the project ID and stream instance name for test execution.

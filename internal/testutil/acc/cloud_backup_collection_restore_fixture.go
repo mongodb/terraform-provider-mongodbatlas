@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20250312028/admin"
 )
@@ -18,11 +19,23 @@ import (
 const (
 	CollectionRestoreSeedDatabase        = "sample_mflix"
 	CollectionRestoreSeedDatabaseRenamed = "sample_mflix_renamed"
-	CollectionRestoreSeedRestaurantsNS   = "sample_restaurants.restaurants"
+	CollectionRestoreSeedRestaurantsDB   = "sample_restaurants"
+	CollectionRestoreSeedRestaurantsCol  = "restaurants"
+	CollectionRestoreSeedRestaurantsNS   = CollectionRestoreSeedRestaurantsDB + "." + CollectionRestoreSeedRestaurantsCol
 	CollectionRestoreSeedCollectionName  = "movies"
 	CollectionRestoreMissingCollectionNS = "sample_mflix.never_there"
 	collectionRestoreSnapshotRetention   = 1
 )
+
+type seedCollectionRef struct {
+	database   string
+	collection string
+}
+
+var collectionRestoreRequiredSeedCollections = []seedCollectionRef{
+	{database: CollectionRestoreSeedDatabase, collection: CollectionRestoreSeedCollectionName},
+	{database: CollectionRestoreSeedRestaurantsDB, collection: CollectionRestoreSeedRestaurantsCol},
+}
 
 var collectionRestoreDestRegions = []string{"US_EAST_1", "US_EAST_2", "EU_WEST_1"}
 
@@ -93,6 +106,9 @@ func initCollectionRestoreFixture(tb testing.TB) (*CollectionRestoreFixture, err
 		if err != nil {
 			return nil, err
 		}
+		if err := requireSnapshotSeedCollections(ctx, ConnV2().CloudBackupsAPI, env.ProjectID, env.ClusterName, env.SnapshotID); err != nil {
+			return nil, err
+		}
 		return &CollectionRestoreFixture{
 			ProjectID:               env.ProjectID,
 			ClusterName:             env.ClusterName,
@@ -111,6 +127,9 @@ func initCollectionRestoreFixture(tb testing.TB) (*CollectionRestoreFixture, err
 	}
 	snapshotID, afterSeconds, err := takeCompletedOnDemandSnapshot(ctx, projectID, clusterName)
 	if err != nil {
+		return nil, err
+	}
+	if err := requireSnapshotSeedCollections(ctx, ConnV2().CloudBackupsAPI, projectID, clusterName, snapshotID); err != nil {
 		return nil, err
 	}
 	return &CollectionRestoreFixture{
@@ -165,6 +184,22 @@ func takeCompletedOnDemandSnapshot(ctx context.Context, projectID, clusterName s
 		return "", 0, err
 	}
 	return snapshotID, time.Now().UTC().Unix(), nil
+}
+
+func requireSnapshotSeedCollections(ctx context.Context, api admin.CloudBackupsAPI, projectID, clusterName, snapshotID string) error {
+	for _, seed := range collectionRestoreRequiredSeedCollections {
+		col, resp, err := api.GetSnapshotDatabaseCollection(ctx, projectID, clusterName, snapshotID, seed.database, seed.collection).Execute()
+		if err != nil {
+			if validate.StatusNotFound(resp) {
+				return fmt.Errorf("snapshot %s on cluster %s:%s is missing required seed collection %s.%s: %w", snapshotID, projectID, clusterName, seed.database, seed.collection, err)
+			}
+			return fmt.Errorf("verify seed collection %s.%s in snapshot %s on cluster %s:%s: %w", seed.database, seed.collection, snapshotID, projectID, clusterName, err)
+		}
+		if col == nil {
+			return fmt.Errorf("snapshot %s on cluster %s:%s returned nil seed collection %s.%s", snapshotID, projectID, clusterName, seed.database, seed.collection)
+		}
+	}
+	return nil
 }
 
 func waitForCompletedSnapshot(ctx context.Context, projectID, clusterName, snapshotID string) (*admin.DiskBackupReplicaSet, error) {
