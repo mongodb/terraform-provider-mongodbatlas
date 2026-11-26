@@ -186,6 +186,13 @@ func TestAccSearchIndex_withVectorAutoEmbed(t *testing.T) {
 				Config: configVector(projectID, indexName, clusterName, autoEmbedFieldsJSON),
 				Check:  checkVector(projectID, indexName, clusterName, autoEmbedFieldsJSON),
 			},
+			{
+				Config:            configVector(projectID, indexName, clusterName, autoEmbedFieldsJSON),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName, "/"),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
