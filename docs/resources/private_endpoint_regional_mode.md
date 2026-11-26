@@ -2,7 +2,7 @@
 subcategory: "Private Endpoint Services"
 ---
 
-# Resource: private_endpoint_regional_mode
+# Resource: mongodbatlas_private_endpoint_regional_mode
 
 `mongodbatlas_private_endpoint_regional_mode` provides a Private Endpoint Regional Mode resource. This represents a regionalized private endpoint setting for a Project. Enable it to allow region specific private endpoints.
 
@@ -101,7 +101,7 @@ resource "aws_vpc_endpoint" "test_west" {
 }
 
 resource "mongodbatlas_privatelink_endpoint" "test_east" {
-  project_id    = "var.atlasprojectid
+  project_id    = var.atlasprojectid
   provider_name = "AWS"
   region        = "US_EAST_1"
 }

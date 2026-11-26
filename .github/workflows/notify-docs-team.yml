@@ -30,7 +30,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ github.event.repository.name }}: hey ${{ secrets.SLACK_DOCS_TAG }}, this is APIx bot, can you please review <${{ github.event.pull_request.html_url }}|PR ${{ github.event.pull_request.number }}>? thanks a lot!"
+                    "text": "${{ github.event.repository.name }}: hey ${{ secrets.SLACK_DOCS_TAG }}, this is APIx bot, can you please review <${{ github.event.pull_request.html_url }}|PR ${{ github.event.pull_request.number }}>? <${{ github.event.repository.html_url }}/blob/master/contributing/documentation.md#reviewing-documentation-changes-docs-cloud-team|Which files to review>. thanks a lot!"
                   }
                 }
               ]
@@ -39,4 +39,4 @@ jobs:
         with:
           header: pr-title-slack-doc
           append: true
-          message: "APIx bot: a message has been sent to Docs Slack channel"
+          message: "APIx bot: a message has been sent to Docs Slack channel. Review guidance: ${{ github.event.repository.html_url }}/blob/master/contributing/documentation.md#reviewing-documentation-changes-docs-cloud-team"
