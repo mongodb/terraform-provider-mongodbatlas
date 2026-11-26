@@ -1546,6 +1546,6 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 
-		return fmt.Sprintf("%s-%s", ids["project_id"], ids["cluster_name"]), nil
+		return fmt.Sprintf("%s/%s", ids["project_id"], ids["cluster_name"]), nil
 	}
 }

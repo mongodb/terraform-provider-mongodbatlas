@@ -1316,7 +1316,11 @@ func checkStreamConnectionImportStateIDFunc(resourceName string) resource.Import
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return rs.Primary.ID, nil
+		workspaceName := rs.Primary.Attributes["workspace_name"]
+		if workspaceName == "" {
+			workspaceName = rs.Primary.Attributes["instance_name"]
+		}
+		return fmt.Sprintf("%s/%s/%s", rs.Primary.Attributes["project_id"], workspaceName, rs.Primary.Attributes["connection_name"]), nil
 	}
 }
 

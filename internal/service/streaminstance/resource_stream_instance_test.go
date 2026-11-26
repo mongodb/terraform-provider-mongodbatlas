@@ -83,7 +83,7 @@ func checkStreamInstanceImportStateIDFunc(resourceName string) resource.ImportSt
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["instance_name"]), nil
+		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["instance_name"]), nil
 	}
 }
 

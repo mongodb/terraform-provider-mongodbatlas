@@ -384,7 +384,7 @@ func importStateIDFuncS3Bucket(resourceName, s3Bucket string) resource.ImportSta
 
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 
-		return fmt.Sprintf("%s--%s--%s", ids["project_id"], ids["name"], s3Bucket), nil
+		return fmt.Sprintf("%s/%s/%s", ids["project_id"], ids["name"], s3Bucket), nil
 	}
 }
 
@@ -397,7 +397,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 
-		return fmt.Sprintf("%s--%s", ids["project_id"], ids["name"]), nil
+		return fmt.Sprintf("%s/%s", ids["project_id"], ids["name"]), nil
 	}
 }
 

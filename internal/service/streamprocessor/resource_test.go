@@ -739,7 +739,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["workspace_name"], rs.Primary.Attributes["project_id"], rs.Primary.Attributes["processor_name"]), nil
+		return fmt.Sprintf("%s/%s/%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["workspace_name"], rs.Primary.Attributes["processor_name"]), nil
 	}
 }
 
