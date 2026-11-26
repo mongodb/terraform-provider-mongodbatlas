@@ -213,7 +213,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	projectID, name, legacy, err := splitFlexClusterImportID(req.ID)
+	projectID, name, legacy, err := SplitFlexClusterImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting import ID", err.Error())
 		return
@@ -226,7 +226,7 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), name)...)
 }
 
-func splitFlexClusterImportID(id string) (projectID, clusterName *string, legacy bool, err error) {
+func SplitFlexClusterImportID(id string) (projectID, clusterName *string, legacy bool, err error) {
 	if ok, parts := conversion.ImportSplit(id, 2); ok {
 		return &parts[0], &parts[1], false, nil
 	}

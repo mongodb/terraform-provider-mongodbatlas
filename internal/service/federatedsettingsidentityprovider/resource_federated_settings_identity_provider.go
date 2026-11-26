@@ -378,7 +378,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		return nil, err
 	}
 	if legacy {
-		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{federation_settings_id}-{okta_idp_id}", "{federation_settings_id}/{okta_idp_id}"))
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{federation_settings_id}-{idp_id}", "{federation_settings_id}/{idp_id}"))
 	}
 
 	d.SetId(encodeStateID(federationSettingsID, idpID))
@@ -387,14 +387,14 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 }
 
 // SplitFederatedSettingsIdentityProviderImportID splits an import ID in the format
-// {federation_settings_id}/{okta_idp_id} or in the legacy format {federation_settings_id}-{okta_idp_id}.
+// {federation_settings_id}/{idp_id} or in the legacy format {federation_settings_id}-{idp_id}.
 func SplitFederatedSettingsIdentityProviderImportID(id string) (federationSettingsID, oktaIdpID string, legacy bool, err error) {
 	if ok, parts := conversion.ImportSplit(id, 2); ok {
 		return parts[0], parts[1], false, nil
 	}
 	parts := legacyImportIDRegex.FindStringSubmatch(id)
 	if len(parts) != 3 {
-		err = errors.New("import format error: to import a Federated Settings Identity Provider, use the format {federation_settings_id}/{okta_idp_id} or the legacy format {federation_settings_id}-{okta_idp_id}")
+		err = errors.New("import format error: to import a Federated Settings Identity Provider, use the format {federation_settings_id}/{idp_id} or the legacy format {federation_settings_id}-{idp_id}")
 		return
 	}
 	return parts[1], parts[2], true, nil

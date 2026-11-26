@@ -100,8 +100,8 @@ This method uses [Terraform native tools](https://developer.hashicorp.com/terraf
 
 The process works as follow:
 1. If you have an existing `mongodbatlas_stream_instance` resource, remove it from your configuration and delete it from the state file, e.g.: `terraform state rm mongodbatlas_stream_instance.this`.
-2. Find the import IDs of the stream workspaces you want to migrate: `{PROJECT_ID}-{WORKSPACE_NAME}`, such as `664619d870c247237f4b86a6-my-workspace`
-3. Import it using the `terraform import` command, e.g.: `terraform import mongodbatlas_stream_workspace.this 664619d870c247237f4b86a6-my-workspace`.
+2. Find the import IDs of the stream workspaces you want to migrate: `{PROJECT_ID}-{WORKSPACE_NAME}`, such as `664619d870c247237f4b86a6/my-workspace`
+3. Import it using the `terraform import` command, e.g.: `terraform import mongodbatlas_stream_workspace.this 664619d870c247237f4b86a6/my-workspace`.
 4. Run `terraform plan -generate-config-out=stream_workspace.tf`. This should generate a `stream_workspace.tf` file.
 5. Update the references from your previous stream instance resource: `mongodbatlas_stream_instance.this.XXXX` to the new `mongodbatlas_stream_workspace.this.XXX`.
    - Change `instance_name` to `workspace_name` in your references

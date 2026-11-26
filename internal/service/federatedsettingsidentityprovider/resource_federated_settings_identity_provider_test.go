@@ -354,7 +354,7 @@ func configOIDCWorkloadBasic(federationSettingsID, description, audience, author
 }
 
 func TestSplitFederatedSettingsIdentityProviderImportID(t *testing.T) {
-	const errorString = "import format error: to import a Federated Settings Identity Provider, use the format {federation_settings_id}/{okta_idp_id} or the legacy format {federation_settings_id}-{okta_idp_id}"
+	const errorString = "import format error: to import a Federated Settings Identity Provider, use the format {federation_settings_id}/{idp_id} or the legacy format {federation_settings_id}-{idp_id}"
 	tests := map[string]struct {
 		importID             string
 		federationSettingsID string
