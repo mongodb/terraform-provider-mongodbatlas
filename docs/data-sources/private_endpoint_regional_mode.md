@@ -2,25 +2,26 @@
 subcategory: "Private Endpoint Services"
 ---
 
-# Data Source: private_endpoint_regional_mode
+# Data Source: mongodbatlas_private_endpoint_regional_mode
 
-`private_endpoint_regional_mode` describes a Private Endpoint Regional Mode. This represents a Private Endpoint Regional Mode Connection that wants to retrieve settings of an Atlas project.
+`mongodbatlas_private_endpoint_regional_mode` describes a Private Endpoint Regional Mode. This represents a Private Endpoint Regional Mode Connection that wants to retrieve settings of an Atlas project.
 
 ## Example Usage
 
 ```terraform
-resource "private_endpoint_regional_mode" "test" {
-  project_id    = "<PROJECT-ID>"
+resource "mongodbatlas_private_endpoint_regional_mode" "test" {
+  project_id = "<PROJECT-ID>"
+  enabled    = true
 }
 
-data "private_endpoint_regional_mode" "test" {
-	project_id = private_endpoint_regional_mode.test.project_id
+data "mongodbatlas_private_endpoint_regional_mode" "test" {
+  project_id = mongodbatlas_private_endpoint_regional_mode.test.project_id
 }
 ```
 
 ## Argument Reference
 * `project_id` - (Required) Unique identifier for the project, also known as `groupId` in the official documentation.
-* `enabled` - (Optional) Flag that indicates whether the regionalized private endpoitn setting is enabled for the project.
+* `enabled` - (Optional) Flag that indicates whether the regionalized private endpoint setting is enabled for the project.
 
 ## Attributes Reference
 

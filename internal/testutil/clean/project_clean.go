@@ -57,6 +57,9 @@ func RemoveProjectResources(ctx context.Context, logf func(format string, args .
 		run   func() (int, error)
 		label string
 	}{
+		// Stream instances go first: a stream processor's Atlas Database connection blocks cluster deletion.
+		{label: "stream instances", run: func() (int, error) { return RemoveStreamInstances(ctx, dryRun, client, projectID) }},
+		{label: "stream private link connections", run: func() (int, error) { return RemovePrivateLinkConnections(ctx, dryRun, client, projectID) }},
 		{label: "clusters", run: func() (int, error) { return removeClusters(ctx, logf, dryRun, client, projectID) }},
 		{label: "flex clusters", run: func() (int, error) { return removeFlexClusters(ctx, logf, dryRun, client, projectID) }},
 		{label: "peerings", run: func() (int, error) { return removeNetworkPeering(ctx, logf, dryRun, client, projectID) }},
@@ -64,8 +67,6 @@ func RemoveProjectResources(ctx context.Context, logf func(format string, args .
 			return removeFederatedDatabasePrivateEndpoints(ctx, logf, dryRun, client, projectID)
 		}},
 		{label: "federated databases", run: func() (int, error) { return removeFederatedDatabases(ctx, logf, dryRun, client, projectID) }},
-		{label: "stream instances", run: func() (int, error) { return RemoveStreamInstances(ctx, dryRun, client, projectID) }},
-		{label: "stream private link connections", run: func() (int, error) { return RemovePrivateLinkConnections(ctx, dryRun, client, projectID) }},
 		{label: "private endpoint services", run: func() (int, error) { return removePrivateEndpointServices(ctx, logf, dryRun, client, projectID) }},
 		{label: "encryption at rest private endpoints", run: func() (int, error) {
 			return removeEncryptionAtRestPrivateEndpoints(ctx, logf, dryRun, client, projectID)

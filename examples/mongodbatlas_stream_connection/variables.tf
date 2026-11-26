@@ -83,3 +83,29 @@ variable "kafka_iam_role_arn" {
   type        = string
   default     = ""
 }
+
+variable "databricks_client_id" {
+  description = "OAuth client ID of the Databricks service principal used for the Iceberg Data Catalog connection."
+  type        = string
+  default     = ""
+}
+
+variable "databricks_client_secret" {
+  description = "OAuth client secret of the Databricks service principal used for the Iceberg Data Catalog connection."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "snowflake_user" {
+  description = "Snowflake service user used for the Iceberg Data Catalog connection."
+  type        = string
+  default     = ""
+}
+
+variable "snowflake_private_key" {
+  description = "Private key of the Snowflake service user's key pair used for the Iceberg Data Catalog connection."
+  type        = string
+  default     = ""
+  sensitive   = true
+}

@@ -18,9 +18,25 @@ data "mongodbatlas_federated_database_instances" "test" {
 }
 ```
 
+### Online Archive federated database instances
+
+Atlas creates a backing federated database instance of type `ONLINE_ARCHIVE` for every online archive. Set `type` to list them and read their `hostnames`:
+
+```terraform
+data "mongodbatlas_federated_database_instances" "archive" {
+  project_id = "PROJECT ID"
+  type       = "ONLINE_ARCHIVE"
+}
+
+output "archive_hostnames" {
+  value = data.mongodbatlas_federated_database_instances.archive.results[*].hostnames
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to create a Federated Database Instance, also known as `groupId` in the official documentation.
+* `type` - (Optional) Type of Federated Database Instances to return. Accepted values are `USER` and `ONLINE_ARCHIVE`. Defaults to `USER`.
 
 ## Attributes Reference
 

@@ -2,7 +2,7 @@
 subcategory: "Private Endpoint Services"
 ---
 
-# Resource: private_endpoint_regional_mode
+# Resource: mongodbatlas_private_endpoint_regional_mode
 
 `mongodbatlas_private_endpoint_regional_mode` provides a Private Endpoint Regional Mode resource. This represents a regionalized private endpoint setting for a Project. Enable it to allow region specific private endpoints.
 
@@ -101,7 +101,7 @@ resource "aws_vpc_endpoint" "test_west" {
 }
 
 resource "mongodbatlas_privatelink_endpoint" "test_east" {
-  project_id    = "var.atlasprojectid
+  project_id    = var.atlasprojectid
   provider_name = "AWS"
   region        = "US_EAST_1"
 }
@@ -125,7 +125,7 @@ resource "aws_vpc_endpoint" "test_east" {
 ```
 
 ### Further Examples
-- [AWS PrivateLink Geosharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.21.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
+- [AWS PrivateLink Geosharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.22.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
 
 ## Argument Reference
 * `project_id` - (Required) Unique identifier for the project, also known as `groupId` in the official documentation.
@@ -140,7 +140,7 @@ You can create only sharded clusters when you enable the regionalized private en
 ## Additional Reference
 
 In addition to the example shown above, keep in mind:
-* `mongodbatlas_advanced_cluster.cluster_atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.21.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded). 
+* `mongodbatlas_advanced_cluster.cluster_atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.22.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded). 
 * `mongodbatlas_advanced_cluster.cluster_atlas.connection_strings` will differ based on the value of `mongodbatlas_private_endpoint_regional_mode.test.enabled`.
 * For more information on usage with GCP, see [our Privatelink Endpoint Service documentation: Example with GCP](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-gcp)
 * For more information on usage with Azure, see [our Privatelink Endpoint Service documentation: Examples with Azure](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-azure)

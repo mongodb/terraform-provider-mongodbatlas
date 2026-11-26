@@ -23,7 +23,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5
         with:
           go-version-file: 'go.mod'
       - name: Generate resources
@@ -39,7 +39,7 @@ jobs:
           fi
       - name: Create PR
         if: steps.check_internal_changes.outputs.internal_changed == 'true'
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1
         with:
           token: ${{ secrets.APIX_BOT_PAT }}
           title: "chore: Updates auto-generated production resources (DO NOT MERGE)"
@@ -68,7 +68,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5
         with:
           go-version-file: 'go.mod'
       - name: Generate resources
@@ -84,7 +84,7 @@ jobs:
           fi
       - name: Create PR
         if: steps.check_internal_changes.outputs.internal_changed == 'true'
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1
         with:
           token: ${{ secrets.APIX_BOT_PAT }}
           title: "chore: Updates auto-generated internal resources"

@@ -150,6 +150,57 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 	}
 }
 
+func TestPopulateProjectsDataSourceModelPropsError(t *testing.T) {
+	groupNotFoundErr := admin.GenericOpenAPIError{}
+	groupNotFoundErr.SetError("404 Not Found")
+	groupNotFoundErr.SetModel(admin.ApiError{ErrorCode: "GROUP_NOT_FOUND", Error: http.StatusNotFound})
+	resourceNotFoundErr := admin.GenericOpenAPIError{}
+	resourceNotFoundErr.SetError("404 Not Found")
+	resourceNotFoundErr.SetModel(admin.ApiError{ErrorCode: "RESOURCE_NOT_FOUND", Error: http.StatusNotFound})
+	testCases := []struct {
+		teamsErr      error
+		name          string
+		expectedError bool
+	}{
+		{
+			name:          "Project deleted after listing is skipped",
+			teamsErr:      &groupNotFoundErr,
+			expectedError: false,
+		},
+		{
+			name:          "Any other error fails the read",
+			teamsErr:      errors.New("EOF"),
+			expectedError: true,
+		},
+		{
+			name:          "404 for a project that still exists fails the read",
+			teamsErr:      &resourceNotFoundErr,
+			expectedError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			teamsMock := mockadmin.NewTeamsAPI(t)
+			teamsMock.EXPECT().ListGroupTeams(mock.Anything, dummyProjectID).Return(admin.ListGroupTeamsApiRequest{ApiService: teamsMock})
+			teamsMock.EXPECT().ListGroupTeamsExecute(mock.Anything).Return(nil, nil, tc.teamsErr)
+
+			projectsRes := &admin.PaginatedAtlasGroup{
+				Results:    []admin.Group{{Id: conversion.StringPtr(dummyProjectID)}},
+				TotalCount: conversion.IntPtr(1),
+			}
+			results, diags := project.PopulateProjectsDataSourceModelForTest(t.Context(), &admin.APIClient{TeamsAPI: teamsMock}, projectsRes)
+
+			if diags.HasError() != tc.expectedError {
+				t.Errorf("Case %s: Received unexpected diagnostics: %v", tc.name, diags)
+			}
+			if len(results) != 0 {
+				t.Errorf("Case %s: Expected no results, got %d", tc.name, len(results))
+			}
+		})
+	}
+}
+
 func TestFilterUserDefinedLimits(t *testing.T) {
 	testCases := []struct {
 		name           string
