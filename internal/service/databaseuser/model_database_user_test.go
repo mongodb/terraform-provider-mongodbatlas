@@ -458,6 +458,19 @@ func TestSplitDatabaseUserImportID(t *testing.T) {
 			authDBName: "mydbname",
 			legacy:     true,
 		},
+		"valid input with slash in OIDC username": {
+			importID:   "664619d870c247237f4b86a6/oidc-idp/group/my-role/admin",
+			projectID:  "664619d870c247237f4b86a6",
+			username:   "oidc-idp/group/my-role",
+			authDBName: "admin",
+		},
+		"valid input legacy with slash in username": {
+			importID:   "664619d870c247237f4b86a6-user/name-admin",
+			projectID:  "664619d870c247237f4b86a6",
+			username:   "user/name",
+			authDBName: "admin",
+			legacy:     true,
+		},
 		"invalid input projectID": {
 			importID:    "part1/part2/part3",
 			projectID:   "part1",

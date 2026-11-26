@@ -125,7 +125,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Cloud Backup Snapshot Export Job entries can be imported using `project_id`, `cluster_name`, and `export_job_id` in the format `project_id`/`cluster_name`/`export_job_id`.
+Cloud Backup Snapshot Export Job entries can be imported using `project_id`, `cluster_name`, and `export_job_id` in the format `{project_id}/{cluster_name}/{export_job_id}`.
 
 ```
 $ terraform import mongodbatlas_cloud_backup_snapshot_export_job.test 5d0f1f73cf09a29120e173cf/MyCluster/5d116d82014b764445b2f9b5

@@ -388,17 +388,17 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	parts, legacy, err := splitImportStateID(d.Id())
+	importID, err := SplitImportStateID(d.Id())
 	if err != nil {
 		return nil, err
 	}
-	if legacy {
+	if importID.Legacy {
 		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}", "{project_id}/{private_link_id}/{endpoint_service_id}/{provider_name}"))
 	}
-	projectID := parts[0]
-	privateLinkID := parts[1]
-	endpointServiceID := parts[2]
-	providerName := parts[3]
+	projectID := importID.ProjectID
+	privateLinkID := importID.PrivateLinkID
+	endpointServiceID := importID.EndpointServiceID
+	providerName := importID.ProviderName
 	privateEndpoint, _, err := connV2.PrivateEndpointServicesAPI.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
@@ -430,19 +430,50 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	return []*schema.ResourceData{d}, nil
 }
 
-// splitImportStateID accepts the new "/"-separated format first and falls back to the
-// legacy "--"-separated format. legacy is true only when the legacy format parsed successfully.
-func splitImportStateID(id string) (parts []string, legacy bool, err error) {
-	if ok, newParts := conversion.ImportSplit(id, 4); ok {
-		return newParts, false, nil
+type ImportID struct {
+	ProjectID         string
+	PrivateLinkID     string
+	EndpointServiceID string
+	ProviderName      string
+	Legacy            bool
+}
+
+// SplitImportStateID accepts the new "/"-separated format first and falls back to the
+// legacy "--"-separated format. Endpoint service IDs may contain "/" (Azure ARM resource IDs),
+// so the provider name is read from the last component and the endpoint service ID is everything
+// between the private link ID and the provider name.
+func SplitImportStateID(id string) (ImportID, error) {
+	if providerIdx := strings.LastIndex(id, "--"); providerIdx > 0 {
+		providerName := id[providerIdx+2:]
+		legacyParts := strings.SplitN(id[:providerIdx], "--", 3)
+		if len(legacyParts) == 3 && providerName != "" && legacyParts[2] != "" && conversion.ValidateProjectID(legacyParts[0]) == nil {
+			return ImportID{
+				ProjectID:         legacyParts[0],
+				PrivateLinkID:     legacyParts[1],
+				EndpointServiceID: legacyParts[2],
+				ProviderName:      providerName,
+				Legacy:            true,
+			}, nil
+		}
 	}
-	legacy = true
-	parts = strings.SplitN(id, "--", 4)
-	if len(parts) != 4 {
-		legacy = false
-		err = errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}/{private_link_id}/{endpoint_service_id}/{provider_name} or the legacy format {project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}")
+
+	if firstSlash := strings.Index(id, "/"); firstSlash > 0 && conversion.ValidateProjectID(id[:firstSlash]) == nil {
+		parts := strings.Split(id, "/")
+		if len(parts) >= 4 {
+			endpointServiceID := strings.Join(parts[2:len(parts)-1], "/")
+			providerName := parts[len(parts)-1]
+			if parts[1] != "" && endpointServiceID != "" && providerName != "" {
+				return ImportID{
+					ProjectID:         parts[0],
+					PrivateLinkID:     parts[1],
+					EndpointServiceID: endpointServiceID,
+					ProviderName:      providerName,
+				}, nil
+			}
+		}
 	}
-	return
+
+	return ImportID{}, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}/{private_link_id}/{endpoint_service_id}/{provider_name} or the legacy format {project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}")
 }
 
 func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID, providerName, privateLinkID, endpointServiceID string) retry.StateRefreshFunc {

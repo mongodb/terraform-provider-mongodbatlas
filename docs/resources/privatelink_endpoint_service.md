@@ -302,6 +302,8 @@ Private Endpoint Link Connection can be imported using project ID, private link 
 $ terraform import mongodbatlas_privatelink_endpoint_service.this 1112222b3bf99403840e8934/3242342343112/vpce-4242342343/AWS
 ```
 
+For Azure, `endpoint_service_id` is the full ARM resource ID and contains slashes, so the import ID includes them as well (for example `{project_id}/{private_link_id}//subscriptions/.../privateEndpoints/{name}/AZURE`).
+
 For more information, see:
 - [MongoDB API Private Endpoint Link Connection](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupprivateendpointendpointserviceendpoint) for detailed arguments and attributes.
 - [Set Up a Private Endpoint](https://www.mongodb.com/docs/atlas/security-private-endpoint/) for general guidance on private endpoints in MongoDB Atlas.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
@@ -393,6 +394,13 @@ func SplitDatabaseUserImportID(id string) (projectID, username, authDatabaseName
 		projectID, username, authDatabaseName = splitParts[0], splitParts[1], splitParts[2]
 		err = conversion.ValidateProjectID(projectID)
 		return
+	}
+	// Usernames may contain "/" (for example OIDC and AWS IAM usernames). In that case the
+	// project ID is the first component and the auth database name is the last one.
+	if firstSlash := strings.Index(id, "/"); firstSlash > 0 && conversion.ValidateProjectID(id[:firstSlash]) == nil {
+		if lastSlash := strings.LastIndex(id, "/"); lastSlash > firstSlash {
+			return id[:firstSlash], id[firstSlash+1 : lastSlash], id[lastSlash+1:], false, nil
+		}
 	}
 	legacy = true
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([$a-z]{1,15})$`)

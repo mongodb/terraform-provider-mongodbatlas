@@ -221,11 +221,13 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 }
 
 func SplitX509ImportID(id string) (projectID, username string, legacy bool) {
-	// The single {project_id} form is the same in both formats and is not deprecated.
-	if strings.Contains(id, "/") {
-		parts := strings.SplitN(id, "/", 2)
-		return parts[0], parts[1], false
+	// The new format is {project_id}/{username}. A username may itself contain "/" (for example
+	// an RFC 2253 common name), so only treat the ID as the new format when the part before the
+	// first slash is a valid project ID.
+	if firstSlash := strings.Index(id, "/"); firstSlash > 0 && conversion.ValidateProjectID(id[:firstSlash]) == nil {
+		return id[:firstSlash], id[firstSlash+1:], false
 	}
+	// The single {project_id} form is the same in both formats and is not deprecated.
 	parts := strings.SplitN(id, "-", 2)
 	if len(parts) == 1 {
 		return parts[0], "", false
