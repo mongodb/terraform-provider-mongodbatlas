@@ -60,7 +60,7 @@ type clusterCreateFuncs struct {
 	delete func() error
 }
 
-func createCluster(tb testing.TB, projectID, name string, backupEnabled, pitEnabled bool) string {
+func createCluster(tb testing.TB, projectID, name string, backupEnabled, pitEnabled bool) (string, error) {
 	tb.Helper()
 	fns := clusterCreateFuncs{
 		create: func(region string) error {
@@ -77,8 +77,10 @@ func createCluster(tb testing.TB, projectID, name string, backupEnabled, pitEnab
 			return deleteCluster(context.Background(), ConnV2(), projectID, name)
 		},
 	}
-	require.NoError(tb, createClusterWithRegionFallback(tb, DefaultRegions(), fns), "Cluster creation failed: %s", name)
-	return name
+	if err := createClusterWithRegionFallback(tb, DefaultRegions(), fns); err != nil {
+		return "", fmt.Errorf("cluster creation failed: %s %s, error: %w", projectID, name, err)
+	}
+	return name, nil
 }
 
 // createClusterWithRegionFallback tries to create a cluster in each candidate region,
