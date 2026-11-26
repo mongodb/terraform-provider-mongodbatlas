@@ -12,6 +12,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* data-source/mongodbatlas_projects: Fails the read instead of silently omitting a project from `results` when one of its per-project API calls returns an error ([#4908](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4908))
 * resource/mongodbatlas_stream_connection: Skips connection API updates when migrating between equivalent `instance_name` and `workspace_name` values ([#4739](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4739))
 
 ## 2.22.0 (November 17, 2026)
