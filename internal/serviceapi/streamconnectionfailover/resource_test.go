@@ -3,6 +3,7 @@ package streamconnectionfailover_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -96,6 +97,156 @@ func TestAccStreamConnectionFailover(t *testing.T) {
 			},
 		},
 	})
+}
+
+// TestAccStreamConnectionFailoverAWSMSKIAM covers a failover connection that authenticates to an
+// Amazon MSK cluster with AWS_MSK_IAM: create, update, read back through both data sources, import
+// while IAM is still configured, then unset authentication.aws. The role must already be registered
+// through Atlas Cloud Provider Access in MONGODB_ATLAS_PROJECT_ID, so the test is skipped in CI and
+// unless the environment variables are set.
+func TestAccStreamConnectionFailoverAWSMSKIAM(t *testing.T) {
+	acc.SkipTestForCI(t) // needs a manually configured Atlas-authorized MSK IAM role and bootstrap servers
+
+	var (
+		projectID           = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		workspaceName       = acc.RandomStreamInstanceName()
+		connectionName      = "kafka-failover-iam"
+		roleARN             = os.Getenv("AWS_ROLE_ARN")
+		bootstrapServersEnv = os.Getenv("MONGODB_ATLAS_STREAM_KAFKA_MSK_BOOTSTRAP_SERVERS")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			acc.PreCheckBasic(t)
+			if projectID == "" || roleARN == "" || bootstrapServersEnv == "" {
+				t.Skip("MONGODB_ATLAS_PROJECT_ID, AWS_ROLE_ARN, and MONGODB_ATLAS_STREAM_KAFKA_MSK_BOOTSTRAP_SERVERS must be set for the Kafka IAM failover acceptance test")
+			}
+		},
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configFailoverIAM(projectID, workspaceName, connectionName, "DUBLIN_IRL", bootstrapServersEnv, roleARN, false) + datasourcesConfig,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(),
+					resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "AWS_MSK_IAM"),
+					resource.TestCheckResourceAttr(resourceName, "authentication.aws.role_arn", roleARN),
+					resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", bootstrapServersEnv),
+					// Both data sources expose the MSK IAM authentication.
+					resource.TestCheckResourceAttr(dataSourceName, "authentication.mechanism", "AWS_MSK_IAM"),
+					resource.TestCheckResourceAttr(dataSourceName, "authentication.aws.role_arn", roleARN),
+					resource.TestCheckResourceAttr(pluralDataSourceName, "results.0.authentication.mechanism", "AWS_MSK_IAM"),
+					resource.TestCheckResourceAttr(pluralDataSourceName, "results.0.authentication.aws.role_arn", roleARN),
+				),
+			},
+			{
+				// PATCH the whole connection body to exercise update while keeping MSK IAM auth.
+				Config: configFailoverIAM(projectID, workspaceName, connectionName, "DUBLIN_IRL", bootstrapServersEnv, roleARN, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(),
+					resource.TestCheckResourceAttr(resourceName, "config.auto.offset.reset", "earliest"),
+					resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "AWS_MSK_IAM"),
+					resource.TestCheckResourceAttr(resourceName, "authentication.aws.role_arn", roleARN),
+				),
+			},
+			{
+				// Import while the connection still authenticates with AWS_MSK_IAM, so this verifies
+				// that authentication.aws.role_arn survives an import instead of only round-tripping a
+				// PLAIN connection.
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// This resource has no `id` attribute (id is aliased to failover_connection_id), so the
+				// import-verify identity must point at the real identifier.
+				ImportStateVerifyIdentifierAttribute: "failover_connection_id",
+				// Secrets are never returned by the API, so they cannot be verified on import.
+				// delete_on_create_timeout is a create-time behavior flag with no API representation.
+				ImportStateVerifyIgnore: []string{"authentication.password", "authentication.client_secret", "delete_on_create_timeout"},
+			},
+			{
+				// Unset authentication.aws by switching the connection to PLAIN. A PATCH that merges
+				// could otherwise retain the stale IAM block, which would then show as a non-empty plan.
+				Config: configFailoverPlainAuth(projectID, workspaceName, connectionName, "DUBLIN_IRL", bootstrapServersEnv, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(),
+					resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "PLAIN"),
+					resource.TestCheckNoResourceAttr(resourceName, "authentication.aws.role_arn"),
+				),
+			},
+		},
+	})
+}
+
+// configFailoverIAM creates the workspace, a PLAIN primary connection, and an AWS_MSK_IAM failover
+// connection that assumes roleARN. The role must already be registered through Atlas Cloud Provider
+// Access in the project.
+func configFailoverIAM(projectID, workspaceName, connectionName, region, bootstrapServers, roleARN string, includeFailoverConfig bool) string {
+	return configFailoverAuth(projectID, workspaceName, connectionName, region, bootstrapServers, includeFailoverConfig, fmt.Sprintf(`authentication = {
+				mechanism = "AWS_MSK_IAM"
+				aws = {
+					role_arn = %[1]q
+				}
+			}`, roleARN), "SASL_SSL")
+}
+
+// configFailoverPlainAuth reuses the same workspace and primary connection but drops the IAM block, so
+// the update step exercises unsetting authentication.aws.
+func configFailoverPlainAuth(projectID, workspaceName, connectionName, region, bootstrapServers string, includeFailoverConfig bool) string {
+	return configFailoverAuth(projectID, workspaceName, connectionName, region, bootstrapServers, includeFailoverConfig, `authentication = {
+				mechanism = "PLAIN"
+				username  = "fcuser"
+				password  = "fcpass"
+			}`, "SASL_PLAINTEXT")
+}
+
+func configFailoverAuth(projectID, workspaceName, connectionName, region, bootstrapServers string, includeFailoverConfig bool, authenticationConfig, protocol string) string {
+	failoverConfig := ""
+	if includeFailoverConfig {
+		failoverConfig = `config   = { "auto.offset.reset" = "earliest" }`
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_workspace" "test" {
+			project_id     = %[1]q
+			workspace_name = %[2]q
+			data_process_region = {
+				region         = "VIRGINIA_USA"
+				cloud_provider = "AWS"
+			}
+			# Failover connections can only target a region configured here.
+			failover_regions = [{
+				region         = "DUBLIN_IRL"
+				cloud_provider = "AWS"
+			}]
+			stream_config = { tier = "SP10" }
+		}
+
+		resource "mongodbatlas_stream_connection" "primary" {
+			project_id        = %[1]q
+			workspace_name    = mongodbatlas_stream_workspace.test.workspace_name
+			connection_name   = %[3]q
+			type              = "Kafka"
+			bootstrap_servers = "example.com:9092"
+			authentication = {
+				mechanism = "PLAIN"
+				username  = "user"
+				password  = "rawpassword"
+			}
+			security = { protocol = "SASL_PLAINTEXT" }
+		}
+
+		resource "mongodbatlas_stream_connection_failover" "test" {
+			project_id        = %[1]q
+			workspace_name    = mongodbatlas_stream_workspace.test.workspace_name
+			connection_name   = mongodbatlas_stream_connection.primary.connection_name
+			region            = %[4]q
+			type              = "Kafka"
+			bootstrap_servers = %[5]q
+			%[6]s
+			%[7]s
+			security = { protocol = %[8]q }
+		}
+	`, projectID, workspaceName, connectionName, region, bootstrapServers, authenticationConfig, failoverConfig, protocol)
 }
 
 func configFailover(projectID, workspaceName, connectionName, region, bootstrap string, includeFailoverConfig bool) string {

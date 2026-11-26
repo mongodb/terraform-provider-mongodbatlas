@@ -20,6 +20,10 @@ func PluralDataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"type": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 
 			"results": {
 				Type:     schema.TypeList,
@@ -92,7 +96,11 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d
 
 	projectID := d.Get("project_id").(string)
 
-	federatedDatabaseInstances, _, err := connV2.DataFederationAPI.ListDataFederation(ctx, projectID).Execute()
+	req := connV2.DataFederationAPI.ListDataFederation(ctx, projectID)
+	if v, ok := d.GetOk("type"); ok {
+		req = req.Type_(v.(string))
+	}
+	federatedDatabaseInstances, _, err := req.Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting MongoDB Atlas Federated Database Instances information: %s", err))
 	}

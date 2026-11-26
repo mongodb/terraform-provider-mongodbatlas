@@ -1,10 +1,13 @@
 package federateddatabaseinstance_test
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"os"
 	"regexp"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -217,40 +220,47 @@ func TestAccFederatedDatabaseInstance_gcpMissingRoleID(t *testing.T) {
 	})
 }
 
-func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
+// Testing the resource and plural data source type filter together to avoid creating multiple clusters.
+func TestAccFederatedDatabaseInstance_atlasClusterAndPluralDSType(t *testing.T) {
 	var (
-		specs = []acc.ReplicationSpecRequest{
-			{Region: "EU_WEST_2"},
-		}
-		clusterRequest = acc.ClusterRequest{
-			ReplicationSpecs: specs,
-		}
-		name            = acc.RandomName()
-		clusterInfo     = acc.GetClusterInfo(t, &clusterRequest)
-		projectID       = clusterInfo.ProjectID
-		clusterRequest2 = acc.ClusterRequest{
-			ProjectID:        projectID,
-			ReplicationSpecs: specs,
-			ResourceSuffix:   "cluster2",
-		}
-		cluster2Info        = acc.GetClusterInfo(t, &clusterRequest2)
-		dependencyTerraform = fmt.Sprintf("%s\n%s", clusterInfo.TerraformStr, cluster2Info.TerraformStr)
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
+			// Online Archive is only supported in specific regions in cloud-dev. EU_WEST_1 being one of them.
+			ReplicationSpecs: []acc.ReplicationSpecRequest{{Region: "EU_WEST_1"}},
+		})
+		name   = acc.RandomName()
+		config = configWithCluster(&clusterInfo, name)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
-		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
+		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             resource.ComposeAggregateTestCheckFunc(acc.CheckDestroyFederatedDatabaseInstance, acc.CheckDestroyCluster),
 		Steps: []resource.TestStep{
 			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithCluster(dependencyTerraform, projectID, clusterInfo.ResourceName, cluster2Info.ResourceName, name),
+				Config: config,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "storage_stores.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "storage_databases.0.collections.0.data_sources.#", "2"),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
 					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
+					// The online archive needs sample data before it can be created in the next step.
+					acc.PopulateWithSampleDataTestCheck(clusterInfo.ProjectID, clusterInfo.Name),
 				),
+			},
+			{
+				Config: config + configPluralDSType(clusterInfo.ResourceName, "ONLINE_ARCHIVE"),
+				Check:  checkPluralDSOnlineArchiveInstances(name),
+			},
+			{
+				Config: config + configPluralDSType(clusterInfo.ResourceName, "USER"),
+				Check:  checkPluralDSUserInstances(name),
+			},
+			{
+				Config: config + configPluralDSType(clusterInfo.ResourceName, ""),
+				Check:  checkPluralDSUserInstances(name),
 			},
 		},
 	})
@@ -287,92 +297,92 @@ func TestAccFederatedDatabaseInstance_withPrivateEndpoint(t *testing.T) {
 	})
 }
 
-func configWithCluster(terraformStr, projectID, cluster1ResourceName, cluster2ResourceName, name string) string {
+func configWithCluster(clusterInfo *acc.ClusterInfo, name string) string {
 	return fmt.Sprintf(`
-	  %[1]s
+		%[1]s
 
-	  resource "mongodbatlas_federated_database_instance" "test" {
-			project_id = %[2]q
-			name       = %[5]q
-			storage_databases {
-				name = "VirtualDatabase0"
-				collections {
-				name = "VirtualCollection0"
-				data_sources {
-					collection = "listingsAndReviews"
-					database   = "sample_airbnb"
-					store_name = %[3]s.name
-				}
-				data_sources {
+		resource "mongodbatlas_federated_database_instance" "test" {
+		  project_id = %[2]s.project_id
+		  name       = %[3]q
+		  storage_databases {
+		    name = "VirtualDatabase0"
+		    collections {
+		      name = "VirtualCollection0"
+		      data_sources {
+		        collection = "listingsAndReviews"
+		        database   = "sample_airbnb"
+		        store_name = "ClusterStore0"
+		      }
+		      data_sources {
 
-					collection = "listingsAndReviews"
-					database   = "sample_airbnb"
-					store_name = %[4]s.name
-				}
-			}
-		}
-	  
-		storage_stores {
-		  name         = %[3]s.name
-		  cluster_name = %[3]s.name
-		  project_id   = %[2]q
-		  provider     = "atlas"
-		  read_preference {
-			mode = "secondary"
-			tag_sets {
-				tags {
-					name = "environment"
-					value = "development"
-				}
-				tags {
-					name = "application"
-					value = "app"
-				}
-			}
-			tag_sets {
-				tags {
-					name = "environment1"
-					value = "development1"
-				}
-				tags {
-					name = "application1"
-					value = "app-1"
-				}
-			}
+		        collection = "listingsAndReviews"
+		        database   = "sample_airbnb"
+		        store_name = "ClusterStore1"
+		      }
+		    }
+		  }
+
+		  storage_stores {
+		    name         = "ClusterStore0"
+		    cluster_name = %[2]s.name
+		    project_id   = %[2]s.project_id
+		    provider     = "atlas"
+		    read_preference {
+		      mode = "secondary"
+		      tag_sets {
+		        tags {
+		          name  = "environment"
+		          value = "development"
+		        }
+		        tags {
+		          name  = "application"
+		          value = "app"
+		        }
+		      }
+		      tag_sets {
+		        tags {
+		          name  = "environment1"
+		          value = "development1"
+		        }
+		        tags {
+		          name  = "application1"
+		          value = "app-1"
+		        }
+		      }
+		    }
+		  }
+
+		  storage_stores {
+		    name         = "ClusterStore1"
+		    cluster_name = %[2]s.name
+		    project_id   = %[2]s.project_id
+		    provider     = "atlas"
+		    read_preference {
+		      mode = "secondary"
+		      tag_sets {
+		        tags {
+		          name  = "environment"
+		          value = "development"
+		        }
+		        tags {
+		          name  = "application"
+		          value = "app"
+		        }
+		      }
+		      tag_sets {
+		        tags {
+		          name  = "environment1"
+		          value = "development1"
+		        }
+		        tags {
+		          name  = "application1"
+		          value = "app-1"
+		        }
+		      }
+		    }
 		  }
 		}
-	  
-		storage_stores {
-		  name         = %[4]s.name
-		  cluster_name = %[4]s.name
-		  project_id   = %[2]q
-		  provider     = "atlas"
-		  read_preference {
-			mode = "secondary"
-			tag_sets {
-				tags {
-					name = "environment"
-					value = "development"
-				}
-				tags {
-					name = "application"
-					value = "app"
-				}
-			}
-			tag_sets {
-				tags {
-					name = "environment1"
-					value = "development1"
-				}
-				tags {
-					name = "application1"
-					value = "app-1"
-				}
-			}
-		  }
-		}
-	  }
-	`, terraformStr, projectID, cluster1ResourceName, cluster2ResourceName, name)
+	`, clusterInfo.TerraformStr, clusterInfo.ResourceName, name)
 }
 
 func importStateIDFuncS3Bucket(resourceName, s3Bucket string) resource.ImportStateIdFunc {
@@ -405,227 +415,226 @@ func configWithS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bu
 	stepConfig := configFirstStepS3Bucket(name, testS3Bucket)
 	bucketResourceName := "arn:aws:s3:::" + testS3Bucket
 	return acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
-resource "aws_iam_role_policy" "test_policy" {
-  name = %[1]q
-  role = aws_iam_role.test_role.id
+		resource "aws_iam_role_policy" "test_policy" {
+		  name = %[1]q
+		  role = aws_iam_role.test_role.id
 
-  policy = <<-EOF
-  {
-    "Version": "2012-10-17",
-    "Statement": [
-		{
-			"Effect": "Allow",
-			"Action": [
-				"s3:GetObject",
-				"s3:ListBucket",
-				"s3:GetObjectVersion"
-			],
-			"Resource": "*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": "s3:*",
-			"Resource": %[6]q
+		  policy = <<-EOF
+		    {
+		      "Version": "2012-10-17",
+		      "Statement": [
+		        {
+		          "Effect": "Allow",
+		          "Action": [
+		            "s3:GetObject",
+		            "s3:ListBucket",
+		            "s3:GetObjectVersion"
+		          ],
+		          "Resource": "*"
+		        },
+		        {
+		          "Effect": "Allow",
+		          "Action": "s3:*",
+		          "Resource": %[6]q
+		        }
+		      ]
+		    }
+		  EOF
 		}
-    ]
-  }
-  EOF
-}
 
-resource "aws_iam_role" "test_role" {
-  name = %[2]q
+		resource "aws_iam_role" "test_role" {
+		  name = %[2]q
 
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config.0.atlas_aws_account_arn}"
-      },
-      "Action": "sts:AssumeRole",
-      "Condition": {
-        "StringEquals": {
-          "sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config.0.atlas_assumed_role_external_id}"
-        }
-      }
-    }
-  ]
-}
-EOF
+		  assume_role_policy = <<EOF
+		    {
+		      "Version": "2012-10-17",
+		      "Statement": [
+		        {
+		          "Effect": "Allow",
+		          "Principal": {
+		            "AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config.0.atlas_aws_account_arn}"
+		          },
+		          "Action": "sts:AssumeRole",
+		          "Condition": {
+		            "StringEquals": {
+		              "sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config.0.atlas_assumed_role_external_id}"
+		            }
+		          }
+		        }
+		      ]
+		    }
+		  EOF
 
-}	
-resource "mongodbatlas_project" "test" {
-   name   = %[3]q
-   org_id = %[4]q
-}
+		}
+		resource "mongodbatlas_project" "test" {
+		  name   = %[3]q
+		  org_id = %[4]q
+		}
 
 
-resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-   project_id = mongodbatlas_project.test.id
-   provider_name = "AWS"
-}
+		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+		  project_id    = mongodbatlas_project.test.id
+		  provider_name = "AWS"
+		}
 
-resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-   project_id = mongodbatlas_project.test.id
-   role_id =  mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+		resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+		  project_id = mongodbatlas_project.test.id
+		  role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
 
-   aws {
-      iam_assumed_role_arn = aws_iam_role.test_role.arn
-   }
-}
+		  aws {
+		    iam_assumed_role_arn = aws_iam_role.test_role.arn
+		  }
+		}
 
-%[5]s
+		%[5]s
 	`, policyName, roleName, projectName, orgID, stepConfig, bucketResourceName)
 }
 
 func configFirstStepS3Bucket(name, testS3Bucket string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_federated_database_instance" "test" {
-   project_id         = mongodbatlas_project.test.id
-   name = %[1]q
-   
-   cloud_provider_config {
-	aws {
-		role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-		test_s3_bucket = %[2]q
-	  }
-   }
+		resource "mongodbatlas_federated_database_instance" "test" {
+		  project_id = mongodbatlas_project.test.id
+		  name       = %[1]q
 
-   storage_databases {
-	name = "VirtualDatabase0"
-	collections {
-			name = "VirtualCollection0"
-			data_sources {
-					collection = "listingsAndReviews"
-					database = "sample_airbnb"
-					store_name =  "ClusterTest"
-			}
-			data_sources {
-					store_name = %[2]q
-					path = "/{fileName string}.yaml"
-			}
-	}
-   }
+		  cloud_provider_config {
+		    aws {
+		      role_id        = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+		      test_s3_bucket = %[2]q
+		    }
+		  }
 
-   storage_stores {
-	name = "ClusterTest"
-	cluster_name = "ClusterTest"
-	project_id = mongodbatlas_project.test.id
-	provider = "atlas"
-	read_preference {
-		mode = "secondary"
-	}
-   }
+		  storage_databases {
+		    name = "VirtualDatabase0"
+		    collections {
+		      name = "VirtualCollection0"
+		      data_sources {
+		        collection = "listingsAndReviews"
+		        database   = "sample_airbnb"
+		        store_name = "ClusterTest"
+		      }
+		      data_sources {
+		        store_name = %[2]q
+		        path       = "/{fileName string}.yaml"
+		      }
+		    }
+		  }
 
-   storage_stores {
-	bucket = %[2]q
-	delimiter = "/"
-	name = %[2]q
-	prefix = "templates/"
-	provider = "s3"
-	region = "EU_WEST_1"
-   }
+		  storage_stores {
+		    name         = "ClusterTest"
+		    cluster_name = "ClusterTest"
+		    project_id   = mongodbatlas_project.test.id
+		    provider     = "atlas"
+		    read_preference {
+		      mode = "secondary"
+		    }
+		  }
 
-   storage_stores {
-	name = "dataStore0"
-	cluster_name = "ClusterTest"
-	project_id = mongodbatlas_project.test.id
-	provider = "atlas"
-	read_preference {
-		mode = "secondary"
-	}
-   }
-}
+		  storage_stores {
+		    bucket    = %[2]q
+		    delimiter = "/"
+		    name      = %[2]q
+		    prefix    = "templates/"
+		    provider  = "s3"
+		    region    = "EU_WEST_1"
+		  }
+
+		  storage_stores {
+		    name         = "dataStore0"
+		    cluster_name = "ClusterTest"
+		    project_id   = mongodbatlas_project.test.id
+		    provider     = "atlas"
+		    read_preference {
+		      mode = "secondary"
+		    }
+		  }
+		}
 	`, name, testS3Bucket)
 }
 
 func configGCPCloudProvider(projectID, name string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
-  project_id    = %[1]q
-  provider_name = "GCP"
-}
+		resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
+		  project_id    = %[1]q
+		  provider_name = "GCP"
+		}
 
-resource "mongodbatlas_federated_database_instance" "test" {
-  project_id = %[1]q
-  name       = %[2]q
+		resource "mongodbatlas_federated_database_instance" "test" {
+		  project_id = %[1]q
+		  name       = %[2]q
 
-  cloud_provider_config {
-    gcp {
-      role_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
-    }
-  }
-}
+		  cloud_provider_config {
+		    gcp {
+		      role_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
+		    }
+		  }
+		}
 
-data "mongodbatlas_federated_database_instance" "test" {
-  project_id = mongodbatlas_federated_database_instance.test.project_id
-  name       = mongodbatlas_federated_database_instance.test.name
-}
+		data "mongodbatlas_federated_database_instance" "test" {
+		  project_id = mongodbatlas_federated_database_instance.test.project_id
+		  name       = mongodbatlas_federated_database_instance.test.name
+		}
 
-data "mongodbatlas_federated_database_instances" "test" {
-  project_id = mongodbatlas_federated_database_instance.test.project_id
-}
-`, projectID, name)
+		data "mongodbatlas_federated_database_instances" "test" {
+		  project_id = mongodbatlas_federated_database_instance.test.project_id
+		}
+	`, projectID, name)
 }
 
 func configGCPMissingRoleID() string {
 	return `
-resource "mongodbatlas_federated_database_instance" "test" {
-  project_id = "000000000000000000000000"
-  name       = "gcp-missing-role-id"
+		resource "mongodbatlas_federated_database_instance" "test" {
+		  project_id = "000000000000000000000000"
+		  name       = "gcp-missing-role-id"
 
-  cloud_provider_config {
-    gcp {}
-  }
-}
-`
+		  cloud_provider_config {
+		    gcp {}
+		  }
+		}
+	`
 }
 
 func configAzureCloudProvider(projectID, name, atlasAzureAppID, servicePrincipalID, tenantID string) string {
 	azureCloudProviderAccess := acc.ConfigSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID)
 
 	return azureCloudProviderAccess + fmt.Sprintf(`
+		resource "mongodbatlas_federated_database_instance" "test" {
+		  project_id = %[1]q
+		  name       = %[2]q
 
-resource "mongodbatlas_federated_database_instance" "test" {
-  project_id = %[1]q
-  name       = %[2]q
-  
-  cloud_provider_config {
-    azure {
-      role_id = mongodbatlas_cloud_provider_access_setup.test.role_id
-    }
-  }
+		  cloud_provider_config {
+		    azure {
+		      role_id = mongodbatlas_cloud_provider_access_setup.test.role_id
+		    }
+		  }
 
-  storage_databases {
-    name = "VirtualDatabase0"
-    collections {
-      name = "VirtualCollection0"
-      data_sources {
-        collection = "listingsAndReviews"
-        database   = "sample_airbnb"
-        store_name = "ClusterTest"
-      }
-    }
-  }
+		  storage_databases {
+		    name = "VirtualDatabase0"
+		    collections {
+		      name = "VirtualCollection0"
+		      data_sources {
+		        collection = "listingsAndReviews"
+		        database   = "sample_airbnb"
+		        store_name = "ClusterTest"
+		      }
+		    }
+		  }
 
-  storage_stores {
-    name         = "ClusterTest"
-    cluster_name = "ClusterTest"
-    project_id   = %[1]q
-    provider     = "atlas"
-    read_preference {
-      mode = "secondary"
-    }
-  }
-}
+		  storage_stores {
+		    name         = "ClusterTest"
+		    cluster_name = "ClusterTest"
+		    project_id   = %[1]q
+		    provider     = "atlas"
+		    read_preference {
+		      mode = "secondary"
+		    }
+		  }
+		}
 
-data "mongodbatlas_federated_database_instance" "test" {
-  project_id = mongodbatlas_federated_database_instance.test.project_id
-  name       = mongodbatlas_federated_database_instance.test.name
-}
-`, projectID, name)
+		data "mongodbatlas_federated_database_instance" "test" {
+		  project_id = mongodbatlas_federated_database_instance.test.project_id
+		  name       = mongodbatlas_federated_database_instance.test.name
+		}
+	`, projectID, name)
 }
 
 func checkAttrs(projectID, name, cloudProvider string, extraAttrs map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
@@ -644,98 +653,97 @@ func checkAttrs(projectID, name, cloudProvider string, extraAttrs map[string]str
 
 func configFirstSteps(federatedInstanceName, projectName, orgID string) string {
 	return fmt.Sprintf(`
-
-resource "mongodbatlas_project" "test" {
-	name   = %[2]q
-	org_id = %[3]q
-	}
-
-resource "mongodbatlas_federated_database_instance" "test" {
-    project_id         = mongodbatlas_project.test.id
-    name = %[1]q
-
-	data_process_region {
-		cloud_provider = "AWS"
-    	region         = "OREGON_USA"
-    }
-
-    storage_databases {
-		name = "VirtualDatabase0"
-		collections {
-			name = "VirtualCollection0"
-			data_sources {
-				collection = "listingsAndReviews"
-				database = "sample_airbnb"
-				store_name =  "ClusterTest"
-			}
+		resource "mongodbatlas_project" "test" {
+		  name   = %[2]q
+		  org_id = %[3]q
 		}
-   	}
 
-    storage_stores {
-		name = "ClusterTest"
-		cluster_name = "ClusterTest"
-		project_id = mongodbatlas_project.test.id
-		provider = "atlas"
-		read_preference {
-			mode = "secondary"
-			tag_sets {
-				tags {
-					name = "environment"
-					value = "development"
-				}
-				tags {
-					name = "application"
-					value = "app"
-				}
-			}
-			tag_sets {
-				tags {
-					name = "environment1"
-					value = "development1"
-				}
-				tags {
-					name = "application1"
-					value = "app-1"
-				}
-			}
+		resource "mongodbatlas_federated_database_instance" "test" {
+		  project_id = mongodbatlas_project.test.id
+		  name       = %[1]q
+
+		  data_process_region {
+		    cloud_provider = "AWS"
+		    region         = "OREGON_USA"
+		  }
+
+		  storage_databases {
+		    name = "VirtualDatabase0"
+		    collections {
+		      name = "VirtualCollection0"
+		      data_sources {
+		        collection = "listingsAndReviews"
+		        database   = "sample_airbnb"
+		        store_name = "ClusterTest"
+		      }
+		    }
+		  }
+
+		  storage_stores {
+		    name         = "ClusterTest"
+		    cluster_name = "ClusterTest"
+		    project_id   = mongodbatlas_project.test.id
+		    provider     = "atlas"
+		    read_preference {
+		      mode = "secondary"
+		      tag_sets {
+		        tags {
+		          name  = "environment"
+		          value = "development"
+		        }
+		        tags {
+		          name  = "application"
+		          value = "app"
+		        }
+		      }
+		      tag_sets {
+		        tags {
+		          name  = "environment1"
+		          value = "development1"
+		        }
+		        tags {
+		          name  = "application1"
+		          value = "app-1"
+		        }
+		      }
+		    }
+		  }
+
+		  storage_stores {
+		    name         = "dataStore0"
+		    cluster_name = "ClusterTest"
+		    project_id   = mongodbatlas_project.test.id
+		    provider     = "atlas"
+		    read_preference {
+		      mode = "secondary"
+		      tag_sets {
+		        tags {
+		          name  = "environment"
+		          value = "development"
+		        }
+		        tags {
+		          name  = "application"
+		          value = "app"
+		        }
+		      }
+		      tag_sets {
+		        tags {
+		          name  = "environment1"
+		          value = "development1"
+		        }
+		        tags {
+		          name  = "application1"
+		          value = "app-1"
+		        }
+		      }
+		    }
+		  }
 		}
-    }
 
-    storage_stores {
-		name = "dataStore0"
-		cluster_name = "ClusterTest"
-		project_id = mongodbatlas_project.test.id
-		provider = "atlas"
-		read_preference {
-			mode = "secondary"
-			tag_sets {
-				tags {
-					name = "environment"
-					value = "development"
-				}
-				tags {
-					name = "application"
-					value = "app"
-				}
-			}
-			tag_sets {
-				tags {
-					name = "environment1"
-					value = "development1"
-				}
-				tags {
-					name = "application1"
-					value = "app-1"
-				}
-			}
+		data "mongodbatlas_federated_database_instance" "test" {
+		  project_id = mongodbatlas_federated_database_instance.test.project_id
+		  name       = mongodbatlas_federated_database_instance.test.name
 		}
-    }
-}
-
-data "mongodbatlas_federated_database_instance" "test" {
-	project_id           = mongodbatlas_federated_database_instance.test.project_id
-	name = mongodbatlas_federated_database_instance.test.name
-}
 	`, federatedInstanceName, projectName, orgID)
 }
 
@@ -745,120 +753,198 @@ func waitForStatusUpdate() {
 
 func configWithPrivateEndpoint(projectID, name string) string {
 	return acc.ConfigAWSProviderWithTags() + fmt.Sprintf(`
-resource "aws_vpc" "test" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
-  enable_dns_support   = true
-}
+		resource "aws_vpc" "test" {
+		  cidr_block           = "10.0.0.0/16"
+		  enable_dns_hostnames = true
+		  enable_dns_support   = true
+		}
 
-resource "aws_subnet" "test" {
-  vpc_id            = aws_vpc.test.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-east-1a"
-}
+		resource "aws_subnet" "test" {
+		  vpc_id            = aws_vpc.test.id
+		  cidr_block        = "10.0.1.0/24"
+		  availability_zone = "us-east-1a"
+		}
 
-data "aws_security_group" "default" {
-  name   = "default"
-  vpc_id = aws_vpc.test.id
-}
+		data "aws_security_group" "default" {
+		  name   = "default"
+		  vpc_id = aws_vpc.test.id
+		}
 
-resource "aws_vpc_endpoint" "test" {
-  vpc_id              = aws_vpc.test.id
-  service_name        = "com.amazonaws.vpce.us-east-1.vpce-svc-0a7247db33497082e"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = [aws_subnet.test.id]
-  security_group_ids  = [data.aws_security_group.default.id]
-}
+		resource "aws_vpc_endpoint" "test" {
+		  vpc_id             = aws_vpc.test.id
+		  service_name       = "com.amazonaws.vpce.us-east-1.vpce-svc-0a7247db33497082e"
+		  vpc_endpoint_type  = "Interface"
+		  subnet_ids         = [aws_subnet.test.id]
+		  security_group_ids = [data.aws_security_group.default.id]
+		}
 
-resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
-  project_id                 = %[1]q
-  endpoint_id                = aws_vpc_endpoint.test.id
-  provider_name              = "AWS"
-  comment                    = "Terraform Acceptance Test"
-  customer_endpoint_dns_name = aws_vpc_endpoint.test.dns_entry[0].dns_name
-  region                     = "US_EAST_1"
-}
+		resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
+		  project_id                 = %[1]q
+		  endpoint_id                = aws_vpc_endpoint.test.id
+		  provider_name              = "AWS"
+		  comment                    = "Terraform Acceptance Test"
+		  customer_endpoint_dns_name = aws_vpc_endpoint.test.dns_entry[0].dns_name
+		  region                     = "US_EAST_1"
+		}
 
-resource "mongodbatlas_federated_database_instance" "test" {
-  project_id = %[1]q
-  name       = %[2]q
+		resource "mongodbatlas_federated_database_instance" "test" {
+		  project_id = %[1]q
+		  name       = %[2]q
 
-  data_process_region {
-    cloud_provider = "AWS"
-    region         = "VIRGINIA_USA"
-  }
+		  data_process_region {
+		    cloud_provider = "AWS"
+		    region         = "VIRGINIA_USA"
+		  }
 
-  depends_on = [mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test]
-}
-`, projectID, name)
+		  depends_on = [mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test]
+		}
+	`, projectID, name)
 }
 
 func configFirstStepsUpdate(federatedInstanceName, projectName, orgID string) string {
 	return fmt.Sprintf(`
-
-resource "mongodbatlas_project" "test" {
-	name   = %[2]q
-	org_id = %[3]q
-	}
-
-resource "mongodbatlas_federated_database_instance" "test" {
-   project_id         = mongodbatlas_project.test.id
-   name = %[1]q
-
-   data_process_region {
-	   cloud_provider = "AWS"
-	   region         = "OREGON_USA"
-   }
-
-   storage_databases {
-	name = "VirtualDatabase0"
-	collections {
-			name = "VirtualCollection0"
-			data_sources {
-					collection = "listingsAndReviews"
-					database_regex = ".sample_airbnb"
-					store_name =  "ClusterTest"
-			}
-	}
-   }
-
-   storage_stores {
-	name = "ClusterTest"
-	cluster_name = "ClusterTest"
-	project_id = mongodbatlas_project.test.id
-	provider = "atlas"
-	read_preference {
-		mode = "secondary"
-		tag_sets {
-			tags {
-				name = "environment"
-				value = "development"
-			}
+		resource "mongodbatlas_project" "test" {
+		  name   = %[2]q
+		  org_id = %[3]q
 		}
-	}
-   }
 
-   storage_stores {
-	name = "dataStore0"
-	cluster_name = "ClusterTest"
-	project_id = mongodbatlas_project.test.id
-	provider = "atlas"
-	read_preference {
-		mode = "secondary"
-		tag_sets {
-			tags {
-				name = "environment"
-				value = "development"
-			}
+		resource "mongodbatlas_federated_database_instance" "test" {
+		  project_id = mongodbatlas_project.test.id
+		  name       = %[1]q
+
+		  data_process_region {
+		    cloud_provider = "AWS"
+		    region         = "OREGON_USA"
+		  }
+
+		  storage_databases {
+		    name = "VirtualDatabase0"
+		    collections {
+		      name = "VirtualCollection0"
+		      data_sources {
+		        collection     = "listingsAndReviews"
+		        database_regex = ".sample_airbnb"
+		        store_name     = "ClusterTest"
+		      }
+		    }
+		  }
+
+		  storage_stores {
+		    name         = "ClusterTest"
+		    cluster_name = "ClusterTest"
+		    project_id   = mongodbatlas_project.test.id
+		    provider     = "atlas"
+		    read_preference {
+		      mode = "secondary"
+		      tag_sets {
+		        tags {
+		          name  = "environment"
+		          value = "development"
+		        }
+		      }
+		    }
+		  }
+
+		  storage_stores {
+		    name         = "dataStore0"
+		    cluster_name = "ClusterTest"
+		    project_id   = mongodbatlas_project.test.id
+		    provider     = "atlas"
+		    read_preference {
+		      mode = "secondary"
+		      tag_sets {
+		        tags {
+		          name  = "environment"
+		          value = "development"
+		        }
+		      }
+		      tag_sets {
+		        tags {
+		          name  = "environment"
+		          value = "development"
+		        }
+		      }
+		    }
+		  }
 		}
-		tag_sets {
-			tags {
-				name = "environment"
-				value = "development"
-			}
-		}
-	}
-   }
-}
 	`, federatedInstanceName, projectName, orgID)
+}
+
+func checkPluralDSOnlineArchiveInstances(userName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		attrs := s.RootModule().Resources[pluralDataSourceName].Primary.Attributes
+		count, err := strconv.Atoi(attrs["results.#"])
+		if err != nil {
+			return fmt.Errorf("reading federated database instance count: %w", err)
+		}
+		if count == 0 {
+			return errors.New("expected at least one online archive instance")
+		}
+		for i := range count {
+			name := attrs[fmt.Sprintf("results.%d.name", i)]
+			if name == userName || !strings.Contains(name, "atlas-online-archive-") {
+				return fmt.Errorf("expected an online archive instance, got %q", name)
+			}
+		}
+		return nil
+	}
+}
+
+func checkPluralDSUserInstances(userName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		attrs := s.RootModule().Resources[pluralDataSourceName].Primary.Attributes
+		count, err := strconv.Atoi(attrs["results.#"])
+		if err != nil {
+			return fmt.Errorf("reading federated database instance count: %w", err)
+		}
+		foundUser := false
+		for i := range count {
+			name := attrs[fmt.Sprintf("results.%d.name", i)]
+			if strings.Contains(name, "atlas-online-archive-") {
+				return fmt.Errorf("expected only user instances, got archive instance %q", name)
+			}
+			if name == userName {
+				foundUser = true
+			}
+		}
+		if !foundUser {
+			return fmt.Errorf("expected user instance %q in results", userName)
+		}
+		return nil
+	}
+}
+
+func configPluralDSType(clusterResourceName, instanceType string) string {
+	hclType := ""
+	if instanceType != "" {
+		hclType = fmt.Sprintf("type = %q", instanceType)
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_online_archive" "test" {
+		  project_id      = %[1]s.project_id
+		  cluster_name    = %[1]s.name
+		  coll_name       = "listingsAndReviews"
+		  collection_type = "STANDARD"
+		  db_name         = "sample_airbnb"
+		  sync_creation   = true
+
+		  criteria {
+		    type              = "DATE"
+		    date_field        = "last_review"
+		    date_format       = "ISODATE"
+		    expire_after_days = 2
+		  }
+
+		  partition_fields {
+		    field_name = "last_review"
+		    order      = 0
+		  }
+		}
+
+		data "mongodbatlas_federated_database_instances" "test" {
+		  project_id = %[1]s.project_id
+		  %[2]s
+		  depends_on = [mongodbatlas_online_archive.test, mongodbatlas_federated_database_instance.test]
+		}
+	`, clusterResourceName, hclType)
 }

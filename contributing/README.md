@@ -6,6 +6,7 @@ Thanks for your interest in contributing to MongoDB Atlas Terraform Provider, th
 - [Development Best Practices](development-best-practices.md)
 - [Testing Best Practices](testing-best-practices.md)
 - [Documentation](documentation.md)
+- [Reviewing documentation changes (Docs Cloud Team)](documentation.md#reviewing-documentation-changes-docs-cloud-team)
 - [Changelog process](changelog-process.md)
 - [Atlas SDK](atlas-sdk.md)
 - [Atlas SDK preview (dev-latest)](atlas-sdk-preview.md)

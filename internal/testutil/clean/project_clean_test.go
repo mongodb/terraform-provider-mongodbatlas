@@ -18,13 +18,19 @@ import (
 const projectID = "6ad95b900c3871ac99ea9ca7"
 
 func TestRemoveProjectResourcesFailure(t *testing.T) {
+	streamsAPI := mockadmin.NewStreamsAPI(t)
+	streamsAPI.EXPECT().ListStreamWorkspaces(mock.Anything, projectID).Return(admin.ListStreamWorkspacesApiRequest{ApiService: streamsAPI}).Once()
+	streamsAPI.EXPECT().ListStreamWorkspacesExecute(mock.Anything).Return(&admin.PaginatedApiStreamsTenant{Results: []admin.StreamsTenant{}}, nil, nil).Once()
+	streamsAPI.EXPECT().ListPrivateLinkConnections(mock.Anything, projectID).Return(admin.ListPrivateLinkConnectionsApiRequest{ApiService: streamsAPI}).Once()
+	streamsAPI.EXPECT().ListPrivateLinkConnectionsExecute(mock.Anything).Return(&admin.PaginatedApiStreamsPrivateLink{Results: []admin.StreamsPrivateLinkConnection{}}, nil, nil).Once()
+
 	clustersAPI := mockadmin.NewClustersAPI(t)
 	clustersAPI.EXPECT().ListClusters(mock.Anything, projectID).Return(admin.ListClustersApiRequest{ApiService: clustersAPI}).Once()
 	clustersAPI.EXPECT().ListClustersExecute(mock.Anything).
 		Return(nil, &http.Response{StatusCode: http.StatusUnauthorized}, errors.New("unauthorized")).Once()
 
 	// Leaving later APIs unset verifies that cleanup stops at the failed step.
-	client := &admin.APIClient{ClustersAPI: clustersAPI}
+	client := &admin.APIClient{StreamsAPI: streamsAPI, ClustersAPI: clustersAPI}
 	changes, err := clean.RemoveProjectResources(t.Context(), t.Logf, false, client, projectID)
 	require.ErrorContains(t, err, "clusters:")
 	require.ErrorIs(t, err, clean.ErrUnauthorized)

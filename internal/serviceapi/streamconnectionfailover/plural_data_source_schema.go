@@ -33,6 +33,17 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							MarkdownDescription: "Applies to type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.",
 							CustomType:          customtypes.NewObjectType[TFPluralDSResultsAuthenticationModel](ctx),
 							Attributes: map[string]dsschema.Attribute{
+								"aws": dsschema.SingleNestedAttribute{
+									Computed:            true,
+									MarkdownDescription: "AWS configurations for AWS-based connection types.",
+									CustomType:          customtypes.NewObjectType[TFPluralDSResultsAuthenticationAwsModel](ctx),
+									Attributes: map[string]dsschema.Attribute{
+										"role_arn": dsschema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.",
+										},
+									},
+								},
 								"client_id": dsschema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "OIDC client identifier for authentication to the Kafka cluster.",
@@ -44,7 +55,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 								},
 								"mechanism": dsschema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.",
+									MarkdownDescription: "Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, `OAUTHBEARER`, or `AWS_MSK_IAM`.",
 								},
 								"method": dsschema.StringAttribute{
 									Computed:            true,
@@ -136,7 +147,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 									Attributes: map[string]dsschema.Attribute{
 										"connection_id": dsschema.StringAttribute{
 											Computed:            true,
-											MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type.",
+											MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type. Setting this field with any other networking access type returns a validation error.",
 										},
 										"name": dsschema.StringAttribute{
 											Computed:            true,
@@ -213,18 +224,22 @@ type TFPluralDSResultsModel struct {
 	Type                 types.String                                                   `tfsdk:"type" autogen:"omitjson"`
 }
 type TFPluralDSResultsAuthenticationModel struct {
-	ClientId                  types.String `tfsdk:"client_id" autogen:"omitjson"`
-	ClientSecret              types.String `tfsdk:"client_secret" autogen:"sensitive,omitjson"`
-	Mechanism                 types.String `tfsdk:"mechanism" autogen:"omitjson"`
-	Method                    types.String `tfsdk:"method" autogen:"omitjson"`
-	Password                  types.String `tfsdk:"password" autogen:"sensitive,omitjson"`
-	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions" autogen:"omitjson"`
-	Scope                     types.String `tfsdk:"scope" autogen:"omitjson"`
-	SslCertificate            types.String `tfsdk:"ssl_certificate" autogen:"omitjson"`
-	SslKey                    types.String `tfsdk:"ssl_key" autogen:"sensitive,omitjson"`
-	SslKeyPassword            types.String `tfsdk:"ssl_key_password" autogen:"sensitive,omitjson"`
-	TokenEndpointUrl          types.String `tfsdk:"token_endpoint_url" autogen:"omitjson"`
-	Username                  types.String `tfsdk:"username" autogen:"omitjson"`
+	Aws                       customtypes.ObjectValue[TFPluralDSResultsAuthenticationAwsModel] `tfsdk:"aws" autogen:"omitjson"`
+	ClientId                  types.String                                                     `tfsdk:"client_id" autogen:"omitjson"`
+	ClientSecret              types.String                                                     `tfsdk:"client_secret" autogen:"sensitive,omitjson"`
+	Mechanism                 types.String                                                     `tfsdk:"mechanism" autogen:"omitjson"`
+	Method                    types.String                                                     `tfsdk:"method" autogen:"omitjson"`
+	Password                  types.String                                                     `tfsdk:"password" autogen:"sensitive,omitjson"`
+	SaslOauthbearerExtensions types.String                                                     `tfsdk:"sasl_oauthbearer_extensions" autogen:"omitjson"`
+	Scope                     types.String                                                     `tfsdk:"scope" autogen:"omitjson"`
+	SslCertificate            types.String                                                     `tfsdk:"ssl_certificate" autogen:"omitjson"`
+	SslKey                    types.String                                                     `tfsdk:"ssl_key" autogen:"sensitive,omitjson"`
+	SslKeyPassword            types.String                                                     `tfsdk:"ssl_key_password" autogen:"sensitive,omitjson"`
+	TokenEndpointUrl          types.String                                                     `tfsdk:"token_endpoint_url" autogen:"omitjson"`
+	Username                  types.String                                                     `tfsdk:"username" autogen:"omitjson"`
+}
+type TFPluralDSResultsAuthenticationAwsModel struct {
+	RoleArn types.String `tfsdk:"role_arn" autogen:"omitjson"`
 }
 type TFPluralDSResultsDbRoleToExecuteModel struct {
 	Role types.String `tfsdk:"role" autogen:"omitjson"`

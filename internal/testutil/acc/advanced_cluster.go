@@ -171,18 +171,21 @@ func PopulateWithSampleDataTestCheck(projectID, clusterName string) resource.Tes
 // PopulateWithSampleData adds Sample Data to the cluster, otherwise resources like online archive or indexes won't work
 func PopulateWithSampleData(projectID, clusterName string) error {
 	ctx := context.Background()
-	jobLoad, _, err := ConnV2().ClustersAPI.RequestSampleDatasetLoad(context.Background(), projectID, clusterName).Execute()
-	if err != nil || jobLoad == nil {
-		return fmt.Errorf("cluster(%s:%s) loading sample data set error: %s", projectID, clusterName, err)
-	}
-	jobID := jobLoad.GetId()
+	var jobID string
 	stateConf := retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyWorkingState},
 		Target:     []string{retrystrategy.RetryStrategyCompletedState},
-		Timeout:    30 * time.Minute,
+		Timeout:    45 * time.Minute,
 		MinTimeout: 1 * time.Minute,
-		Delay:      1 * time.Minute,
 		Refresh: func() (result any, state string, err error) {
+			if jobID == "" {
+				jobLoad, _, err := ConnV2().ClustersAPI.RequestSampleDatasetLoad(ctx, projectID, clusterName).Execute()
+				if err != nil || jobLoad == nil {
+					return nil, "", fmt.Errorf("cluster(%s:%s) loading sample data set error: %s", projectID, clusterName, err)
+				}
+				jobID = jobLoad.GetId()
+				return jobLoad, retrystrategy.RetryStrategyWorkingState, nil
+			}
 			job, _, err := ConnV2().ClustersAPI.GetSampleDatasetLoad(ctx, projectID, jobID).Execute()
 			if err != nil {
 				return nil, "", err
@@ -191,13 +194,17 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 				return nil, "", fmt.Errorf("sample dataset load %s returned nil job for cluster %s:%s", jobID, projectID, clusterName)
 			}
 			state = job.GetState()
+			if state == retrystrategy.RetryStrategyFailedState && strings.Contains(job.GetErrorMessage(), "ReplicaSetNoPrimary") {
+				jobID = ""
+				return job, retrystrategy.RetryStrategyWorkingState, nil
+			}
 			if err := errIfSampleDatasetLoadFailed(projectID, clusterName, jobID, state, job.GetErrorMessage()); err != nil {
 				return job, state, err
 			}
 			return job, state, nil
 		},
 	}
-	_, err = stateConf.WaitForStateContext(ctx)
+	_, err := stateConf.WaitForStateContext(ctx)
 	return err
 }
 
