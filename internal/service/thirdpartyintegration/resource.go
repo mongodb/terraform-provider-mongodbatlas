@@ -35,11 +35,12 @@ var requiredPerType = map[string][]string{
 }
 
 func Resource() *schema.Resource {
-	return &schema.Resource{
+	r := &schema.Resource{
 		CreateContext: resourceCreate,
 		ReadContext:   resourceRead,
 		UpdateContext: resourceUpdate,
 		DeleteContext: resourceDelete,
+		CustomizeDiff: planClearSecretsWithWriteOnly,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImportState,
 		},
@@ -158,6 +159,8 @@ func Resource() *schema.Resource {
 			},
 		},
 	}
+	addWriteOnlySecretAttributes(r.Schema)
+	return r
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -165,18 +168,25 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	integrationType := d.Get("type").(string)
 
+	woValues := writeOnlyValues(d)
+
 	// checking per type fields
 	if requiredSet, ok := requiredPerType[integrationType]; ok {
 		for _, key := range requiredSet {
 			_, valid := d.GetOk(key)
+			_, validWo := woValues[key]
 
-			if !valid {
+			if !valid && !validWo {
+				if isWriteOnlySecret(key) {
+					return diag.FromErr(fmt.Errorf("error attribute for third party integration %[1]s or %[1]s_wo. please set one of them", key))
+				}
 				return diag.FromErr(fmt.Errorf("error attribute for third party integration %s. please set it", key))
 			}
 		}
 	}
 
 	requestBody := schemaToIntegration(d)
+	setWriteOnlyValues(d, woValues, requestBody)
 
 	_, _, err := connV2.ThirdPartyIntegrationsAPI.CreateGroupIntegration(ctx, integrationType, projectID, requestBody).Execute()
 
@@ -204,6 +214,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	integrationMap := integrationToSchema(d, integration)
+	clearSecretsWithWriteOnly(d, integrationMap)
 
 	for key, val := range integrationMap {
 		if err := d.Set(key, val); err != nil {
@@ -230,6 +241,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// check for changed attributes per type
 
 	updateIntegrationFromSchema(d, integration)
+	setWriteOnlyValues(d, writeOnlyValues(d), integration)
 
 	_, _, err = connV2.ThirdPartyIntegrationsAPI.UpdateGroupIntegration(ctx, integrationType, projectID, integration).Execute()
 
