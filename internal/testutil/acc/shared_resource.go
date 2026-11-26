@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -236,13 +237,29 @@ func clusterNameExecution(tb testing.TB, populateSampleData, backupEnabled, pitE
 	if sharedInfo.clusterName == "" {
 		name := RandomClusterName()
 		tb.Logf("Creating execution cluster: %s\n", name)
-		sharedInfo.clusterName = createCluster(tb, projectID, name, backupEnabled, pitEnabled)
+		name, createErr := createCluster(tb, projectID, name, backupEnabled, pitEnabled)
+		if createErr != nil {
+			return projectID, "", createErr
+		}
 
 		if populateSampleData {
-			if populateErr := PopulateWithSampleData(projectID, sharedInfo.clusterName); populateErr != nil {
-				sharedInfo.clusterPopulateErr = populateErr
+			populateErr := PopulateWithSampleData(projectID, name)
+			if populateErr != nil && isTaintedSampleDatasetError(populateErr) {
+				tb.Logf("Sample dataset load left partial data on cluster %s; deleting it and retrying on a fresh cluster: %v\n", name, populateErr)
+				if deleteErr := deleteCluster(context.Background(), ConnV2(), projectID, name); deleteErr != nil {
+					return projectID, name, fmt.Errorf("%w (after sample dataset load error: %w)", deleteErr, populateErr)
+				}
+				name = RandomClusterName()
+				tb.Logf("Creating replacement execution cluster: %s\n", name)
+				name, createErr = createCluster(tb, projectID, name, backupEnabled, pitEnabled)
+				if createErr != nil {
+					return projectID, "", createErr
+				}
+				populateErr = PopulateWithSampleData(projectID, name)
 			}
+			sharedInfo.clusterPopulateErr = populateErr
 		}
+		sharedInfo.clusterName = name
 	}
 
 	if populateSampleData && sharedInfo.clusterPopulateErr != nil {
@@ -250,6 +267,13 @@ func clusterNameExecution(tb testing.TB, populateSampleData, backupEnabled, pitE
 	}
 
 	return projectID, sharedInfo.clusterName, nil
+}
+
+// isTaintedSampleDatasetError reports whether a failed sample dataset load left partial data on the cluster,
+// so another load on the same cluster is rejected and a fresh cluster is needed.
+func isTaintedSampleDatasetError(err error) bool {
+	return strings.Contains(err.Error(), "E11000 duplicate key error") ||
+		strings.Contains(err.Error(), "Target cluster has conflicting non-empty namespace with the dataset")
 }
 
 // ProjectIDExecutionWithStreamInstance returns the project ID and stream instance name for test execution.

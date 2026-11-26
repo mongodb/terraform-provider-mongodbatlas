@@ -11,6 +11,7 @@ func NewClusterCreateFuncs(create func(region string) error, wait, deleteFn func
 var (
 	CreateClusterWithRegionFallback   = createClusterWithRegionFallback
 	IsFailedProvisioning              = isFailedProvisioning
+	IsTaintedSampleDatasetError       = isTaintedSampleDatasetError
 	DeleteProjectUntil                = deleteProjectUntil
 	DeleteLocalProjectSharedResources = deleteLocalProjectSharedResources
 	DeleteExecutionProjects           = deleteExecutionProjects

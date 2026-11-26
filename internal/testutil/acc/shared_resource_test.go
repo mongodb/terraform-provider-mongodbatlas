@@ -16,6 +16,35 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312028/mockadmin"
 )
 
+func TestIsTaintedSampleDatasetError(t *testing.T) {
+	testCases := map[string]struct {
+		err  string
+		want bool
+	}{
+		"E11000 duplicate key": {
+			err:  "sample dataset load job-1 failed for cluster p:c: continuing through error: E11000 duplicate key error collection: sample_training.grades index: _id_ dup key: { _id: ObjectId('56d5f7ef604eb380b0d9b38d') }",
+			want: true,
+		},
+		"conflicting namespace": {
+			err:  "sample dataset load job-1 failed for cluster p:c: Target cluster has conflicting non-empty namespace with the dataset",
+			want: true,
+		},
+		"ReplicaSetNoPrimary is not tainted": {
+			err:  "sample dataset load job-1 failed for cluster p:c: ReplicaSetNoPrimary",
+			want: false,
+		},
+		"generic Atlas error is not tainted": {
+			err:  "sample dataset load job-1 failed for cluster p:c: An unexpected error occurred. Please try again or contact our support for help.",
+			want: false,
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.want, acc.IsTaintedSampleDatasetError(errors.New(tc.err)))
+		})
+	}
+}
+
 func Test_NextProjectIDClusterName(t *testing.T) {
 	projectIDReturner := func(name string) string {
 		return fmt.Sprintf("%s-name", name)
