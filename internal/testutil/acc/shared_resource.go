@@ -241,25 +241,29 @@ func clusterNameExecution(tb testing.TB, populateSampleData, backupEnabled, pitE
 		if createErr != nil {
 			return projectID, "", createErr
 		}
+		// Cache the owned name before any populate or delete attempt so teardown can retry its removal.
+		sharedInfo.clusterName = name
 
 		if populateSampleData {
 			populateErr := PopulateWithSampleData(projectID, name)
 			if populateErr != nil && isTaintedSampleDatasetError(populateErr) {
 				tb.Logf("Sample dataset load left partial data on cluster %s; deleting it and retrying on a fresh cluster: %v\n", name, populateErr)
 				if deleteErr := deleteCluster(context.Background(), ConnV2(), projectID, name); deleteErr != nil {
+					sharedInfo.clusterPopulateErr = populateErr
 					return projectID, name, fmt.Errorf("%w (after sample dataset load error: %w)", deleteErr, populateErr)
 				}
+				sharedInfo.clusterName = ""
 				name = RandomClusterName()
 				tb.Logf("Creating replacement execution cluster: %s\n", name)
 				name, createErr = createCluster(tb, projectID, name, backupEnabled, pitEnabled)
 				if createErr != nil {
 					return projectID, "", createErr
 				}
+				sharedInfo.clusterName = name
 				populateErr = PopulateWithSampleData(projectID, name)
 			}
 			sharedInfo.clusterPopulateErr = populateErr
 		}
-		sharedInfo.clusterName = name
 	}
 
 	if populateSampleData && sharedInfo.clusterPopulateErr != nil {
