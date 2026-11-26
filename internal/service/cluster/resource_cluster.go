@@ -1346,7 +1346,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).Atlas
 
-	projectID, name, legacy, err := SplitClusterImportID(d.Id())
+	projectID, name, legacy, err := splitSClusterImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
@@ -1381,7 +1381,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func SplitClusterImportID(id string) (projectID, clusterName string, legacy bool, err error) {
+func splitSClusterImportID(id string) (projectID, clusterName string, legacy bool, err error) {
 	if ok, parts := conversion.ImportSplit(id, 2); ok {
 		return parts[0], parts[1], false, nil
 	}
