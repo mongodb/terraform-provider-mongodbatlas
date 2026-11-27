@@ -254,10 +254,15 @@ func ConfigBasicDedicated(projectID, name, zoneName string) string {
 // ConfigDedicatedNVMeBackupEnabled keeps the region pinned to US_EAST_1: it is used by
 // TestAccMockableAdvancedCluster_tenantUpgrade, which needs a region supporting both TENANT
 // (M0) and M40_NVME instance sizes, and its config must match the captured mock traffic.
-func ConfigDedicatedNVMeBackupEnabled(projectID, name, zoneName string) string {
+// A non-empty majorVersion sets mongo_db_major_version so the upgrade request carries the configured version.
+func ConfigDedicatedNVMeBackupEnabled(projectID, name, zoneName, majorVersion string) string {
 	zoneNameLine := ""
 	if zoneName != "" {
 		zoneNameLine = fmt.Sprintf("zone_name = %q", zoneName)
+	}
+	majorVersionLine := ""
+	if majorVersion != "" {
+		majorVersionLine = fmt.Sprintf("mongo_db_major_version = %q", majorVersion)
 	}
 	return fmt.Sprintf(`
 	resource "mongodbatlas_advanced_cluster" "test" {
@@ -265,6 +270,7 @@ func ConfigDedicatedNVMeBackupEnabled(projectID, name, zoneName string) string {
 		name         = %[2]q
 		cluster_type = "REPLICASET"
 		backup_enabled = true
+		%[5]s
 		replication_specs = [{
 			region_configs = [{
 				priority        = 7
@@ -280,7 +286,7 @@ func ConfigDedicatedNVMeBackupEnabled(projectID, name, zoneName string) string {
 		}]
 	}
 	%[4]s
-	`, projectID, name, zoneNameLine, advancedClusterDataSources)
+	`, projectID, name, zoneNameLine, advancedClusterDataSources, majorVersionLine)
 }
 
 const advancedClusterDataSources = `

@@ -185,13 +185,13 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "${{ github.event.repository.name }}: Update dev branches failed",
+              "text": "${{ github.event.repository.name }}: Update dev branches failed. No action for on-call.",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "❌ *${{ github.event.repository.name }}: Update dev branches failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
+                    "text": "❌ *${{ github.event.repository.name }}: Update dev branches failed*. No action for on-call; DRIs should keep their dev branches up to date. <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
                   }
                 }
               ]

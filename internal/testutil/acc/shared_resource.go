@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/clean"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312028/admin"
+	"go.mongodb.org/atlas-sdk/v20250312029/admin"
 )
 
 const (

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312028/admin"
+	"go.mongodb.org/atlas-sdk/v20250312029/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -585,10 +585,10 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	if update.IsZeroValues(patchReq) { // No changes to cluster
 		return clusterDiff{}
 	}
-	if upgradeFlexToDedicatedReq := getUpgradeFlexToDedicatedRequest(stateReq, patchReq); upgradeFlexToDedicatedReq != nil {
+	if upgradeFlexToDedicatedReq := getUpgradeFlexToDedicatedRequest(stateReq, planReq, patchReq); upgradeFlexToDedicatedReq != nil {
 		return clusterDiff{upgradeFlexToDedicatedReq: upgradeFlexToDedicatedReq}
 	}
-	if upgradeTenantReq := getUpgradeTenantRequest(stateReq, patchReq); upgradeTenantReq != nil {
+	if upgradeTenantReq := getUpgradeTenantRequest(stateReq, planReq, patchReq); upgradeTenantReq != nil {
 		return clusterDiff{upgradeTenantReq: upgradeTenantReq}
 	}
 	return clusterDiff{clusterPatchOnlyReq: patchReq}

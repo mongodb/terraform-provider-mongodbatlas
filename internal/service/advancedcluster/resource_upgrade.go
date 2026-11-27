@@ -3,10 +3,10 @@ package advancedcluster
 import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
-	"go.mongodb.org/atlas-sdk/v20250312028/admin"
+	"go.mongodb.org/atlas-sdk/v20250312029/admin"
 )
 
-func getUpgradeTenantRequest(state, patch *admin.ClusterDescription20240805) *admin.LegacyAtlasTenantClusterUpgradeRequest {
+func getUpgradeTenantRequest(state, plan, patch *admin.ClusterDescription20240805) *admin.LegacyAtlasTenantClusterUpgradeRequest {
 	if patch.ReplicationSpecs == nil {
 		return nil
 	}
@@ -17,8 +17,10 @@ func getUpgradeTenantRequest(state, patch *admin.ClusterDescription20240805) *ad
 	if oldProviderName != constant.TENANT || newProviderName == constant.TENANT {
 		return nil
 	}
+	// Read from the plan (config) rather than the patch because PatchPayload omits the version when it is unchanged between state and plan.
 	req := admin.LegacyAtlasTenantClusterUpgradeRequest{
-		Name: state.GetName(),
+		Name:                state.GetName(),
+		MongoDBMajorVersion: plan.MongoDBMajorVersion,
 		ProviderSettings: &admin.ClusterProviderSettings{
 			ProviderName:     newProviderName,
 			RegionName:       newRegion.RegionName,
@@ -32,7 +34,7 @@ func getUpgradeTenantRequest(state, patch *admin.ClusterDescription20240805) *ad
 	return &req
 }
 
-func getUpgradeFlexToDedicatedRequest(state, patch *admin.ClusterDescription20240805) *admin.AtlasTenantClusterUpgradeRequest20240805 {
+func getUpgradeFlexToDedicatedRequest(state, plan, patch *admin.ClusterDescription20240805) *admin.AtlasTenantClusterUpgradeRequest20240805 {
 	if patch.ReplicationSpecs == nil {
 		return nil
 	}
@@ -45,11 +47,13 @@ func getUpgradeFlexToDedicatedRequest(state, patch *admin.ClusterDescription2024
 	if oldProviderName != flexcluster.FlexClusterType || newProviderName == flexcluster.FlexClusterType {
 		return nil
 	}
+	// Read from the plan (config) rather than the patch because PatchPayload omits the version when it is unchanged between state and plan.
 	req := admin.AtlasTenantClusterUpgradeRequest20240805{
-		Name:             state.GetName(),
-		ClusterType:      state.ClusterType,
-		DatabaseEdition:  patch.DatabaseEdition,
-		ReplicationSpecs: patch.ReplicationSpecs,
+		Name:                state.GetName(),
+		ClusterType:         state.ClusterType,
+		DatabaseEdition:     patch.DatabaseEdition,
+		MongoDBMajorVersion: plan.MongoDBMajorVersion,
+		ReplicationSpecs:    patch.ReplicationSpecs,
 	}
 
 	// checking for state value as a flex cluster can already have backup enabled

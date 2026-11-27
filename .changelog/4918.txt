@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_mongodb_employee_access_grant: Fixes delete errors other than 404 being silently ignored. The delete now fails and the resource stays in state instead of being removed as if the delete had succeeded
+```
