@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312028/admin"
-	"go.mongodb.org/atlas-sdk/v20250312028/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312029/admin"
+	"go.mongodb.org/atlas-sdk/v20250312029/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"

@@ -15,8 +15,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312028/admin"
-	"go.mongodb.org/atlas-sdk/v20250312028/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312029/admin"
+	"go.mongodb.org/atlas-sdk/v20250312029/mockadmin"
 )
 
 func TestUpdateRemovesShardSizeLimit(t *testing.T) {
