@@ -67,6 +67,34 @@ EOF
 }
 ```
 
+### Search index with automatically generated embeddings
+```terraform
+resource "mongodbatlas_search_index" "test-auto-embed-search-index" {
+  project_id = "<PROJECT_ID>"
+  cluster_name = "<CLUSTER_NAME>"
+  collection_name = "collection_test"
+  database = "database_test"
+  name = "test-auto-embed-search-index"
+  type = "search"
+
+  mappings_dynamic = false
+  mappings_fields = <<-EOF
+{
+      "description": {
+      "type": "autoEmbed",
+      "model": "voyage-4-lite",
+      "modality": "text"
+},
+      "property_type": {
+      "type": "string"
+}
+}
+EOF
+}
+```
+
+In a `search` index, the mapping key is the source field path: Atlas generates embeddings from the text in the `description` field using the specified Voyage AI model, and you can combine the `autoEmbed` field with lexical field mappings such as `string`. For supported models and requirements, see [Automated Embedding](https://www.mongodb.com/docs/vector-search/crud-embeddings/automated-embedding/).
+
 ### Advanced search index (with custom analyzers)
 ```terraform
 resource "mongodbatlas_search_index" "test-advanced-search-index" {
