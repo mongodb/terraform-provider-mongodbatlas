@@ -617,4 +617,6 @@ Clusters can be imported using project ID and cluster name, in the format `{proj
 $ terraform import mongodbatlas_cluster.my_cluster 1112222b3bf99403840e8934/Cluster0
 ```
 
+The legacy `{project_id}-{name}` format is still accepted but deprecated.
+
 See detailed information for arguments and attributes: [MongoDB API Clusters](https://www.mongodb.com/docs/atlas/reference/api/clusters-create-one/)

@@ -486,3 +486,5 @@ You can import search indexes using `project_id`, `cluster_name`, and `index_id`
 ```shell
 terraform import mongodbatlas_search_index.test {project_id}/{cluster_name}/{index_id}
 ```
+
+The legacy `{project_id}--{cluster_name}--{index_id}` format is still accepted but deprecated.

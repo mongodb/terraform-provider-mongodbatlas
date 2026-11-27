@@ -217,4 +217,6 @@ The username may contain `/` (for example OIDC and AWS IAM usernames); the last 
 terraform import mongodbatlas_database_user.my_user 1112222b3bf99403840e8934/my_user/admin
 ```
 
+The legacy `{project_id}-{username}-{auth_database_name}` format is still accepted but deprecated.
+
 ~> **NOTE:** Terraform will want to change the password after importing the user if a `password` or `password_wo` argument is specified.

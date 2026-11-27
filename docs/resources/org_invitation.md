@@ -74,3 +74,5 @@ Import a user's invitation to an organization, e.g.
 ```
 $ terraform import mongodbatlas_org_invitation.my_user 1112222b3bf99403840e8934/my_user@mongodb.com
 ```
+
+The legacy `{org_id}-{username}` format is still accepted but deprecated.

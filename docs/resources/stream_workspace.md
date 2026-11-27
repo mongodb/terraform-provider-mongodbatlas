@@ -104,3 +104,5 @@ You can import stream workspace resource using the project ID and workspace name
 ```
 $ terraform import mongodbatlas_stream_workspace.test 650972848269185c55f40ca1/WorkspaceName
 ```
+
+The legacy `{project_id}-{workspace_name}` format is still accepted but deprecated.

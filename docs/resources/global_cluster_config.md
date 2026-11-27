@@ -103,4 +103,6 @@ Global Clusters can be imported using project ID and cluster name, in the format
 $ terraform import mongodbatlas_global_cluster_config.config 1112222b3bf99403840e8934/Cluster0
 ```
 
+The legacy `{project_id}-{cluster_name}` format is still accepted but deprecated.
+
 See detailed information for arguments and attributes: [MongoDB API Global Clusters](https://www.mongodb.com/docs/atlas/reference/api/global-clusters/)

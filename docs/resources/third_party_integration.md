@@ -84,4 +84,6 @@ Third-Party Integration Settings can be imported using project ID and the integr
 $ terraform import mongodbatlas_third_party_integration.test_datadog 1112222b3bf99403840e8934/DATADOG
 ```
 
+The legacy `{project_id}-{integration_type}` format is still accepted but deprecated.
+
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Third-Party-Integrations/operation/createThirdPartyIntegration) Documentation for more information.

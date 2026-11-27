@@ -70,4 +70,6 @@ API Keys must be imported using project ID, API Key ID e.g.
 $ terraform import mongodbatlas_project_api_key.test 5d09d6a59ccf6445652a444a/6576974933969669
 ```
 
+The legacy `{project_id}-{api_key_id}` format is still accepted but deprecated.
+
 See [MongoDB Atlas API - API Key](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/createProjectApiKey) - Documentation for more information.

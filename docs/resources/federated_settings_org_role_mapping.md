@@ -58,4 +58,6 @@ FederatedSettingsOrgRoleMapping can be imported using federation settings ID, or
 $ terraform import mongodbatlas_federated_settings_org_role_mapping.org_group_role_mapping_import 6287a663c7f7f7f71c441c6c/627a96837f7f7f7e306f14/628ae97f7f7468ea3727
 ```
 
+The legacy `{federation_settings_id}-{org_id}-{role_mapping_id}` format is still accepted but deprecated.
+
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/federation-configuration/)
