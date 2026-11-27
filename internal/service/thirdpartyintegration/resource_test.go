@@ -3,10 +3,13 @@ package thirdpartyintegration_test
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -55,6 +58,41 @@ func TestAccThirdPartyIntegration_datadog(t *testing.T) {
 
 func TestAccThirdPartyIntegration_prometheus(t *testing.T) {
 	resource.ParallelTest(t, *prometheusTest(t))
+}
+
+// Serial: a project allows one integration per type, and the parallel tests use the same types and project.
+func TestAccThirdPartyIntegration_prometheusPasswordWriteOnly(t *testing.T) {
+	resource.Test(t, *prometheusPasswordWriteOnlyTest(t))
+}
+
+func TestAccThirdPartyIntegration_datadogAPIKeyWriteOnly(t *testing.T) {
+	resource.Test(t, *datadogAPIKeyWriteOnlyTest(t))
+}
+
+func TestAccThirdPartyIntegration_webhookSecretWriteOnly(t *testing.T) {
+	resource.Test(t, *webhookSecretWriteOnlyTest(t))
+}
+
+func TestAccThirdPartyIntegration_writeOnlyValidation(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		TerraformVersionChecks:   writeOnlyVersionChecks,
+		Steps: []resource.TestStep{
+			{
+				Config:      configWebhookWriteOnlyValidation(`secret = "s"`, `secret_wo = "s"`, `secret_wo_version = 1`),
+				ExpectError: regexp.MustCompile(`"secret": conflicts with secret_wo`),
+			},
+			{
+				Config:      configWebhookWriteOnlyValidation(`secret_wo = "s"`),
+				ExpectError: regexp.MustCompile("all of `secret_wo,secret_wo_version` must be specified"),
+			},
+			{
+				Config:      configWebhookWriteOnlyValidation(`secret_wo = "s"`, `secret_wo_version = 0`),
+				ExpectError: regexp.MustCompile(`expected secret_wo_version to be at least \(1\)`),
+			},
+		},
+	})
 }
 
 func TestAccThirdPartyIntegration_microsoftTeams(t *testing.T) {
@@ -314,6 +352,133 @@ func prometheusTest(tb testing.TB) *resource.TestCase {
 	}
 }
 
+var writeOnlyVersionChecks = []tfversion.TerraformVersionCheck{
+	tfversion.SkipBelow(tfversion.Version1_11_0), // write-only attributes require Terraform 1.11+
+}
+
+func prometheusPasswordWriteOnlyTest(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	var (
+		projectID        = acc.ProjectIDExecution(tb)
+		username         = "someuser"
+		serviceDiscovery = "http"
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		TerraformVersionChecks:   writeOnlyVersionChecks,
+		Steps: []resource.TestStep{
+			{
+				// plaintext first, to cover switching an existing integration to password_wo
+				Config: configPrometheus(projectID, username, "somepassword", serviceDiscovery),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "password", "somepassword"),
+				),
+			},
+			{
+				Config: configPrometheusPasswordWo(projectID, username, "writeonlypassword", 1, serviceDiscovery),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "user_name", username),
+					resource.TestCheckResourceAttr(resourceName, "password_wo_version", "1"),
+					resource.TestCheckNoResourceAttr(resourceName, "password_wo"),
+					resource.TestCheckResourceAttr(resourceName, "password", ""),
+				),
+			},
+			{
+				Config: configPrometheusPasswordWo(projectID, username, "writeonlypassword2", 2, serviceDiscovery),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "password_wo_version", "2"),
+					resource.TestCheckNoResourceAttr(resourceName, "password_wo"),
+					resource.TestCheckResourceAttr(resourceName, "password", ""),
+				),
+			},
+			importStep(resourceName),
+		},
+	}
+}
+
+func datadogAPIKeyWriteOnlyTest(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	projectID := acc.ProjectIDExecution(tb)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		TerraformVersionChecks:   writeOnlyVersionChecks,
+		Steps: []resource.TestStep{
+			{
+				Config: configDatadogAPIKeyWo(projectID, dummy32CharKey, 1, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", "DATADOG"),
+					resource.TestCheckResourceAttr(resourceName, "api_key_wo_version", "1"),
+					resource.TestCheckNoResourceAttr(resourceName, "api_key_wo"),
+					resource.TestCheckResourceAttr(resourceName, "api_key", ""),
+				),
+			},
+			{
+				// same version: the update must still carry api_key_wo
+				Config: configDatadogAPIKeyWo(projectID, dummy32CharKey, 1, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "send_database_metrics", "true"),
+					resource.TestCheckResourceAttr(resourceName, "api_key", ""),
+				),
+			},
+			{
+				Config: configDatadogAPIKeyWo(projectID, dummy32CharKeyUpdated, 2, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "api_key_wo_version", "2"),
+					resource.TestCheckNoResourceAttr(resourceName, "api_key_wo"),
+					resource.TestCheckResourceAttr(resourceName, "api_key", ""),
+				),
+			},
+			importStep(resourceName),
+		},
+	}
+}
+
+func webhookSecretWriteOnlyTest(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+	var (
+		projectID = acc.ProjectIDExecution(tb)
+		url       = "https://www.mongodb.com/webhook"
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		TerraformVersionChecks:   writeOnlyVersionChecks,
+		Steps: []resource.TestStep{
+			{
+				Config: configWebhookSecretWo(projectID, url, "webhooksecret", 1),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "url", url),
+					resource.TestCheckResourceAttr(resourceName, "secret_wo_version", "1"),
+					resource.TestCheckNoResourceAttr(resourceName, "secret_wo"),
+					resource.TestCheckResourceAttr(resourceName, "secret", ""),
+				),
+			},
+			{
+				Config: configWebhookSecretWo(projectID, url, "webhooksecret2", 2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "secret_wo_version", "2"),
+					resource.TestCheckNoResourceAttr(resourceName, "secret_wo"),
+					resource.TestCheckResourceAttr(resourceName, "secret", ""),
+				),
+			},
+			importStep(resourceName),
+		},
+	}
+}
+
 func microsoftTeamsTest(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	var (
@@ -504,6 +669,57 @@ func configPrometheus(projectID, username, password, serviceDiscovery string) st
 			enabled = true
 		}
 	`, projectID, "PROMETHEUS", username, password, serviceDiscovery) + singularDataStr
+}
+
+func configPrometheusPasswordWo(projectID, username, passwordWo string, passwordWoVersion int, serviceDiscovery string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_third_party_integration" "test" {
+			project_id          = "%[1]s"
+			type                = "PROMETHEUS"
+			user_name           = "%[2]s"
+			password_wo         = "%[3]s"
+			password_wo_version = %[4]d
+			service_discovery   = "%[5]s"
+			enabled             = true
+		}
+	`, projectID, username, passwordWo, passwordWoVersion, serviceDiscovery) + singularDataStr
+}
+
+func configDatadogAPIKeyWo(projectID, apiKeyWo string, apiKeyWoVersion int, sendDatabaseMetrics bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_third_party_integration" "test" {
+			project_id            = "%[1]s"
+			type                  = "DATADOG"
+			api_key_wo            = "%[2]s"
+			api_key_wo_version    = %[3]d
+			region                = "US"
+			send_database_metrics = %[4]t
+		}
+	`, projectID, apiKeyWo, apiKeyWoVersion, sendDatabaseMetrics) + singularDataStr
+}
+
+func configWebhookSecretWo(projectID, url, secretWo string, secretWoVersion int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_third_party_integration" "test" {
+			project_id        = "%[1]s"
+			type              = "WEBHOOK"
+			url               = "%[2]s"
+			secret_wo         = "%[3]s"
+			secret_wo_version = %[4]d
+		}
+	`, projectID, url, secretWo, secretWoVersion) + singularDataStr
+}
+
+// configWebhookWriteOnlyValidation fails validation before any API call, so the project ID is a placeholder.
+func configWebhookWriteOnlyValidation(attrs ...string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_third_party_integration" "test" {
+			project_id = "111111111111111111111111"
+			type       = "WEBHOOK"
+			url        = "https://www.mongodb.com/webhook"
+			%s
+		}
+	`, strings.Join(attrs, "\n\t\t\t"))
 }
 
 func configMicrosoftTeams(projectID, url string) string {

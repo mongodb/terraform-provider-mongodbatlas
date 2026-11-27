@@ -10,7 +10,7 @@ subcategory: "Projects"
 
 ~> **IMPORTANT** Each project can only have one configuration per integration `type`.
 
-~> **IMPORTANT:** All arguments including the secrets will be stored in the raw state as plain-text. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
+~> **IMPORTANT:** All arguments including the secrets will be stored in the raw state as plain-text. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html) To keep a secret out of state, use its write-only alternative instead. See [Write-only secrets](#write-only-secrets).
 
 
 ## Example Usage
@@ -24,6 +24,28 @@ resource "mongodbatlas_third_party_integration" "test_datadog" {
   region = "<REGION>"
 }
 
+```
+
+### Example with a write-only secret
+
+`password_wo` is never written to state or plan files. Here the password comes from an [ephemeral](https://developer.hashicorp.com/terraform/language/manage-sensitive-data/ephemeral) input variable, so Terraform doesn't keep it in state or plan files at all.
+
+```terraform
+variable "prometheus_password" {
+  type      = string
+  sensitive = true
+  ephemeral = true
+}
+
+resource "mongodbatlas_third_party_integration" "prometheus" {
+  project_id          = "<PROJECT-ID>"
+  type                = "PROMETHEUS"
+  user_name           = "<USERNAME>"
+  password_wo         = var.prometheus_password
+  password_wo_version = 1
+  service_discovery   = "http"
+  enabled             = true
+}
 ```
 
 ### Further Examples
@@ -71,6 +93,24 @@ resource "mongodbatlas_third_party_integration" "test_datadog" {
   * `enabled` - Whether your cluster has Prometheus enabled.
 
 -> **NOTE:** For certain attributes with default values, it's recommended to explicitly set them back to their default instead of removing them from the configuration. For example, if `send_collection_latency_metrics` is set to `true` and you want to revert to the default (`false`), set it to `false` rather than removing it.
+
+### Write-only secrets
+
+Each secret argument has a [write-only](https://developer.hashicorp.com/terraform/language/resources/ephemeral/write-only) alternative that is never written to state or plan files. Write-only arguments require Terraform 1.11 or later.
+
+| Secret | Write-only argument | Version argument |
+|--------|---------------------|------------------|
+| `api_key` | `api_key_wo` | `api_key_wo_version` |
+| `service_key` | `service_key_wo` | `service_key_wo_version` |
+| `routing_key` | `routing_key_wo` | `routing_key_wo_version` |
+| `secret` | `secret_wo` | `secret_wo_version` |
+| `microsoft_teams_webhook_url` | `microsoft_teams_webhook_url_wo` | `microsoft_teams_webhook_url_wo_version` |
+| `password` | `password_wo` | `password_wo_version` |
+
+* `<secret>_wo` - (Optional) Value of `<secret>`, passed as a write-only argument. Conflicts with `<secret>`, and must be set together with `<secret>_wo_version`. Where the integration type requires `<secret>`, set either `<secret>` or `<secret>_wo`. While `<secret>_wo` is set, `<secret>` is empty in state.
+* `<secret>_wo_version` - (Optional) Integer, at least `1`, that triggers an update of `<secret>_wo`. To rotate the secret, change `<secret>_wo` and increment this value in the same edit. Changing `<secret>_wo` on its own has no effect, since Terraform can't detect changes to a value that is not in state.
+
+Like `api_key`, `api_key_wo` is sent on every update, not only when `api_key_wo_version` changes. Set it from a value that is the same on every run, such as a secret read from a secrets manager, not one generated on each run.
 
 ## Attributes Reference
 

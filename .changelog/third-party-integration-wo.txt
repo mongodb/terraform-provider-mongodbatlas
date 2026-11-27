@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_third_party_integration: Adds write-only `_wo` and `_wo_version` attributes for `api_key`, `service_key`, `routing_key`, `secret`, `microsoft_teams_webhook_url` and `password`, to set secrets without storing them in state
+```
