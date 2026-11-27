@@ -415,7 +415,7 @@ schema:
                                   present_in_any_response: true
                                   request_only_required_on_create: false
                                 - string: {}
-                                  description: Azure region where the storage account is located.
+                                  description: 'Deprecated: Azure region where the storage account is located.'
                                   deprecation_message: This attribute has been deprecated
                                   computed_optional_required: computed
                                   tf_schema_name: region

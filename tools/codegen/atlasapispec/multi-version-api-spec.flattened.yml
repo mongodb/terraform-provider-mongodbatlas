@@ -784,9 +784,9 @@ components:
         labels:
           deprecated: true
           description: |-
-            Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
+            Deprecated: Cluster labels will be removed in a future release. We strongly recommend that you use Resource tags instead.
 
-            Cluster labels are deprecated and will be removed in a future release. We strongly recommend that you use Resource tags instead.
+            Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
           externalDocs:
             description: Resource Tags
             url: https://dochub.mongodb.org/core/add-cluster-tag-atlas
@@ -946,6 +946,8 @@ components:
           description: Geography scope for this API key. Use "ANY" for a geography-agnostic scope. Additional geography values will be supported in future API versions.
           enum:
             - ANY
+            - EU
+            - US
           type: string
           writeOnly: true
         name:
@@ -1297,6 +1299,7 @@ components:
             - FTS_INDEX_STALE
             - FTS_INDEXES_RESTORE_FAILED
             - FTS_INDEXES_SYNONYM_MAPPING_INVALID
+            - PROJECT_OPERATIONS_CONTACT_MODIFIED
             - SEARCH_AUTO_MIGRATION_ADVISORY
             - SEARCH_AUTO_MIGRATION_STARTED
             - SEARCH_AUTO_MIGRATION_FAILED
@@ -3017,6 +3020,10 @@ components:
           format: date-time
           readOnly: true
           type: string
+        warningMessage:
+          description: Explanation of why the response contains no measurement data points, when applicable.
+          readOnly: true
+          type: string
       type: object
     ApiPrivateDownloadDeliveryUrl:
       description: One Uniform Resource Locator (URL) that points to the compressed snapshot files for manual download and the corresponding private endpoint.
@@ -3142,6 +3149,7 @@ components:
             - S40_STORAGE_NVME
             - S50_STORAGE_NVME
             - S60_STORAGE_NVME
+            - S70_STORAGE_NVME
             - S80_STORAGE_NVME
             - S90_STORAGE_NVME
           readOnly: true
@@ -3210,7 +3218,7 @@ components:
           type: string
         specs:
           deprecated: true
-          description: Deprecated. `specs` will be removed in a future release. We strongly recommend that you use `effectiveSpecs` instead.
+          description: "Deprecated: `specs` will be removed in a future release. We strongly recommend that you use `effectiveSpecs` instead."
           items:
             $ref: "#/components/schemas/ApiSearchDeploymentSpecView"
           readOnly: true
@@ -3261,6 +3269,7 @@ components:
             - S40_STORAGE_NVME
             - S50_STORAGE_NVME
             - S60_STORAGE_NVME
+            - S70_STORAGE_NVME
             - S80_STORAGE_NVME
             - S90_STORAGE_NVME
           type: string
@@ -3349,7 +3358,7 @@ components:
           type: string
         specs:
           deprecated: true
-          description: Deprecated. `specs` will be removed in a future release. We strongly recommend that you use `effectiveSpecs` instead.
+          description: "Deprecated: `specs` will be removed in a future release. We strongly recommend that you use `effectiveSpecs` instead."
           items:
             $ref: "#/components/schemas/ApiSearchDeploymentSpecView"
           readOnly: true
@@ -3393,6 +3402,7 @@ components:
             - S40_STORAGE_NVME
             - S50_STORAGE_NVME
             - S60_STORAGE_NVME
+            - S70_STORAGE_NVME
             - S80_STORAGE_NVME
             - S90_STORAGE_NVME
           type: string
@@ -3812,9 +3822,9 @@ components:
         labels:
           deprecated: true
           description: |-
-            Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
+            Deprecated: Cluster labels will be removed in a future release. We strongly recommend that you use Resource Tags instead.
 
-            Cluster labels are deprecated and will be removed in a future release. We strongly recommend that you use Resource Tags instead.
+            Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
           externalDocs:
             description: Resource Tags
             url: https://dochub.mongodb.org/core/add-cluster-tag-atlas
@@ -4246,7 +4256,7 @@ components:
           type: array
         region:
           deprecated: true
-          description: Azure region where the storage account is located.
+          description: "Deprecated: Azure region where the storage account is located."
           type: string
         servicePrincipalId:
           description: Unique ID of the Azure Service Principal that has access to the storage account.
@@ -4857,7 +4867,7 @@ components:
           type: string
         url:
           deprecated: true
-          description: 'Uniform Resource Locator (URL) from which you can download the restored snapshot data. URL includes the verification key. The resource returns this parameter when `"delivery.methodName" : "HTTP"`.'
+          description: 'Deprecated: Uniform Resource Locator (URL) from which you can download the restored snapshot data. URL includes the verification key. The resource returns this parameter when `"delivery.methodName" : "HTTP"`.'
           readOnly: true
           type: string
         urlV2:
@@ -5686,7 +5696,7 @@ components:
           type: string
         emailAddress:
           deprecated: true
-          description: Email address that belongs to the MongoDB Cloud user.
+          description: "Deprecated: Email address that belongs to the MongoDB Cloud user."
           format: email
           readOnly: true
           type: string
@@ -5908,8 +5918,8 @@ components:
             | x.509 | `x509Type` | `MANAGED` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
             | LDAP | `ldapAuthType` | `USER` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
             | LDAP | `ldapAuthType` | `GROUP` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
-            | OIDC Workforce | `oidcAuthType` | `IDP_GROUP` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name |
-            | OIDC Workload | `oidcAuthType` | `USER` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |
+            | OIDC Workforce or Workload | `oidcAuthType` | `IDP_GROUP` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by a group identifier from the IdP's configured `groupsClaim`. Use when the IdP's `authorizationType` is `GROUP`. The groups claim can be a custom claim, such as `roles`. |
+            | OIDC Workforce or Workload | `oidcAuthType` | `USER` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by a user identifier from the IdP's configured `userClaim`. Use when the IdP's `authorizationType` is `USER`. |
             | SCRAM-SHA | `awsIAMType`, `x509Type`, `ldapAuthType`, `oidcAuthType` | `NONE` | Alphanumeric string |
           maxLength: 1024
           type: string
@@ -6052,6 +6062,7 @@ components:
             - EXPORT_SNAPSHOT
             - PUSH_BASED_LOG_EXPORT
             - ATLAS_LOG_INTEGRATION
+            - OBJECT_STORAGE_PRIVATE_ENDPOINT
           readOnly: true
           type: string
         featureId:
@@ -6070,6 +6081,9 @@ components:
             properties:
               - featureId
           EXPORT_SNAPSHOT:
+            properties:
+              - featureId
+          OBJECT_STORAGE_PRIVATE_ENDPOINT:
             properties:
               - featureId
           PUSH_BASED_LOG_EXPORT:
@@ -7296,6 +7310,52 @@ components:
           description: Flag that indicates whether the cluster tier can scale down via reactive auto-scaling. This is required if `autoScaling.compute.enabled` is `true`. If you enable this option, specify a value for `providerSettings.autoScaling.compute.minInstanceSize`.
           type: boolean
       type: object
+    ClusterConfigurationValidation:
+      properties:
+        advancedConfiguration:
+          $ref: "#/components/schemas/ClusterDescriptionProcessArgs20240805"
+        clusterDescription:
+          $ref: "#/components/schemas/ClusterDescription20240805"
+        clusterName:
+          description: Name of the existing cluster to validate against when editing is true.
+          type: string
+        editing:
+          description: When true, validates the configuration as an update to an existing cluster. When false, validates as a new cluster create.
+          type: boolean
+        searchDeploymentSpec:
+          $ref: "#/components/schemas/ApiSearchDeploymentSpecView"
+        tags:
+          description: Optional list of resource tags.
+          items:
+            $ref: "#/components/schemas/ResourceTag"
+          maxItems: 50
+          type: array
+      required:
+        - clusterDescription
+        - editing
+      type: object
+    ClusterConfigurationValidationError:
+      properties:
+        errorCode:
+          description: Machine-readable error code identifying the type of validation failure.
+          example: CLUSTER_NOT_FOUND
+          type: string
+        validationIssue:
+          description: Description of the validation failure.
+          type: string
+      type: object
+    ClusterConfigurationValidationResult:
+      properties:
+        errors:
+          description: List of validation errors, present only when valid is false.
+          items:
+            $ref: "#/components/schemas/ClusterConfigurationValidationError"
+          maxItems: 100
+          type: array
+        valid:
+          description: Whether the cluster configuration is valid.
+          type: boolean
+      type: object
     ClusterConnectionStrings:
       description: Collection of Uniform Resource Locators that point to the MongoDB database.
       externalDocs:
@@ -7305,14 +7365,14 @@ components:
         awsPrivateLink:
           additionalProperties:
             deprecated: true
-            description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+            description: "Deprecated: Use the Private Endpoint Connection Strings resource instead. Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names."
             externalDocs:
               description: Private Endpoints
               url: https://www.mongodb.com/docs/atlas/security-private-endpoint
             readOnly: true
             type: string
           deprecated: true
-          description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+          description: "Deprecated: Use the Private Endpoint Connection Strings resource instead. Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names."
           externalDocs:
             description: Private Endpoints
             url: https://www.mongodb.com/docs/atlas/security-private-endpoint
@@ -7321,14 +7381,14 @@ components:
         awsPrivateLinkSrv:
           additionalProperties:
             deprecated: true
-            description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+            description: "Deprecated: Use the Private Endpoint Connection Strings resource instead. Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present."
             externalDocs:
               description: Private Endpoints
               url: https://www.mongodb.com/docs/atlas/security-private-endpoint
             readOnly: true
             type: string
           deprecated: true
-          description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+          description: "Deprecated: Use the Private Endpoint Connection Strings resource instead. Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present."
           externalDocs:
             description: Private Endpoints
             url: https://www.mongodb.com/docs/atlas/security-private-endpoint
@@ -7343,7 +7403,7 @@ components:
           type: string
         privateEndpoint:
           deprecated: true
-          description: List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
+          description: "Deprecated: Use the Private Endpoint Connection Strings resource instead. List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes."
           externalDocs:
             description: Private Endpoints
             url: https://www.mongodb.com/docs/atlas/security-private-endpoint
@@ -7526,9 +7586,9 @@ components:
         labels:
           deprecated: true
           description: |-
-            Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
+            Deprecated: Cluster labels will be removed in a future release. We strongly recommend that you use Resource Tags instead.
 
-            Cluster labels are deprecated and will be removed in a future release. We strongly recommend that you use Resource Tags instead.
+            Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
           externalDocs:
             description: Resource Tags
             url: https://dochub.mongodb.org/core/add-cluster-tag-atlas
@@ -7803,7 +7863,7 @@ components:
         failIndexKeyTooLong:
           default: true
           deprecated: true
-          description: Flag that indicates whether you can insert or update documents where all indexed entries don't exceed 1024 bytes. If you set this to false, [mongod](https://docs.mongodb.com/upcoming/reference/program/mongod/#mongodb-binary-bin.mongod) writes documents that exceed this limit but doesn't index them. This parameter has been removed as of [MongoDB 4.4](https://www.mongodb.com/docs/manual/reference/parameters/#mongodb-parameter-param.failIndexKeyTooLong).
+          description: "Deprecated: This parameter has been removed as of [MongoDB 4.4](https://www.mongodb.com/docs/manual/reference/parameters/#mongodb-parameter-param.failIndexKeyTooLong). Flag that indicates whether you can insert or update documents where all indexed entries don't exceed 1024 bytes. If you set this to false, [mongod](https://docs.mongodb.com/upcoming/reference/program/mongod/#mongodb-binary-bin.mongod) writes documents that exceed this limit but doesn't index them."
           externalDocs:
             description: This option corresponds to the `failIndexKeyTooLong` `mongod` configuration file option.
             url: https://docs.mongodb.com/upcoming/reference/parameters/#mongodb-parameter-param.failIndexKeyTooLong
@@ -8126,7 +8186,7 @@ components:
         encryptEBSVolume:
           default: true
           deprecated: true
-          description: Flag that indicates whether the Amazon Elastic Block Store (EBS) encryption feature encrypts the host's root volume for both data at rest within the volume and for data moving between the volume and the cluster. Clusters always have this setting enabled.
+          description: "Deprecated: Flag that indicates whether the Amazon Elastic Block Store (EBS) encryption feature encrypts the host's root volume for both data at rest within the volume and for data moving between the volume and the cluster. Clusters always have this setting enabled."
           type: boolean
         instanceSizeName:
           description: Cluster tier, with a default storage and memory capacity, that applies to all the data-bearing hosts in your cluster. You must set `providerSettings.providerName` to `FLEX` and specify the cloud service provider in `providerSettings.backingProviderName`.
@@ -11675,7 +11735,7 @@ components:
           type: string
         tenantId:
           deprecated: true
-          description: "UUID that identifies the Azure Active Directory Tenant ID. Deprecated: this field is ignored; the `tenantId` of the Cloud Provider Access role (from `roleId`) is used."
+          description: "Deprecated: The `tenantId` of the Cloud Provider Access role (from `roleId`) is used instead. UUID that identifies the Azure Active Directory Tenant ID."
           format: uuid
           type: string
       required:
@@ -12791,8 +12851,6 @@ components:
         - AZURE_ENCRYPTION_KEY_INVALID
         - GCP_ENCRYPTION_KEY_VALID
         - GCP_ENCRYPTION_KEY_INVALID
-        - ENCRYPTION_KEY_TRANSITION_STARTED
-        - ENCRYPTION_KEY_TRANSITION_COMPLETED
         - BUCKET_CREATED_AUDIT
         - BUCKET_DELETED_AUDIT
         - FTS_INDEX_DELETION_FAILED
@@ -12831,6 +12889,9 @@ components:
         - GROUP_CHARTS_ACTIVATED
         - GROUP_CHARTS_UPGRADED
         - GROUP_CHARTS_RESET
+        - PROJECT_OPERATIONS_CONTACT_MODIFIED
+        - PROJECT_OPERATIONS_CONTACT_ALERTS_ENABLED
+        - PROJECT_OPERATIONS_CONTACT_ALERTS_DISABLED
         - GROUP_DEFAULT_ALERTS_SETTINGS_CHANGED
         - PAID_IN_FULL
         - DELINQUENT
@@ -12954,6 +13015,7 @@ components:
         - MONGODB_USER_X509_CERT_CREATED
         - MONGODB_USER_X509_CERT_REVOKED
         - MONGODB_USER_UPDATED
+        - MONGODB_USER_PASSWORD_UPDATED
         - MONGODB_ROLE_ADDED
         - MONGODB_ROLE_DELETED
         - MONGODB_ROLE_UPDATED
@@ -13166,6 +13228,7 @@ components:
         - SEARCH_HOST_DISABLE_FTS
         - SEARCH_HOST_PAUSE_INITIAL_SYNC_ON_INDEX_IDS
         - SEARCH_AUTOSCALING_ADMIN_OVERRIDES_UPDATED
+        - SEARCH_CLUSTER_MONGOT_VERSION_OVERRIDE_UPDATED
         - CLUSTER_BLOCK_WRITE
         - CLUSTER_UNBLOCK_WRITE
         - KMIP_KEY_ROTATION_SCHEDULED
@@ -13401,6 +13464,8 @@ components:
         - AI_MODELS_APIS_RATE_LIMIT_UPDATED
         - AI_MODELS_APIS_RATE_LIMIT_RESET
         - AI_MODELS_APIS_RATE_LIMIT_ADMIN_OVERRIDE
+        - ENCRYPTION_KEY_TRANSITION_STARTED
+        - ENCRYPTION_KEY_TRANSITION_COMPLETED
         - PROACTIVE_REMEDIATION_NEEDED
         - STREAMS_PRIVATE_LINK_ENDPOINT_UNUSED_FIRST_WARNING
         - STREAMS_PRIVATE_LINK_ENDPOINT_UNUSED_SECOND_WARNING
@@ -13554,6 +13619,9 @@ components:
         - GROUP_DELETED
         - GROUP_CREATED
         - GROUP_MOVED
+        - PROJECT_OPERATIONS_CONTACT_MODIFIED
+        - PROJECT_OPERATIONS_CONTACT_ALERTS_ENABLED
+        - PROJECT_OPERATIONS_CONTACT_ALERTS_DISABLED
         - MLAB_MIGRATION_COMPLETED
         - MLAB_MIGRATION_TARGET_CLUSTER_CREATED
         - MLAB_MIGRATION_DATABASE_USERS_IMPORTED
@@ -17282,9 +17350,9 @@ components:
         labels:
           deprecated: true
           description: |-
-            Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
+            Deprecated: Cluster labels will be removed in a future release. We strongly recommend that you use Resource Tags instead.
 
-            Cluster labels are deprecated and will be removed in a future release. We strongly recommend that you use Resource Tags instead.
+            Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
           externalDocs:
             description: Resource Tags
             url: https://dochub.mongodb.org/core/add-cluster-tag-atlas
@@ -17387,7 +17455,7 @@ components:
         replicationFactor:
           default: 3
           deprecated: true
-          description: Number of members that belong to the replica set. Each member retains a copy of your databases, providing high availability and data redundancy. Use `replicationSpecs` instead.
+          description: "Deprecated: Use `replicationSpecs` instead. Number of members that belong to the replica set. Each member retains a copy of your databases, providing high availability and data redundancy."
           enum:
             - 3
             - 5
@@ -17626,9 +17694,9 @@ components:
         labels:
           deprecated: true
           description: |-
-            Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
+            Deprecated: Cluster labels will be removed in a future release. We strongly recommend that you use Resource Tags instead.
 
-            Cluster labels are deprecated and will be removed in a future release. We strongly recommend that you use Resource Tags instead.
+            Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
           externalDocs:
             description: Resource Tags
             url: https://dochub.mongodb.org/core/add-cluster-tag-atlas
@@ -17731,7 +17799,7 @@ components:
         replicationFactor:
           default: 3
           deprecated: true
-          description: Number of members that belong to the replica set. Each member retains a copy of your databases, providing high availability and data redundancy. Use `replicationSpecs` instead.
+          description: "Deprecated: Use `replicationSpecs` instead. Number of members that belong to the replica set. Each member retains a copy of your databases, providing high availability and data redundancy."
           enum:
             - 3
             - 5
@@ -19081,22 +19149,7 @@ components:
           readOnly: true
           type: array
       type: object
-    MongosTopologyCreateRequest:
-      description: Dedicated mongos topology to attach to a sharded cluster.
-      properties:
-        clusterName:
-          description: Human-readable label that identifies the sharded cluster this topology belongs to.
-          type: string
-        instanceSize:
-          description: Instance size of the dedicated mongos hosts (for example, `M30`).
-          type: string
-        regionPlacements:
-          description: Per-region placement of the dedicated mongos hosts.
-          items:
-            $ref: "#/components/schemas/MongosTopologyResourceRegionConfig"
-          type: array
-      type: object
-    MongosTopologyResourceRegionConfig:
+    MongosRegionPlacement:
       description: Dedicated mongos placement in one region.
       properties:
         nodeCount:
@@ -19114,7 +19167,22 @@ components:
           description: Region in which the dedicated mongos run.
           type: string
       type: object
-    MongosTopologyResourceResponse:
+    MongosTopologyCreateRequest:
+      description: Dedicated mongos topology to attach to a sharded cluster.
+      properties:
+        clusterName:
+          description: Human-readable label that identifies the sharded cluster this topology belongs to.
+          type: string
+        instanceSize:
+          description: Instance size of the dedicated mongos hosts (for example, `M30`).
+          type: string
+        regionPlacements:
+          description: Per-region placement of the dedicated mongos hosts.
+          items:
+            $ref: "#/components/schemas/MongosRegionPlacement"
+          type: array
+      type: object
+    MongosTopologyResponse:
       description: Configuration of the dedicated mongos routers for a sharded cluster, identified by the name of its associated cluster.
       properties:
         clusterName:
@@ -19126,7 +19194,7 @@ components:
         regionPlacements:
           description: Per-region placement of the dedicated mongos hosts.
           items:
-            $ref: "#/components/schemas/MongosTopologyResourceRegionConfig"
+            $ref: "#/components/schemas/MongosRegionPlacement"
           type: array
         status:
           description: Lifecycle status of the dedicated mongos topology resource.
@@ -19150,7 +19218,7 @@ components:
         regionPlacements:
           description: Per-region placement of the dedicated mongos hosts.
           items:
-            $ref: "#/components/schemas/MongosTopologyResourceRegionConfig"
+            $ref: "#/components/schemas/MongosRegionPlacement"
           type: array
       type: object
     NamespaceObj:
@@ -22411,7 +22479,7 @@ components:
       required:
         - results
       type: object
-    PaginatedMongosTopologyResourceResponse:
+    PaginatedMongosTopologyResponse:
       properties:
         links:
           description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
@@ -22425,7 +22493,7 @@ components:
         results:
           description: List of returned documents that MongoDB Cloud provides when completing this request.
           items:
-            $ref: "#/components/schemas/MongosTopologyResourceResponse"
+            $ref: "#/components/schemas/MongosTopologyResponse"
           readOnly: true
           type: array
         totalCount:
@@ -24280,17 +24348,17 @@ components:
           type: string
         p50ExecMicros:
           deprecated: true
-          description: The 50th percentile value of execution time in microseconds. This field is deprecated as the values it reports may be inaccurate. It will be removed in a future release.
+          description: "Deprecated: The values it reports may be inaccurate. It will be removed in a future release. The 50th percentile value of execution time in microseconds."
           format: double
           type: number
         p90ExecMicros:
           deprecated: true
-          description: The 90th percentile value of execution time in microseconds. This field is deprecated as the values it reports may be inaccurate. It will be removed in a future release.
+          description: "Deprecated: The values it reports may be inaccurate. It will be removed in a future release. The 90th percentile value of execution time in microseconds."
           format: double
           type: number
         p99ExecMicros:
           deprecated: true
-          description: The 99th percentile value of execution time in microseconds. This field is deprecated as the values it reports may be inaccurate. It will be removed in a future release.
+          description: "Deprecated: The values it reports may be inaccurate. It will be removed in a future release. The 99th percentile value of execution time in microseconds."
           format: double
           type: number
         queryShape:
@@ -25687,6 +25755,7 @@ components:
           enum:
             - NAMESPACE_NOT_FOUND
             - COLLECTION_EMPTY
+            - TIMESERIES_COLLECTION_UNSUPPORTED
             - SHARD_KEY_MISSING_SUPPORTING_INDEX
             - INSUFFICIENT_CARDINALITY_FOR_DISTRIBUTION
             - SHARD_KEY_CONTAINS_ARRAY_FIELD
@@ -29438,7 +29507,7 @@ info:
   termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
   title: MongoDB Atlas Administration API
   version: "2.0"
-  x-xgen-sha: aed150e8f1ce537e7e36dc88578085e500f74272
+  x-xgen-sha: 1b4e4b5231481bf19b4ed3004a09e767be4ac36c
 openapi: 3.0.1
 paths:
   /api/atlas/v2:
@@ -33730,6 +33799,65 @@ paths:
         customMethod: "True"
         verb: authorizeRole
       x-xgen-operation-id-override: authorizeProviderAccessRole
+  /api/atlas/v2/groups/{groupId}/clusterConfigurations:validate:
+    post:
+      description: Checks if the given cluster configuration is valid and ready to be used to create or edit a cluster.
+      operationId: validateGroupClusterConfigurations
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+        - $ref: "#/components/parameters/groupId"
+        - description: When true, hardware specification fields for autoscaling-enabled clusters are resolved to their effective (current operational) values before validating an edit. When false (default), the client-specified values are validated. Set this to match the header sent on the corresponding cluster update.
+          in: header
+          name: Use-Effective-Instance-Fields
+          schema:
+            default: false
+            type: boolean
+        - description: Controls how `replicationSpecs` are interpreted for auto-sharded clusters when validating an edit. When false (default), `replicationSpecs` is treated as the actual cluster state.
+          in: header
+          name: Use-Effective-Fields-Replication-Specs
+          schema:
+            default: false
+            type: boolean
+      requestBody:
+        content:
+          application/vnd.atlas.2025-03-12+json:
+            schema:
+              $ref: "#/components/schemas/ClusterConfigurationValidation"
+            x-xgen-version: 2025-03-12
+        description: Cluster configuration to validate.
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/ClusterConfigurationValidationResult"
+              x-xgen-version: 2025-03-12
+          description: Ok
+          headers:
+            RateLimit-Limit:
+              $ref: "#/components/headers/HeaderRateLimitLimit"
+            RateLimit-Remaining:
+              $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Validate One Cluster Configuration
+      tags:
+        - Clusters
+      x-rolesRequirements:
+        - Project Cluster Manager
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/validateGroupClusterConfigurations
   /api/atlas/v2/groups/{groupId}/clusters:
     get:
       description: |-
@@ -34027,7 +34155,7 @@ paths:
         "402":
           $ref: "#/components/responses/paymentRequired"
         "403":
-          $ref: "#/components/responses/forbidden"
+          $ref: "#/components/responses/forbiddenOrResourcePolicyViolation"
         "404":
           $ref: "#/components/responses/notFound"
         "409":
@@ -38668,7 +38796,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/PaginatedPrivateEndpointConnectionStringResponse"
               x-xgen-preview:
-                name: private-endpoint-connection-strings
+                public: "true"
               x-xgen-version: preview
           description: OK
           headers:
@@ -38712,7 +38840,7 @@ paths:
             schema:
               $ref: "#/components/schemas/PrivateEndpointConnectionStringCreateRequest"
             x-xgen-preview:
-              name: private-endpoint-connection-strings
+              public: "true"
             x-xgen-version: preview
         description: Private endpoint connection string to create.
         required: true
@@ -38723,7 +38851,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/PrivateEndpointConnectionStringResponse"
               x-xgen-preview:
-                name: private-endpoint-connection-strings
+                public: "true"
               x-xgen-version: preview
           description: Created
           headers:
@@ -38778,7 +38906,7 @@ paths:
           content:
             application/vnd.atlas.preview+json:
               x-xgen-preview:
-                name: private-endpoint-connection-strings
+                public: "true"
               x-xgen-version: preview
           description: No Content
           headers:
@@ -38830,7 +38958,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/PrivateEndpointConnectionStringResponse"
               x-xgen-preview:
-                name: private-endpoint-connection-strings
+                public: "true"
               x-xgen-version: preview
           description: OK
           headers:
@@ -38881,7 +39009,7 @@ paths:
             schema:
               $ref: "#/components/schemas/PrivateEndpointConnectionStringUpdateRequest"
             x-xgen-preview:
-              name: private-endpoint-connection-strings
+              public: "true"
             x-xgen-version: preview
         description: Private endpoint connection string fields to update.
         required: true
@@ -38892,7 +39020,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/PrivateEndpointConnectionStringResponse"
               x-xgen-preview:
-                name: private-endpoint-connection-strings
+                public: "true"
               x-xgen-version: preview
           description: OK
           headers:
@@ -42325,7 +42453,7 @@ paths:
         "402":
           $ref: "#/components/responses/paymentRequired"
         "403":
-          $ref: "#/components/responses/forbidden"
+          $ref: "#/components/responses/forbiddenOrResourcePolicyViolation"
         "404":
           $ref: "#/components/responses/notFound"
         "409":
@@ -43735,8 +43863,8 @@ paths:
             | x.509 | `x509Type` | `MANAGED` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
             | LDAP | `ldapAuthType` | `USER` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
             | LDAP | `ldapAuthType` | `GROUP` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
-            | OIDC Workforce | `oidcAuthType` | `IDP_GROUP` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name |
-            | OIDC Workload | `oidcAuthType` | `USER` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |
+            | OIDC Workforce or Workload | `oidcAuthType` | `IDP_GROUP` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by a group identifier from the IdP's configured `groupsClaim`. Use when the IdP's `authorizationType` is `GROUP`. The groups claim can be a custom claim, such as `roles`. |
+            | OIDC Workforce or Workload | `oidcAuthType` | `USER` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by a user identifier from the IdP's configured `userClaim`. Use when the IdP's `authorizationType` is `USER`. |
             | SCRAM-SHA | `awsIAMType`, `x509Type`, `ldapAuthType`, `oidcAuthType` | `NONE` | Alphanumeric string |
           in: path
           name: username
@@ -43797,8 +43925,8 @@ paths:
             | x.509 | `x509Type` | `MANAGED` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
             | LDAP | `ldapAuthType` | `USER` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
             | LDAP | `ldapAuthType` | `GROUP` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
-            | OIDC Workforce | `oidcAuthType` | `IDP_GROUP` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name |
-            | OIDC Workload | `oidcAuthType` | `USER` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |
+            | OIDC Workforce or Workload | `oidcAuthType` | `IDP_GROUP` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by a group identifier from the IdP's configured `groupsClaim`. Use when the IdP's `authorizationType` is `GROUP`. The groups claim can be a custom claim, such as `roles`. |
+            | OIDC Workforce or Workload | `oidcAuthType` | `USER` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by a user identifier from the IdP's configured `userClaim`. Use when the IdP's `authorizationType` is `USER`. |
             | SCRAM-SHA | `awsIAMType`, `x509Type`, `ldapAuthType`, `oidcAuthType` | `NONE` | Alphanumeric string |
           in: path
           name: username
@@ -43860,8 +43988,8 @@ paths:
             | x.509 | `x509Type` | `MANAGED` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
             | LDAP | `ldapAuthType` | `USER` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
             | LDAP | `ldapAuthType` | `GROUP` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
-            | OIDC Workforce | `oidcAuthType` | `IDP_GROUP` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name |
-            | OIDC Workload | `oidcAuthType` | `USER` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |
+            | OIDC Workforce or Workload | `oidcAuthType` | `IDP_GROUP` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by a group identifier from the IdP's configured `groupsClaim`. Use when the IdP's `authorizationType` is `GROUP`. The groups claim can be a custom claim, such as `roles`. |
+            | OIDC Workforce or Workload | `oidcAuthType` | `USER` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by a user identifier from the IdP's configured `userClaim`. Use when the IdP's `authorizationType` is `USER`. |
             | SCRAM-SHA | `awsIAMType`, `x509Type`, `ldapAuthType`, `oidcAuthType` | `NONE` | Alphanumeric string |
           in: path
           name: username
@@ -48086,7 +48214,7 @@ paths:
           content:
             application/vnd.atlas.preview+json:
               schema:
-                $ref: "#/components/schemas/PaginatedMongosTopologyResourceResponse"
+                $ref: "#/components/schemas/PaginatedMongosTopologyResponse"
               x-xgen-preview:
                 name: mongos-topologies
               x-xgen-version: preview
@@ -48134,7 +48262,7 @@ paths:
           content:
             application/vnd.atlas.preview+json:
               schema:
-                $ref: "#/components/schemas/MongosTopologyResourceResponse"
+                $ref: "#/components/schemas/MongosTopologyResponse"
               x-xgen-preview:
                 name: mongos-topologies
               x-xgen-version: preview
@@ -48156,7 +48284,7 @@ paths:
         "401":
           $ref: "#/components/responses/unauthorized"
         "403":
-          $ref: "#/components/responses/forbidden"
+          $ref: "#/components/responses/forbiddenOrResourcePolicyViolation"
         "404":
           $ref: "#/components/responses/notFound"
         "409":
@@ -48203,7 +48331,7 @@ paths:
         "401":
           $ref: "#/components/responses/unauthorized"
         "403":
-          $ref: "#/components/responses/forbidden"
+          $ref: "#/components/responses/forbiddenOrResourcePolicyViolation"
         "404":
           $ref: "#/components/responses/notFound"
         "409":
@@ -48236,7 +48364,7 @@ paths:
           content:
             application/vnd.atlas.preview+json:
               schema:
-                $ref: "#/components/schemas/MongosTopologyResourceResponse"
+                $ref: "#/components/schemas/MongosTopologyResponse"
               x-xgen-preview:
                 name: mongos-topologies
               x-xgen-version: preview
@@ -48290,7 +48418,7 @@ paths:
           content:
             application/vnd.atlas.preview+json:
               schema:
-                $ref: "#/components/schemas/MongosTopologyResourceResponse"
+                $ref: "#/components/schemas/MongosTopologyResponse"
               x-xgen-preview:
                 name: mongos-topologies
               x-xgen-version: preview
@@ -48312,7 +48440,7 @@ paths:
         "401":
           $ref: "#/components/responses/unauthorized"
         "403":
-          $ref: "#/components/responses/forbidden"
+          $ref: "#/components/responses/forbiddenOrResourcePolicyViolation"
         "404":
           $ref: "#/components/responses/notFound"
         "409":
@@ -48797,7 +48925,7 @@ paths:
         "402":
           $ref: "#/components/responses/paymentRequired"
         "403":
-          $ref: "#/components/responses/forbidden"
+          $ref: "#/components/responses/forbiddenOrResourcePolicyViolation"
         "404":
           $ref: "#/components/responses/notFound"
         "409":
@@ -48862,7 +48990,7 @@ paths:
         "401":
           $ref: "#/components/responses/unauthorized"
         "403":
-          $ref: "#/components/responses/forbidden"
+          $ref: "#/components/responses/forbiddenOrResourcePolicyViolation"
         "404":
           $ref: "#/components/responses/notFound"
         "429":
@@ -51960,6 +52088,8 @@ paths:
               $ref: "#/components/headers/HeaderRateLimitLimit"
             RateLimit-Remaining:
               $ref: "#/components/headers/HeaderRateLimitRemaining"
+        "400":
+          $ref: "#/components/responses/badRequest"
         "401":
           $ref: "#/components/responses/unauthorized"
         "403":
@@ -55670,6 +55800,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/PaginatedOrganizationView"
               x-xgen-version: 2023-01-01
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedOrganizationView"
+              x-xgen-preview:
+                name: organization-discovery
+              x-xgen-version: preview
           description: OK
           headers:
             RateLimit-Limit:
