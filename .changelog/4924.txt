@@ -1,3 +1,0 @@
-```release-note:bug
-provider: Fixes API key requests failing with `EOF` when Atlas closes a reused connection
-```
