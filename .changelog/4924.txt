@@ -1,0 +1,7 @@
+```release-note:bug
+provider: Fixes API key requests failing with `EOF` when Atlas closes a reused connection
+```
+
+```release-note:bug
+data-source/mongodbatlas_projects: Returns an error when reading a project's details fails, instead of omitting the project from `results`
+```
