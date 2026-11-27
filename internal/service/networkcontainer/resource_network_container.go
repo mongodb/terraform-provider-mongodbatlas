@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -262,7 +263,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"provisioned_container"},
 		Target:     []string{"deleted"},
-		Refresh:    resourceRefreshFunc(ctx, d, connV2),
+		Refresh:    resourceDeleteRefreshFunc(ctx, d, connV2),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 10 * time.Second,
 		Delay:      2 * time.Minute,
@@ -316,13 +317,12 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceRefreshFunc(ctx context.Context, d *schema.ResourceData, client *admin.APIClient) retry.StateRefreshFunc {
+func resourceDeleteRefreshFunc(ctx context.Context, d *schema.ResourceData, client *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		ids := conversion.DecodeStateID(d.Id())
 		projectID := ids["project_id"]
 		containerID := ids["container_id"]
 
-		var err error
 		container, res, err := client.NetworkPeeringAPI.GetGroupContainer(ctx, projectID, containerID).Execute()
 		if err != nil {
 			if validate.StatusNotFound(res) {
@@ -332,14 +332,16 @@ func resourceRefreshFunc(ctx context.Context, d *schema.ResourceData, client *ad
 			return nil, "", err
 		}
 
-		if *container.Provisioned {
-			return nil, "provisioned_container", nil
-		}
-
-		// Atlas Delete is called inside refresh to retry when error: HTTP 409 Conflict (Error code: "CONTAINERS_IN_USE").
-		_, err = client.NetworkPeeringAPI.DeleteGroupContainer(ctx, projectID, containerID).Execute()
+		// Delete every poll because provisioned can lag behind peering removal; retry only on 409 CONTAINERS_IN_USE.
+		deleteResp, err := client.NetworkPeeringAPI.DeleteGroupContainer(ctx, projectID, containerID).Execute()
 		if err != nil {
-			return nil, "provisioned_container", nil
+			if validate.StatusNotFound(deleteResp) {
+				return "", "deleted", nil
+			}
+			if deleteResp != nil && deleteResp.StatusCode == http.StatusConflict {
+				return container, "provisioned_container", nil
+			}
+			return nil, "", err
 		}
 
 		return "", "deleted", nil
