@@ -79,4 +79,6 @@ Serverless Instance can be imported using the group ID and serverless instance n
 $ terraform import mongodbatlas_serverless_instance.my_serverless_instance 1112222b3bf99403840e8934/My Serverless Instance
 ```
 
+The legacy `{project_id}-{name}` format is still accepted but deprecated.
+
 For more information see: [MongoDB Atlas API - Serverless Instance](https://www.mongodb.com/docs/atlas/reference/api/serverless-instances/) Documentation.

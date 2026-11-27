@@ -216,4 +216,6 @@ Stream Processor resource can be imported using the Project ID, Stream Instance 
 $ terraform import mongodbatlas_stream_processor.test 6117ac2fe2a3d04ed27a987v/yourInstanceName/yourProcessorName
 ```
 
+The legacy `{instance_name}-{project_id}-{processor_name}` format is still accepted but deprecated.
+
 For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createstreamprocessor) Documentation.

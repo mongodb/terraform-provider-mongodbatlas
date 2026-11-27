@@ -66,3 +66,5 @@ Import a user's invitation to a project, e.g.
 ```
 $ terraform import mongodbatlas_project_invitation.my_user 1112222b3bf99403840e8934/my_user@mongodb.com
 ```
+
+The legacy `{project_id}-{username}` format is still accepted but deprecated.

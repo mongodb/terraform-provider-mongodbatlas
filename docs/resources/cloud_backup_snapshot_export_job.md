@@ -131,4 +131,6 @@ Cloud Backup Snapshot Export Job entries can be imported using `project_id`, `cl
 $ terraform import mongodbatlas_cloud_backup_snapshot_export_job.test 5d0f1f73cf09a29120e173cf/MyCluster/5d116d82014b764445b2f9b5
 ```
 
+The legacy `{project_id}--{cluster_name}--{export_job_id}` format is still accepted but deprecated.
+
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/export/create-one-export-job/)

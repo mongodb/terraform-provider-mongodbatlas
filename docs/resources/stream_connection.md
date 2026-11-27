@@ -564,5 +564,7 @@ You can import a stream connection resource using the project ID, workspace name
 $ terraform import mongodbatlas_stream_connection.test "12251446ae5f3f6ec7968b13/DefaultInstance/NewConnection"
 ```
 
+The legacy `{workspace_name}-{project_id}-{connection_name}` format is still accepted but deprecated.
+
 To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createstreamconnection) Documentation.
 The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_processor/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.

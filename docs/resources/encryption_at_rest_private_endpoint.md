@@ -137,6 +137,8 @@ $ terraform import mongodbatlas_encryption_at_rest_private_endpoint.test 6509728
 $ terraform import mongodbatlas_encryption_at_rest_private_endpoint.test 650972848269185c55f40ca2/AWS/650972848269185c55f40ca3
 ```
 
+The legacy `{project_id}-{cloud_provider}-{private_endpoint_id}` format is still accepted but deprecated.
+
 For more information see: 
 - [MongoDB Atlas API - Private Endpoint for Encryption at Rest Using Customer Key Management](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getencryptionatrestprivateendpoint) Documentation.
 - [Manage Customer Keys with Azure Key Vault Over Private Endpoints](https://www.mongodb.com/docs/atlas/security/azure-kms-over-private-endpoint/).

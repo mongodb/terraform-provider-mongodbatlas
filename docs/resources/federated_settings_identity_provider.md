@@ -86,4 +86,6 @@ Identity Provider **must** be imported before use, using federation settings ID 
 $ terraform import mongodbatlas_federated_settings_identity_provider.identity_provider 6287a663c660f52b1c441c6c/0oad4fas87jL5Xnk12971234
 ```
 
+The legacy `{federation_settings_id}-{idp_id}` format is still accepted but deprecated.
+
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/federation-configuration/)

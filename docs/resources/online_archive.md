@@ -177,4 +177,6 @@ You can import online archives using `project_id`, `cluster_name`, and `archive_
 terraform import mongodbatlas_online_archive.users_archive <project_id>/<cluster_name>/<archive_id>
 ```
 
+The legacy `{project_id}-{cluster_name}-{archive_id}` format is still accepted but deprecated.
+
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api/online-archive-create-one/) Documentation for more information.

@@ -70,4 +70,6 @@ LDAP Configuration must be imported using project ID and request ID, in the form
 $ terraform import mongodbatlas_ldap_verify.test 5d09d6a59ccf6445652a444a/5d09d6a59ccf6445652a444a
 ```
 
+The legacy `{project_id}-{request_id}` format is still accepted but deprecated.
+
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/ldaps-configuration-request-verification)

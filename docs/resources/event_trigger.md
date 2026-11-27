@@ -146,4 +146,6 @@ Event trigger can be imported using project ID, App ID and Trigger ID, in the fo
 $ terraform import mongodbatlas_event_trigger.test 1112222b3bf99403840e8934/testing-example/1112222b3bf99403840e8934
 ```
 
+The legacy `{project_id}--{app_id}--{trigger_id}` format is still accepted but deprecated.
+
 For more details on this resource see [Triggers resource](https://www.mongodb.com/docs/atlas/app-services/admin/api/v3/#tag/triggers) in Atlas App Services Documentation. 
