@@ -27,7 +27,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.41.1
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
 	github.com/jarcoal/httpmock v1.4.2
-	github.com/mongodb-forks/digest v1.2.0
+	github.com/mongodb-forks/digest v1.2.1
 	github.com/mongodb/atlas-sdk-go v1.0.1-0.20261116084438-a1eb45af3c69
 	github.com/pb33f/libopenapi v0.43.2
 	github.com/sebdah/goldie/v2 v2.8.0
