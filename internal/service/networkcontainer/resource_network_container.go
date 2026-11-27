@@ -323,7 +323,6 @@ func resourceRefreshFunc(ctx context.Context, d *schema.ResourceData, client *ad
 		projectID := ids["project_id"]
 		containerID := ids["container_id"]
 
-		var err error
 		container, res, err := client.NetworkPeeringAPI.GetGroupContainer(ctx, projectID, containerID).Execute()
 		if err != nil {
 			if validate.StatusNotFound(res) {
