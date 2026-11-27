@@ -14,6 +14,8 @@ BUG FIXES:
 
 * data-source/mongodbatlas_projects: Fails the read instead of silently omitting a project from `results` when one of its per-project API calls returns an error ([#4908](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4908))
 * resource/mongodbatlas_advanced_cluster: Sends `mongo_db_major_version` in Flex/Free to Dedicated upgrade requests so the configured version is applied instead of the Atlas default ([#4919](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4919))
+* resource/mongodbatlas_mongodb_employee_access_grant: Fixes delete errors other than 404 being silently ignored. The delete now fails and the resource stays in state instead of being removed as if the delete had succeeded ([#4918](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4918))
+* resource/mongodbatlas_network_container: Fixes `terraform destroy` failing when the container still has a peering, or its deletion is still in progress ([#4923](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4923))
 * resource/mongodbatlas_stream_connection: Skips connection API updates when migrating between equivalent `instance_name` and `workspace_name` values ([#4739](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4739))
 
 ## 2.22.0 (November 17, 2026)
