@@ -1,4 +1,5 @@
 {
+ "mongoDBMajorVersion": "8.0",
  "name": "{clusterName}",
  "providerBackupEnabled": true,
  "providerSettings": {
