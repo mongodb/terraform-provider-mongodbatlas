@@ -611,10 +611,12 @@ Cloud Backup Policy will be added if `cloud_backup` is enabled because MongoDB A
 
 ## Import
 
-Clusters can be imported using project ID and cluster name, in the format `PROJECTID-CLUSTERNAME`, e.g.
+Clusters can be imported using project ID and cluster name, in the format `{project_id}/{cluster_name}`, e.g.
 
 ```
-$ terraform import mongodbatlas_cluster.my_cluster 1112222b3bf99403840e8934-Cluster0
+$ terraform import mongodbatlas_cluster.my_cluster 1112222b3bf99403840e8934/Cluster0
 ```
+
+The legacy `{project_id}-{name}` format is still accepted but deprecated.
 
 See detailed information for arguments and attributes: [MongoDB API Clusters](https://www.mongodb.com/docs/atlas/reference/api/clusters-create-one/)

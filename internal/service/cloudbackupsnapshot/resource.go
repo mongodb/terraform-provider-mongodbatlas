@@ -280,9 +280,12 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	params, err := SplitSnapshotImportID(d.Id())
+	params, legacy, err := SplitSnapshotImportID(d.Id())
 	if err != nil {
 		return nil, err
+	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{cluster_name}-{snapshot_id}", "{project_id}/{cluster_name}/{snapshot_id}"))
 	}
 
 	snapshot, _, err := connV2.CloudBackupsAPI.GetClusterBackupSnapshotWithParams(ctx, params).Execute()

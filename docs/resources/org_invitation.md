@@ -69,9 +69,10 @@ In addition to the arguments, this resource exports the following attributes:
 ~> **IMPORTANT:**
 An organization invitation can **not** be imported once it has been accepted.
 
-Import a user's invitation to an organization by separating the `org_id` and the `username` with a hyphen:
-
+Import a user's invitation to an organization, e.g.
 
 ```
-$ terraform import mongodbatlas_org_invitation.my_user 1112222b3bf99403840e8934-my_user@mongodb.com
+$ terraform import mongodbatlas_org_invitation.my_user 1112222b3bf99403840e8934/my_user@mongodb.com
 ```
+
+The legacy `{org_id}-{username}` format is still accepted but deprecated.

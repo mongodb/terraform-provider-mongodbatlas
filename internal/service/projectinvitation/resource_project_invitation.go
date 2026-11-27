@@ -3,6 +3,7 @@ package projectinvitation
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 
 	"go.mongodb.org/atlas-sdk/v20250312028/admin"
@@ -176,9 +177,12 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	projectID, username, err := splitProjectInvitationImportID(d.Id())
+	projectID, username, legacy, err := splitProjectInvitationImportID(d.Id())
 	if err != nil {
 		return nil, err
+	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{username}", "{project_id}/{username}"))
 	}
 
 	projectInvitations, _, err := connV2.ProjectsAPI.ListGroupInvites(ctx, projectID).Execute()
@@ -211,12 +215,20 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return nil, fmt.Errorf("could not import Project Invitation for %s", d.Id())
 }
 
-func splitProjectInvitationImportID(id string) (projectID, username string, err error) {
+// splitProjectInvitationImportID accepts the new "/"-separated format first and falls back to the
+// legacy "-"-separated format. legacy is true only when the legacy format parsed successfully.
+func splitProjectInvitationImportID(id string) (projectID, username string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+
+	legacy = true
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 3 {
-		err = fmt.Errorf("import format error: to import a Project Invitation, use the format {project_id}-{username}")
+		legacy = false
+		err = fmt.Errorf("import format error: to import a Project Invitation, use the format {project_id}/{username} or the legacy format {project_id}-{username}")
 		return
 	}
 

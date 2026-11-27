@@ -40,9 +40,12 @@ In addition to all arguments above, the following attributes are exported:
 * `api_key_id` - Unique identifier for this Organization API key.
 ## Import
 
-API Keys must be imported using org ID, API Key ID e.g.
+API Keys must be imported using org ID and API Key ID, in the format `{org_id}/{api_key_id}`.
 
 ```
-$ terraform import mongodbatlas_api_key.test 5d09d6a59ccf6445652a444a-6576974933969669
+$ terraform import mongodbatlas_api_key.test 5d09d6a59ccf6445652a444a/6576974933969669
 ```
+
+The legacy `{org_id}-{api_key_id}` format is still accepted but deprecated.
+
 See [MongoDB Atlas API - API Key](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/createApiKey) Documentation for more information.

@@ -1003,17 +1003,18 @@ Optional:
 
 ## Import
 
-Clusters can be imported using project ID and cluster name, in the format `PROJECTID-CLUSTERNAME`, e.g.
+Clusters can be imported using project ID and cluster name, in the format `{project_id}/{cluster_name}`, e.g.
 
 ```
-$ terraform import mongodbatlas_advanced_cluster.my_cluster 1112222b3bf99403840e8934-Cluster0
+$ terraform import mongodbatlas_advanced_cluster.my_cluster 1112222b3bf99403840e8934/Cluster0
 ```
+
+The legacy `{project_id}-{cluster_name}` format is still accepted but deprecated.
 
 See detailed information for arguments and attributes: [MongoDB API Advanced Clusters](https://www.mongodb.com/docs/atlas/reference/api/cluster-advanced/create-one-cluster-advanced/)
 
 ~> **IMPORTANT:**
 <br> &#8226; When a cluster is imported, the resulting schema structure will always return the new schema including `replication_specs` per independent shards of the cluster.
-
 ## Move
 
 `mongodbatlas__cluster` resources can be moved to `mongodbatlas_advanced_cluster` in Terraform v1.8 and later, e.g.: 

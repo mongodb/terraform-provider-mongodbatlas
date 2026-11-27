@@ -98,12 +98,12 @@ The process works as follow:
     }
   }
 ```
-2. Find the import IDs of the clusters you want to migrate: `{PROJECT_ID}-{CLUSTER_NAME}`, such as `664619d870c247237f4b86a6-legacy-cluster`
-3. Import it using the `terraform import` command, e.g.: `terraform import mongodbatlas_advanced_cluster.this 664619d870c247237f4b86a6-legacy-cluster`. Alternatively an `import block` can be used (available in Terraform 1.5 and later, can't be used inside modules), e.g.:
+2. Find the import IDs of the clusters you want to migrate: `{PROJECT_ID}-{CLUSTER_NAME}`, such as `664619d870c247237f4b86a6/legacy-cluster`
+3. Import it using the `terraform import` command, e.g.: `terraform import mongodbatlas_advanced_cluster.this 664619d870c247237f4b86a6/legacy-cluster`. Alternatively an `import block` can be used (available in Terraform 1.5 and later, can't be used inside modules), e.g.:
 ```terraform
 import {
   to = mongodbatlas_advanced_cluster.this
-  id = "664619d870c247237f4b86a6-legacy-cluster" # from step 2
+  id = "664619d870c247237f4b86a6/legacy-cluster" # from step 2
 }
 ```
 4. Run `terraform plan -generate-config-out=adv_cluster.tf`. This should generate a `adv_cluster.tf` file and display a message similar to `Plan: 1 to import, 0 to add, 0 to change, 0 to destroy`:

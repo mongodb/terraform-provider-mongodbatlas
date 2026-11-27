@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -197,9 +198,12 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	projectID, id, err := splitImportID(d.Id())
+	projectID, id, legacy, err := splitImportID(d.Id())
 	if err != nil {
 		return nil, err
+	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{id}", "{project_id}/{id}"))
 	}
 
 	_, _, err = conn.CloudBackupsAPI.GetExportBucket(ctx, *projectID, *id).Execute()
@@ -215,12 +219,20 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	return []*schema.ResourceData{d}, nil
 }
 
-func splitImportID(id string) (projectID, bucketID *string, err error) {
+// splitImportID accepts the new "/"-separated format first and falls back to the
+// legacy "-"-separated format. legacy is true only when the legacy format parsed successfully.
+func splitImportID(id string) (projectID, bucketID *string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return &parts[0], &parts[1], false, nil
+	}
+
+	legacy = true
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 3 {
-		err = errors.New("import format error: to import a serverless instance, use the format {project_id}-{id}")
+		legacy = false
+		err = errors.New("import format error: to import a snapshot export bucket, use the format {project_id}/{id} or the legacy format {project_id}-{id}")
 		return
 	}
 

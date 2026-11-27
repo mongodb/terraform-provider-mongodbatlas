@@ -176,10 +176,13 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 }
 
 func (r *encryptionAtRestPrivateEndpointRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	projectID, cloudProvider, privateEndpointID, err := splitEncryptionAtRestPrivateEndpointImportID(req.ID)
+	projectID, cloudProvider, privateEndpointID, legacy, err := splitEncryptionAtRestPrivateEndpointImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting import ID", err.Error())
 		return
+	}
+	if legacy {
+		resp.Diagnostics.AddWarning(conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{cloud_provider}-{private_endpoint_id}", "{project_id}/{cloud_provider}/{private_endpoint_id}"))
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
@@ -187,12 +190,17 @@ func (r *encryptionAtRestPrivateEndpointRS) ImportState(ctx context.Context, req
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), privateEndpointID)...)
 }
 
-func splitEncryptionAtRestPrivateEndpointImportID(id string) (projectID, cloudProvider, privateEndpointID string, err error) {
+func splitEncryptionAtRestPrivateEndpointImportID(id string) (projectID, cloudProvider, privateEndpointID string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 3); ok {
+		return parts[0], parts[1], parts[2], false, nil
+	}
+	legacy = true
 	re := regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([0-9a-fA-F]{24})$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 4 {
-		err = errors.New("use the format {project_id}-{cloud_provider}-{private_endpoint_id}")
+		legacy = false
+		err = errors.New("use the format {project_id}/{cloud_provider}/{private_endpoint_id} or the legacy format {project_id}-{cloud_provider}-{private_endpoint_id}")
 		return
 	}
 

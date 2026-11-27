@@ -164,13 +164,13 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	parts := strings.SplitN(d.Id(), "-", 2)
-	if len(parts) != 2 {
-		return nil, errors.New("import format error: to import a api key use the format {org_id}-{api_key_id}")
+	orgID, apiKeyID, legacy, err := splitAPIKeyImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
-
-	orgID := parts[0]
-	apiKeyID := parts[1]
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{org_id}-{api_key_id}", "{org_id}/{api_key_id}"))
+	}
 
 	r, _, err := connV2.ProgrammaticAPIKeysAPI.GetOrgApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
@@ -195,6 +195,19 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func splitAPIKeyImportID(id string) (orgID, apiKeyID string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+	parts := strings.SplitN(id, "-", 2)
+	if len(parts) != 2 {
+		legacy = false
+		err = errors.New("import format error: to import an api key use the format {org_id}/{api_key_id} or the legacy format {org_id}-{api_key_id}")
+		return
+	}
+	return parts[0], parts[1], true, nil
 }
 
 func flattenOrgAPIKeyRoles(orgID string, apiKeyRoles []admin.CloudAccessRoleAssignment) []string {

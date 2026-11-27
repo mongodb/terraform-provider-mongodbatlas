@@ -104,11 +104,13 @@ Optional:
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), and "h" (hours). Default: `3h`.
 
 ## Import 
-Search node resource can be imported using the project ID and cluster name, in the format `PROJECT_ID-CLUSTER_NAME`, e.g.
+Search node resource can be imported using the project ID and cluster name, in the format `{project_id}/{cluster_name}`, e.g.
 
 ```
-$ terraform import mongodbatlas_search_deployment.test 650972848269185c55f40ca1-Cluster0
+$ terraform import mongodbatlas_search_deployment.test 650972848269185c55f40ca1/Cluster0
 ```
+
+The legacy `{project_id}-{cluster_name}` format is still accepted but deprecated.
 
 After an import, a non-empty plan is expected if the configuration defines the `skip_wait_on_update` attribute. However, the update will not have any effect on the search deployment since `skip_wait_on_update` only relates to the update operations wait time.
 

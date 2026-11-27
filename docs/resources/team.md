@@ -38,10 +38,12 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Teams can be imported using the organization ID and team id, in the format ORGID-TEAMID, e.g.
+Teams can be imported using the organization ID and team id, in the format `{org_id}/{team_id}`, e.g.
 
 ```
-$ terraform import mongodbatlas_team.my_team 1112222b3bf99403840e8934-1112222b3bf99403840e8935
+$ terraform import mongodbatlas_team.my_team 1112222b3bf99403840e8934/1112222b3bf99403840e8935
 ```
+
+The legacy `{org_id}-{team_id}` format is still accepted but deprecated.
 
 See detailed information for arguments and attributes: [MongoDB API Teams](https://www.mongodb.com/docs/atlas/reference/api/teams-create-one/)

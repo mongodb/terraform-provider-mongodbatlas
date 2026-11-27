@@ -16,6 +16,8 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312028/admin"
 )
 
+var legacyImportIDRegex = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([0-9a-fA-F]{24})$`)
+
 func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceCreate,
@@ -245,10 +247,14 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	projectID, clusterName, restoreID, err := splitSnapshotRestoreJobImportID(d.Id())
+	projectID, clusterName, restoreID, legacy, err := SplitSnapshotRestoreJobImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{cluster_name}-{snapshot_restore_job_id}", "{project_id}/{cluster_name}/{snapshot_restore_job_id}"))
+	}
+
 	u, _, err := conn.CloudBackupsAPI.GetBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import cloudProviderSnapshotRestoreJob %s in project %s, error: %s", clusterName, projectID, err)
@@ -290,20 +296,19 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func splitSnapshotRestoreJobImportID(id string) (projectID, clusterName, snapshotJobID string, err error) {
-	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([0-9a-fA-F]{24})$`)
-	parts := re.FindStringSubmatch(id)
-
+// SplitSnapshotRestoreJobImportID splits an import ID in the format
+// {project_id}/{cluster_name}/{snapshot_restore_job_id} or in the legacy format
+// {project_id}-{cluster_name}-{snapshot_restore_job_id}, where the cluster name can contain hyphens.
+func SplitSnapshotRestoreJobImportID(id string) (projectID, clusterName, snapshotJobID string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 3); ok {
+		return parts[0], parts[1], parts[2], false, nil
+	}
+	parts := legacyImportIDRegex.FindStringSubmatch(id)
 	if len(parts) != 4 {
-		err = errors.New("import format error: to import a cloudProviderSnapshotRestoreJob, use the format {project_id}-{cluster_name}-{snapshot_restore_job_id}")
+		err = errors.New("import format error: to import a cloudProviderSnapshotRestoreJob, use the format {project_id}/{cluster_name}/{snapshot_restore_job_id} or the legacy format {project_id}-{cluster_name}-{snapshot_restore_job_id}")
 		return
 	}
-
-	projectID = parts[1]
-	clusterName = parts[2]
-	snapshotJobID = parts[3]
-
-	return
+	return parts[1], parts[2], parts[3], true, nil
 }
 
 func validateDeliveryType(dt []any) error {

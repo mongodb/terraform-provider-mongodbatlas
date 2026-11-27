@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -573,14 +574,13 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	parts := strings.SplitN(d.Id(), "-", 3)
-	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a peer, use the format {project_id}-{peer_id}-{provider_name}")
+	projectID, peerID, providerName, legacy, err := splitNetworkPeerImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
-
-	projectID := parts[0]
-	peerID := parts[1]
-	providerName := parts[2]
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{peer_id}-{provider_name}", "{project_id}/{peer_id}/{provider_name}"))
+	}
 
 	peer, _, err := conn.NetworkPeeringAPI.GetGroupPeer(ctx, projectID, peerID).Execute()
 	if err != nil {
@@ -606,6 +606,19 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func splitNetworkPeerImportID(id string) (projectID, peerID, providerName string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 3); ok {
+		return parts[0], parts[1], parts[2], false, nil
+	}
+	parts := strings.SplitN(id, "-", 3)
+	if len(parts) != 3 {
+		legacy = false
+		err = errors.New("import format error: to import a peer, use the format {project_id}/{peer_id}/{provider_name} or the legacy format {project_id}-{peer_id}-{provider_name}")
+		return
+	}
+	return parts[0], parts[1], parts[2], true, nil
 }
 
 func resourceRefreshFunc(ctx context.Context, peerID, projectID, containerID string, api admin.NetworkPeeringAPI) retry.StateRefreshFunc {

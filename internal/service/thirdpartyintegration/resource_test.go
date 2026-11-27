@@ -8,7 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // dummy keys used for credential values in third party notifications
@@ -543,5 +546,60 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return nil
 		}
 		return fmt.Errorf("third party integration (%s) does not exist", attrs["project_id"])
+	}
+}
+
+func TestSplitIntegrationTypeID(t *testing.T) {
+	const errorString = "import format error: to import a third party integration, use the format {project_id}/{integration_type} or the legacy format {project_id}-{integration_type}"
+	tests := map[string]struct {
+		importID        string
+		projectID       string
+		integrationType string
+		errorString     string
+		legacy          bool
+	}{
+		"slash format": {
+			importID:        "664619d870c247237f4b86a6/PAGER_DUTY",
+			projectID:       "664619d870c247237f4b86a6",
+			integrationType: "PAGER_DUTY",
+		},
+		"slash format with more parts": {
+			importID:    "part1/part2/part3",
+			errorString: errorString,
+		},
+		"legacy format": {
+			importID:        "664619d870c247237f4b86a6-PAGER_DUTY",
+			projectID:       "664619d870c247237f4b86a6",
+			integrationType: "PAGER_DUTY",
+			legacy:          true,
+		},
+		"legacy format with hyphens in integration type": {
+			importID:        "664619d870c247237f4b86a6-SOME-TYPE",
+			projectID:       "664619d870c247237f4b86a6",
+			integrationType: "SOME-TYPE",
+			legacy:          true,
+		},
+		"legacy format without a 24 character hex project ID": {
+			importID:    "my-project-PAGER_DUTY",
+			errorString: errorString,
+		},
+		"empty input": {
+			importID:    "",
+			errorString: errorString,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			projectID, integrationType, legacy, err := thirdpartyintegration.SplitIntegrationTypeID(tc.importID)
+			if tc.errorString != "" {
+				require.EqualError(t, err, tc.errorString)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, tc.projectID, projectID)
+			assert.Equal(t, tc.integrationType, integrationType)
+			assert.Equal(t, tc.legacy, legacy)
+		})
 	}
 }

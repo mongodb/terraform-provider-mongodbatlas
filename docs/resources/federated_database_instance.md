@@ -307,15 +307,20 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-- The Federated Database Instance can be imported using project ID, name of the instance, in the format `project_id`--`name`, e.g.
-  ```
-  $ terraform import mongodbatlas_federated_database_instance.example 1112222b3bf99403840e8934--test
-  ```
-
-- The Federated Database Instance can be imported using project ID, name of the instance and name of the AWS S3 bucket, in the format `project_id`--`name`--`aws_test_s3_bucket`, e.g.
+- The Federated Database Instance can be imported using project ID and name of the instance, in the format `{project_id}/{name}`.
 
   ```
-  $ terraform import mongodbatlas_federated_database_instance.example 1112222b3bf99403840e8934--test--s3-test
+  $ terraform import mongodbatlas_federated_database_instance.example 1112222b3bf99403840e8934/test
   ```
+
+  The legacy `{project_id}--{name}` format is still accepted but deprecated.
+
+- The Federated Database Instance can be imported using project ID, name of the instance and name of the AWS S3 bucket, in the format `{project_id}/{name}/{test_s3_bucket}`.
+
+  ```
+  $ terraform import mongodbatlas_federated_database_instance.example 1112222b3bf99403840e8934/test/s3-test
+  ```
+
+  The legacy `{project_id}--{name}--{test_s3_bucket}` format is still accepted but deprecated.
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) Documentation for more information.

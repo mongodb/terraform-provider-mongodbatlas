@@ -279,13 +279,13 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	parts := strings.SplitN(d.Id(), "-", 2)
-	if len(parts) != 2 {
-		return nil, errors.New("import format error: to import a container, use the format {project_id}-{container_id}")
+	projectID, containerID, legacy, err := splitNetworkContainerImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
-
-	projectID := parts[0]
-	containerID := parts[1]
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{container_id}", "{project_id}/{container_id}"))
+	}
 
 	networkContainer, _, err := connV2.NetworkPeeringAPI.GetGroupContainer(ctx, projectID, containerID).Execute()
 	if err != nil {
@@ -314,6 +314,19 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func splitNetworkContainerImportID(id string) (projectID, containerID string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+	parts := strings.SplitN(id, "-", 2)
+	if len(parts) != 2 {
+		legacy = false
+		err = errors.New("import format error: to import a container, use the format {project_id}/{container_id} or the legacy format {project_id}-{container_id}")
+		return
+	}
+	return parts[0], parts[1], true, nil
 }
 
 func resourceRefreshFunc(ctx context.Context, d *schema.ResourceData, client *admin.APIClient) retry.StateRefreshFunc {

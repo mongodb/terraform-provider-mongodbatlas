@@ -296,11 +296,15 @@ In addition to all arguments above, the following attributes are exported:
 * `port_mapping_enabled` - Flag that indicates whether the underlying `privatelink_endpoint` resource uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-mapped architecture. When `false`, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.
 
 ## Import
-Private Endpoint Link Connection can be imported using project ID, private link ID, endpoint service ID, and provider name, in the format `{project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}`, e.g.
+Private Endpoint Link Connection can be imported using project ID, private link ID, endpoint service ID, and provider name, in the format `{project_id}/{private_link_id}/{endpoint_service_id}/{provider_name}`, e.g.
 
 ```
-$ terraform import mongodbatlas_privatelink_endpoint_service.this 1112222b3bf99403840e8934--3242342343112--vpce-4242342343--AWS
+$ terraform import mongodbatlas_privatelink_endpoint_service.this 1112222b3bf99403840e8934/3242342343112/vpce-4242342343/AWS
 ```
+
+The legacy `{project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}` format is still accepted but deprecated.
+
+For Azure, `endpoint_service_id` is the full ARM resource ID and contains slashes, so the import ID includes them as well (for example `{project_id}/{private_link_id}//subscriptions/.../privateEndpoints/{name}/AZURE`).
 
 For more information, see:
 - [MongoDB API Private Endpoint Link Connection](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupprivateendpointendpointserviceendpoint) for detailed arguments and attributes.

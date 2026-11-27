@@ -577,6 +577,7 @@ func TestSplitOnlineArchiveImportID(t *testing.T) {
 		clusterName string
 		archiveID   string
 		errorString string
+		legacy      bool
 	}{
 		"slash format": {
 			importID:    "664619d870c247237f4b86a6/my-cluster/664619d870c247237f4b86a7",
@@ -593,18 +594,21 @@ func TestSplitOnlineArchiveImportID(t *testing.T) {
 			projectID:   "664619d870c247237f4b86a6",
 			clusterName: "Cluster0",
 			archiveID:   "664619d870c247237f4b86a7",
+			legacy:      true,
 		},
 		"cluster name with one hyphen": {
 			importID:    "664619d870c247237f4b86a6-my-cluster-664619d870c247237f4b86a7",
 			projectID:   "664619d870c247237f4b86a6",
 			clusterName: "my-cluster",
 			archiveID:   "664619d870c247237f4b86a7",
+			legacy:      true,
 		},
 		"cluster name with several hyphens": {
 			importID:    "664619d870c247237f4b86a6-my-prod-cluster-01-664619d870c247237f4b86a7",
 			projectID:   "664619d870c247237f4b86a6",
 			clusterName: "my-prod-cluster-01",
 			archiveID:   "664619d870c247237f4b86a7",
+			legacy:      true,
 		},
 		"missing archive ID": {
 			importID:    "664619d870c247237f4b86a6-Cluster0",
@@ -618,7 +622,7 @@ func TestSplitOnlineArchiveImportID(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			projectID, clusterName, archiveID, err := onlinearchive.SplitOnlineArchiveImportID(tc.importID)
+			projectID, clusterName, archiveID, legacy, err := onlinearchive.SplitOnlineArchiveImportID(tc.importID)
 			if tc.errorString != "" {
 				require.EqualError(t, err, tc.errorString)
 			} else {
@@ -627,6 +631,7 @@ func TestSplitOnlineArchiveImportID(t *testing.T) {
 			assert.Equal(t, tc.projectID, projectID)
 			assert.Equal(t, tc.clusterName, clusterName)
 			assert.Equal(t, tc.archiveID, archiveID)
+			assert.Equal(t, tc.legacy, legacy)
 		})
 	}
 }

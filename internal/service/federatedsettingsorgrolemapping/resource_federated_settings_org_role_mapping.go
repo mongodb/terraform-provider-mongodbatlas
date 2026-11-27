@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -14,6 +15,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20250312028/admin"
 )
+
+var legacyImportIDRegex = regexp.MustCompile(`(?s)^(.*)-(.*)-(.*)$`)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -202,44 +205,46 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	federationSettingsID, orgID, roleMappingID, err := splitFederatedSettingsOrganizationRoleMappingImportID(d.Id())
+	federationSettingsID, orgID, roleMappingID, legacy, err := SplitFederatedSettingsOrganizationRoleMappingImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
-
-	_, _, err = conn.FederatedAuthenticationAPI.GetRoleMapping(ctx, *federationSettingsID, *roleMappingID, *orgID).Execute()
-	if err != nil {
-		return nil, fmt.Errorf("couldn't import Role Mappings (%s) in Federation settings (%s), error: %s", *roleMappingID, *federationSettingsID, err)
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{federation_settings_id}-{org_id}-{role_mapping_id}", "{federation_settings_id}/{org_id}/{role_mapping_id}"))
 	}
 
-	if err := d.Set("federation_settings_id", *federationSettingsID); err != nil {
+	_, _, err = conn.FederatedAuthenticationAPI.GetRoleMapping(ctx, federationSettingsID, roleMappingID, orgID).Execute()
+	if err != nil {
+		return nil, fmt.Errorf("couldn't import Role Mappings (%s) in Federation settings (%s), error: %s", roleMappingID, federationSettingsID, err)
+	}
+
+	if err := d.Set("federation_settings_id", federationSettingsID); err != nil {
 		return nil, fmt.Errorf("error setting federation_settings_id for role mapping in Federation settings (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("org_id", *orgID); err != nil {
+	if err := d.Set("org_id", orgID); err != nil {
 		return nil, fmt.Errorf("error setting org_id for role mapping in Federation settings (%s): %s", d.Id(), err)
 	}
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"federation_settings_id": *federationSettingsID,
-		"org_id":                 *orgID,
-		"role_mapping_id":        *roleMappingID,
+		"federation_settings_id": federationSettingsID,
+		"org_id":                 orgID,
+		"role_mapping_id":        roleMappingID,
 	}))
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func splitFederatedSettingsOrganizationRoleMappingImportID(id string) (federationSettingsID, orgID, roleMappingID *string, err error) {
-	var re = regexp.MustCompile(`(?s)^(.*)-(.*)-(.*)$`)
-	parts := re.FindStringSubmatch(id)
-
+// SplitFederatedSettingsOrganizationRoleMappingImportID splits an import ID in the format
+// {federation_settings_id}/{org_id}/{role_mapping_id} or in the legacy format
+// {federation_settings_id}-{org_id}-{role_mapping_id}.
+func SplitFederatedSettingsOrganizationRoleMappingImportID(id string) (federationSettingsID, orgID, roleMappingID string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 3); ok {
+		return parts[0], parts[1], parts[2], false, nil
+	}
+	parts := legacyImportIDRegex.FindStringSubmatch(id)
 	if len(parts) != 4 {
-		err = errors.New("import format error: to import a Federated Settings Role Mappings, use the format {federation_settings_id}-{org_id}-{role_mapping_id}")
+		err = errors.New("import format error: to import a Federated Settings Role Mappings, use the format {federation_settings_id}/{org_id}/{role_mapping_id} or the legacy format {federation_settings_id}-{org_id}-{role_mapping_id}")
 		return
 	}
-
-	federationSettingsID = &parts[1]
-	orgID = &parts[2]
-	roleMappingID = &parts[3]
-
-	return
+	return parts[1], parts[2], parts[3], true, nil
 }

@@ -93,8 +93,10 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 -> **NOTE:** For more details on how attributes are used to enable access to cloud provider accounts see [AWS example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.22.0/examples/mongodbatlas_cloud_provider_access/aws) and [Azure example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.22.0/examples/mongodbatlas_cloud_provider_access/azure). 
 
 ## Import
-It can be imported using project ID, provider name and role_id in the format `project_id`-`provider_name`-`role_id`, e.g.
+It can be imported using project ID, provider name and role_id, in the format `{project_id}/{provider_name}/{role_id}`, e.g.
 
 ```
-$ terraform import mongodbatlas_cloud_provider_access_setup.my_role 1112222b3bf99403840e8934-AWS-5fc17d476f7a33224f5b224e
+$ terraform import mongodbatlas_cloud_provider_access_setup.my_role 1112222b3bf99403840e8934/AWS/5fc17d476f7a33224f5b224e
 ```
+
+The legacy `{project_id}-{provider_name}-{role_id}` format is still accepted but deprecated.

@@ -443,6 +443,7 @@ func TestSplitDatabaseUserImportID(t *testing.T) {
 		username    string
 		authDBName  string
 		errorString string
+		legacy      bool
 	}{
 		"valid input": {
 			importID:   "664619d870c247237f4b86a6/my-username-dash/my-db-name",
@@ -455,6 +456,20 @@ func TestSplitDatabaseUserImportID(t *testing.T) {
 			projectID:  "664619d870c247237f4b86a6",
 			username:   "myUsernameCamel",
 			authDBName: "mydbname",
+			legacy:     true,
+		},
+		"valid input with slash in OIDC username": {
+			importID:   "664619d870c247237f4b86a6/oidc-idp/group/my-role/admin",
+			projectID:  "664619d870c247237f4b86a6",
+			username:   "oidc-idp/group/my-role",
+			authDBName: "admin",
+		},
+		"valid input legacy with slash in username": {
+			importID:   "664619d870c247237f4b86a6-user/name-admin",
+			projectID:  "664619d870c247237f4b86a6",
+			username:   "user/name",
+			authDBName: "admin",
+			legacy:     true,
 		},
 		"invalid input projectID": {
 			importID:    "part1/part2/part3",
@@ -488,7 +503,7 @@ func TestSplitDatabaseUserImportID(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			part1, part2, part3, err := databaseuser.SplitDatabaseUserImportID(tc.importID)
+			part1, part2, part3, legacy, err := databaseuser.SplitDatabaseUserImportID(tc.importID)
 			if tc.errorString != "" {
 				require.EqualError(t, err, tc.errorString)
 			} else {
@@ -497,6 +512,7 @@ func TestSplitDatabaseUserImportID(t *testing.T) {
 			assert.Equal(t, tc.projectID, part1)
 			assert.Equal(t, tc.username, part2)
 			assert.Equal(t, tc.authDBName, part3)
+			assert.Equal(t, tc.legacy, legacy)
 		})
 	}
 }

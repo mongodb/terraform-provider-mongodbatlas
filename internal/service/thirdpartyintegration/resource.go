@@ -3,6 +3,7 @@ package thirdpartyintegration
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"slices"
 
@@ -10,9 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
+
+var legacyImportIDRegex = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 
 var integrationTypes = []string{
 	"PAGER_DUTY",
@@ -258,10 +262,13 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	projectID, integrationType, err := splitIntegrationTypeID(d.Id())
+	projectID, integrationType, legacy, err := SplitIntegrationTypeID(d.Id())
 
 	if err != nil {
 		return nil, err
+	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{integration_type}", "{project_id}/{integration_type}"))
 	}
 
 	_, _, err = connV2.ThirdPartyIntegrationsAPI.GetGroupIntegration(ctx, projectID, integrationType).Execute()
@@ -281,19 +288,18 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	return []*schema.ResourceData{d}, nil
 }
 
-// format {project_id}-{integration_type}
-func splitIntegrationTypeID(id string) (projectID, integrationType string, err error) {
-	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
-	parts := re.FindStringSubmatch(id)
-
+// SplitIntegrationTypeID splits an import ID in the format {project_id}/{integration_type}
+// or in the legacy format {project_id}-{integration_type}.
+func SplitIntegrationTypeID(id string) (projectID, integrationType string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+	parts := legacyImportIDRegex.FindStringSubmatch(id)
 	if len(parts) != 3 {
-		err = fmt.Errorf("import format error: to import a third party integration, use the format {project_id}-{integration_type} %s, %+v", id, parts)
+		err = fmt.Errorf("import format error: to import a third party integration, use the format {project_id}/{integration_type} or the legacy format {project_id}-{integration_type}")
 		return
 	}
-
-	projectID, integrationType = parts[1], parts[2]
-
-	return
+	return parts[1], parts[2], true, nil
 }
 
 func validateIntegrationType() schema.SchemaValidateDiagFunc {

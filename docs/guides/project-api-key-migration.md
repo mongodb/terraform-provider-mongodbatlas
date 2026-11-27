@@ -88,13 +88,13 @@ If you are migrating from `mongodbatlas_project_api_key` resources already manag
    ```
 2. **Import the existing API key into the API key resource:**
    ```shell
-   terraform import mongodbatlas_api_key.new <ORG_ID>-<API_KEY_ID>
+   terraform import mongodbatlas_api_key.new <ORG_ID>/<API_KEY_ID>
    ```
    Alternatively a `import block` (available in Terraform 1.5 and later) can be used to import the resource, e.g.:
    ```terraform
    import {
     to = mongodbatlas_project_api_key.new
-    id = "<ORG_ID>-<API_KEY_ID>"
+    id = "<ORG_ID>/<API_KEY_ID>"
    }
    ```
 3. **Import the existing project assignment into the assignment resource:**
@@ -140,7 +140,7 @@ If you are using modules to manage your API key assignments, migrating from `mon
 
 **Example import commands for modules:**
 ```shell
-terraform import 'module.<module_name>.mongodbatlas_api_key.<name>' <ORG_ID>-<API_KEY_ID>
+terraform import 'module.<module_name>.mongodbatlas_api_key.<name>' <ORG_ID>/<API_KEY_ID>
 terraform import 'module.<module_name>.mongodbatlas_api_key_project_assignment.<name>' <PROJECT_ID>/<API_KEY_ID>
 ```
 
@@ -148,7 +148,7 @@ terraform import 'module.<module_name>.mongodbatlas_api_key_project_assignment.<
 ```terraform
 import {
    to = module.api_key_assignment.mongodbatlas_api_key.this
-   id = "<ORG_ID>-<API_KEY_ID>"
+   id = "<ORG_ID>/<API_KEY_ID>"
 }
 import {
    to = module.api_key_assignment.mongodbatlas_api_key_project_assignment.this
@@ -184,14 +184,14 @@ module "api_key_assignment" {
 2. **Import the existing API key and assignment into the new resources:**
    - Use the correct resource addresses for your module:
    ```shell
-   terraform import 'module.api_key_assignment.mongodbatlas_api_key.this' <ORG_ID>-<API_KEY_ID>
+   terraform import 'module.api_key_assignment.mongodbatlas_api_key.this' <ORG_ID>/<API_KEY_ID>
    terraform import 'module.api_key_assignment.mongodbatlas_api_key_project_assignment.this' <PROJECT_ID>/<API_KEY_ID>
    ```
    Alternatively a `import block` (available in Terraform 1.5 and later) can be used to import the resource, e.g.:
    ```terraform
    import {
     to = module.api_key_assignment.mongodbatlas_api_key.this
-    id = "<ORG_ID>-<API_KEY_ID>"
+    id = "<ORG_ID>/<API_KEY_ID>"
    }
    import {
     to = module.api_key_assignment.mongodbatlas_api_key_project_assignment.this

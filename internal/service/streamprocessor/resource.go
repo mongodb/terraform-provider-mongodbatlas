@@ -295,10 +295,13 @@ func (r *streamProcessorRS) Delete(ctx context.Context, req resource.DeleteReque
 }
 
 func (r *streamProcessorRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	projectID, workspaceName, processorName, err := splitImportID(req.ID)
+	projectID, workspaceName, processorName, legacy, err := SplitStreamProcessorImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting import ID", err.Error())
 		return
+	}
+	if legacy {
+		resp.Diagnostics.AddWarning(conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{instance_name}-{project_id}-{processor_name}", "{project_id}/{instance_name}/{processor_name}"))
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
@@ -307,12 +310,18 @@ func (r *streamProcessorRS) ImportState(ctx context.Context, req resource.Import
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("processor_name"), processorName)...)
 }
 
-func splitImportID(id string) (projectID, workspaceName, processorName *string, err error) {
+func SplitStreamProcessorImportID(id string) (projectID, workspaceName, processorName *string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 3); ok {
+		return &parts[0], &parts[1], &parts[2], false, nil
+	}
+
+	legacy = true
 	var re = regexp.MustCompile(`^(.*)-([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 4 {
-		err = errors.New("import format error: to import a stream processor, use the format {instance_name}-{project_id}-(processor_name)")
+		legacy = false
+		err = errors.New("import format error: to import a stream processor, use the format {project_id}/{instance_name}/{processor_name}, or the legacy format {instance_name}-{project_id}-{processor_name}")
 		return
 	}
 

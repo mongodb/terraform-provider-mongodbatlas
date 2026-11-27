@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20250312028/admin"
@@ -470,9 +471,12 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	projectID, name, s3Bucket, err := splitDataFederatedInstanceImportID(d.Id())
+	projectID, name, s3Bucket, legacy, err := SplitDataFederatedInstanceImportID(d.Id())
 	if err != nil {
 		return nil, err
+	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}--{name}[--{test_s3_bucket}]", "{project_id}/{name}[/{test_s3_bucket}]"))
 	}
 
 	// test_s3_bucket is not part of the API response
@@ -963,22 +967,25 @@ func flattenReadPreferenceTags(tags []admin.DataLakeAtlasStoreReadPreferenceTag)
 	return tfTags
 }
 
-func splitDataFederatedInstanceImportID(id string) (projectID, name, s3Bucket string, err error) {
-	var parts = strings.Split(id, "--")
+func SplitDataFederatedInstanceImportID(id string) (projectID, name, s3Bucket string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], "", false, nil
+	}
+	if ok, parts := conversion.ImportSplit(id, 3); ok {
+		return parts[0], parts[1], parts[2], false, nil
+	}
+
+	parts := strings.Split(id, "--")
 
 	if len(parts) == 2 {
-		projectID = parts[0]
-		name = parts[1]
-		return
+		return parts[0], parts[1], "", true, nil
 	}
 
 	if len(parts) == 3 {
-		projectID = parts[0]
-		name = parts[1]
-		s3Bucket = parts[2]
-		return
+		return parts[0], parts[1], parts[2], true, nil
 	}
 
-	err = errors.New("import format error: to import a Data Federated instance, use the format {project_id}--{name} or {project_id}--{name}--{test_s3_bucket}")
+	legacy = false
+	err = errors.New("import format error: to import a Data Federated instance, use the format {project_id}/{name} or {project_id}/{name}/{test_s3_bucket}, or the legacy formats {project_id}--{name} and {project_id}--{name}--{test_s3_bucket}")
 	return
 }

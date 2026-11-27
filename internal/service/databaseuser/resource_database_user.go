@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
@@ -375,26 +376,37 @@ func (r *databaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest,
 }
 
 func (r *databaseUserRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	projectID, username, authDatabaseName, err := SplitDatabaseUserImportID(req.ID)
+	projectID, username, authDatabaseName, legacy, err := SplitDatabaseUserImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting database User info from ID", err.Error())
 		return
+	}
+	if legacy {
+		resp.Diagnostics.AddWarning(conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{username}-{auth_database_name}", "{project_id}/{username}/{auth_database_name}"))
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("username"), username)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("auth_database_name"), authDatabaseName)...)
 }
 
-func SplitDatabaseUserImportID(id string) (projectID, username, authDatabaseName string, err error) {
-	ok, splitParts := conversion.ImportSplit(id, 3)
-	if ok {
+func SplitDatabaseUserImportID(id string) (projectID, username, authDatabaseName string, legacy bool, err error) {
+	if ok, splitParts := conversion.ImportSplit(id, 3); ok {
 		projectID, username, authDatabaseName = splitParts[0], splitParts[1], splitParts[2]
 		err = conversion.ValidateProjectID(projectID)
 		return
 	}
+	// Usernames may contain "/" (for example OIDC and AWS IAM usernames). In that case the
+	// project ID is the first component and the auth database name is the last one.
+	if firstSlash := strings.Index(id, "/"); firstSlash > 0 && conversion.ValidateProjectID(id[:firstSlash]) == nil {
+		if lastSlash := strings.LastIndex(id, "/"); lastSlash > firstSlash {
+			return id[:firstSlash], id[firstSlash+1 : lastSlash], id[lastSlash+1:], false, nil
+		}
+	}
+	legacy = true
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([$a-z]{1,15})$`)
 	parts := re.FindStringSubmatch(id)
 	if len(parts) != 4 {
+		legacy = false
 		err = errors.New(ErrorImportFormat)
 		return
 	}

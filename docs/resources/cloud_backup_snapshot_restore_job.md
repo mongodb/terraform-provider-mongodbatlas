@@ -204,10 +204,12 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Cloud Backup Snapshot Restore Job entries can be imported using project project_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `PROJECTID-CLUSTERNAME-JOBID`, e.g.
+Cloud Backup Snapshot Restore Job entries can be imported using project project_id, cluster_name and snapshot_restore_job_id, in the format `{project_id}/{cluster_name}/{snapshot_restore_job_id}`.
 
 ```
-$ terraform import mongodbatlas_cloud_backup_snapshot_restore_job.test 5cf5a45a9ccf6400e60981b6-MyCluster-5d1b654ecf09a24b888f4c79
+$ terraform import mongodbatlas_cloud_backup_snapshot_restore_job.test 5cf5a45a9ccf6400e60981b6/MyCluster/5d1b654ecf09a24b888f4c79
 ```
+
+The legacy `{project_id}-{cluster_name}-{snapshot_restore_job_id}` format is still accepted but deprecated.
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/restore/restores/)

@@ -93,10 +93,12 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Cloud Backup Snapshot entries can be imported using project project_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `PROJECTID-CLUSTERNAME-SNAPSHOTID`, e.g.
+Cloud Backup Snapshot entries can be imported using project project_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `{project_id}/{cluster_name}/{snapshot_id}`, e.g.
 
 ```
-$ terraform import mongodbatlas_cloud_backup_snapshot.test 5d0f1f73cf09a29120e173cf-MyClusterTest-5d116d82014b764445b2f9b5
+$ terraform import mongodbatlas_cloud_backup_snapshot.test 5d0f1f73cf09a29120e173cf/MyClusterTest/5d116d82014b764445b2f9b5
 ```
+
+The legacy `{project_id}-{cluster_name}-{snapshot_id}` format is still accepted but deprecated.
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/backup/backups/)

@@ -2,6 +2,7 @@ package alertconfiguration
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"strings"
 
@@ -523,19 +524,35 @@ func (r *alertConfigurationRS) Delete(ctx context.Context, req resource.DeleteRe
 }
 
 func (r *alertConfigurationRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.SplitN(req.ID, "-", 2)
-
-	if len(parts) != 2 {
-		resp.Diagnostics.AddError("import format error", "to import an alert configuration, use the format {project_id}-{alert_configuration_id}")
+	projectID, alertConfigurationID, legacy, err := splitAlertConfigurationImportID(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError("import format error", err.Error())
 		return
 	}
-
-	projectID := parts[0]
-	alertConfigurationID := parts[1]
+	if legacy {
+		resp.Diagnostics.AddWarning(conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{alert_configuration_id}", "{project_id}/{alert_configuration_id}"))
+	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), conversion.EncodeStateID(map[string]string{
 		"id":         alertConfigurationID,
 		"project_id": projectID,
 	}))...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
+}
+
+func splitAlertConfigurationImportID(id string) (projectID, alertConfigurationID string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+	legacy = true
+	parts := strings.SplitN(id, "-", 2)
+
+	if len(parts) != 2 {
+		legacy = false
+		err = errors.New("import format error: to import an alert configuration, use the format {project_id}/{alert_configuration_id} or the legacy format {project_id}-{alert_configuration_id}")
+		return
+	}
+
+	projectID, alertConfigurationID = parts[0], parts[1]
+	return
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/deletenotfound"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -136,20 +137,28 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	projectID, workspaceName, err := splitStreamsWorkspaceImportID(req.ID)
+	projectID, workspaceName, legacy, err := splitStreamsWorkspaceImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting streams workspace import ID", err.Error())
 		return
+	}
+	if legacy {
+		resp.Diagnostics.AddWarning(conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{workspace_name}", "{project_id}/{workspace_name}"))
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("workspace_name"), workspaceName)...)
 }
 
-func splitStreamsWorkspaceImportID(id string) (projectID, workspaceName string, err error) {
+func splitStreamsWorkspaceImportID(id string) (projectID, workspaceName string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+	legacy = true
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 	if len(parts) != 3 {
-		err = errors.New("use the format {project_id}-{workspace_name}")
+		legacy = false
+		err = errors.New("use the format {project_id}/{workspace_name} or the legacy format {project_id}-{workspace_name}")
 		return
 	}
 	projectID, workspaceName = parts[1], parts[2]

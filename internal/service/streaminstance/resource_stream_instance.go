@@ -137,22 +137,30 @@ func (r *streamInstanceRS) Delete(ctx context.Context, req resource.DeleteReques
 }
 
 func (r *streamInstanceRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	projectID, instanceName, err := splitStreamInstanceImportID(req.ID)
+	projectID, instanceName, legacy, err := splitStreamInstanceImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting search deployment import ID", err.Error())
 		return
+	}
+	if legacy {
+		resp.Diagnostics.AddWarning(conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}-{instance_name}", "{project_id}/{instance_name}"))
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("instance_name"), instanceName)...)
 }
 
-func splitStreamInstanceImportID(id string) (projectID, instanceName string, err error) {
+func splitStreamInstanceImportID(id string) (projectID, instanceName string, legacy bool, err error) {
+	if ok, parts := conversion.ImportSplit(id, 2); ok {
+		return parts[0], parts[1], false, nil
+	}
+	legacy = true
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 3 {
-		err = errors.New("use the format {project_id}-{instance_name}")
+		legacy = false
+		err = errors.New("use the format {project_id}/{instance_name} or the legacy format {project_id}-{instance_name}")
 		return
 	}
 

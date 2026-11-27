@@ -205,9 +205,12 @@ func setMappingsAttributesFromDefinition(d *schema.ResourceData, mappings *admin
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	projectID, clusterName, indexID, err := SplitImportID(d.Id())
+	projectID, clusterName, indexID, legacy, err := SplitImportID(d.Id())
 	if err != nil {
 		return nil, err
+	}
+	if legacy {
+		log.Printf("[WARN] %s: %s", conversion.LegacyImportFormatWarningSummary, conversion.LegacyImportFormatWarningDetail("{project_id}--{cluster_name}--{index_id}", "{project_id}/{cluster_name}/{index_id}"))
 	}
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
@@ -239,16 +242,16 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 
 // SplitImportID splits an import ID in the format {project_id}/{cluster_name}/{index_id},
 // or in the legacy format {project_id}--{cluster_name}--{index_id}, where the cluster name can contain hyphens.
-func SplitImportID(id string) (projectID, clusterName, indexID string, err error) {
+func SplitImportID(id string) (projectID, clusterName, indexID string, legacy bool, err error) {
 	if ok, parts := conversion.ImportSplit(id, 3); ok {
-		return parts[0], parts[1], parts[2], nil
+		return parts[0], parts[1], parts[2], false, nil
 	}
 	parts := legacyImportIDRegex.FindStringSubmatch(id)
 	if len(parts) != 4 {
 		err = errors.New(ErrorImportFormat)
 		return
 	}
-	return parts[1], parts[2], parts[3], nil
+	return parts[1], parts[2], parts[3], true, nil
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
