@@ -574,7 +574,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	projectID, peerID, providerName, legacy, err := splitNetworkPeerImportID(d.Id())
+	projectID, peerID, providerName, legacy, err := SplitNetworkPeerImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
@@ -608,7 +608,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	return []*schema.ResourceData{d}, nil
 }
 
-func splitNetworkPeerImportID(id string) (projectID, peerID, providerName string, legacy bool, err error) {
+func SplitNetworkPeerImportID(id string) (projectID, peerID, providerName string, legacy bool, err error) {
 	if ok, parts := conversion.ImportSplit(id, 3); ok {
 		return parts[0], parts[1], parts[2], false, nil
 	}
