@@ -332,11 +332,9 @@ func resourceRefreshFunc(ctx context.Context, d *schema.ResourceData, client *ad
 			return nil, "", err
 		}
 
-		if *container.Provisioned {
-			return container, "provisioned_container", nil
-		}
-
-		// Atlas Delete is called inside refresh to retry when error: HTTP 409 Conflict (Error code: "CONTAINERS_IN_USE").
+		// Delete is attempted on every refresh, even while Atlas still reports the container as provisioned,
+		// because that flag can lag behind peering removal. A container still in use returns
+		// HTTP 409 Conflict (Error code: "CONTAINERS_IN_USE") and the refresh retries until the timeout.
 		_, err = client.NetworkPeeringAPI.DeleteGroupContainer(ctx, projectID, containerID).Execute()
 		if err != nil {
 			return container, "provisioned_container", nil
