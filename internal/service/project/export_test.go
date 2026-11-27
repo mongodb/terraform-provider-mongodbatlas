@@ -1,7 +1,16 @@
 package project
 
-// Test helpers exported only for package project_test (see data_source_projects_test.go).
+import (
+	"context"
 
-type TFProjectsDSModel = tfProjectsDSModel
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"go.mongodb.org/atlas-sdk/v20250312028/admin"
+)
 
-var PopulateProjectsDataSourceModel = populateProjectsDataSourceModel
+// Test helpers exported only for package project_test.
+
+func PopulateProjectsDataSourceModelForTest(ctx context.Context, connV2 *admin.APIClient, projectsRes *admin.PaginatedAtlasGroup) ([]*TFProjectDSModel, diag.Diagnostics) {
+	var stateModel tfProjectsDSModel
+	diags := populateProjectsDataSourceModel(ctx, connV2, &stateModel, projectsRes)
+	return stateModel.Results, diags
+}

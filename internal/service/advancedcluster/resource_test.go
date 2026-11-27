@@ -66,7 +66,8 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 				Check:  checkTenant(projectID, clusterName, true),
 			},
 			{
-				Config: acc.ConfigDedicatedNVMeBackupEnabled(projectID, clusterName, defaultZoneName),
+				// Configuring the version validates that the Free -> Dedicated upgrade request sends mongo_db_major_version.
+				Config: acc.ConfigDedicatedNVMeBackupEnabled(projectID, clusterName, defaultZoneName, "8.0"),
 				Check:  checksDedicatedNVMeBackupEnabled(projectID, clusterName, true),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -1442,7 +1443,8 @@ func checkTenant(projectID, name string, checkPlural bool) resource.TestCheckFun
 func checksDedicatedNVMeBackupEnabled(projectID, name string, checkPlural bool) resource.TestCheckFunc {
 	originalChecks := checkTenant(projectID, name, checkPlural)
 	checkMap := map[string]string{
-		"backup_enabled": "true",
+		"backup_enabled":         "true",
+		"mongo_db_major_version": "8.0",
 		"replication_specs.0.region_configs.0.electable_specs.node_count":      "3",
 		"replication_specs.0.region_configs.0.electable_specs.instance_size":   "M40_NVME",
 		"replication_specs.0.region_configs.0.electable_specs.ebs_volume_type": "PROVISIONED",

@@ -83,7 +83,7 @@ func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClien
 
 		projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams)
 		if err != nil {
-			if admin.IsErrorCode(err, "GROUP_NOT_FOUND") { // the project was deleted after it was listed
+			if admin.IsErrorCode(err, "GROUP_NOT_FOUND") { // the project could have just been deleted
 				continue
 			}
 			diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, project.GetId(), err.Error()))
