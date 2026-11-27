@@ -92,6 +92,7 @@ steps:
         name           = "test-acc-tf-c-4545944392606000118"
         cluster_type   = "REPLICASET"
         backup_enabled = true
+        mongo_db_major_version = "8.0"
         replication_specs = [{
           region_configs = [{
             priority      = 7
@@ -121,7 +122,7 @@ steps:
       - path: /api/atlas/v2/groups/{groupId}/clusters/tenantUpgrade
         method: POST
         version: '2023-01-01'
-        text: "{\n \"name\": \"{clusterName}\",\n \"providerBackupEnabled\": true,\n \"providerSettings\": {\n  \"instanceSizeName\": \"M40_NVME\",\n  \"providerName\": \"AWS\",\n  \"regionName\": \"US_EAST_1\"\n }\n}"
+        text: "{\n \"mongoDBMajorVersion\": \"8.0\",\n \"name\": \"{clusterName}\",\n \"providerBackupEnabled\": true,\n \"providerSettings\": {\n  \"instanceSizeName\": \"M40_NVME\",\n  \"providerName\": \"AWS\",\n  \"regionName\": \"US_EAST_1\"\n }\n}"
         responses:
           - response_index: 24
             status: 200
@@ -164,7 +165,7 @@ steps:
       - path: /api/atlas/v2/groups/{groupId}/clusters/tenantUpgrade
         method: POST
         version: '2023-01-01'
-        text: "{\n \"name\": \"{clusterName}\",\n \"providerBackupEnabled\": true,\n \"providerSettings\": {\n  \"instanceSizeName\": \"M40_NVME\",\n  \"providerName\": \"AWS\",\n  \"regionName\": \"US_EAST_1\"\n }\n}"
+        text: "{\n \"mongoDBMajorVersion\": \"8.0\",\n \"name\": \"{clusterName}\",\n \"providerBackupEnabled\": true,\n \"providerSettings\": {\n  \"instanceSizeName\": \"M40_NVME\",\n  \"providerName\": \"AWS\",\n  \"regionName\": \"US_EAST_1\"\n }\n}"
         responses:
           - response_index: 24
             status: 200
