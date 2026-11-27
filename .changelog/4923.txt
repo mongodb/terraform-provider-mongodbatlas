@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_network_container: Waits for the container deletion instead of failing with `couldn't find resource` after about five minutes when the container is still provisioned or a peering is still using it
+```
