@@ -520,7 +520,7 @@ func resourceMongoDBAtlasEventTriggerImportState(ctx context.Context, d *schema.
 		return nil, err
 	}
 
-	parts, legacy, err := splitEventTriggerImportID(d.Id())
+	parts, legacy, err := SplitEventTriggerImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
@@ -553,9 +553,9 @@ func resourceMongoDBAtlasEventTriggerImportState(ctx context.Context, d *schema.
 	return []*schema.ResourceData{d}, nil
 }
 
-// splitEventTriggerImportID accepts the new "/"-separated format first and falls back to the
+// SplitEventTriggerImportID accepts the new "/"-separated format first and falls back to the
 // legacy "--"-separated format. legacy is true only when the legacy format parsed successfully.
-func splitEventTriggerImportID(id string) (parts []string, legacy bool, err error) {
+func SplitEventTriggerImportID(id string) (parts []string, legacy bool, err error) {
 	if ok, newParts := conversion.ImportSplit(id, 3); ok {
 		return newParts, false, nil
 	}

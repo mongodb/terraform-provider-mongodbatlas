@@ -25,5 +25,5 @@ func IDWithProjectIDClusterName(projectID, clusterName string) (string, error) {
 	if err := conversion.ValidateClusterName(clusterName); err != nil {
 		return "", err
 	}
-	return projectID + "-" + clusterName, nil
+	return projectID + "/" + clusterName, nil
 }

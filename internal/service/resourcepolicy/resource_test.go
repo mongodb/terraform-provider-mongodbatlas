@@ -233,7 +233,7 @@ func checkImportStateIDFunc(resourceID string) resource.ImportStateIdFunc {
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceID)
 		}
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["org_id"], rs.Primary.Attributes["id"]), nil
+		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["org_id"], rs.Primary.Attributes["id"]), nil
 	}
 }
 

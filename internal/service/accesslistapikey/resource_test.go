@@ -164,7 +164,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 
-		return fmt.Sprintf("%s-%s-%s", ids["org_id"], ids["api_key_id"], ids["entry"]), nil
+		return fmt.Sprintf("%s/%s/%s", ids["org_id"], ids["api_key_id"], ids["entry"]), nil
 	}
 }
 

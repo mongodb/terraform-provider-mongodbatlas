@@ -437,7 +437,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 			return "", fmt.Errorf("no type is set")
 		}
 
-		return fmt.Sprintf("%s-%s", attrs["project_id"], attrs["type"]), nil
+		return fmt.Sprintf("%s/%s", attrs["project_id"], attrs["type"]), nil
 	}
 }
 

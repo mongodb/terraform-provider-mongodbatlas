@@ -268,7 +268,7 @@ func readIDsFromState(s *terraform.State, resourceName string) (federationSettin
 
 func importStateIDFunc(federationSettingsID, idpID string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
-		return fmt.Sprintf("%s-%s", federationSettingsID, idpID), nil
+		return fmt.Sprintf("%s/%s", federationSettingsID, idpID), nil
 	}
 }
 
@@ -278,7 +278,7 @@ func importStateIDFuncManaged(resourceName string) resource.ImportStateIdFunc {
 		if err != nil {
 			return "", err
 		}
-		return fmt.Sprintf("%s-%s", federationSettingsID, idpID), nil
+		return fmt.Sprintf("%s/%s", federationSettingsID, idpID), nil
 	}
 }
 

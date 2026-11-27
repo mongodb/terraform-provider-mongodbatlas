@@ -225,7 +225,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		return fmt.Sprintf("%s-%s", ids["project_id"], ids["entry"]), nil
+		return fmt.Sprintf("%s/%s", ids["project_id"], ids["entry"]), nil
 	}
 }
 

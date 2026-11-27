@@ -24,7 +24,7 @@ func TestIDWithProjectIDClusterName(t *testing.T) {
 		"valid": {
 			projectID:   projectID,
 			clusterName: clusterName,
-			expectedID:  projectID + "-" + clusterName,
+			expectedID:  projectID + "/" + clusterName,
 		},
 		"invalid project_id": {
 			projectID:         projectIDInvalid,

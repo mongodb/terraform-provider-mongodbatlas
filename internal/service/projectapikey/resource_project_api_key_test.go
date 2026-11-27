@@ -316,7 +316,7 @@ func importStateIDFunc(resourceName, projectID string) resource.ImportStateIdFun
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s", projectID, rs.Primary.Attributes["api_key_id"]), nil
+		return fmt.Sprintf("%s/%s", projectID, rs.Primary.Attributes["api_key_id"]), nil
 	}
 }
 

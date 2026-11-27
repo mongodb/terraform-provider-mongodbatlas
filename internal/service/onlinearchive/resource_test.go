@@ -70,13 +70,6 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"sync_creation", "delete_on_create_timeout", "state"},
 			},
 			{
-				ResourceName:            onlineArchiveResourceName,
-				ImportStateIdFunc:       importStateIDFunc(onlineArchiveResourceName, "-"),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"sync_creation", "delete_on_create_timeout", "state"},
-			},
-			{
 				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 2, 8, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),

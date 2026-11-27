@@ -88,7 +88,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["org_id"], rs.Primary.Attributes["username"]), nil
+		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["org_id"], rs.Primary.Attributes["username"]), nil
 	}
 }
 

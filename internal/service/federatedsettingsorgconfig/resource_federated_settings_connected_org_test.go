@@ -173,7 +173,7 @@ func importStateIDFunc(federationSettingsID, orgID string) resource.ImportStateI
 		})
 
 		ids := conversion.DecodeStateID(ID)
-		return fmt.Sprintf("%s-%s", ids["federation_settings_id"], ids["org_id"]), nil
+		return fmt.Sprintf("%s/%s", ids["federation_settings_id"], ids["org_id"]), nil
 	}
 }
 
