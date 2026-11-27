@@ -2,12 +2,24 @@ package mongodbemployeeaccessgrant_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"regexp"
 	"testing"
 
+	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"go.mongodb.org/atlas-sdk/v20250312028/admin"
+	"go.mongodb.org/atlas-sdk/v20250312028/mockadmin"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -128,6 +140,62 @@ func TestAccMongoDBEmployeeAccessGrant_invalidGrantTypeUpdate(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestDeleteSurfacesNonNotFoundErrors(t *testing.T) {
+	ctx := t.Context()
+	const (
+		projectID   = "650000000000000000000001"
+		clusterName = "cluster-test"
+	)
+	apiErr := errors.New("atlas api error")
+	testCases := map[string]struct {
+		httpResp    *http.Response
+		err         error
+		expectError bool
+	}{
+		"success":                         {httpResp: &http.Response{StatusCode: http.StatusNoContent}},
+		"not found is treated as success": {httpResp: &http.Response{StatusCode: http.StatusNotFound}, err: apiErr},
+		"bad request is surfaced":         {httpResp: &http.Response{StatusCode: http.StatusBadRequest}, err: apiErr, expectError: true},
+		"unauthorized is surfaced":        {httpResp: &http.Response{StatusCode: http.StatusUnauthorized}, err: apiErr, expectError: true},
+		"forbidden is surfaced":           {httpResp: &http.Response{StatusCode: http.StatusForbidden}, err: apiErr, expectError: true},
+		"conflict is surfaced":            {httpResp: &http.Response{StatusCode: http.StatusConflict}, err: apiErr, expectError: true},
+		"too many requests is surfaced":   {httpResp: &http.Response{StatusCode: http.StatusTooManyRequests}, err: apiErr, expectError: true},
+		"server error is surfaced":        {httpResp: &http.Response{StatusCode: http.StatusInternalServerError}, err: apiErr, expectError: true},
+		"transport error is surfaced":     {httpResp: nil, err: apiErr, expectError: true},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			api := mockadmin.NewClustersAPI(t)
+			api.EXPECT().RevokeMongoEmployeeAccess(mock.Anything, projectID, clusterName).Return(admin.RevokeMongoEmployeeAccessApiRequest{ApiService: api}).Once()
+			api.EXPECT().RevokeMongoEmployeeAccessExecute(mock.Anything).Return(tc.httpResp, tc.err).Once()
+
+			r := mongodbemployeeaccessgrant.Resource()
+			r.(config.ImplementedResource).SetClient(&config.MongoDBClient{AtlasV2: &admin.APIClient{ClustersAPI: api}})
+			var schemaResp fwresource.SchemaResponse
+			r.Schema(ctx, fwresource.SchemaRequest{}, &schemaResp)
+
+			state := tfsdk.State{
+				Schema: schemaResp.Schema,
+				Raw: tftypes.NewValue(schemaResp.Schema.Type().TerraformType(ctx), map[string]tftypes.Value{
+					"project_id":      tftypes.NewValue(tftypes.String, projectID),
+					"cluster_name":    tftypes.NewValue(tftypes.String, clusterName),
+					"grant_type":      tftypes.NewValue(tftypes.String, grantType),
+					"expiration_time": tftypes.NewValue(tftypes.String, expirationTime),
+				}),
+			}
+			var resp fwresource.DeleteResponse
+			r.Delete(ctx, fwresource.DeleteRequest{State: state}, &resp)
+
+			if tc.expectError {
+				require.Len(t, resp.Diagnostics.Errors(), 1)
+				require.Equal(t, "Error deleting resource mongodbatlas_mongodb_employee_access_grant", resp.Diagnostics.Errors()[0].Summary())
+				require.Contains(t, resp.Diagnostics.Errors()[0].Detail(), apiErr.Error())
+				return
+			}
+			require.False(t, resp.Diagnostics.HasError(), "unexpected diagnostics: %#v", resp.Diagnostics.Errors())
+		})
+	}
 }
 
 func configBasic(projectID, clusterName, grantType, expirationTime string) string {
