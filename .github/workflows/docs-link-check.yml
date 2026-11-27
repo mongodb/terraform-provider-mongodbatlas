@@ -80,8 +80,6 @@ jobs:
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
-          # Slack only auto-expands a plain @handle inside a mrkdwn block; the
-          # top-level text field does not parse mentions.
           payload: |
             {
               "text": "❌ ${{ github.event.repository.name }}: nightly docs link check failed",
