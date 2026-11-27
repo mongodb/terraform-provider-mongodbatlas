@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312028/admin"
+	"go.mongodb.org/atlas-sdk/v20250312029/admin"
 )
 
 // IsAliasOnlyTransition reports whether a plan preserves the effective workspace

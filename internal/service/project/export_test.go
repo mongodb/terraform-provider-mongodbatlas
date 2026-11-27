@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"go.mongodb.org/atlas-sdk/v20250312028/admin"
+	"go.mongodb.org/atlas-sdk/v20250312029/admin"
 )
 
 // Test helpers exported only for package project_test.
